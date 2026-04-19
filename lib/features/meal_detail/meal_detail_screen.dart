@@ -6,10 +6,12 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:opennutritracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:opennutritracker/core/utils/recipe_factory.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_detail_macro_nutrients.dart';
@@ -177,6 +179,11 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           actions: [
             IconButton(
                 onPressed: () {
+                  _showSaveRecipeDialog(context, selectedUnit);
+                },
+                icon: const Icon(Icons.bookmark_add_outlined)),
+            IconButton(
+                onPressed: () {
                   Navigator.of(context)
                       .pushNamed(NavigationOptions.editMealRoute,
                           arguments: EditMealScreenArguments(
@@ -295,6 +302,59 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         curve: Curves.easeInOut,
       );
     }
+  }
+
+  void _showSaveRecipeDialog(BuildContext context, String selectedUnit) {
+    final controller = TextEditingController(text: meal.name ?? '');
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Save as recipe'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Recipe name',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            TextButton(
+              onPressed: () async {
+                final recipeName = controller.text.trim();
+                if (recipeName.isEmpty) {
+                  return;
+                }
+
+                final recipe = RecipeFactory.fromSingleMeal(
+                  name: recipeName,
+                  meal: meal,
+                  amount: double.tryParse(
+                          quantityTextController.text.replaceAll(',', '.')) ??
+                      1,
+                  unit: selectedUnit,
+                );
+
+                await locator<SaveRecipeUsecase>().saveRecipe(recipe);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Recipe saved')),
+                  );
+                }
+              },
+              child: Text(S.of(context).buttonSaveLabel),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

@@ -40,6 +40,10 @@ class GetIntakeUsecase {
     return _intakeRepository.getRecentIntake();
   }
 
+  Future<List<IntakeEntity>> getAllIntakes() async {
+    return _intakeRepository.getAllIntakes();
+  }
+
   Future<IntakeEntity?> getIntakeById(String intakeId) async {
     return _intakeRepository.getIntakeById(intakeId);
   }

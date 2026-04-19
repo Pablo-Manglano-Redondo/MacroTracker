@@ -9,21 +9,28 @@ import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:opennutritracker/features/recipes/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/features/recipes/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:opennutritracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
+  final RecipeRepository _recipeRepository;
 
   ImportDataUsecase(this._userActivityRepository, this._intakeRepository,
-      this._trackedDayRepository);
+      this._trackedDayRepository, this._recipeRepository);
 
   /// Imports user activity, intake, and tracked day data from a zip file
   /// containing JSON files.
   ///
   /// Returns true if import was successful, false otherwise.
   Future<bool> importData(String userActivityJsonFileName,
-      String userIntakeJsonFileName, String trackedDayJsonFileName) async {
+      String userIntakeJsonFileName, String trackedDayJsonFileName,
+      String recipeJsonFileName) async {
     // Allow user to pick a zip file
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
@@ -87,6 +94,44 @@ class ImportDataUsecase {
       throw Exception('Tracked day file not found in the archive');
     }
 
+    final recipeFile = archive.findFile(recipeJsonFileName);
+    if (recipeFile != null) {
+      final recipeJsonString = utf8.decode(recipeFile.content as List<int>);
+      final recipeList =
+          (jsonDecode(recipeJsonString) as List).cast<Map<String, dynamic>>();
+
+      final recipeDBOs =
+          recipeList.map((json) => RecipeDBO.fromJson(json)).toList();
+
+      for (final recipe in recipeDBOs) {
+        await _recipeRepository.saveRecipe(_mapRecipe(recipe));
+      }
+    }
+
     return true;
+  }
+
+  RecipeEntity _mapRecipe(RecipeDBO recipeDBO) {
+    return RecipeEntity(
+      id: recipeDBO.id,
+      name: recipeDBO.name,
+      notes: recipeDBO.notes,
+      defaultServings: recipeDBO.defaultServings,
+      yieldQuantity: recipeDBO.yieldQuantity,
+      yieldUnit: recipeDBO.yieldUnit,
+      favorite: recipeDBO.favorite,
+      createdAt: recipeDBO.createdAt,
+      updatedAt: recipeDBO.updatedAt,
+      ingredients: recipeDBO.ingredients
+          .map((ingredient) => RecipeIngredientEntity(
+                id: ingredient.id,
+                mealSnapshot:
+                    MealEntity.fromMealDBO(ingredient.mealSnapshot),
+                amount: ingredient.amount,
+                unit: ingredient.unit,
+                position: ingredient.position,
+              ))
+          .toList(),
+    );
   }
 }

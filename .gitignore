@@ -37,6 +37,8 @@ migrate_working_dir/
 # API Keys
 *.env
 env.g.dart
+supabase/.env.functions
+supabase/.deploy.local.ps1
 
 # Symbolication related
 app.*.symbols

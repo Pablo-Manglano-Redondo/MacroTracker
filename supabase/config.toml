@@ -1,0 +1,7 @@
+project_id = "macrotracker"
+
+[functions.meal-interpretations-text]
+verify_jwt = false
+
+[functions.meal-interpretations-photo]
+verify_jwt = false

@@ -10,10 +10,13 @@ import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
+import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
+import 'package:opennutritracker/features/suggestions/presentation/macro_suggestions_card.dart';
+import 'package:opennutritracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -129,6 +132,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           totalCarbsGoal: totalCarbsGoal,
           totalFatsGoal: totalFatsGoal,
           totalProteinsGoal: totalProteinsGoal,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Card(
+            elevation: 0.5,
+            child: ListTile(
+              leading: const Icon(Icons.insights_outlined),
+              title: const Text('Weekly insights'),
+              subtitle: const Text(
+                  'Review averages, adherence, protein consistency and top meals'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).pushNamed(
+                  NavigationOptions.weeklyInsightsRoute,
+                  arguments: WeeklyInsightsScreenArguments(DateTime.now()),
+                );
+              },
+            ),
+          ),
+        ),
+        MacroSuggestionsCard(
+          remainingKcal: _positiveRemaining(totalKcalLeft),
+          remainingCarbs:
+              _positiveRemaining(totalCarbsGoal - totalCarbsIntake),
+          remainingFat: _positiveRemaining(totalFatsGoal - totalFatsIntake),
+          remainingProtein:
+              _positiveRemaining(totalProteinsGoal - totalProteinsIntake),
         ),
         ActivityVerticalList(
           day: DateTime.now(),
@@ -305,5 +335,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (!DateUtils.isSameDay(_homeBloc.currentDay, DateTime.now())) {
       _homeBloc.add(const LoadItemsEvent());
     }
+  }
+
+  double _positiveRemaining(double value) {
+    if (value <= 0) {
+      return 0;
+    }
+    return value;
   }
 }

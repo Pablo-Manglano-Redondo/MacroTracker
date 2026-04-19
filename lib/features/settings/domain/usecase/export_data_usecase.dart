@@ -6,14 +6,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/features/recipes/data/repository/recipe_repository.dart';
 
 class ExportDataUsecase {
   final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
+  final RecipeRepository _recipeRepository;
 
   ExportDataUsecase(this._userActivityRepository, this._intakeRepository,
-      this._trackedDayRepository);
+      this._trackedDayRepository, this._recipeRepository);
 
   /// Exports user activity, intake, and tracked day data to a zip of json
   /// files at a user specified location.
@@ -21,7 +23,8 @@ class ExportDataUsecase {
       String exportZipFileName,
       String userActivityJsonFileName,
       String userIntakeJsonFileName,
-      String trackedDayJsonFileName) async {
+      String trackedDayJsonFileName,
+      String recipeJsonFileName) async {
     // Export user activity data to Json File Bytes
     final fullUserActivity =
         await _userActivityRepository.getAllUserActivityDBO();
@@ -41,6 +44,11 @@ class ExportDataUsecase {
         fullTrackedDay.map((trackedDay) => trackedDay.toJson()).toList());
     final trackedDayJsonBytes = utf8.encode(fullTrackedDayJson);
 
+    final fullRecipes = await _recipeRepository.getAllRecipesDBO();
+    final fullRecipesJson =
+        jsonEncode(fullRecipes.map((recipe) => recipe.toJson()).toList());
+    final recipeJsonBytes = utf8.encode(fullRecipesJson);
+
     // Create a zip file with the exported data
     final archive = Archive();
     archive.addFile(
@@ -54,6 +62,10 @@ class ExportDataUsecase {
     archive.addFile(
       ArchiveFile(trackedDayJsonFileName, trackedDayJsonBytes.length,
           trackedDayJsonBytes),
+    );
+    archive.addFile(
+      ArchiveFile(
+          recipeJsonFileName, recipeJsonBytes.length, recipeJsonBytes),
     );
 
     // Save the zip file to the user specified location

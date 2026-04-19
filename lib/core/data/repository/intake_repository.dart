@@ -33,6 +33,13 @@ class IntakeRepository {
     return await _intakeDataSource.getAllIntakes();
   }
 
+  Future<List<IntakeEntity>> getAllIntakes() async {
+    final intakeDBOList = await _intakeDataSource.getAllIntakes();
+    return intakeDBOList
+        .map((intakeDBO) => IntakeEntity.fromIntakeDBO(intakeDBO))
+        .toList();
+  }
+
   Future<List<IntakeEntity>> getIntakeByDateAndType(
       IntakeTypeEntity intakeType, DateTime date) async {
     final intakeDBOList = await _intakeDataSource.getAllIntakesByDate(

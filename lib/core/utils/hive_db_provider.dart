@@ -15,6 +15,10 @@ import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
+import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
+import 'package:opennutritracker/features/recipes/data/dbo/recipe_dbo.dart';
+import 'package:opennutritracker/features/recipes/data/dbo/recipe_ingredient_dbo.dart';
 
 class HiveDBProvider extends ChangeNotifier {
   static const configBoxName = 'ConfigBox';
@@ -22,12 +26,16 @@ class HiveDBProvider extends ChangeNotifier {
   static const userActivityBoxName = 'UserActivityBox';
   static const userBoxName = 'UserBox';
   static const trackedDayBoxName = 'TrackedDayBox';
+  static const recipeBoxName = 'RecipeBox';
+  static const interpretationDraftBoxName = 'InterpretationDraftBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
   late Box<UserActivityDBO> userActivityBox;
   late Box<UserDBO> userBox;
   late Box<TrackedDayDBO> trackedDayBox;
+  late Box<RecipeDBO> recipeBox;
+  late Box<InterpretationDraftDBO> interpretationDraftBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -47,6 +55,13 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(PhysicalActivityDBOAdapter());
     Hive.registerAdapter(PhysicalActivityTypeDBOAdapter());
     Hive.registerAdapter(AppThemeDBOAdapter());
+    Hive.registerAdapter(ConfidenceBandDBOAdapter());
+    Hive.registerAdapter(RecipeIngredientDBOAdapter());
+    Hive.registerAdapter(RecipeDBOAdapter());
+    Hive.registerAdapter(DraftSourceDBOAdapter());
+    Hive.registerAdapter(DraftStatusDBOAdapter());
+    Hive.registerAdapter(InterpretationDraftItemDBOAdapter());
+    Hive.registerAdapter(InterpretationDraftDBOAdapter());
 
     configBox =
         await Hive.openBox(configBoxName, encryptionCipher: encryptionCypher);
@@ -57,6 +72,10 @@ class HiveDBProvider extends ChangeNotifier {
     userBox =
         await Hive.openBox(userBoxName, encryptionCipher: encryptionCypher);
     trackedDayBox = await Hive.openBox(trackedDayBoxName,
+        encryptionCipher: encryptionCypher);
+    recipeBox =
+        await Hive.openBox(recipeBoxName, encryptionCipher: encryptionCypher);
+    interpretationDraftBox = await Hive.openBox(interpretationDraftBoxName,
         encryptionCipher: encryptionCypher);
   }
 

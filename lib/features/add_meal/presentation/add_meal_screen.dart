@@ -14,6 +14,9 @@ import 'package:opennutritracker/features/add_meal/presentation/widgets/no_resul
 import 'package:opennutritracker/features/add_meal/presentation/widgets/meal_item_card.dart';
 import 'package:opennutritracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
+import 'package:opennutritracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
+import 'package:opennutritracker/features/recipes/presentation/recipe_library_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -71,6 +74,10 @@ class _AddMealScreenState extends State<AddMealScreen>
         appBar: AppBar(
           title: Text(_mealType.getTypeName(context)),
           actions: [
+            IconButton(
+              onPressed: _openRecipeLibrary,
+              icon: const Icon(Icons.bookmarks_outlined),
+            ),
             BlocBuilder<AddMealBloc, AddMealState>(
               bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
               builder: (BuildContext context, AddMealState state) {
@@ -94,6 +101,37 @@ class _AddMealScreenState extends State<AddMealScreen>
                 searchStringListener: _searchStringListener,
                 onSearchSubmit: _onSearchSubmit,
                 onBarcodePressed: _onBarcodeIconPressed,
+              ),
+              const SizedBox(height: 8.0),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: _onBarcodeIconPressed,
+                      icon: const Icon(Icons.qr_code_scanner_outlined),
+                      label: const Text('Barcode'),
+                    ),
+                    const SizedBox(width: 8.0),
+                    OutlinedButton.icon(
+                      onPressed: _openTextCapture,
+                      icon: const Icon(Icons.text_fields_outlined),
+                      label: const Text('Text'),
+                    ),
+                    const SizedBox(width: 8.0),
+                    OutlinedButton.icon(
+                      onPressed: _openPhotoCapture,
+                      icon: const Icon(Icons.camera_alt_outlined),
+                      label: const Text('Photo'),
+                    ),
+                    const SizedBox(width: 8.0),
+                    OutlinedButton.icon(
+                      onPressed: _openRecipeLibrary,
+                      icon: const Icon(Icons.bookmarks_outlined),
+                      label: const Text('Saved'),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16.0),
               TabBar(
@@ -262,16 +300,39 @@ class _AddMealScreenState extends State<AddMealScreen>
     switch (_tabController.index) {
       case 0:
         _productsBloc.add(LoadProductsEvent(searchString: inputText));
+        break;
       case 1:
         _foodBloc.add(LoadFoodEvent(searchString: inputText));
+        break;
       case 2:
         _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
+        break;
+      default:
+        break;
     }
   }
 
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
         arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()));
+  }
+
+  void _openTextCapture() {
+    Navigator.of(context).pushNamed(NavigationOptions.mealTextCaptureRoute,
+        arguments:
+            MealTextCaptureScreenArguments(_day, _mealType.getIntakeType()));
+  }
+
+  void _openPhotoCapture() {
+    Navigator.of(context).pushNamed(NavigationOptions.mealPhotoCaptureRoute,
+        arguments:
+            MealPhotoCaptureScreenArguments(_day, _mealType.getIntakeType()));
+  }
+
+  void _openRecipeLibrary() {
+    Navigator.of(context).pushNamed(NavigationOptions.recipeLibraryRoute,
+        arguments:
+            RecipeLibraryScreenArguments(_day, _mealType.getIntakeType()));
   }
 
   void _onCustomAddButtonPressed(bool usesImperialUnits) {

@@ -18,10 +18,16 @@ import 'package:opennutritracker/features/activity_detail/activity_detail_screen
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_screen.dart';
 import 'package:opennutritracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:opennutritracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
+import 'package:opennutritracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
+import 'package:opennutritracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:opennutritracker/features/onboarding/onboarding_screen.dart';
+import 'package:opennutritracker/features/recipes/presentation/recipe_editor_screen.dart';
+import 'package:opennutritracker/features/recipes/presentation/recipe_library_screen.dart';
 import 'package:opennutritracker/features/scanner/scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/settings/settings_screen.dart';
+import 'package:opennutritracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -109,6 +115,18 @@ class OpenNutriTrackerApp extends StatelessWidget {
             const ActivityDetailScreen(),
         NavigationOptions.imageFullScreenRoute: (context) =>
             const ImageFullScreen(),
+        NavigationOptions.mealTextCaptureRoute: (context) =>
+            const MealTextCaptureScreen(),
+        NavigationOptions.mealPhotoCaptureRoute: (context) =>
+            const MealPhotoCaptureScreen(),
+        NavigationOptions.mealInterpretationReviewRoute: (context) =>
+            const MealInterpretationReviewScreen(),
+        NavigationOptions.recipeLibraryRoute: (context) =>
+            const RecipeLibraryScreen(),
+        NavigationOptions.recipeEditorRoute: (context) =>
+            const RecipeEditorScreen(),
+        NavigationOptions.weeklyInsightsRoute: (context) =>
+            const WeeklyInsightsScreen(),
       },
     );
   }

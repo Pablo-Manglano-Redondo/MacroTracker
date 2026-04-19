@@ -59,6 +59,37 @@ Contributions to OpenNutriTracker are welcome! If you find any issues or have su
 ## Getting Started
 See the [Getting Started](GettingStarted.md) file for more information.
 
+## AI Meal Interpretation
+OpenNutriTracker now includes app-side integration for two Supabase Edge Functions:
+
+- `meal-interpretations-text`
+- `meal-interpretations-photo`
+
+These functions are expected under `supabase/functions` and call the Gemini Developer API to return a structured meal draft that remains editable in the app before saving.
+
+Required function secrets:
+
+- `GEMINI_API_KEY`
+
+Optional function secrets:
+
+- `GEMINI_MEAL_TEXT_MODEL`
+- `GEMINI_MEAL_PHOTO_MODEL`
+
+Typical deploy flow:
+
+```bash
+supabase functions deploy meal-interpretations-text
+supabase functions deploy meal-interpretations-photo
+supabase secrets set GEMINI_API_KEY=...
+```
+
+Privacy notes:
+
+- images are sent to the edge function only for inference
+- the function contract is designed for `stored: false`
+- the app never auto-saves inferred meals; every result goes through review/edit first
+
 
 ## Disclaimer
 OpenNutriTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy or lactation is not recommended.

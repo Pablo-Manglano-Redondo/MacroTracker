@@ -48,15 +48,31 @@ import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_b
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:opennutritracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
+import 'package:opennutritracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:opennutritracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
+import 'package:opennutritracker/features/meal_capture/data/repository/meal_interpretation_repository.dart';
+import 'package:opennutritracker/features/meal_capture/domain/usecase/commit_interpretation_draft_usecase.dart';
+import 'package:opennutritracker/features/meal_capture/domain/usecase/get_interpretation_draft_usecase.dart';
+import 'package:opennutritracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
+import 'package:opennutritracker/features/meal_capture/domain/usecase/interpret_meal_from_text_usecase.dart';
+import 'package:opennutritracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:opennutritracker/features/recipes/data/data_source/recipe_data_source.dart';
+import 'package:opennutritracker/features/recipes/data/repository/recipe_repository.dart';
+import 'package:opennutritracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
+import 'package:opennutritracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:opennutritracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:opennutritracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
+import 'package:opennutritracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final locator = GetIt.instance;
@@ -132,6 +148,23 @@ Future<void> initLocator() async {
       () => GetIntakeUsecase(locator()));
   locator.registerLazySingleton<AddIntakeUsecase>(
       () => AddIntakeUsecase(locator()));
+  locator.registerLazySingleton<GetRecipeLibraryUsecase>(
+      () => GetRecipeLibraryUsecase(locator()));
+  locator.registerLazySingleton<SaveRecipeUsecase>(
+      () => SaveRecipeUsecase(locator()));
+  locator.registerLazySingleton<LogRecipeUsecase>(() => LogRecipeUsecase(
+      locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GetInterpretationDraftUsecase>(
+      () => GetInterpretationDraftUsecase(locator()));
+  locator.registerLazySingleton<InterpretMealFromTextUsecase>(
+      () => InterpretMealFromTextUsecase(locator()));
+  locator.registerLazySingleton<InterpretMealFromPhotoUsecase>(
+      () => InterpretMealFromPhotoUsecase(locator()));
+  locator.registerLazySingleton<SaveInterpretationDraftUsecase>(
+      () => SaveInterpretationDraftUsecase(locator()));
+  locator.registerLazySingleton<CommitInterpretationDraftUsecase>(() =>
+      CommitInterpretationDraftUsecase(
+          locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<DeleteIntakeUsecase>(
       () => DeleteIntakeUsecase(locator()));
   locator.registerLazySingleton<UpdateIntakeUsecase>(
@@ -152,9 +185,13 @@ Future<void> initLocator() async {
       () => GetKcalGoalUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
   locator.registerLazySingleton(
-      () => ExportDataUsecase(locator(), locator(), locator()));
+      () => ExportDataUsecase(locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(
-      () => ImportDataUsecase(locator(), locator(), locator()));
+      () => ImportDataUsecase(locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
+      () => GenerateMacroSuggestionsUsecase(locator()));
+  locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(
+      () => BuildWeeklyInsightsUsecase(locator(), locator()));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));
@@ -164,6 +201,12 @@ Future<void> initLocator() async {
       () => IntakeRepository(locator()));
   locator.registerLazySingleton<ProductsRepository>(
       () => ProductsRepository(locator(), locator(), locator()));
+  locator.registerLazySingleton<RecipeRepository>(
+      () => RecipeRepository(locator()));
+  locator.registerLazySingleton<InterpretationDraftRepository>(
+      () => InterpretationDraftRepository(locator()));
+  locator.registerLazySingleton<MealInterpretationRepository>(
+      () => MealInterpretationRepository(locator(), locator()));
   locator.registerLazySingleton<UserActivityRepository>(
       () => UserActivityRepository(locator()));
   locator.registerLazySingleton<PhysicalActivityRepository>(
@@ -185,6 +228,12 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
+  locator.registerLazySingleton<RecipeDataSource>(
+      () => RecipeDataSource(hiveDBProvider.recipeBox));
+  locator.registerLazySingleton<InterpretationDraftDataSource>(
+      () => InterpretationDraftDataSource(hiveDBProvider.interpretationDraftBox));
+  locator.registerLazySingleton<MealInterpretationRemoteDataSource>(
+      () => MealInterpretationRemoteDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
 
