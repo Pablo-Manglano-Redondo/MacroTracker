@@ -20,6 +20,7 @@ import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
@@ -44,6 +45,14 @@ import 'package:macrotracker/features/add_meal/presentation/bloc/add_meal_bloc.d
 import 'package:macrotracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
+import 'package:macrotracker/features/body_progress/data/data_source/body_measurement_data_source.dart';
+import 'package:macrotracker/features/body_progress/data/repository/body_measurement_repository.dart';
+import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
+import 'package:macrotracker/features/body_progress/domain/usecase/save_body_measurement_usecase.dart';
+import 'package:macrotracker/features/daily_habits/data/data_source/daily_habit_log_data_source.dart';
+import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
@@ -62,8 +71,10 @@ import 'package:macrotracker/features/onboarding/presentation/bloc/onboarding_bl
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
@@ -106,14 +117,16 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
+      locator(),
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton<ProfileBloc>(
-      () => ProfileBloc(locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(() =>
-      SettingsBloc(locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(
+      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => SettingsBloc(
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -122,7 +135,7 @@ Future<void> initLocator() async {
   locator.registerFactory<ActivityDetailBloc>(() => ActivityDetailBloc(
       locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory<MealDetailBloc>(
-      () => MealDetailBloc(locator(), locator(), locator(), locator()));
+      () => MealDetailBloc(locator(), locator(), locator()));
   locator.registerFactory<ScannerBloc>(() => ScannerBloc(locator(), locator()));
   locator.registerFactory<EditMealBloc>(() => EditMealBloc(locator()));
   locator.registerFactory<AddMealBloc>(() => AddMealBloc(locator()));
@@ -150,10 +163,14 @@ Future<void> initLocator() async {
       () => AddIntakeUsecase(locator()));
   locator.registerLazySingleton<GetRecipeLibraryUsecase>(
       () => GetRecipeLibraryUsecase(locator()));
+  locator.registerLazySingleton<GetQuickRecipePresetsUsecase>(
+      () => GetQuickRecipePresetsUsecase(locator()));
   locator.registerLazySingleton<SaveRecipeUsecase>(
       () => SaveRecipeUsecase(locator()));
-  locator.registerLazySingleton<LogRecipeUsecase>(() => LogRecipeUsecase(
-      locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<SetRecipeFavoriteUsecase>(
+      () => SetRecipeFavoriteUsecase(locator()));
+  locator.registerLazySingleton<LogRecipeUsecase>(
+      () => LogRecipeUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton<GetInterpretationDraftUsecase>(
       () => GetInterpretationDraftUsecase(locator()));
   locator.registerLazySingleton<InterpretMealFromTextUsecase>(
@@ -164,7 +181,7 @@ Future<void> initLocator() async {
       () => SaveInterpretationDraftUsecase(locator()));
   locator.registerLazySingleton<CommitInterpretationDraftUsecase>(() =>
       CommitInterpretationDraftUsecase(
-          locator(), locator(), locator(), locator(), locator()));
+          locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<DeleteIntakeUsecase>(
       () => DeleteIntakeUsecase(locator()));
   locator.registerLazySingleton<UpdateIntakeUsecase>(
@@ -184,10 +201,22 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(
       () => GetKcalGoalUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
-  locator.registerLazySingleton(
-      () => ExportDataUsecase(locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(
-      () => ImportDataUsecase(locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GetGymTargetsUsecase>(() =>
+      GetGymTargetsUsecase(
+          locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GetBodyProgressUsecase>(
+      () => GetBodyProgressUsecase(locator()));
+  locator.registerLazySingleton<SaveBodyMeasurementUsecase>(() =>
+      SaveBodyMeasurementUsecase(
+          locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GetDailyHabitLogUsecase>(
+      () => GetDailyHabitLogUsecase(locator()));
+  locator.registerLazySingleton<UpdateDailyHabitLogUsecase>(
+      () => UpdateDailyHabitLogUsecase(locator()));
+  locator.registerLazySingleton(() => ExportDataUsecase(
+      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => ImportDataUsecase(
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
       () => GenerateMacroSuggestionsUsecase(locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(
@@ -213,6 +242,10 @@ Future<void> initLocator() async {
       () => PhysicalActivityRepository(locator()));
   locator.registerLazySingleton<TrackedDayRepository>(
       () => TrackedDayRepository(locator()));
+  locator.registerLazySingleton<BodyMeasurementRepository>(
+      () => BodyMeasurementRepository(locator()));
+  locator.registerLazySingleton<DailyHabitLogRepository>(
+      () => DailyHabitLogRepository(locator()));
 
   // DataSources
   locator
@@ -230,12 +263,16 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
   locator.registerLazySingleton<RecipeDataSource>(
       () => RecipeDataSource(hiveDBProvider.recipeBox));
-  locator.registerLazySingleton<InterpretationDraftDataSource>(
-      () => InterpretationDraftDataSource(hiveDBProvider.interpretationDraftBox));
+  locator.registerLazySingleton<InterpretationDraftDataSource>(() =>
+      InterpretationDraftDataSource(hiveDBProvider.interpretationDraftBox));
   locator.registerLazySingleton<MealInterpretationRemoteDataSource>(
       () => MealInterpretationRemoteDataSource());
   locator.registerLazySingleton(
       () => TrackedDayDataSource(hiveDBProvider.trackedDayBox));
+  locator.registerLazySingleton(
+      () => BodyMeasurementDataSource(hiveDBProvider.bodyMeasurementBox));
+  locator.registerLazySingleton(
+      () => DailyHabitLogDataSource(hiveDBProvider.dailyHabitLogBox));
 
   await _initializeConfig(locator());
 }

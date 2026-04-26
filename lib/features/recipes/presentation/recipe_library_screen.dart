@@ -5,9 +5,11 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
 
 class RecipeLibraryScreen extends StatefulWidget {
   const RecipeLibraryScreen({super.key});
@@ -56,7 +58,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final recipes = _filterRecipes(snapshot.data ?? const <RecipeEntity>[]);
+                final recipes =
+                    _filterRecipes(snapshot.data ?? const <RecipeEntity>[]);
                 if (recipes.isEmpty) {
                   return const Center(
                     child: Padding(
@@ -74,13 +77,47 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final recipe = recipes[index];
+                    final category =
+                        QuickRecipeCategoryEntityX.inferFromRecipe(recipe);
                     return ListTile(
                       title: Text(recipe.name),
-                      subtitle: Text(
-                          '${recipe.ingredients.length} ingredients | ${recipe.defaultServings.toStringAsFixed(recipe.defaultServings % 1 == 0 ? 0 : 1)} servings'),
-                      trailing: recipe.favorite
-                          ? const Icon(Icons.favorite, color: Colors.redAccent)
-                          : null,
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${recipe.ingredients.length} ingredients | ${recipe.defaultServings.toStringAsFixed(recipe.defaultServings % 1 == 0 ? 0 : 1)} servings',
+                          ),
+                          const SizedBox(height: 6),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _RecipeMetaChip(
+                                icon: category.icon,
+                                label: category.label,
+                              ),
+                              if (recipe.favorite)
+                                const _RecipeMetaChip(
+                                  icon: Icons.favorite,
+                                  label: 'Favorite',
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        onPressed: () => _toggleFavorite(recipe),
+                        icon: Icon(
+                          recipe.favorite
+                              ? Icons.favorite
+                              : Icons.favorite_border_outlined,
+                          color: recipe.favorite ? Colors.redAccent : null,
+                        ),
+                        tooltip: recipe.favorite
+                            ? 'Remove favorite'
+                            : 'Mark favorite',
+                      ),
                       onTap: () => _showAddRecipeDialog(recipe),
                     );
                   },
@@ -113,8 +150,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
           title: Text(recipe.name),
           content: TextField(
             controller: controller,
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               labelText: 'Servings',
               border: OutlineInputBorder(),
@@ -155,6 +191,14 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
     }
   }
+
+  Future<void> _toggleFavorite(RecipeEntity recipe) async {
+    await locator<SetRecipeFavoriteUsecase>()
+        .setFavorite(recipe.id, !recipe.favorite);
+    if (mounted) {
+      setState(() {});
+    }
+  }
 }
 
 class RecipeLibraryScreenArguments {
@@ -162,4 +206,36 @@ class RecipeLibraryScreenArguments {
   final IntakeTypeEntity intakeTypeEntity;
 
   RecipeLibraryScreenArguments(this.day, this.intakeTypeEntity);
+}
+
+class _RecipeMetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _RecipeMetaChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.45),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
+  }
 }

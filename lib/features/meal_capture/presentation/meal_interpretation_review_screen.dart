@@ -146,10 +146,8 @@ class _MealInterpretationReviewScreenState
                 _isPersistingEdits
                     ? 'Saving edits...'
                     : '${activeItems.length} active',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(fontStyle: _isPersistingEdits ? FontStyle.italic : null),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontStyle: _isPersistingEdits ? FontStyle.italic : null),
               ),
             ],
           ),
@@ -355,8 +353,7 @@ class _MealInterpretationReviewScreenState
     final activeItems = updatedItems.where((item) => !item.removed);
     final updatedDraft = _draft!.copyWith(
       items: updatedItems,
-      totalKcal:
-          activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
+      totalKcal: activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
       totalCarbs:
           activeItems.fold<double>(0.0, (sum, item) => sum + item.carbs),
       totalFat: activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
@@ -384,7 +381,8 @@ class _MealInterpretationReviewScreenState
     await _persistUpdatedDraft(updatedDraft);
   }
 
-  Future<void> _persistUpdatedDraft(InterpretationDraftEntity updatedDraft) async {
+  Future<void> _persistUpdatedDraft(
+      InterpretationDraftEntity updatedDraft) async {
     setState(() {
       _draft = updatedDraft;
       _isPersistingEdits = true;
@@ -461,48 +459,72 @@ class _MealInterpretationReviewScreenState
     }
 
     final controller = TextEditingController(text: draft.title);
+    bool favorite = true;
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Save as recipe'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Recipe name',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                final recipeName = controller.text.trim();
-                if (recipeName.isEmpty) {
-                  return;
-                }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Save as recipe'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Recipe name',
+                      helperText:
+                          'Use names like pre oats, post chicken rice or shake.',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: favorite,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        favorite = value ?? true;
+                      });
+                    },
+                    title: const Text('Favorite for quick access'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final recipeName = controller.text.trim();
+                    if (recipeName.isEmpty) {
+                      return;
+                    }
 
-                final recipe = RecipeFactory.fromInterpretationDraft(
-                  name: recipeName,
-                  draft: draft,
-                );
-                await locator<SaveRecipeUsecase>().saveRecipe(recipe);
+                    final recipe = RecipeFactory.fromInterpretationDraft(
+                      name: recipeName,
+                      draft: draft,
+                    ).copyWith(favorite: favorite);
+                    await locator<SaveRecipeUsecase>().saveRecipe(recipe);
 
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Recipe saved')),
-                  );
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
+                    if (!dialogContext.mounted) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Recipe saved')),
+                      );
+                    }
+                  },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -616,8 +638,8 @@ class _DraftItemCard extends StatelessWidget {
                 ),
               IconButton(
                 onPressed: onToggleRemoved,
-                icon:
-                    Icon(item.removed ? Icons.undo : Icons.remove_circle_outline),
+                icon: Icon(
+                    item.removed ? Icons.undo : Icons.remove_circle_outline),
                 tooltip: item.removed ? 'Restore item' : 'Remove item',
               ),
             ],

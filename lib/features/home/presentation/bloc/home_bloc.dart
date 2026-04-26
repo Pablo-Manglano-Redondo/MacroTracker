@@ -1,7 +1,11 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
@@ -12,8 +16,10 @@ import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -26,6 +32,8 @@ part 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetConfigUsecase _getConfigUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final GetUserUsecase _getUserUsecase;
+  final AddUserUsecase _addUserUsecase;
   final GetIntakeUsecase _getIntakeUsecase;
   final DeleteIntakeUsecase _deleteIntakeUsecase;
   final UpdateIntakeUsecase _updateIntakeUsecase;
@@ -40,6 +48,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc(
       this._getConfigUsecase,
       this._addConfigUsecase,
+      this._getUserUsecase,
+      this._addUserUsecase,
       this._getIntakeUsecase,
       this._deleteIntakeUsecase,
       this._updateIntakeUsecase,
@@ -54,8 +64,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       currentDay = DateTime.now();
       final configData = await _getConfigUsecase.getConfig();
+      final user = await _getUserUsecase.getUserData();
       final usesImperialUnits = configData.usesImperialUnits;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
+      final dailyFocus = configData.dailyFocus;
+      final nutritionPhase = user.goal;
 
       final breakfastIntakeList =
           await _getIntakeUsecase.getTodayBreakfastIntake();
@@ -104,28 +117,41 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final totalKcalActivities =
           userActivities.map((activity) => activity.burnedKcal).toList().sum;
 
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-      final totalCarbsGoal =
-          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-      final totalFatsGoal =
-          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-      final totalProteinsGoal =
-          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+      final baseKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+        userEntity: user,
+        totalKcalActivitiesParam: totalKcalActivities,
+      );
+      final baseCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(baseKcalGoal);
+      final baseFatsGoal = await _getMacroGoalUsecase.getFatsGoal(baseKcalGoal);
+      final baseProteinsGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(baseKcalGoal);
+
+      final targets = GymTargetCalc.buildTargets(
+        phase: nutritionPhase,
+        dailyFocus: dailyFocus,
+        baseKcalGoal: baseKcalGoal,
+        baseCarbsGoal: baseCarbsGoal,
+        baseFatGoal: baseFatsGoal,
+        baseProteinGoal: baseProteinsGoal,
+      );
 
       final totalKcalLeft =
-          CalorieGoalCalc.getDailyKcalLeft(totalKcalGoal, totalKcalIntake);
+          CalorieGoalCalc.getDailyKcalLeft(targets.kcalGoal, totalKcalIntake);
 
       emit(HomeLoadedState(
           showDisclaimerDialog: showDisclaimerDialog,
-          totalKcalDaily: totalKcalGoal,
+          nutritionPhase: nutritionPhase,
+          dailyFocus: dailyFocus,
+          totalKcalDaily: targets.kcalGoal,
           totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
           totalKcalBurned: totalKcalActivities,
           totalCarbsIntake: totalCarbsIntake,
           totalFatsIntake: totalFatsIntake,
-          totalCarbsGoal: totalCarbsGoal,
-          totalFatsGoal: totalFatsGoal,
-          totalProteinsGoal: totalProteinsGoal,
+          totalCarbsGoal: targets.carbsGoal,
+          totalFatsGoal: targets.fatGoal,
+          totalProteinsGoal: targets.proteinGoal,
           totalProteinsIntake: totalProteinsIntake,
           breakfastIntakeList: breakfastIntakeList,
           lunchIntakeList: lunchIntakeList,
@@ -134,6 +160,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           userActivityList: userActivities,
           usesImperialUnits: usesImperialUnits));
     });
+  }
+
+  Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
+    await _addConfigUsecase.setConfigDailyFocus(dailyFocus);
+    await _syncTodayTrackedDay(dailyFocus: dailyFocus);
+    add(const LoadItemsEvent());
+  }
+
+  Future<void> setNutritionPhase(UserWeightGoalEntity nutritionPhase) async {
+    final user = await _getUserUsecase.getUserData();
+    user.goal = nutritionPhase;
+    await _addUserUsecase.addUser(user);
+    await _syncTodayTrackedDay(phase: nutritionPhase, user: user);
+    add(const LoadItemsEvent());
   }
 
   double getTotalKcal(List<IntakeEntity> intakeList) =>
@@ -221,5 +261,51 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _updateDiaryPage(DateTime day) async {
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+  }
+
+  Future<void> _syncTodayTrackedDay({
+    UserWeightGoalEntity? phase,
+    DailyFocusEntity? dailyFocus,
+    UserEntity? user,
+  }) async {
+    final day = DateTime.now();
+    final hasTrackedDay = await _addTrackedDayUseCase.hasTrackedDay(day);
+    if (!hasTrackedDay) {
+      return;
+    }
+
+    final config = await _getConfigUsecase.getConfig();
+    final currentUser = user ?? await _getUserUsecase.getUserData();
+    final userActivities =
+        await _getUserActivityUsecase.getUserActivityByDay(day);
+    final totalKcalActivities =
+        userActivities.map((activity) => activity.burnedKcal).toList().sum;
+
+    final baseKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+      userEntity: currentUser,
+      totalKcalActivitiesParam: totalKcalActivities,
+    );
+    final baseCarbsGoal = await _getMacroGoalUsecase.getCarbsGoal(baseKcalGoal);
+    final baseFatGoal = await _getMacroGoalUsecase.getFatsGoal(baseKcalGoal);
+    final baseProteinGoal =
+        await _getMacroGoalUsecase.getProteinsGoal(baseKcalGoal);
+
+    final targets = GymTargetCalc.buildTargets(
+      phase: phase ?? currentUser.goal,
+      dailyFocus: dailyFocus ?? config.dailyFocus,
+      baseKcalGoal: baseKcalGoal,
+      baseCarbsGoal: baseCarbsGoal,
+      baseFatGoal: baseFatGoal,
+      baseProteinGoal: baseProteinGoal,
+    );
+
+    await _addTrackedDayUseCase.updateDayCalorieGoal(day, targets.kcalGoal);
+    await _addTrackedDayUseCase.updateDayMacroGoals(
+      day,
+      carbsGoal: targets.carbsGoal,
+      fatGoal: targets.fatGoal,
+      proteinGoal: targets.proteinGoal,
+    );
+    await _updateDiaryPage(day);
   }
 }

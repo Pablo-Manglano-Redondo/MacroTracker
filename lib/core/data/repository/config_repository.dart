@@ -3,6 +3,7 @@ import 'package:macrotracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 
 class ConfigRepository {
   final ConfigDataSource _configDataSource;
@@ -46,6 +47,7 @@ class ConfigRepository {
     final configDBO = await _configDataSource.getConfig();
     return configDBO;
   }
+
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configDataSource.setConfigUsesImperialUnits(usesImperialUnits);
   }
@@ -62,5 +64,9 @@ class ConfigRepository {
     _configDataSource.setConfigCarbGoalPct(carbs);
     _configDataSource.setConfigProteinGoalPct(protein);
     _configDataSource.setConfigFatGoalPct(fat);
+  }
+
+  Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
+    _configDataSource.setConfigDailyFocus(dailyFocus.storageValue);
   }
 }

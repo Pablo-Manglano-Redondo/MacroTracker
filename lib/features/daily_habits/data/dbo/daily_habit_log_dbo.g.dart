@@ -1,0 +1,82 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'daily_habit_log_dbo.dart';
+
+class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
+  @override
+  final int typeId = 25;
+
+  @override
+  DailyHabitLogDBO read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return DailyHabitLogDBO(
+      day: fields[0] as DateTime,
+      creatineTaken: fields[1] as bool,
+      wheyTaken: fields[2] as bool,
+      caffeineTaken: fields[3] as bool,
+      waterLiters: fields[4] as double,
+      sleepHours: (fields[5] as double?) ?? 0,
+      steps: (fields[6] as int?) ?? 0,
+      energyLevel: (fields[7] as int?) ?? 0,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, DailyHabitLogDBO obj) {
+    writer
+      ..writeByte(8)
+      ..writeByte(0)
+      ..write(obj.day)
+      ..writeByte(1)
+      ..write(obj.creatineTaken)
+      ..writeByte(2)
+      ..write(obj.wheyTaken)
+      ..writeByte(3)
+      ..write(obj.caffeineTaken)
+      ..writeByte(4)
+      ..write(obj.waterLiters)
+      ..writeByte(5)
+      ..write(obj.sleepHours)
+      ..writeByte(6)
+      ..write(obj.steps)
+      ..writeByte(7)
+      ..write(obj.energyLevel);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is DailyHabitLogDBOAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
+}
+
+DailyHabitLogDBO _$DailyHabitLogDBOFromJson(Map<String, dynamic> json) =>
+    DailyHabitLogDBO(
+      day: DateTime.parse(json['day'] as String),
+      creatineTaken: json['creatineTaken'] as bool? ?? false,
+      wheyTaken: json['wheyTaken'] as bool? ?? false,
+      caffeineTaken: json['caffeineTaken'] as bool? ?? false,
+      waterLiters: (json['waterLiters'] as num?)?.toDouble() ?? 0,
+      sleepHours: (json['sleepHours'] as num?)?.toDouble() ?? 0,
+      steps: (json['steps'] as num?)?.toInt() ?? 0,
+      energyLevel: (json['energyLevel'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$DailyHabitLogDBOToJson(DailyHabitLogDBO instance) =>
+    <String, dynamic>{
+      'day': instance.day.toIso8601String(),
+      'creatineTaken': instance.creatineTaken,
+      'wheyTaken': instance.wheyTaken,
+      'caffeineTaken': instance.caffeineTaken,
+      'waterLiters': instance.waterLiters,
+      'sleepHours': instance.sleepHours,
+      'steps': instance.steps,
+      'energyLevel': instance.energyLevel,
+    };

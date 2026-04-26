@@ -6,8 +6,10 @@ import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/utils/calc/bmi_calc.dart';
+import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -24,13 +26,15 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetConfigUsecase _getConfigUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
 
   ProfileBloc(
       this._getUserUsecase,
       this._addUserUsecase,
       this._addTrackedDayUsecase,
       this._getConfigUsecase,
-      this._getKcalGoalUsecase)
+      this._getKcalGoalUsecase,
+      this._getMacroGoalUsecase)
       : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
       emit(ProfileLoadingState());
@@ -69,10 +73,30 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       UserEntity user, DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (hasTrackedDay) {
-      final totalKcalGoal =
+      final config = await _getConfigUsecase.getConfig();
+      final baseKcalGoal =
           await _getKcalGoalUsecase.getKcalGoal(userEntity: user);
+      final baseCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(baseKcalGoal);
+      final baseFatGoal = await _getMacroGoalUsecase.getFatsGoal(baseKcalGoal);
+      final baseProteinGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(baseKcalGoal);
+      final targets = GymTargetCalc.buildTargets(
+        phase: user.goal,
+        dailyFocus: config.dailyFocus,
+        baseKcalGoal: baseKcalGoal,
+        baseCarbsGoal: baseCarbsGoal,
+        baseFatGoal: baseFatGoal,
+        baseProteinGoal: baseProteinGoal,
+      );
 
-      await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+      await _addTrackedDayUsecase.updateDayCalorieGoal(day, targets.kcalGoal);
+      await _addTrackedDayUsecase.updateDayMacroGoals(
+        day,
+        carbsGoal: targets.carbsGoal,
+        fatGoal: targets.fatGoal,
+        proteinGoal: targets.proteinGoal,
+      );
     }
   }
 

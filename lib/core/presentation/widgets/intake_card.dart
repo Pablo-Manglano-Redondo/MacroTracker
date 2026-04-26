@@ -7,6 +7,7 @@ import 'package:macrotracker/core/presentation/widgets/meal_value_unit_text.dart
 import 'package:macrotracker/core/utils/locator.dart';
 
 class IntakeCard extends StatelessWidget {
+  final bool compact;
   final IntakeEntity intake;
   final Function(BuildContext, IntakeEntity)? onItemLongPressed;
   final Function(BuildContext, IntakeEntity, bool)? onItemTapped;
@@ -15,6 +16,7 @@ class IntakeCard extends StatelessWidget {
 
   const IntakeCard(
       {required super.key,
+      this.compact = false,
       required this.intake,
       this.onItemLongPressed,
       this.onItemTapped,
@@ -23,17 +25,30 @@ class IntakeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardSize = compact ? 104.0 : 120.0;
+    final borderRadius = compact ? 14.0 : 16.0;
+    final margin = compact ? 6.0 : 8.0;
+    final kcalFont = compact
+        ? Theme.of(context).textTheme.labelSmall
+        : Theme.of(context).textTheme.bodySmall;
+    final titleStyle = compact
+        ? Theme.of(context).textTheme.titleSmall
+        : Theme.of(context).textTheme.titleMedium;
+    final amountStyle = compact
+        ? Theme.of(context).textTheme.bodySmall
+        : Theme.of(context).textTheme.titleSmall;
+
     return Row(
       children: [
         SizedBox(width: firstListElement ? 16 : 0),
         SizedBox(
-          width: 120,
-          height: 120,
+          width: cardSize,
+          height: cardSize,
           child: Card(
             semanticContainer: true,
             clipBehavior: Clip.antiAliasWithSaveLayer,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
             elevation: 1,
             child: InkWell(
@@ -65,27 +80,30 @@ class IntakeCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Theme.of(context)
                           .colorScheme
-                          .secondaryContainer.withValues(alpha: 0.5),
+                          .secondaryContainer
+                          .withValues(alpha: 0.5),
                     ),
                   ),
                   Container(
-                    margin: const EdgeInsets.all(8.0),
-                    padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 4.0),
+                    margin: EdgeInsets.all(margin),
+                    padding:
+                        EdgeInsets.fromLTRB(margin + 2, 4.0, margin + 2, 4.0),
                     decoration: BoxDecoration(
                         color: Theme.of(context)
                             .colorScheme
-                            .tertiaryContainer.withValues(alpha: 0.8),
+                            .tertiaryContainer
+                            .withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(20)),
                     child: Text(
                       '${intake.totalKcal.toInt()} kcal',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: kcalFont?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
                               .onTertiaryContainer),
                     ),
                   ),
                   Container(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(margin),
                       alignment: Alignment.bottomLeft,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
@@ -93,14 +111,11 @@ class IntakeCard extends StatelessWidget {
                         children: [
                           AutoSizeText(
                             intake.meal.name ?? "?",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondaryContainer),
+                            style: titleStyle?.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -108,14 +123,11 @@ class IntakeCard extends StatelessWidget {
                             value: intake.amount,
                             meal: intake.meal,
                             usesImperialUnits: usesImperialUnits,
-                            textStyle: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSecondaryContainer.withValues(
-                                            alpha: 0.7)),
+                            textStyle: amountStyle?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSecondaryContainer
+                                    .withValues(alpha: 0.7)),
                           ),
                         ],
                       ))

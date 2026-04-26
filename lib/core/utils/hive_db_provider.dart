@@ -15,6 +15,8 @@ import 'package:macrotracker/core/data/dbo/user_dbo.dart';
 import 'package:macrotracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:macrotracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:macrotracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:macrotracker/features/body_progress/data/dbo/body_measurement_dbo.dart';
+import 'package:macrotracker/features/daily_habits/data/dbo/daily_habit_log_dbo.dart';
 import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
 import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
 import 'package:macrotracker/features/recipes/data/dbo/recipe_dbo.dart';
@@ -28,6 +30,8 @@ class HiveDBProvider extends ChangeNotifier {
   static const trackedDayBoxName = 'TrackedDayBox';
   static const recipeBoxName = 'RecipeBox';
   static const interpretationDraftBoxName = 'InterpretationDraftBox';
+  static const bodyMeasurementBoxName = 'BodyMeasurementBox';
+  static const dailyHabitLogBoxName = 'DailyHabitLogBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -36,6 +40,8 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<TrackedDayDBO> trackedDayBox;
   late Box<RecipeDBO> recipeBox;
   late Box<InterpretationDraftDBO> interpretationDraftBox;
+  late Box<BodyMeasurementDBO> bodyMeasurementBox;
+  late Box<DailyHabitLogDBO> dailyHabitLogBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -58,6 +64,8 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(ConfidenceBandDBOAdapter());
     Hive.registerAdapter(RecipeIngredientDBOAdapter());
     Hive.registerAdapter(RecipeDBOAdapter());
+    Hive.registerAdapter(BodyMeasurementDBOAdapter());
+    Hive.registerAdapter(DailyHabitLogDBOAdapter());
     Hive.registerAdapter(DraftSourceDBOAdapter());
     Hive.registerAdapter(DraftStatusDBOAdapter());
     Hive.registerAdapter(InterpretationDraftItemDBOAdapter());
@@ -76,6 +84,10 @@ class HiveDBProvider extends ChangeNotifier {
     recipeBox =
         await Hive.openBox(recipeBoxName, encryptionCipher: encryptionCypher);
     interpretationDraftBox = await Hive.openBox(interpretationDraftBoxName,
+        encryptionCipher: encryptionCypher);
+    bodyMeasurementBox = await Hive.openBox(bodyMeasurementBoxName,
+        encryptionCipher: encryptionCypher);
+    dailyHabitLogBox = await Hive.openBox(dailyHabitLogBoxName,
         encryptionCipher: encryptionCypher);
   }
 

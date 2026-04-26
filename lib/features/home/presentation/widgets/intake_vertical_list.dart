@@ -17,6 +17,7 @@ import 'package:macrotracker/features/meal_detail/presentation/bloc/meal_detail_
 import 'package:macrotracker/generated/l10n.dart';
 
 class IntakeVerticalList extends StatefulWidget {
+  final bool compact;
   final DateTime day;
   final String title;
   final IconData listIcon;
@@ -34,6 +35,7 @@ class IntakeVerticalList extends StatefulWidget {
 
   const IntakeVerticalList({
     super.key,
+    this.compact = false,
     required this.day,
     required this.title,
     required this.listIcon,
@@ -68,12 +70,18 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
         .fold(0, (previousValue, element) => previousValue + element.totalKcal);
   }
 
+  int get itemCount => widget.intakeList.length;
+
   @override
   Widget build(BuildContext context) {
+    final sectionHeight = widget.compact ? 104.0 : 120.0;
+    final titleStyle = widget.compact
+        ? Theme.of(context).textTheme.titleMedium
+        : Theme.of(context).textTheme.titleLarge;
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: EdgeInsets.fromLTRB(16, widget.compact ? 10 : 16, 16, 8),
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
@@ -82,20 +90,20 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
               const SizedBox(width: 4.0),
               Text(
                 widget.title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(color: Theme.of(context).colorScheme.onSurface),
+                style: titleStyle?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
+              const SizedBox(width: 8),
+              if (itemCount > 0)
+                _HeaderChip(
+                  label: '$itemCount',
+                  icon: Icons.grid_view_rounded,
+                ),
               const Spacer(),
               if (totalKcal > 0) ...[
-                Text(
-                  '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7)),
+                _HeaderChip(
+                  label: '${totalKcal.toInt()} ${S.of(context).kcalLabel}',
+                  icon: Icons.local_fire_department_outlined,
                 ),
                 PopupMenuButton<VerticalListPopupMenuSelections>(
                     onSelected:
@@ -147,7 +155,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
           },
           builder: (context, candidateData, rejectedData) {
             return SizedBox(
-              height: 120,
+              height: sectionHeight,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.intakeList.length + 1,
@@ -158,7 +166,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                     return PlaceholderCard(
                         day: widget.day,
                         onTap: () => _onPlaceholderCardTapped(context),
-                        firstListElement: firstListElement);
+                        firstListElement: firstListElement,
+                        compact: widget.compact);
                   } else {
                     final intakeEntity = widget.intakeList[index];
                     return LongPressDraggable<IntakeEntity>(
@@ -179,6 +188,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             key: ValueKey(intakeEntity.meal.code),
                             intake: intakeEntity,
                             firstListElement: false,
+                            compact: widget.compact,
                             usesImperialUnits: widget.usesImperialUnits,
                           ),
                         ),
@@ -187,11 +197,12 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         children: [
                           SizedBox(width: firstListElement ? 16 : 0),
                           SizedBox(
-                            width: 120,
-                            height: 120,
+                            width: widget.compact ? 104 : 120,
+                            height: sectionHeight,
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16.0),
+                                borderRadius: BorderRadius.circular(
+                                    widget.compact ? 14.0 : 16.0),
                               ),
                               color: Theme.of(context).cardColor,
                             ),
@@ -204,6 +215,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                         onItemLongPressed: widget.onItemLongPressedCallback,
                         onItemTapped: widget.onItemTappedCallback,
                         firstListElement: firstListElement,
+                        compact: widget.compact,
                         usesImperialUnits: widget.usesImperialUnits,
                       ),
                     );
@@ -233,5 +245,37 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
     // Refresh Diary Page
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+  }
+}
+
+class _HeaderChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _HeaderChip({
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.45),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
   }
 }

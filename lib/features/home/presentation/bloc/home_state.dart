@@ -16,6 +16,8 @@ class HomeLoadingState extends HomeState {
 
 class HomeLoadedState extends HomeState {
   final bool showDisclaimerDialog;
+  final UserWeightGoalEntity nutritionPhase;
+  final DailyFocusEntity dailyFocus;
   final double totalKcalDaily;
   final double totalKcalLeft;
   final double totalKcalSupplied;
@@ -35,6 +37,8 @@ class HomeLoadedState extends HomeState {
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
+    required this.nutritionPhase,
+    required this.dailyFocus,
     required this.totalKcalDaily,
     required this.totalKcalLeft,
     required this.totalKcalSupplied,
@@ -55,10 +59,24 @@ class HomeLoadedState extends HomeState {
 
   @override
   List<Object?> get props => [
+        showDisclaimerDialog,
+        nutritionPhase,
+        dailyFocus,
+        totalKcalDaily,
+        totalKcalLeft,
+        totalKcalSupplied,
+        totalKcalBurned,
+        totalCarbsIntake,
+        totalFatsIntake,
+        totalProteinsIntake,
+        totalCarbsGoal,
+        totalFatsGoal,
+        totalProteinsGoal,
         breakfastIntakeList,
         lunchIntakeList,
         dinnerIntakeList,
         snackIntakeList,
+        userActivityList,
         usesImperialUnits
       ];
 }

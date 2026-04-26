@@ -6,6 +6,7 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/add_activity/presentation/add_activity_screen.dart';
 
 class ActivityVerticalList extends StatelessWidget {
+  final bool compact;
   final DateTime day;
   final String title;
   final List<UserActivityEntity> userActivityList;
@@ -13,6 +14,7 @@ class ActivityVerticalList extends StatelessWidget {
 
   const ActivityVerticalList(
       {super.key,
+      this.compact = false,
       required this.day,
       required this.title,
       required this.userActivityList,
@@ -20,10 +22,14 @@ class ActivityVerticalList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sectionHeight = compact ? 136.0 : 160.0;
+    final titleStyle = compact
+        ? Theme.of(context).textTheme.titleMedium
+        : Theme.of(context).textTheme.titleLarge;
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: EdgeInsets.fromLTRB(16, compact ? 10 : 16, 16, 8),
           alignment: Alignment.centerLeft,
           child: Row(
             children: [
@@ -32,14 +38,38 @@ class ActivityVerticalList extends StatelessWidget {
               const SizedBox(width: 4.0),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: titleStyle?.copyWith(
                     color: Theme.of(context).colorScheme.onSurface),
               ),
+              const SizedBox(width: 8),
+              if (userActivityList.isNotEmpty)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.45),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.grid_view_rounded, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${userActivityList.length}',
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
         SizedBox(
-          height: 160,
+          height: sectionHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount:
@@ -50,13 +80,15 @@ class ActivityVerticalList extends StatelessWidget {
                 return PlaceholderCard(
                     day: day,
                     onTap: () => _onPlaceholderCardTapped(context),
-                    firstListElement: firstListElement);
+                    firstListElement: firstListElement,
+                    compact: compact);
               } else {
                 final userActivity = userActivityList[index];
                 return ActivityCard(
                   activityEntity: userActivity,
                   onItemLongPressed: onItemLongPressedCallback,
                   firstListElement: firstListElement,
+                  compact: compact,
                 );
               }
             },

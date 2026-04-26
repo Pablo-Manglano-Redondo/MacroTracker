@@ -6,8 +6,7 @@ import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
@@ -21,11 +20,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
   final log = Logger('MealDetailBloc');
   final AddIntakeUsecase _addIntakeUseCase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
-  final GetKcalGoalUsecase _getKcalGoalUsecase;
-  final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final GetGymTargetsUsecase _getGymTargetsUsecase;
 
   MealDetailBloc(this._addIntakeUseCase, this._addTrackedDayUsecase,
-      this._getKcalGoalUsecase, this._getMacroGoalUsecase)
+      this._getGymTargetsUsecase)
       : super(MealDetailInitial(
             totalQuantityConverted: '100',
             selectedUnit: UnitDropdownItem.gml.toString())) {
@@ -93,16 +91,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       IntakeEntity intakeEntity, DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
-      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();
-      final totalCarbsGoal =
-          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
-      final totalFatGoal =
-          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
-      final totalProteinGoal =
-          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+      final targets = await _getGymTargetsUsecase.getTargetsForDay(day);
 
       await _addTrackedDayUsecase.addNewTrackedDay(
-          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
+        day,
+        targets.kcalGoal,
+        targets.carbsGoal,
+        targets.fatGoal,
+        targets.proteinGoal,
+      );
     }
 
     _addTrackedDayUsecase.addDayCaloriesTracked(day, intakeEntity.totalKcal);

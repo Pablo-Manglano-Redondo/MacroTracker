@@ -90,6 +90,13 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigDailyFocus(String dailyFocus) async {
+    _log.fine('Updating config dailyFocus to $dailyFocus');
+    final config = _configBox.get(_configKey);
+    config?.dailyFocus = dailyFocus;
+    config?.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:macrotracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 
 part 'config_dbo.g.dart';
 
@@ -26,10 +27,14 @@ class ConfigDBO extends HiveObject {
   double? userProteinGoalPct;
   @HiveField(8)
   double? userFatGoalPct;
+  @HiveField(9)
+  String? dailyFocus;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
-      {this.usesImperialUnits = false, this.userKcalAdjustment});
+      {this.usesImperialUnits = false,
+      this.userKcalAdjustment,
+      this.dailyFocus = 'training'});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);
@@ -39,7 +44,12 @@ class ConfigDBO extends HiveObject {
       entity.hasAcceptedPolicy,
       entity.hasAcceptedSendAnonymousData,
       AppThemeDBO.fromAppThemeEntity(entity.appTheme),
-      usesImperialUnits: entity.usesImperialUnits);
+      usesImperialUnits: entity.usesImperialUnits,
+      userKcalAdjustment: entity.userKcalAdjustment,
+      dailyFocus: entity.dailyFocus.storageValue)
+    ..userCarbGoalPct = entity.userCarbGoalPct
+    ..userProteinGoalPct = entity.userProteinGoalPct
+    ..userFatGoalPct = entity.userFatGoalPct;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

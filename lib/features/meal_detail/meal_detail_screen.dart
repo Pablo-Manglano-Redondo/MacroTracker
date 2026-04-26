@@ -77,7 +77,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       } else if (meal.isSolid) {
         _initialUnit = _usesImperialUnits
             ? UnitDropdownItem.oz.toString()
-
             : UnitDropdownItem.g.toString();
       } else {
         _initialUnit = UnitDropdownItem.gml.toString();
@@ -306,52 +305,76 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   void _showSaveRecipeDialog(BuildContext context, String selectedUnit) {
     final controller = TextEditingController(text: meal.name ?? '');
+    bool favorite = true;
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Save as recipe'),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(
-              labelText: 'Recipe name',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final recipeName = controller.text.trim();
-                if (recipeName.isEmpty) {
-                  return;
-                }
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Save as recipe'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      labelText: 'Recipe name',
+                      helperText:
+                          'Use names like post chicken rice or shake yogurt.',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: favorite,
+                    onChanged: (value) {
+                      setDialogState(() {
+                        favorite = value ?? true;
+                      });
+                    },
+                    title: const Text('Favorite for quick access'),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(S.of(context).dialogCancelLabel),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    final recipeName = controller.text.trim();
+                    if (recipeName.isEmpty) {
+                      return;
+                    }
 
-                final recipe = RecipeFactory.fromSingleMeal(
-                  name: recipeName,
-                  meal: meal,
-                  amount: double.tryParse(
-                          quantityTextController.text.replaceAll(',', '.')) ??
-                      1,
-                  unit: selectedUnit,
-                );
+                    final recipe = RecipeFactory.fromSingleMeal(
+                      name: recipeName,
+                      meal: meal,
+                      amount: double.tryParse(quantityTextController.text
+                              .replaceAll(',', '.')) ??
+                          1,
+                      unit: selectedUnit,
+                    ).copyWith(favorite: favorite);
 
-                await locator<SaveRecipeUsecase>().saveRecipe(recipe);
-                if (dialogContext.mounted) {
-                  Navigator.of(dialogContext).pop();
-                }
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Recipe saved')),
-                  );
-                }
-              },
-              child: Text(S.of(context).buttonSaveLabel),
-            ),
-          ],
+                    await locator<SaveRecipeUsecase>().saveRecipe(recipe);
+                    if (!dialogContext.mounted) {
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop();
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Recipe saved')),
+                      );
+                    }
+                  },
+                  child: Text(S.of(context).buttonSaveLabel),
+                ),
+              ],
+            );
+          },
         );
       },
     );

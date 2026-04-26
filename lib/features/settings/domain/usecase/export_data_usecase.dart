@@ -6,6 +6,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:macrotracker/core/data/repository/intake_repository.dart';
 import 'package:macrotracker/core/data/repository/tracked_day_repository.dart';
 import 'package:macrotracker/core/data/repository/user_activity_repository.dart';
+import 'package:macrotracker/features/body_progress/data/repository/body_measurement_repository.dart';
+import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 
 class ExportDataUsecase {
@@ -13,9 +15,16 @@ class ExportDataUsecase {
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
+  final BodyMeasurementRepository _bodyMeasurementRepository;
+  final DailyHabitLogRepository _dailyHabitLogRepository;
 
-  ExportDataUsecase(this._userActivityRepository, this._intakeRepository,
-      this._trackedDayRepository, this._recipeRepository);
+  ExportDataUsecase(
+      this._userActivityRepository,
+      this._intakeRepository,
+      this._trackedDayRepository,
+      this._recipeRepository,
+      this._bodyMeasurementRepository,
+      this._dailyHabitLogRepository);
 
   /// Exports user activity, intake, and tracked day data to a zip of json
   /// files at a user specified location.
@@ -24,7 +33,9 @@ class ExportDataUsecase {
       String userActivityJsonFileName,
       String userIntakeJsonFileName,
       String trackedDayJsonFileName,
-      String recipeJsonFileName) async {
+      String recipeJsonFileName,
+      String bodyMeasurementJsonFileName,
+      String dailyHabitJsonFileName) async {
     // Export user activity data to Json File Bytes
     final fullUserActivity =
         await _userActivityRepository.getAllUserActivityDBO();
@@ -48,6 +59,16 @@ class ExportDataUsecase {
     final fullRecipesJson =
         jsonEncode(fullRecipes.map((recipe) => recipe.toJson()).toList());
     final recipeJsonBytes = utf8.encode(fullRecipesJson);
+    final fullBodyMeasurements =
+        await _bodyMeasurementRepository.getAllMeasurementsDBO();
+    final fullBodyMeasurementsJson = jsonEncode(fullBodyMeasurements
+        .map((measurement) => measurement.toJson())
+        .toList());
+    final bodyMeasurementJsonBytes = utf8.encode(fullBodyMeasurementsJson);
+    final fullHabitLogs = await _dailyHabitLogRepository.getAllLogsDBO();
+    final fullHabitLogsJson =
+        jsonEncode(fullHabitLogs.map((log) => log.toJson()).toList());
+    final dailyHabitJsonBytes = utf8.encode(fullHabitLogsJson);
 
     // Create a zip file with the exported data
     final archive = Archive();
@@ -64,8 +85,15 @@ class ExportDataUsecase {
           trackedDayJsonBytes),
     );
     archive.addFile(
-      ArchiveFile(
-          recipeJsonFileName, recipeJsonBytes.length, recipeJsonBytes),
+      ArchiveFile(recipeJsonFileName, recipeJsonBytes.length, recipeJsonBytes),
+    );
+    archive.addFile(
+      ArchiveFile(bodyMeasurementJsonFileName, bodyMeasurementJsonBytes.length,
+          bodyMeasurementJsonBytes),
+    );
+    archive.addFile(
+      ArchiveFile(dailyHabitJsonFileName, dailyHabitJsonBytes.length,
+          dailyHabitJsonBytes),
     );
 
     // Save the zip file to the user specified location

@@ -7,6 +7,7 @@ import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/bmi_overview.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_gender_dialog.dart';
@@ -97,6 +98,25 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Icon(Icons.flag_outlined),
           ),
           onTap: () => _showSetGoalDialog(context, user),
+        ),
+        ListTile(
+          title: Text(
+            'Body progress',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          subtitle: Text(
+            'Weight trend, 7d average and waist check-ins',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          leading: const SizedBox(
+            height: double.infinity,
+            child: Icon(Icons.show_chart_outlined),
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            Navigator.of(context)
+                .pushNamed(NavigationOptions.bodyProgressRoute);
+          },
         ),
         ListTile(
           title: Text(

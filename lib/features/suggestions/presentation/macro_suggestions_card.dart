@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
 import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
 
 class MacroSuggestionsCard extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final DailyFocusEntity dailyFocus;
+  final UserWeightGoalEntity nutritionPhase;
   final double remainingKcal;
   final double remainingCarbs;
   final double remainingFat;
@@ -17,6 +22,9 @@ class MacroSuggestionsCard extends StatelessWidget {
 
   const MacroSuggestionsCard({
     super.key,
+    this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
+    required this.dailyFocus,
+    required this.nutritionPhase,
     required this.remainingKcal,
     required this.remainingCarbs,
     required this.remainingFat,
@@ -30,13 +38,15 @@ class MacroSuggestionsCard extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: padding,
       child: Card(
         elevation: 0.5,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: FutureBuilder<List<MacroSuggestionEntity>>(
             future: locator<GenerateMacroSuggestionsUsecase>().generate(
+              dailyFocus: dailyFocus,
+              nutritionPhase: nutritionPhase,
               remainingKcal: remainingKcal,
               remainingCarbs: remainingCarbs,
               remainingFat: remainingFat,
@@ -50,18 +60,19 @@ class MacroSuggestionsCard extends StatelessWidget {
                 );
               }
 
-              final suggestions = snapshot.data ?? const <MacroSuggestionEntity>[];
+              final suggestions =
+                  snapshot.data ?? const <MacroSuggestionEntity>[];
               if (suggestions.isEmpty) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ideas for the rest of your day',
+                      _title,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8.0),
                     Text(
-                      'Save a few meals as recipes to get quick suggestions here.',
+                      'Save a few recipes and this section will start talking like your current gym day.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -71,11 +82,10 @@ class MacroSuggestionsCard extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Ideas for the rest of your day',
-                      style: Theme.of(context).textTheme.titleMedium),
+                  Text(_title, style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 4.0),
                   Text(
-                    'Based on your remaining calories and macros.',
+                    _subtitle,
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 12.0),
@@ -105,16 +115,10 @@ class MacroSuggestionsCard extends StatelessWidget {
 
   Future<void> _logSuggestion(
       BuildContext context, MacroSuggestionEntity suggestion) async {
-    final mealType = await showDialog<AddMealType>(
-        context: context, builder: (_) => const CopyDialog());
-    if (mealType == null) {
-      return;
-    }
-
     await locator<LogRecipeUsecase>().logRecipe(
       suggestion.recipe,
       suggestion.suggestedServings,
-      mealType.getIntakeType(),
+      suggestion.recommendedIntakeType,
       DateTime.now(),
     );
     locator<HomeBloc>().add(const LoadItemsEvent());
@@ -123,8 +127,51 @@ class MacroSuggestionsCard extends StatelessWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${suggestion.recipe.name} added')),
+        SnackBar(
+          content: Text(
+            '${suggestion.recipe.name} logged to ${_slotLabel(suggestion.recommendedIntakeType)}',
+          ),
+        ),
       );
+    }
+  }
+
+  String get _title {
+    if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
+      return 'Cut moves';
+    }
+    if (dailyFocus == DailyFocusEntity.training) {
+      return 'Training moves';
+    }
+    if (dailyFocus == DailyFocusEntity.cardio) {
+      return 'Cardio moves';
+    }
+    return 'Rest-day moves';
+  }
+
+  String get _subtitle {
+    if (dailyFocus == DailyFocusEntity.training) {
+      return 'Best next meals for fueling or closing recovery.';
+    }
+    if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
+      return 'Protein-first options that keep calories under control.';
+    }
+    if (dailyFocus == DailyFocusEntity.rest) {
+      return 'Cleaner closes that keep protein high without wasting calories.';
+    }
+    return 'Saved meals ranked against what your day still needs.';
+  }
+
+  String _slotLabel(IntakeTypeEntity intakeType) {
+    switch (intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return 'breakfast';
+      case IntakeTypeEntity.lunch:
+        return 'lunch';
+      case IntakeTypeEntity.dinner:
+        return 'dinner';
+      case IntakeTypeEntity.snack:
+        return 'snack';
     }
   }
 }
@@ -144,7 +191,10 @@ class _SuggestionTile extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.0),
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.35),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,14 +207,38 @@ class _SuggestionTile extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
-              TextButton(
+              TextButton.icon(
                 onPressed: onAddPressed,
-                child: const Text('Add'),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Log'),
               ),
             ],
           ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _MetaChip(
+                icon: suggestion.category.icon,
+                label: suggestion.category.label,
+              ),
+              _MetaChip(
+                icon: _slotIcon(suggestion.recommendedIntakeType),
+                label: _slotText(suggestion.recommendedIntakeType),
+              ),
+              _MetaChip(
+                icon: Icons.local_fire_department_outlined,
+                label: '${suggestion.predictedKcal.toStringAsFixed(0)} kcal',
+              ),
+              _MetaChip(
+                icon: Icons.egg_alt_outlined,
+                label: 'P ${suggestion.predictedProtein.toStringAsFixed(1)}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 4.0),
           Text(
-            '${_formatServings(suggestion.suggestedServings)} servings | ${suggestion.predictedKcal.toStringAsFixed(0)} kcal | P ${suggestion.predictedProtein.toStringAsFixed(1)}g',
+            '${_formatServings(suggestion.suggestedServings)} servings | C ${suggestion.predictedCarbs.toStringAsFixed(1)} | F ${suggestion.predictedFat.toStringAsFixed(1)} | P ${suggestion.predictedProtein.toStringAsFixed(1)}',
           ),
           const SizedBox(height: 4.0),
           Text(
@@ -178,5 +252,63 @@ class _SuggestionTile extends StatelessWidget {
 
   String _formatServings(double value) {
     return value.toStringAsFixed(value % 1 == 0 ? 0 : 2);
+  }
+
+  String _slotText(IntakeTypeEntity intakeType) {
+    switch (intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return 'Breakfast';
+      case IntakeTypeEntity.lunch:
+        return 'Lunch';
+      case IntakeTypeEntity.dinner:
+        return 'Dinner';
+      case IntakeTypeEntity.snack:
+        return 'Snack';
+    }
+  }
+
+  IconData _slotIcon(IntakeTypeEntity intakeType) {
+    switch (intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return Icons.bakery_dining_outlined;
+      case IntakeTypeEntity.lunch:
+        return Icons.lunch_dining_outlined;
+      case IntakeTypeEntity.dinner:
+        return Icons.dinner_dining_outlined;
+      case IntakeTypeEntity.snack:
+        return Icons.fastfood_outlined;
+    }
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _MetaChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12),
+          const SizedBox(width: 4),
+          Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
   }
 }
