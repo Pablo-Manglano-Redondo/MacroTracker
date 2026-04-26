@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
+import 'package:macrotracker/core/data/dbo/tracked_day_dbo.dart';
 
 class TrackedDayEntity extends Equatable {
   static const maxKcalDifferenceOverGoal = 500;

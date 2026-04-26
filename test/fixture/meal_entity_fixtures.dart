@@ -1,5 +1,5 @@
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 class MealEntityFixtures {
   static final mealOne = MealEntity(

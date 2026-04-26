@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/user_bmi_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
-import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/bmi_overview.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_gender_dialog.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_goal_dialog.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_height_dialog.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
-import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/domain/entity/user_bmi_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:macrotracker/core/utils/calc/unit_calc.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/bmi_overview.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/set_gender_dialog.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/set_goal_dialog.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/set_height_dialog.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
+import 'package:macrotracker/features/profile/presentation/widgets/set_weight_dialog.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

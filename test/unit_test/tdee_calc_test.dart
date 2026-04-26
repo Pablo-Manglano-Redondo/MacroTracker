@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_weight_goal_entity.dart';
-import 'package:opennutritracker/core/utils/calc/tdee_calc.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:macrotracker/core/utils/calc/tdee_calc.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 

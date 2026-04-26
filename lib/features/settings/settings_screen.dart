@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
-import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
-import 'package:opennutritracker/core/utils/app_const.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
+import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:macrotracker/core/utils/app_const.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/theme_mode_provider.dart';
+import 'package:macrotracker/core/utils/url_const.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/calculations_dialog.dart';
+import 'package:macrotracker/features/settings/presentation/widgets/calculations_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -127,7 +127,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Column(
                   children: [
                     DropdownButtonFormField(
-                      value: selectedUnit,
+                      initialValue: selectedUnit,
                       decoration: InputDecoration(
                         enabled: true,
                         filled: false,
@@ -199,41 +199,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: StatefulBuilder(
               builder: (BuildContext context,
                   void Function(void Function()) setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    RadioListTile(
-                      title:
-                          Text(S.of(context).settingsThemeSystemDefaultLabel),
-                      value: AppThemeEntity.system,
-                      groupValue: selectedTheme,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedTheme = value as AppThemeEntity;
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: Text(S.of(context).settingsThemeLightLabel),
-                      value: AppThemeEntity.light,
-                      groupValue: selectedTheme,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedTheme = value as AppThemeEntity;
-                        });
-                      },
-                    ),
-                    RadioListTile(
-                      title: Text(S.of(context).settingsThemeDarkLabel),
-                      value: AppThemeEntity.dark,
-                      groupValue: selectedTheme,
-                      onChanged: (value) {
-                        setState(() {
-                          selectedTheme = value as AppThemeEntity;
-                        });
-                      },
-                    ),
-                  ],
+                return RadioGroup<AppThemeEntity>(
+                  groupValue: selectedTheme,
+                  onChanged: (value) {
+                    if (value == null) {
+                      return;
+                    }
+                    setState(() {
+                      selectedTheme = value;
+                    });
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RadioListTile<AppThemeEntity>(
+                        title:
+                            Text(S.of(context).settingsThemeSystemDefaultLabel),
+                        value: AppThemeEntity.system,
+                      ),
+                      RadioListTile<AppThemeEntity>(
+                        title: Text(S.of(context).settingsThemeLightLabel),
+                        value: AppThemeEntity.light,
+                      ),
+                      RadioListTile<AppThemeEntity>(
+                        title: Text(S.of(context).settingsThemeDarkLabel),
+                        value: AppThemeEntity.dark,
+                      ),
+                    ],
+                  ),
                 );
               },
             ),

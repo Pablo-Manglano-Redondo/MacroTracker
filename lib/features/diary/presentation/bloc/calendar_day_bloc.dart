@@ -1,18 +1,18 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:macrotracker/core/utils/calc/macro_calc.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 
 part 'calendar_day_event.dart';
 

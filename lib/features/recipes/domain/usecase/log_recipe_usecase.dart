@@ -1,12 +1,12 @@
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/core/utils/meal_aggregate_factory.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_intake_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 class LogRecipeUsecase {
   final AddIntakeUsecase _addIntakeUsecase;

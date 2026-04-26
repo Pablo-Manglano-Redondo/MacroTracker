@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class OnboardingFourthPageBody extends StatefulWidget {
   final Function(bool active, UserGoalSelectionEntity? selectedGoal)

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class RecipeEntity extends Equatable {
   final String id;

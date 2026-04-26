@@ -1,11 +1,11 @@
-import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
+import 'package:macrotracker/core/utils/calc/unit_calc.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class RecipeFactory {
   static RecipeEntity fromSingleMeal({

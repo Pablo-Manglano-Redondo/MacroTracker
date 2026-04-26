@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 
 part 'interpretation_draft_dbo.g.dart';
 

@@ -1,8 +1,8 @@
-import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
-import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/data/data_source/intake_data_source.dart';
+import 'package:macrotracker/core/data/dbo/intake_dbo.dart';
+import 'package:macrotracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 
 class IntakeRepository {
   final IntakeDataSource _intakeDataSource;

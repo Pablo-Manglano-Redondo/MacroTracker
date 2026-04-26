@@ -1,7 +1,7 @@
-import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/data/data_sources/fdc_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/data_sources/off_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class ProductsRepository {
   final OFFDataSource _offDataSource;

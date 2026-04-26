@@ -1,10 +1,10 @@
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
-import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
-import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
+import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 
 class InterpretationDraftRepository {
   final InterpretationDraftDataSource _draftDataSource;

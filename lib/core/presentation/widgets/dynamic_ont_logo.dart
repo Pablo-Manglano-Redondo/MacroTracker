@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:macrotracker/core/utils/extensions.dart';
 
 class DynamicOntLogo extends StatelessWidget {
   const DynamicOntLogo({super.key});

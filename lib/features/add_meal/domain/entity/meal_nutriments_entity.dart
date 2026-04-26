@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
-import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
-import 'package:opennutritracker/core/utils/extensions.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
+import 'package:macrotracker/core/data/dbo/meal_nutriments_dbo.dart';
+import 'package:macrotracker/core/utils/extensions.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_const.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
+import 'package:macrotracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 
 class MealNutrimentsEntity extends Equatable {
   final double? energyKcal100;

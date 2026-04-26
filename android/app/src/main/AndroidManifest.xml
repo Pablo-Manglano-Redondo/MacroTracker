@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.opennutritracker.ont.opennutritracker">
+    package="com.pxblx.macrotracker">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -16,7 +16,7 @@
     </queries>
 
    <application
-        android:label="OpenNutriTracker"
+        android:label="MacroTracker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

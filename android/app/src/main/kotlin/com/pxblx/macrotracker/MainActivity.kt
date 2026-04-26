@@ -1,4 +1,4 @@
-package com.opennutritracker.ont.opennutritracker
+package com.pxblx.macrotracker
 
 import io.flutter.embedding.android.FlutterActivity
 

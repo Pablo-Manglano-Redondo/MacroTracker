@@ -2,12 +2,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:opennutritracker/core/presentation/widgets/meal_value_unit_text.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:macrotracker/core/presentation/widgets/meal_value_unit_text.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
 
 class MealItemCard extends StatelessWidget {
   final DateTime day;

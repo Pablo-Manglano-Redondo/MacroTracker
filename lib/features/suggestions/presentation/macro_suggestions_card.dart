@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
-import 'package:opennutritracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
-import 'package:opennutritracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
+import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
+import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
 
 class MacroSuggestionsCard extends StatelessWidget {
   final double remainingKcal;

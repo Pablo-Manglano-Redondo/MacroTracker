@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 class MacroSuggestionEntity extends Equatable {
   final RecipeEntity recipe;

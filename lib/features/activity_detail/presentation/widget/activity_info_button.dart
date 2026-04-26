@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/utils/url_const.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ActivityInfoButton extends StatelessWidget {

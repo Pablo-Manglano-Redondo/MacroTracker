@@ -1,11 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/utils/extensions.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:macrotracker/core/utils/extensions.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 
 part 'diary_event.dart';
 

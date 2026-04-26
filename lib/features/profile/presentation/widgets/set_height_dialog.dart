@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:horizontal_picker/horizontal_picker.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class SetHeightDialog extends StatelessWidget {
   static const _heightRangeCM = 100.0;

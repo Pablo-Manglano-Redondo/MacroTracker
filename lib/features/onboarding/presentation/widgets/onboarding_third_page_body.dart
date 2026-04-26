@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/info_dialog.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/info_dialog.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class OnboardingThirdPageBody extends StatefulWidget {
   final Function(bool active, UserActivitySelectionEntity? selectedActivity)

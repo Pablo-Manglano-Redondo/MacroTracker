@@ -1,7 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/recipes/data/dbo/recipe_ingredient_dbo.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/data/dbo/recipe_ingredient_dbo.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 part 'recipe_dbo.g.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class SetGenderDialog extends StatelessWidget {
   const SetGenderDialog({super.key});

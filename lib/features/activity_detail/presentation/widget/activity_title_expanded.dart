@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 
 class ActivityTitleExpanded extends StatelessWidget {
   final PhysicalActivityEntity activity;

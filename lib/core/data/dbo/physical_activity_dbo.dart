@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 
 part 'physical_activity_dbo.g.dart';
 

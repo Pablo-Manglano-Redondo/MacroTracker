@@ -1,8 +1,8 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/core/utils/supported_language.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
+import 'package:macrotracker/core/utils/supported_language.dart';
+import 'package:macrotracker/features/add_meal/data/dto/off/off_product_nutriments_dto.dart';
 
 part 'off_product_dto.g.dart';
 

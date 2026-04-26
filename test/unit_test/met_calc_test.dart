@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/core/utils/calc/met_calc.dart';
+import 'package:macrotracker/core/utils/calc/met_calc.dart';
 
 import '../fixture/physical_activity_entity_fixtures.dart';
 import '../fixture/user_entity_fixtures.dart';

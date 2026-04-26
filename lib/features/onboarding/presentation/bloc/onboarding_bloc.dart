@@ -1,12 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:macrotracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:macrotracker/core/utils/calc/macro_calc.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
 
 part 'onboarding_event.dart';
 

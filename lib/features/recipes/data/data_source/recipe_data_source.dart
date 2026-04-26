@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/features/recipes/data/dbo/recipe_dbo.dart';
+import 'package:macrotracker/features/recipes/data/dbo/recipe_dbo.dart';
 
 class RecipeDataSource {
   final _log = Logger('RecipeDataSource');

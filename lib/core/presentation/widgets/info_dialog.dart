@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class InfoDialog extends StatelessWidget {
   final String title;

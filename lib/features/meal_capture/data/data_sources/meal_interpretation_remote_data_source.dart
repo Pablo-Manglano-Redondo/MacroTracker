@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -34,7 +35,7 @@ class MealInterpretationRemoteDataSource {
         },
       );
 
-      return _mapDraftResponse(response.data, fallbackTitle: text);
+      return mapDraftResponse(response.data, fallbackTitle: text);
     } catch (exception, stacktrace) {
       _log.severe('Exception while interpreting text meal $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -62,7 +63,7 @@ class MealInterpretationRemoteDataSource {
         },
       );
 
-      return _mapDraftResponse(response.data, fallbackTitle: 'Photo meal');
+      return mapDraftResponse(response.data, fallbackTitle: 'Photo meal');
     } catch (exception, stacktrace) {
       _log.severe('Exception while interpreting photo meal $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -70,7 +71,8 @@ class MealInterpretationRemoteDataSource {
     }
   }
 
-  InterpretationDraftEntity _mapDraftResponse(dynamic data,
+  @visibleForTesting
+  InterpretationDraftEntity mapDraftResponse(dynamic data,
       {required String fallbackTitle}) {
     if (data is String) {
       data = jsonDecode(data);
@@ -80,7 +82,8 @@ class MealInterpretationRemoteDataSource {
     }
 
     final draftId = (data['draftId'] as String?) ?? IdGenerator.getUniqueID();
-    final totals = (data['totals'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final totals =
+        (data['totals'] as Map?)?.cast<String, dynamic>() ?? const {};
     final items = (data['items'] as List<dynamic>? ?? const []);
     final expiresAt = DateTime.tryParse(data['expiresAt'] as String? ?? '');
 
@@ -150,10 +153,15 @@ class MealInterpretationRemoteDataSource {
 
   double _toDouble(dynamic value) {
     if (value is num) {
-      return value.toDouble();
+      final parsed = value.toDouble();
+      return parsed < 0 ? 0 : parsed;
     }
     if (value is String) {
-      return double.tryParse(value) ?? 0;
+      final parsed = double.tryParse(value);
+      if (parsed == null || parsed < 0) {
+        return 0;
+      }
+      return parsed;
     }
     return 0;
   }

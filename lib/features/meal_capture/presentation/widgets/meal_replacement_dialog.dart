@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/usecase/search_products_usecase.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
 class MealReplacementDialog extends StatefulWidget {
   final String initialQuery;

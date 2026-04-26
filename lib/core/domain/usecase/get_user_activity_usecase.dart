@@ -1,5 +1,5 @@
-import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
+import 'package:macrotracker/core/data/repository/user_activity_repository.dart';
+import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 
 class GetUserActivityUsecase {
   final UserActivityRepository _userActivityRepository;

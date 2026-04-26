@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/core/utils/supported_language.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_const.dart';
-import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_portion_dto.dart';
+import 'package:macrotracker/core/utils/supported_language.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_const.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc_sp/sp_const.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc_sp/sp_fdc_portion_dto.dart';
 
 part 'sp_fdc_food_dto.g.dart';
 

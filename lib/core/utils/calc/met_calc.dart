@@ -1,5 +1,5 @@
-import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
 
 class METCalc {
   /// Calculates total kcal with formula by the

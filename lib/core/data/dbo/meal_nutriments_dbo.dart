@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 
 part 'meal_nutriments_dbo.g.dart';
 

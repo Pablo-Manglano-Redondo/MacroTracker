@@ -1,0 +1,4 @@
+* Rebrand the app as MacroTracker
+* Rename the Flutter package to macrotracker
+* Add Supabase function tests and local helper scripts
+* Upgrade Android build tooling for current Flutter support

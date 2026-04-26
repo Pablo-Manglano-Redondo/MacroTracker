@@ -1,9 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
-import 'package:opennutritracker/core/utils/app_const.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
+import 'package:macrotracker/core/utils/app_const.dart';
+import 'package:macrotracker/core/utils/url_const.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingIntroPageBody extends StatefulWidget {

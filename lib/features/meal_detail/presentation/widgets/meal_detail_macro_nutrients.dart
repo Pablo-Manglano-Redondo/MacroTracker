@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/utils/extensions.dart';
+import 'package:macrotracker/core/utils/extensions.dart';
 
 class MealDetailMacroNutrients extends StatelessWidget {
   final String typeString;

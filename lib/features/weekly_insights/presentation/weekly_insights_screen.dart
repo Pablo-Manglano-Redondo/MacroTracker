@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
-import 'package:opennutritracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
+import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 
 class WeeklyInsightsScreen extends StatelessWidget {
   const WeeklyInsightsScreen({super.key});

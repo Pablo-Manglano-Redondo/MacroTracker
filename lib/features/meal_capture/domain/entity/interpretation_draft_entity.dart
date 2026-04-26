@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 
 enum DraftSourceEntity {
   text,

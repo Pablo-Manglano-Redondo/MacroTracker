@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/entity/user_pal_entity.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class SetPALCategoryDialog extends StatelessWidget {
   const SetPALCategoryDialog({super.key});

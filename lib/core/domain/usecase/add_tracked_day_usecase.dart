@@ -1,4 +1,4 @@
-import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
+import 'package:macrotracker/core/data/repository/tracked_day_repository.dart';
 
 class AddTrackedDayUsecase {
   final TrackedDayRepository _trackedDayRepository;

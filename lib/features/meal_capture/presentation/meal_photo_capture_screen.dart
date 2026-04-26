@@ -2,17 +2,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
-import 'package:opennutritracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
-import 'package:opennutritracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
+import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
 
 class MealPhotoCaptureScreen extends StatefulWidget {
   const MealPhotoCaptureScreen({super.key});

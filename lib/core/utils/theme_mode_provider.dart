@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 
 class ThemeModeProvider extends ChangeNotifier {
   AppThemeEntity appTheme;

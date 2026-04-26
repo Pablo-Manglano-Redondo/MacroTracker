@@ -1,7 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/data/dbo/app_theme_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/config_dbo.dart';
+import 'package:macrotracker/core/data/dbo/app_theme_dbo.dart';
+import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 
 class ConfigDataSource {
   static const _configKey = "ConfigKey";

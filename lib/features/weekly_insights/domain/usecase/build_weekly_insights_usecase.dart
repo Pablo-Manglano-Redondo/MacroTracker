@@ -1,9 +1,9 @@
 import 'package:collection/collection.dart';
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
 
 class BuildWeeklyInsightsUsecase {
   final GetTrackedDayUsecase _getTrackedDayUsecase;

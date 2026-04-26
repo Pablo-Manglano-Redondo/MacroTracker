@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
-import 'package:opennutritracker/features/diary/diary_page.dart';
-import 'package:opennutritracker/core/presentation/widgets/home_appbar.dart';
-import 'package:opennutritracker/features/home/home_page.dart';
-import 'package:opennutritracker/core/presentation/widgets/main_appbar.dart';
-import 'package:opennutritracker/features/profile/profile_page.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/add_item_bottom_sheet.dart';
+import 'package:macrotracker/features/diary/diary_page.dart';
+import 'package:macrotracker/core/presentation/widgets/home_appbar.dart';
+import 'package:macrotracker/features/home/home_page.dart';
+import 'package:macrotracker/core/presentation/widgets/main_appbar.dart';
+import 'package:macrotracker/features/profile/profile_page.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

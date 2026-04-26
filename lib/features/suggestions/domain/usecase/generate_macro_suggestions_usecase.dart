@@ -1,9 +1,9 @@
 import 'dart:math';
 
 import 'package:collection/collection.dart';
-import 'package:opennutritracker/core/utils/meal_aggregate_factory.dart';
-import 'package:opennutritracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
-import 'package:opennutritracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
+import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
+import 'package:macrotracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
 
 class GenerateMacroSuggestionsUsecase {
   final GetRecipeLibraryUsecase _getRecipeLibraryUsecase;

@@ -1,8 +1,8 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:macrotracker/core/data/dbo/meal_dbo.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 
 part 'intake_dbo.g.dart';
 

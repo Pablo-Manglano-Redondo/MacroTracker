@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
-import 'package:opennutritracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 
 class RecipeLibraryScreen extends StatefulWidget {
   const RecipeLibraryScreen({super.key});

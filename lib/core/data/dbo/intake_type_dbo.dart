@@ -1,5 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 
 part 'intake_type_dbo.g.dart';
 

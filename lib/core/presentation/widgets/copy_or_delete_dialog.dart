@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class CopyOrDeleteDialog extends StatelessWidget {
   const CopyOrDeleteDialog({super.key});

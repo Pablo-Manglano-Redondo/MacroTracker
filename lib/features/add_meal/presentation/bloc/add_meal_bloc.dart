@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 
 part 'add_meal_event.dart';
 

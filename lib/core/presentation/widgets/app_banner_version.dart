@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/presentation/widgets/dynamic_ont_logo.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/dynamic_ont_logo.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class AppBannerVersion extends StatelessWidget {
   final String versionNumber;

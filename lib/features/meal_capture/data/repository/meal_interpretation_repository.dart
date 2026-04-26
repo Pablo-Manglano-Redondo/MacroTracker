@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:opennutritracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
-import 'package:opennutritracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 
 class MealInterpretationRepository {
   final MealInterpretationRemoteDataSource _remoteDataSource;

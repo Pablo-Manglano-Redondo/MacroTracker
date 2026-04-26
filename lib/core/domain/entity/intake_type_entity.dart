@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
-import 'package:opennutritracker/core/utils/custom_icons.dart';
+import 'package:macrotracker/core/data/dbo/intake_type_dbo.dart';
+import 'package:macrotracker/core/utils/custom_icons.dart';
 
 enum IntakeTypeEntity {
   breakfast,

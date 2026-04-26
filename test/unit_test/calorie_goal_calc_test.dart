@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/utils/calc/calorie_goal_calc.dart';
 
 import '../fixture/user_entity_fixtures.dart';
 

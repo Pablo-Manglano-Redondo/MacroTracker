@@ -1,17 +1,17 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/utils/calc/macro_calc.dart';
-import 'package:opennutritracker/core/utils/calc/met_calc.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:macrotracker/core/utils/calc/macro_calc.dart';
+import 'package:macrotracker/core/utils/calc/met_calc.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
 
 part 'activity_detail_event.dart';
 

@@ -1,13 +1,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:opennutritracker/core/utils/app_const.dart';
+import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:macrotracker/core/utils/app_const.dart';
 
 part 'settings_event.dart';
 

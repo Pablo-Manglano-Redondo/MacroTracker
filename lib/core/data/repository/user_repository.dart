@@ -1,6 +1,6 @@
-import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
-import 'package:opennutritracker/core/data/dbo/user_dbo.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/data/data_source/user_data_source.dart';
+import 'package:macrotracker/core/data/dbo/user_dbo.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
 
 class UserRepository {
   final UserDataSource _userDataSource;

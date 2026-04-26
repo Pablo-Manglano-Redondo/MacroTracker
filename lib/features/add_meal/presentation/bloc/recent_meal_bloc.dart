@@ -1,10 +1,10 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 
 part 'recent_meal_event.dart';
 

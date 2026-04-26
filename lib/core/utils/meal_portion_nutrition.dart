@@ -1,5 +1,5 @@
-import 'package:opennutritracker/core/utils/calc/unit_calc.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/core/utils/calc/unit_calc.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class MealPortionNutrition {
   final double kcal;

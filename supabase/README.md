@@ -9,6 +9,50 @@ This directory contains the backend functions used by the app-side AI capture fl
 
 Both functions return the same structured meal draft contract so the Flutter client does not depend on a specific AI provider.
 
+## Tooling
+
+This project can use the Supabase CLI directly through `npx`, so a global install is not required.
+
+Quick checks:
+
+```bash
+npx --yes supabase --version
+deno test supabase/functions/_shared
+```
+
+## Local Test
+
+Run the shared function contract tests with Deno:
+
+```bash
+pwsh ./supabase/test.functions.ps1
+```
+
+or directly:
+
+```bash
+deno test supabase/functions/_shared
+```
+
+## Local Serve
+
+Serve all Edge Functions locally:
+
+```bash
+pwsh ./supabase/serve.functions.ps1
+```
+
+This uses:
+
+```bash
+npx --yes supabase functions serve --env-file supabase/.env.functions --workdir .
+```
+
+Notes:
+
+- local serving usually requires Docker
+- use `--NoVerifyJwt` in the helper script if you want to mirror the current unauthenticated mobile flow more closely
+
 ## Secrets
 
 Use the local working file:

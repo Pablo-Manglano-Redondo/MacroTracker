@@ -2,8 +2,8 @@ import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 void main() {
   testWidgets('DashboardWidget displays correct data',

@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
+import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
 
 part 'tracked_day_dbo.g.dart';
 

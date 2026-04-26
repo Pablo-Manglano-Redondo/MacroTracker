@@ -1,4 +1,4 @@
-import 'package:opennutritracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 
 class PhysicalActivityFixtures {
   static const PhysicalActivityEntity moderateBicycling =

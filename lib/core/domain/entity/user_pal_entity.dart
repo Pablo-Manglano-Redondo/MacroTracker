@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/data/dbo/user_pal_dbo.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 enum UserPALEntity {
   sedentary,

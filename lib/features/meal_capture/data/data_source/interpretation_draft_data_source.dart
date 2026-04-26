@@ -1,6 +1,6 @@
 import 'package:hive/hive.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
+import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_dbo.dart';
 
 class InterpretationDraftDataSource {
   final _log = Logger('InterpretationDraftDataSource');

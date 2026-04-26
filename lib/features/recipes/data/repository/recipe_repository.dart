@@ -1,8 +1,8 @@
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/recipes/data/data_source/recipe_data_source.dart';
-import 'package:opennutritracker/features/recipes/data/dbo/recipe_dbo.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
+import 'package:macrotracker/features/recipes/data/dbo/recipe_dbo.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class RecipeRepository {
   final RecipeDataSource _recipeDataSource;

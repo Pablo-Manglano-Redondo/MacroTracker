@@ -1,5 +1,5 @@
-import 'package:opennutritracker/core/data/repository/config_repository.dart';
-import 'package:opennutritracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/core/data/repository/config_repository.dart';
+import 'package:macrotracker/core/domain/entity/config_entity.dart';
 
 class GetConfigUsecase {
   final ConfigRepository _configRepository;

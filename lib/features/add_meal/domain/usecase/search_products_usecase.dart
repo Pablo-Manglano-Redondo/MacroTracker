@@ -1,5 +1,5 @@
-import 'package:opennutritracker/features/add_meal/data/repository/products_repository.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/data/repository/products_repository.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class SearchProductsUseCase {
   final ProductsRepository _productsRepository;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class CopyDialog extends StatefulWidget {
   const CopyDialog({super.key});

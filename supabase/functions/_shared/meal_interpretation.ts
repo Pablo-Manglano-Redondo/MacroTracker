@@ -1,8 +1,8 @@
 import { mealInterpretationSchema } from "./meal_interpretation_schema.ts";
 
-type InterpretationMode = "text" | "photo";
+export type InterpretationMode = "text" | "photo";
 
-type MealInterpretationRequest = {
+export type MealInterpretationRequest = {
   mode: InterpretationMode;
   text?: string;
   imageBase64?: string;
@@ -11,7 +11,7 @@ type MealInterpretationRequest = {
   mealTypeHint?: string | null;
 };
 
-type MealInterpretationItem = {
+export type MealInterpretationItem = {
   id: string;
   label: string;
   amount: number;
@@ -24,7 +24,7 @@ type MealInterpretationItem = {
   editable: boolean;
 };
 
-type MealInterpretationResponse = {
+export type MealInterpretationResponse = {
   title: string;
   summary: string;
   confidenceBand: "low" | "medium" | "high";
@@ -158,7 +158,7 @@ function extractStructuredResponse(payload: any): MealInterpretationResponse {
   throw new Error("Structured response missing candidate text");
 }
 
-function normalizeDraftResponse(
+export function normalizeDraftResponse(
   data: MealInterpretationResponse,
   request: MealInterpretationRequest,
   model: string,

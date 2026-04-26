@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
-import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
-import 'package:opennutritracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_overview_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/highlight_button.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
-import 'package:opennutritracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
-import 'package:opennutritracker/generated/l10n.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_gender_selection_entity.dart';
+import 'package:macrotracker/features/onboarding/domain/entity/user_goal_selection_entity.dart';
+import 'package:macrotracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:macrotracker/features/onboarding/presentation/onboarding_intro_page_body.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/onboarding_fourth_page_body.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/onboarding_overview_page_body.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/onboarding_third_page_body.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/highlight_button.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/onboarding_first_page_body.dart';
+import 'package:macrotracker/features/onboarding/presentation/widgets/onboarding_second_page_body.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});

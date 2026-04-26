@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:opennutritracker/core/utils/hive_db_provider.dart';
+import 'package:macrotracker/core/utils/hive_db_provider.dart';
 
 class SecureAppStorageProvider {
   static const _sharedPrefsName = "SharedPrefs";

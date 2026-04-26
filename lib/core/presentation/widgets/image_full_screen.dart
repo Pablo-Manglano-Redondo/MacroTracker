@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 
 class ImageFullScreen extends StatefulWidget {
 

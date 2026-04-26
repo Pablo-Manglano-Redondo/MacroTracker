@@ -1,10 +1,10 @@
 import 'package:collection/collection.dart';
-import 'package:opennutritracker/core/utils/id_generator.dart';
-import 'package:opennutritracker/core/utils/meal_portion_nutrition.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
-import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
-import 'package:opennutritracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
+import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 class MealAggregateFactory {
   static MealEntity fromRecipe(RecipeEntity recipe) {

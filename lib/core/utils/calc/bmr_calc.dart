@@ -1,5 +1,5 @@
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
 
 ///
 /// Calculates BMR of UserEntity based on the 1918 Harris-Benedict equation

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:logging/logging.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:macrotracker/core/data/data_source/user_activity_dbo.dart';
 
 class UserActivityDataSource {
   final log = Logger('UserActivityDataSource');

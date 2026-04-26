@@ -1,8 +1,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
-import 'package:opennutritracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/data/dbo/user_gender_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_pal_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_weight_goal_dbo.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
 
 part 'user_dbo.g.dart';
 

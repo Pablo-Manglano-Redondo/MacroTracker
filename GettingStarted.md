@@ -1,46 +1,56 @@
 # Getting Started
-For setup first you need the following things:
-- Flutter Version 3.27.1
-- IDE like Android Studio or VS Code with Flutter Plugin installed.
 
-## Steps to run App
-1.⁠ ⁠Clone the repository with Git
+## Requirements
 
-```git clone https://github.com/simonoppowa/OpenNutriTracker.git```
+- Flutter 3.41.6
+- Android Studio or VS Code with the Flutter plugin
+- Android SDK or Xcode, depending on the target platform
 
-2.⁠ ⁠Get Dependencies
+## Setup
 
-```flutter pub get```
+1. Clone this repository.
 
-3.⁠ ⁠Run Build Runner to generate Files
+2. Install dependencies:
 
-```flutter pub run build_runner build```
+```bash
+flutter pub get
+```
 
-4.⁠ ⁠Run App
+3. Generate code when generated files are stale:
 
-```flutter run lib/main.dart```
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
 
-## Running the Application
+4. Run the app:
 
-The application can be run on multiple platforms. Here are the commands for each:
+```bash
+flutter run lib/main.dart
+```
 
-### Web (Chrome)
+## Running The Application
+
+### Web
+
 ```bash
 flutter run -d chrome
 ```
 
 ### iOS
+
 ```bash
 open -a Simulator
 flutter run
 ```
 
 ### macOS
+
 ```bash
 flutter run -d macos
 ```
 
 ### Android
+
 ```bash
 flutter run -d android
 ```
