@@ -81,6 +81,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   Widget _getLoadedContent(BuildContext context,
       Map<String, TrackedDayEntity> trackedDaysMap, bool usesImperialUnits) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         DiaryTableCalendar(
           trackedDaysMap: trackedDaysMap,
@@ -90,7 +91,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
           selectedDate: _selectedDate,
           focusedDate: _focusedDate,
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 18.0),
         BlocBuilder<CalendarDayBloc, CalendarDayState>(
           bloc: _calendarDayBloc,
           builder: (context, state) {

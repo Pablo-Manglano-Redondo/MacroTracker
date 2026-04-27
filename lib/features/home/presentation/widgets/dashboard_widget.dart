@@ -46,6 +46,16 @@ class DashboardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final surfaceColor = Color.alphaBlend(
+      colorScheme.primary.withValues(alpha: isDark ? 0.09 : 0.04),
+      isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+    );
+    final subtleSurface = isDark
+        ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.42)
+        : colorScheme.surfaceContainerHigh;
+    final bodyColor = colorScheme.onSurface;
+    final mutedColor = colorScheme.onSurfaceVariant;
     final proteinRemaining =
         _positiveRemaining(totalProteinsGoal - totalProteinsIntake);
     final carbsRemaining =
@@ -60,10 +70,10 @@ class DashboardWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: colorScheme.inverseSurface,
+          color: surfaceColor,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: colorScheme.onInverseSurface.withValues(alpha: 0.08),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.42),
           ),
         ),
         child: Column(
@@ -93,16 +103,15 @@ class DashboardWidget extends StatelessWidget {
                         'Gym nutrition',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: colorScheme.onInverseSurface,
-                                  fontWeight: FontWeight.w600,
+                                  color: bodyColor,
+                                  fontWeight: FontWeight.w700,
                                 ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Today\'s fueling, recovery and compliance in one surface.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onInverseSurface
-                                  .withValues(alpha: 0.68),
+                              color: mutedColor,
                             ),
                       ),
                     ],
@@ -119,17 +128,20 @@ class DashboardWidget extends StatelessWidget {
                 _SummaryChip(
                   icon: Icons.restaurant_outlined,
                   label: '$mealsLogged meals logged',
-                  color: colorScheme.onInverseSurface,
+                  color: bodyColor,
+                  background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.local_fire_department_outlined,
                   label: '${totalKcalBurned.toInt()} burned',
-                  color: colorScheme.onInverseSurface,
+                  color: bodyColor,
+                  background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.fitness_center_outlined,
                   label: '$sessionsLogged sessions',
-                  color: colorScheme.onInverseSurface,
+                  color: bodyColor,
+                  background: subtleSurface,
                 ),
               ],
             ),
@@ -180,7 +192,7 @@ class DashboardWidget extends StatelessWidget {
             Text(
               nutritionPhase.gymHeadline,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.onInverseSurface,
+                    color: bodyColor,
                     fontWeight: FontWeight.w700,
                   ),
             ),
@@ -188,14 +200,14 @@ class DashboardWidget extends StatelessWidget {
             Text(
               dailyFocus.headline,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onInverseSurface.withValues(alpha: 0.74),
+                    color: mutedColor,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
               '${nutritionPhase.macroHint} ${dailyFocus.macroHint}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onInverseSurface.withValues(alpha: 0.62),
+                    color: mutedColor,
                   ),
             ),
             const SizedBox(height: 18),
@@ -207,8 +219,8 @@ class DashboardWidget extends StatelessWidget {
                     label: 'Protein left',
                     value: proteinRemaining.toInt(),
                     suffix: 'g',
-                    textColor: colorScheme.onPrimary,
-                    background: colorScheme.primary.withValues(alpha: 0.18),
+                    textColor: bodyColor,
+                    background: colorScheme.primary.withValues(alpha: 0.14),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -217,10 +229,10 @@ class DashboardWidget extends StatelessWidget {
                     label: totalKcalLeft >= 0 ? 'Kcal left' : 'Over target',
                     value: totalKcalLeft.abs().toInt(),
                     suffix: 'kcal',
-                    textColor: colorScheme.onInverseSurface,
+                    textColor: bodyColor,
                     background: totalKcalLeft >= 0
-                        ? colorScheme.tertiary.withValues(alpha: 0.18)
-                        : colorScheme.error.withValues(alpha: 0.18),
+                        ? colorScheme.tertiary.withValues(alpha: 0.14)
+                        : colorScheme.error.withValues(alpha: 0.14),
                   ),
                 ),
               ],
@@ -231,8 +243,7 @@ class DashboardWidget extends StatelessWidget {
               child: LinearProgressIndicator(
                 minHeight: 8,
                 value: kcalProgress,
-                backgroundColor:
-                    colorScheme.onInverseSurface.withValues(alpha: 0.14),
+                backgroundColor: colorScheme.surfaceContainerHighest,
                 valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
               ),
             ),
@@ -240,7 +251,7 @@ class DashboardWidget extends StatelessWidget {
             Text(
               '${totalKcalSupplied.toInt()} of ${totalKcalDaily.toInt()} kcal',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onInverseSurface.withValues(alpha: 0.74),
+                    color: mutedColor,
                   ),
             ),
             const SizedBox(height: 18),
@@ -274,9 +285,9 @@ class DashboardWidget extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
-                color: colorScheme.onInverseSurface.withValues(alpha: 0.08),
+                color: subtleSurface,
                 border: Border.all(
-                  color: colorScheme.onInverseSurface.withValues(alpha: 0.06),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.34),
                 ),
               ),
               child: Text(
@@ -288,8 +299,7 @@ class DashboardWidget extends StatelessWidget {
                   kcalRemaining: totalKcalLeft,
                 ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color:
-                          colorScheme.onInverseSurface.withValues(alpha: 0.88),
+                      color: bodyColor,
                     ),
               ),
             ),
@@ -344,13 +354,13 @@ class DashboardWidget extends StatelessWidget {
         if (states.contains(WidgetState.selected)) {
           return colorScheme.onPrimary;
         }
-        return colorScheme.onInverseSurface;
+        return colorScheme.onSurface;
       }),
       backgroundColor: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
           return colorScheme.primary;
         }
-        return colorScheme.onInverseSurface.withValues(alpha: 0.08);
+        return colorScheme.surfaceContainerHighest.withValues(alpha: 0.75);
       }),
     );
   }
@@ -425,11 +435,13 @@ class _SummaryChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
+  final Color background;
 
   const _SummaryChip({
     required this.icon,
     required this.label,
     required this.color,
+    required this.background,
   });
 
   @override
@@ -438,7 +450,7 @@ class _SummaryChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: color.withValues(alpha: 0.08),
+        color: background,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -448,7 +460,7 @@ class _SummaryChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color.withValues(alpha: 0.85),
+                  color: color.withValues(alpha: 0.82),
                 ),
           ),
         ],
@@ -486,7 +498,7 @@ class _MacroTrackRow extends StatelessWidget {
               child: Text(
                 label,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: emphasis ? FontWeight.w700 : FontWeight.w600,
                     ),
               ),
@@ -494,7 +506,7 @@ class _MacroTrackRow extends StatelessWidget {
             Text(
               '${intake.toInt()}/${goal.toInt()} g',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.78),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
             ),
           ],
@@ -505,7 +517,8 @@ class _MacroTrackRow extends StatelessWidget {
           child: LinearProgressIndicator(
             minHeight: 10,
             value: progress,
-            backgroundColor: Colors.white.withValues(alpha: 0.08),
+            backgroundColor:
+                Theme.of(context).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
         ),
@@ -513,7 +526,7 @@ class _MacroTrackRow extends StatelessWidget {
         Text(
           remaining > 0 ? '${remaining.toInt()} g remaining' : 'Target hit',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white.withValues(alpha: 0.65),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
         ),
       ],

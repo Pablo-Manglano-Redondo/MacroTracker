@@ -13,67 +13,167 @@ class BMIOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(36.0),
-          decoration: BoxDecoration(
-              shape: BoxShape.circle, color: getContainerColorTheme(context)),
-          child: Column(
-            children: [
-              Text(
-                '${bmiValue.roundToPrecision(1)}',
-                style: getContainerTextStyle(
-                    context,
-                    Theme.of(context)
-                        .textTheme
-                        .displaySmall
-                        ?.copyWith(fontWeight: FontWeight.w500)),
-              ),
-              Text(S.of(context).bmiLabel,
-                  style: getContainerTextStyle(
-                      context, Theme.of(context).textTheme.titleLarge))
-            ],
-          ),
-        ),
-        const SizedBox(height: 8.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+    final accentColor = getAccentColorTheme(context);
+    final accentSurface = getContainerColorTheme(context);
+    final accentText = getContainerTextStyle(
+          context,
+          Theme.of(context).textTheme.bodyMedium,
+        )?.color ??
+        Theme.of(context).colorScheme.onSurface;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(nutritionalStatus.getName(context),
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.center),
-            InkWell(
-                onTap: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => InfoDialog(
-                            title: S.of(context).bmiLabel,
-                            body: S.of(context).bmiInfo,
-                          ));
-                },
-                child: const Icon(Icons.help_outline_outlined))
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Body composition',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Use BMI as context, not as the main score for gym progress.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                              title: S.of(context).bmiLabel,
+                              body: S.of(context).bmiInfo,
+                            ));
+                  },
+                  icon: const Icon(Icons.help_outline_outlined),
+                  tooltip: S.of(context).bmiLabel,
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    color: accentSurface,
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.28),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${bmiValue.roundToPrecision(1)}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: accentText,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        S.of(context).bmiLabel,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: accentText.withValues(alpha: 0.82),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(999),
+                          color: accentColor.withValues(alpha: 0.14),
+                        ),
+                        child: Text(
+                          nutritionalStatus.getName(context),
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: accentColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        S.of(context).nutritionalStatusRiskLabel(
+                            nutritionalStatus.getRiskStatus(context)),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _coachingCopy(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        Text(
-          S.of(context).nutritionalStatusRiskLabel(
-              nutritionalStatus.getRiskStatus(context)),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7)),
-        )
-      ],
+      ),
     );
+  }
+
+  String _coachingCopy() {
+    switch (nutritionalStatus) {
+      case UserNutritionalStatus.underWeight:
+        return 'Prioritize consistent calories, protein and progressive training.';
+      case UserNutritionalStatus.normalWeight:
+        return 'Good baseline. Let waist, performance and weekly trend lead decisions.';
+      case UserNutritionalStatus.preObesity:
+        return 'Track waist and weekly average closely so the phase stays controlled.';
+      case UserNutritionalStatus.obesityClassI:
+      case UserNutritionalStatus.obesityClassII:
+      case UserNutritionalStatus.obesityClassIII:
+        return 'Use body-weight trend and waist together before making calorie adjustments.';
+    }
   }
 
   Color getContainerColorTheme(BuildContext context) {
     Color theme;
     switch (nutritionalStatus) {
       case UserNutritionalStatus.underWeight:
-        theme = Theme.of(context).colorScheme.errorContainer
-          ..withValues(alpha: 0.1);
+        theme =
+            Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.1);
         break;
       case UserNutritionalStatus.normalWeight:
         theme = Theme.of(context)
@@ -98,6 +198,20 @@ class BMIOverview extends StatelessWidget {
         break;
     }
     return theme;
+  }
+
+  Color getAccentColorTheme(BuildContext context) {
+    switch (nutritionalStatus) {
+      case UserNutritionalStatus.underWeight:
+        return Theme.of(context).colorScheme.error;
+      case UserNutritionalStatus.normalWeight:
+        return Theme.of(context).colorScheme.primary;
+      case UserNutritionalStatus.preObesity:
+      case UserNutritionalStatus.obesityClassI:
+      case UserNutritionalStatus.obesityClassII:
+      case UserNutritionalStatus.obesityClassIII:
+        return Theme.of(context).colorScheme.tertiary;
+    }
   }
 
   TextStyle? getContainerTextStyle(BuildContext context, TextStyle? style) {

@@ -130,14 +130,16 @@ class MacroTrackerApp extends StatelessWidget {
 
   ThemeData _buildTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
+    final scaffoldColor =
+        isDark ? const Color(0xFF101311) : colorScheme.surface;
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       textTheme: appTextTheme,
-      scaffoldBackgroundColor: colorScheme.surface,
-      canvasColor: colorScheme.surface,
+      scaffoldBackgroundColor: scaffoldColor,
+      canvasColor: scaffoldColor,
       appBarTheme: AppBarTheme(
-        backgroundColor: colorScheme.surface,
+        backgroundColor: scaffoldColor,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
         centerTitle: false,
@@ -148,7 +150,7 @@ class MacroTrackerApp extends StatelessWidget {
         ),
       ),
       cardTheme: CardThemeData(
-        color: isDark ? const Color(0xFF202420) : colorScheme.surface,
+        color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: isDark ? 0 : 0.5,
         margin: EdgeInsets.zero,
@@ -159,6 +161,23 @@ class MacroTrackerApp extends StatelessWidget {
                 .withValues(alpha: isDark ? 0.38 : 0.65),
           ),
         ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scaffoldColor,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.16),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final color = states.contains(WidgetState.selected)
+              ? colorScheme.onSurface
+              : colorScheme.onSurfaceVariant;
+          return appTextTheme.labelMedium?.copyWith(color: color);
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final color = states.contains(WidgetState.selected)
+              ? colorScheme.primary
+              : colorScheme.onSurfaceVariant;
+          return IconThemeData(color: color);
+        }),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -187,6 +206,14 @@ class MacroTrackerApp extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+        ),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(

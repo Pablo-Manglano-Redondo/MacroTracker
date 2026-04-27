@@ -62,129 +62,87 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _getLoadedContent(BuildContext context, UserBMIEntity userBMIEntity,
       UserEntity user, bool usesImperialUnits) {
     return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
-        const SizedBox(height: 32.0),
         BMIOverview(
           bmiValue: userBMIEntity.bmiValue,
           nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
-        const SizedBox(height: 32.0),
-        ListTile(
-          title: Text(
-            S.of(context).activityLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.pal.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.directions_walk_outlined),
-          ),
-          onTap: () => _showSetPALCategoryDialog(context, user),
+        const SizedBox(height: 16),
+        _ProfileSectionCard(
+          title: 'Targets',
+          subtitle: 'Set the intake strategy that drives the rest of the app.',
+          children: [
+            _ProfileActionTile(
+              title: S.of(context).activityLabel,
+              subtitle: user.pal.getName(context),
+              icon: Icons.directions_walk_outlined,
+              onTap: () => _showSetPALCategoryDialog(context, user),
+            ),
+            _ProfileActionTile(
+              title: S.of(context).goalLabel,
+              subtitle: user.goal.getName(context),
+              icon: Icons.flag_outlined,
+              onTap: () => _showSetGoalDialog(context, user),
+            ),
+            _ProfileActionTile(
+              title: 'Body progress',
+              subtitle: 'Weight trend, 7d average and waist check-ins',
+              icon: Icons.show_chart_outlined,
+              onTap: () {
+                Navigator.of(context)
+                    .pushNamed(NavigationOptions.bodyProgressRoute);
+              },
+            ),
+          ],
         ),
-        ListTile(
-          title: Text(
-            S.of(context).goalLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.goal.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.flag_outlined),
-          ),
-          onTap: () => _showSetGoalDialog(context, user),
+        const SizedBox(height: 16),
+        _ProfileSectionCard(
+          title: 'Body stats',
+          subtitle: 'Keep the baseline numbers current so targets stay usable.',
+          children: [
+            _ProfileActionTile(
+              title: S.of(context).weightLabel,
+              subtitle:
+                  '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
+              icon: Icons.monitor_weight_outlined,
+              onTap: () {
+                _showSetWeightDialog(context, user, usesImperialUnits);
+              },
+            ),
+            _ProfileActionTile(
+              title: S.of(context).heightLabel,
+              subtitle:
+                  '${_profileBloc.getDisplayHeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).ftLabel : S.of(context).cmLabel}',
+              icon: Icons.height_outlined,
+              onTap: () {
+                _showSetHeightDialog(context, user, usesImperialUnits);
+              },
+            ),
+            _ProfileActionTile(
+              title: S.of(context).ageLabel,
+              subtitle: S.of(context).yearsLabel(user.age),
+              icon: Icons.cake_outlined,
+              onTap: () {
+                _showSetBirthdayDialog(context, user);
+              },
+            ),
+          ],
         ),
-        ListTile(
-          title: Text(
-            'Body progress',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            'Weight trend, 7d average and waist check-ins',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.show_chart_outlined),
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            Navigator.of(context)
-                .pushNamed(NavigationOptions.bodyProgressRoute);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).weightLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.monitor_weight_outlined),
-          ),
-          onTap: () {
-            _showSetWeightDialog(context, user, usesImperialUnits);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).heightLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            '${_profileBloc.getDisplayHeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).ftLabel : S.of(context).cmLabel}',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.height_outlined),
-          ),
-          onTap: () {
-            _showSetHeightDialog(context, user, usesImperialUnits);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).ageLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            S.of(context).yearsLabel(user.age),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: const SizedBox(
-            height: double.infinity,
-            child: Icon(Icons.cake_outlined),
-          ),
-          onTap: () {
-            _showSetBirthdayDialog(context, user);
-          },
-        ),
-        ListTile(
-          title: Text(
-            S.of(context).genderLabel,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          subtitle: Text(
-            user.gender.getName(context),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          leading: SizedBox(
-            height: double.infinity,
-            child: Icon(user.gender.getIcon()),
-          ),
-          onTap: () {
-            _showSetGenderDialog(context, user);
-          },
+        const SizedBox(height: 16),
+        _ProfileSectionCard(
+          title: 'Profile',
+          subtitle: 'Keep personal context aligned with the formulas.',
+          children: [
+            _ProfileActionTile(
+              title: S.of(context).genderLabel,
+              subtitle: user.gender.getName(context),
+              icon: user.gender.getIcon(),
+              onTap: () {
+                _showSetGenderDialog(context, user);
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -276,5 +234,108 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _profileBloc.updateUser(userEntity);
     }
+  }
+}
+
+class _ProfileSectionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<Widget> children;
+
+  const _ProfileSectionCard({
+    required this.title,
+    required this.subtitle,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileActionTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _ProfileActionTile({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                color: colorScheme.surfaceContainerHigh,
+              ),
+              alignment: Alignment.center,
+              child: Icon(icon, color: colorScheme.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -53,73 +53,135 @@ class DayInfoWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(DateFormat.yMMMMEEEEd().format(selectedDay),
-              style: Theme.of(context).textTheme.headlineSmall),
-        ),
-        const SizedBox(height: 8.0),
+        Text(DateFormat.yMMMMEEEEd().format(selectedDay),
+            style: Theme.of(context)
+                .textTheme
+                .headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 12.0),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             trackedDay == null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(S.of(context).nothingAddedLabel,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface.withValues(alpha: 0.7))),
-                  )
-                : const SizedBox(),
-            trackedDay != null
-                ? Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          elevation: 0.0,
-                          margin: const EdgeInsets.all(0.0),
-                          color: trackedDayEntity
-                              ?.getRatingDayTextBackgroundColor(context),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 8.0),
-                            child: Text(
-                              _getCaloriesTrackedDisplayString(trackedDay),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                      color: trackedDayEntity
-                                          ?.getRatingDayTextColor(context),
-                                      fontWeight: FontWeight.bold),
+                ? Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHigh,
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.calendar_today_outlined,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 4.0),
-                        Text(_getMacroTrackedDisplayString(trackedDay),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface.withValues(alpha: 0.7))),
-                      ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              S.of(context).nothingAddedLabel,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : const SizedBox(),
-            const SizedBox(height: 8.0),
+            trackedDay != null
+                ? Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Day summary',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(999),
+                                  color: trackedDayEntity
+                                      ?.getRatingDayTextBackgroundColor(
+                                          context),
+                                ),
+                                child: Text(
+                                  _getCaloriesTrackedDisplayString(trackedDay),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                          color: trackedDayEntity
+                                              ?.getRatingDayTextColor(context),
+                                          fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(_getMacroTrackedDisplayString(trackedDay),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant)),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _SummaryPill(
+                                label:
+                                    '${breakfastIntake.length + lunchIntake.length + dinnerIntake.length + snackIntake.length} meals',
+                                icon: Icons.restaurant_outlined,
+                              ),
+                              _SummaryPill(
+                                label: '${userActivities.length} activities',
+                                icon: Icons.fitness_center_outlined,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+            const SizedBox(height: 10.0),
             ActivityVerticalList(
+                compact: true,
                 day: selectedDay,
                 title: S.of(context).activityLabel,
                 userActivityList: userActivities,
                 onItemLongPressedCallback: onActivityItemLongPressed),
             IntakeVerticalList(
+              compact: true,
               day: selectedDay,
               title: S.of(context).breakfastLabel,
               listIcon: Icons.bakery_dining_outlined,
@@ -135,6 +197,7 @@ class DayInfoWidget extends StatelessWidget {
               trackedDayEntity: trackedDay,
             ),
             IntakeVerticalList(
+              compact: true,
               day: selectedDay,
               title: S.of(context).lunchLabel,
               listIcon: Icons.lunch_dining_outlined,
@@ -150,6 +213,7 @@ class DayInfoWidget extends StatelessWidget {
               trackedDayEntity: trackedDay,
             ),
             IntakeVerticalList(
+              compact: true,
               day: selectedDay,
               title: S.of(context).dinnerLabel,
               listIcon: Icons.dinner_dining_outlined,
@@ -164,6 +228,7 @@ class DayInfoWidget extends StatelessWidget {
               usesImperialUnits: usesImperialUnits,
             ),
             IntakeVerticalList(
+              compact: true,
               day: selectedDay,
               title: S.of(context).snackLabel,
               listIcon: CustomIcons.food_apple_outline,
@@ -256,5 +321,37 @@ class DayInfoWidget extends StatelessWidget {
     if (shouldDeleteActivity != null) {
       onDeleteActivity(activityEntity, trackedDayEntity);
     }
+  }
+}
+
+class _SummaryPill extends StatelessWidget {
+  final String label;
+  final IconData icon;
+
+  const _SummaryPill({
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.45),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+        ],
+      ),
+    );
   }
 }
