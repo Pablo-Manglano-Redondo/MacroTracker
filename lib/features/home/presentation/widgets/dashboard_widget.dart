@@ -62,22 +62,60 @@ class DashboardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: colorScheme.inverseSurface,
           borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: colorScheme.onInverseSurface.withValues(alpha: 0.08),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: colorScheme.primary.withValues(alpha: 0.16),
+                  ),
+                  child: Icon(
+                    Icons.monitor_heart_outlined,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Gym nutrition',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: colorScheme.onInverseSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Today\'s fueling, recovery and compliance in one surface.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onInverseSurface
+                                  .withValues(alpha: 0.68),
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
             Wrap(
-              spacing: 12,
-              runSpacing: 12,
+              spacing: 8,
+              runSpacing: 8,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Text(
-                  'Gym nutrition',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onInverseSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
                 _SummaryChip(
                   icon: Icons.restaurant_outlined,
                   label: '$mealsLogged meals logged',
@@ -237,6 +275,9 @@ class DashboardWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),
                 color: colorScheme.onInverseSurface.withValues(alpha: 0.08),
+                border: Border.all(
+                  color: colorScheme.onInverseSurface.withValues(alpha: 0.06),
+                ),
               ),
               child: Text(
                 _buildStatusCopy(
@@ -337,6 +378,9 @@ class _PrimaryMetric extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: background,
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.12),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

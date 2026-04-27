@@ -81,14 +81,8 @@ class MacroTrackerApp extends StatelessWidget {
     return MaterialApp(
       onGenerateTitle: (context) => S.of(context).appTitle,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          useMaterial3: true,
-          colorScheme: lightColorScheme,
-          textTheme: appTextTheme),
-      darkTheme: ThemeData(
-          useMaterial3: true,
-          colorScheme: darkColorScheme,
-          textTheme: appTextTheme),
+      theme: _buildTheme(lightColorScheme),
+      darkTheme: _buildTheme(darkColorScheme),
       themeMode: Provider.of<ThemeModeProvider>(context).themeMode,
       localizationsDelegates: const [
         S.delegate,
@@ -131,6 +125,96 @@ class MacroTrackerApp extends StatelessWidget {
         NavigationOptions.bodyProgressRoute: (context) =>
             const BodyProgressScreen(),
       },
+    );
+  }
+
+  ThemeData _buildTheme(ColorScheme colorScheme) {
+    final isDark = colorScheme.brightness == Brightness.dark;
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: colorScheme,
+      textTheme: appTextTheme,
+      scaffoldBackgroundColor: colorScheme.surface,
+      canvasColor: colorScheme.surface,
+      appBarTheme: AppBarTheme(
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        elevation: 0,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: appTextTheme.titleLarge?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: isDark ? const Color(0xFF202420) : colorScheme.surface,
+        surfaceTintColor: Colors.transparent,
+        elevation: isDark ? 0 : 0.5,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(
+            color: colorScheme.outlineVariant
+                .withValues(alpha: isDark ? 0.38 : 0.65),
+          ),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: colorScheme.inverseSurface,
+        contentTextStyle: appTextTheme.bodyMedium?.copyWith(
+          color: colorScheme.onInverseSurface,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          side: BorderSide(
+            color: colorScheme.outlineVariant,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          visualDensity: VisualDensity.compact,
+          side: WidgetStatePropertyAll(
+            BorderSide(color: colorScheme.outlineVariant),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
+      ),
+      dividerTheme: DividerThemeData(
+        color: colorScheme.outlineVariant.withValues(alpha: 0.65),
+        thickness: 1,
+        space: 1,
+      ),
     );
   }
 }

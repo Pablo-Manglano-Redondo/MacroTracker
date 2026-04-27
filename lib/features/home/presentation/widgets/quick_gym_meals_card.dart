@@ -71,6 +71,20 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
             children: [
               Row(
                 children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.primary.withValues(alpha: 0.10),
+                    ),
+                    child: Icon(
+                      Icons.bolt_outlined,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,7 +172,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   return Column(
                     children: presets
                         .map((preset) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
+                              padding: const EdgeInsets.only(bottom: 10.0),
                               child: _QuickRecipeTile(
                                 preset: preset,
                                 onAddPressed: () => _logPreset(context, preset),
@@ -278,6 +292,9 @@ class _QuickRecipeTile extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -82,15 +82,44 @@ class MacroSuggestionsCard extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(_title, style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 4.0),
-                  Text(
-                    _subtitle,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: Theme.of(context)
+                              .colorScheme
+                              .tertiary
+                              .withValues(alpha: 0.12),
+                        ),
+                        child: Icon(
+                          Icons.auto_awesome_outlined,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.tertiary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_title,
+                                style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              _subtitle,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12.0),
                   ...suggestions.map((suggestion) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
+                        padding: const EdgeInsets.only(bottom: 10.0),
                         child: _SuggestionTile(
                           suggestion: suggestion,
                           onAddPressed: () =>
@@ -195,6 +224,12 @@ class _SuggestionTile extends StatelessWidget {
             .colorScheme
             .surfaceContainerHighest
             .withValues(alpha: 0.35),
+        border: Border.all(
+          color: Theme.of(context)
+              .colorScheme
+              .outlineVariant
+              .withValues(alpha: 0.45),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
