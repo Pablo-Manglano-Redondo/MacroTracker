@@ -121,6 +121,7 @@ class _MealInterpretationReviewScreenState
     final adjustedCarbs = _draft!.totalCarbs * servings;
     final adjustedFat = _draft!.totalFat * servings;
     final adjustedProtein = _draft!.totalProtein * servings;
+    final gymLabel = _inferGymLabel(_draft!);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -128,6 +129,7 @@ class _MealInterpretationReviewScreenState
         _DraftHeroCard(
           draft: _draft!,
           intakeType: _args.intakeTypeEntity,
+          gymLabel: gymLabel,
           activeItemCount: activeItems.length,
           servingsController: _servingsController,
           onServingsChanged: () => setState(() {}),
@@ -211,6 +213,9 @@ class _MealInterpretationReviewScreenState
                   item.editable ? () => _showAmountEditor(item) : null,
               onReplacePressed:
                   item.editable ? () => _showReplaceDialog(item) : null,
+              onPresetSelected: item.editable
+                  ? (factor) => _applyPortionPreset(item, factor)
+                  : null,
               onToggleRemoved: () => _toggleRemoved(item),
             ),
           ),
@@ -313,6 +318,13 @@ class _MealInterpretationReviewScreenState
     );
 
     _replaceItem(updatedItem);
+  }
+
+  void _applyPortionPreset(InterpretationDraftItemEntity item, double factor) {
+    if (factor <= 0) {
+      return;
+    }
+    _updateItemAmount(item, item.amount * factor);
   }
 
   void _toggleRemoved(InterpretationDraftItemEntity item) {
@@ -493,6 +505,27 @@ class _MealInterpretationReviewScreenState
     return value % 1 == 0 ? 0 : 2;
   }
 
+  String _inferGymLabel(InterpretationDraftEntity draft) {
+    final protein = draft.totalProtein;
+    final carbs = draft.totalCarbs;
+    final fat = draft.totalFat;
+    final kcal = draft.totalKcal;
+
+    if (protein >= 35 && carbs >= 45) {
+      return 'Post-workout';
+    }
+    if (carbs >= 50 && fat <= 20) {
+      return 'Pre-workout';
+    }
+    if (protein >= 35 && fat <= 20) {
+      return 'Protein-first';
+    }
+    if (kcal <= 550 && fat <= 18) {
+      return 'Cut-friendly';
+    }
+    return 'Balanced';
+  }
+
   Future<void> _showSaveRecipeDialog() async {
     final draft = _draft;
     if (draft == null || _activeItems.isEmpty) {
@@ -573,14 +606,21 @@ class _MealInterpretationReviewScreenState
   }
 }
 
-class _DraftImagePreviewCard extends StatelessWidget {
+class _DraftImagePreviewCard extends StatefulWidget {
   final String imagePath;
 
   const _DraftImagePreviewCard({required this.imagePath});
 
   @override
+  State<_DraftImagePreviewCard> createState() => _DraftImagePreviewCardState();
+}
+
+class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
+  bool _cropPreview = true;
+
+  @override
   Widget build(BuildContext context) {
-    final file = File(imagePath);
+    final file = File(widget.imagePath);
     if (!file.existsSync()) {
       return const SizedBox();
     }
@@ -597,25 +637,54 @@ class _DraftImagePreviewCard extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                   ),
             ),
+            const SizedBox(height: 6),
+            Text(
+              'Tap to zoom. Toggle crop/fit for quick inspection.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
             const SizedBox(height: 10),
-            ClipRRect(
+            InkWell(
               borderRadius: BorderRadius.circular(14),
-              child: AspectRatio(
-                aspectRatio: 4 / 3,
-                child: Image.file(
-                  file,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Could not load image preview',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    );
-                  },
+              onTap: () => _openZoomDialog(file),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: Image.file(
+                    file,
+                    fit: _cropPreview ? BoxFit.cover : BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color:
+                            Theme.of(context).colorScheme.surfaceContainerHigh,
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Could not load image preview',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      );
+                    },
+                  ),
                 ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _cropPreview = !_cropPreview;
+                  });
+                },
+                icon: Icon(
+                  _cropPreview
+                      ? Icons.crop_outlined
+                      : Icons.fit_screen_outlined,
+                ),
+                label: Text(_cropPreview ? 'Crop' : 'Fit'),
               ),
             ),
           ],
@@ -623,11 +692,76 @@ class _DraftImagePreviewCard extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _openZoomDialog(File imageFile) async {
+    bool cropDialog = _cropPreview;
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(16),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Photo zoom',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              cropDialog = !cropDialog;
+                            });
+                          },
+                          icon: Icon(cropDialog
+                              ? Icons.crop_outlined
+                              : Icons.fit_screen_outlined),
+                          label: Text(cropDialog ? 'Crop' : 'Fit'),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: AspectRatio(
+                        aspectRatio: 4 / 3,
+                        child: InteractiveViewer(
+                          minScale: 1,
+                          maxScale: 6,
+                          child: Image.file(
+                            imageFile,
+                            fit: cropDialog ? BoxFit.cover : BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
 
 class _DraftHeroCard extends StatelessWidget {
   final InterpretationDraftEntity draft;
   final IntakeTypeEntity intakeType;
+  final String gymLabel;
   final int activeItemCount;
   final TextEditingController servingsController;
   final VoidCallback onServingsChanged;
@@ -637,6 +771,7 @@ class _DraftHeroCard extends StatelessWidget {
   const _DraftHeroCard({
     required this.draft,
     required this.intakeType,
+    required this.gymLabel,
     required this.activeItemCount,
     required this.servingsController,
     required this.onServingsChanged,
@@ -682,6 +817,10 @@ class _DraftHeroCard extends StatelessWidget {
               _DraftChip(
                 icon: Icons.layers_outlined,
                 label: '$activeItemCount active items',
+              ),
+              _DraftChip(
+                icon: Icons.fitness_center_outlined,
+                label: gymLabel,
               ),
               _DraftChip(
                 icon: _confidenceIcon(draft.confidenceBand),
@@ -910,12 +1049,14 @@ class _DraftItemCard extends StatelessWidget {
   final InterpretationDraftItemEntity item;
   final VoidCallback? onEditPressed;
   final VoidCallback? onReplacePressed;
+  final ValueChanged<double>? onPresetSelected;
   final VoidCallback onToggleRemoved;
 
   const _DraftItemCard({
     required this.item,
     required this.onEditPressed,
     required this.onReplacePressed,
+    required this.onPresetSelected,
     required this.onToggleRemoved,
   });
 
@@ -988,6 +1129,31 @@ class _DraftItemCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
+                _PresetChip(
+                  label: 'Small',
+                  onTap: item.removed || onPresetSelected == null
+                      ? null
+                      : () => onPresetSelected!(0.75),
+                ),
+                _PresetChip(
+                  label: 'Medium',
+                  onTap: item.removed || onPresetSelected == null
+                      ? null
+                      : () => onPresetSelected!(1.0),
+                ),
+                _PresetChip(
+                  label: 'Large',
+                  onTap: item.removed || onPresetSelected == null
+                      ? null
+                      : () => onPresetSelected!(1.25),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onEditPressed,
                   icon: const Icon(Icons.edit_outlined),
@@ -1044,6 +1210,25 @@ class _DraftItemCard extends StatelessWidget {
       case ConfidenceBandEntity.low:
         return Icons.error_outline;
     }
+  }
+}
+
+class _PresetChip extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+
+  const _PresetChip({
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ActionChip(
+      label: Text(label),
+      avatar: const Icon(Icons.straighten, size: 16),
+      onPressed: onTap,
+    );
   }
 }
 
