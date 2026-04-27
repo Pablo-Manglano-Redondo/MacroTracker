@@ -6,6 +6,7 @@ export type MealInterpretationRequest = {
   mode: InterpretationMode;
   text?: string;
   imageBase64?: string;
+  mimeType?: string;
   locale: string;
   unitSystem: string;
   mealTypeHint?: string | null;
@@ -124,7 +125,7 @@ function buildUserParts(request: MealInterpretationRequest) {
       },
       {
         inlineData: {
-          mimeType: "image/jpeg",
+          mimeType: normalizeMimeType(request.mimeType),
           data: request.imageBase64,
         },
       },
@@ -140,6 +141,19 @@ function buildUserParts(request: MealInterpretationRequest) {
       text: `${metadata}\nUser meal description: ${request.text}`,
     },
   ];
+}
+
+function normalizeMimeType(mimeType: string | undefined): string {
+  const normalized = (mimeType || "").trim().toLowerCase();
+  switch (normalized) {
+    case "image/png":
+    case "image/webp":
+    case "image/gif":
+    case "image/jpeg":
+      return normalized;
+    default:
+      return "image/jpeg";
+  }
 }
 
 function extractStructuredResponse(payload: any): MealInterpretationResponse {

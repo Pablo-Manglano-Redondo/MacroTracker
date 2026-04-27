@@ -88,6 +88,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         baseCarbsGoal: baseCarbsGoal,
         baseFatGoal: baseFatGoal,
         baseProteinGoal: baseProteinGoal,
+        userWeightKg: user.weightKG,
+        userHeightCm: user.heightCM,
       );
 
       await _addTrackedDayUsecase.updateDayCalorieGoal(day, targets.kcalGoal);

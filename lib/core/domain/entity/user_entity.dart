@@ -7,6 +7,7 @@ class UserEntity {
   DateTime birthday;
   double heightCM;
   double weightKG;
+  String? profileImagePath;
   UserGenderEntity gender;
   UserWeightGoalEntity goal;
   UserPALEntity pal;
@@ -15,6 +16,7 @@ class UserEntity {
       {required this.birthday,
       required this.heightCM,
       required this.weightKG,
+      this.profileImagePath,
       required this.gender,
       required this.goal,
       required this.pal});
@@ -24,10 +26,11 @@ class UserEntity {
         birthday: userDBO.birthday,
         heightCM: userDBO.heightCM,
         weightKG: userDBO.weightKG,
+        profileImagePath: userDBO.profileImagePath,
         gender: UserGenderEntity.fromUserGenderDBO(userDBO.gender),
         goal: UserWeightGoalEntity.fromUserWeightGoalDBO(userDBO.goal),
         pal: UserPALEntity.fromUserPALDBO(userDBO.pal));
   }
 
-  int get age => DateTime.now().difference(birthday).inDays~/365;
+  int get age => DateTime.now().difference(birthday).inDays ~/ 365;
 }

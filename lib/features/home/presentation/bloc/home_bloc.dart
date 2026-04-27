@@ -134,6 +134,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         baseCarbsGoal: baseCarbsGoal,
         baseFatGoal: baseFatsGoal,
         baseProteinGoal: baseProteinsGoal,
+        userWeightKg: user.weightKG,
+        userHeightCm: user.heightCM,
       );
 
       final totalKcalLeft =
@@ -297,6 +299,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       baseCarbsGoal: baseCarbsGoal,
       baseFatGoal: baseFatGoal,
       baseProteinGoal: baseProteinGoal,
+      userWeightKg: currentUser.weightKG,
+      userHeightCm: currentUser.heightCM,
     );
 
     await _addTrackedDayUseCase.updateDayCalorieGoal(day, targets.kcalGoal);

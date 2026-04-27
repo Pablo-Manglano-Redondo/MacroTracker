@@ -14,6 +14,8 @@ class UserDBO extends HiveObject {
   double heightCM;
   @HiveField(2)
   double weightKG;
+  @HiveField(6)
+  String? profileImagePath;
   @HiveField(3)
   UserGenderDBO gender;
   @HiveField(4)
@@ -25,6 +27,7 @@ class UserDBO extends HiveObject {
       {required this.birthday,
       required this.heightCM,
       required this.weightKG,
+      this.profileImagePath,
       required this.gender,
       required this.goal,
       required this.pal});
@@ -34,6 +37,7 @@ class UserDBO extends HiveObject {
         birthday: entity.birthday,
         heightCM: entity.heightCM,
         weightKG: entity.weightKG,
+        profileImagePath: entity.profileImagePath,
         gender: UserGenderDBO.fromUserGenderEntity(entity.gender),
         goal: UserWeightGoalDBO.fromUserWeightGoalEntity(entity.goal),
         pal: UserPALDBO.fromUserPALEntity(entity.pal));

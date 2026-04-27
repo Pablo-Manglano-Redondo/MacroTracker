@@ -46,6 +46,7 @@ class MealInterpretationRemoteDataSource {
   Future<InterpretationDraftEntity> interpretPhoto({
     required Uint8List imageBytes,
     required String fileName,
+    required String mimeType,
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
@@ -57,6 +58,7 @@ class MealInterpretationRemoteDataSource {
         body: {
           'imageBase64': base64Encode(imageBytes),
           'fileName': fileName,
+          'mimeType': mimeType,
           'locale': locale,
           'unitSystem': unitSystem,
           'mealTypeHint': mealTypeHint,

@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/user_bmi_entity.dart';
@@ -64,6 +67,61 @@ class _ProfilePageState extends State<ProfilePage> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                _ProfileAvatar(imagePath: user.profileImagePath),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Profile photo',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Set your own avatar for a more personal dashboard.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () =>
+                                _showSetProfilePhotoDialog(context, user),
+                            icon: const Icon(Icons.image_outlined),
+                            label: const Text('Choose photo'),
+                          ),
+                          if (user.profileImagePath != null &&
+                              user.profileImagePath!.trim().isNotEmpty)
+                            OutlinedButton.icon(
+                              onPressed: () => _removeProfilePhoto(user),
+                              icon: const Icon(Icons.delete_outline),
+                              label: const Text('Remove'),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
         BMIOverview(
           bmiValue: userBMIEntity.bmiValue,
           nutritionalStatus: userBMIEntity.nutritionalStatus,
@@ -234,6 +292,61 @@ class _ProfilePageState extends State<ProfilePage> {
 
       _profileBloc.updateUser(userEntity);
     }
+  }
+
+  Future<void> _showSetProfilePhotoDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final picked = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    if (picked == null || picked.files.isEmpty) {
+      return;
+    }
+    final path = picked.files.single.path;
+    if (path == null || path.trim().isEmpty) {
+      return;
+    }
+    userEntity.profileImagePath = path;
+    _profileBloc.updateUser(userEntity);
+  }
+
+  void _removeProfilePhoto(UserEntity userEntity) {
+    userEntity.profileImagePath = null;
+    _profileBloc.updateUser(userEntity);
+  }
+}
+
+class _ProfileAvatar extends StatelessWidget {
+  final String? imagePath;
+
+  const _ProfileAvatar({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    final path = imagePath;
+    final file = path == null || path.trim().isEmpty ? null : File(path);
+    final hasValidImage = file != null && file.existsSync();
+
+    return Container(
+      width: 84,
+      height: 84,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.surfaceContainerHigh,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outlineVariant,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: hasValidImage
+          ? Image.file(file, fit: BoxFit.cover)
+          : Icon(
+              Icons.account_circle_outlined,
+              size: 56,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+    );
   }
 }
 

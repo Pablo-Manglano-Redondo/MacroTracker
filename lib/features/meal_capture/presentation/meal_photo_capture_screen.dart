@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
@@ -23,6 +25,9 @@ class MealPhotoCaptureScreen extends StatefulWidget {
 }
 
 class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
+  static const _maxUploadBytes = 4 * 1024 * 1024;
+  static const _maxImageDimension = 1600;
+
   late MealPhotoCaptureScreenArguments _args;
   bool _isLoading = false;
 
@@ -181,7 +186,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     }
 
     final file = picked.files.single;
-    final bytes = file.bytes;
+    final bytes = file.bytes ??
+        (file.path != null ? await File(file.path!).readAsBytes() : null);
     if (bytes == null) {
       return;
     }
@@ -191,10 +197,15 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     });
 
     try {
-      final config = await locator<GetConfigUsecase>().getConfig();
-      final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
+      final preparedImage = _prepareImageForUpload(
         imageBytes: bytes,
         fileName: file.name,
+      );
+      final config = await locator<GetConfigUsecase>().getConfig();
+      final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
+        imageBytes: preparedImage.bytes,
+        fileName: preparedImage.fileName,
+        mimeType: preparedImage.mimeType,
         locale: Platform.localeName,
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
@@ -212,14 +223,13 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
         );
       }
-    } catch (_) {
+    } catch (exception) {
       await _createLocalDraft(imagePath: file.path);
       if (mounted) {
+        final message = _buildRemoteFailureMessage(exception.toString());
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Remote image interpretation is unavailable. A fallback draft was created instead.',
-            ),
+          SnackBar(
+            content: Text(message),
           ),
         );
       }
@@ -229,6 +239,93 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  _PreparedUploadImage _prepareImageForUpload({
+    required Uint8List imageBytes,
+    required String fileName,
+  }) {
+    final extension = _fileExtension(fileName);
+    final decoded = img.decodeImage(imageBytes);
+
+    if (decoded == null) {
+      return _PreparedUploadImage(
+        bytes: imageBytes,
+        fileName: fileName,
+        mimeType: _mimeTypeForExtension(extension),
+      );
+    }
+
+    final shouldResize = decoded.width > _maxImageDimension ||
+        decoded.height > _maxImageDimension;
+    final shouldCompress = imageBytes.lengthInBytes > _maxUploadBytes;
+
+    if (!shouldResize && !shouldCompress) {
+      return _PreparedUploadImage(
+        bytes: imageBytes,
+        fileName: fileName,
+        mimeType: _mimeTypeForExtension(extension),
+      );
+    }
+
+    final resized = shouldResize
+        ? img.copyResize(
+            decoded,
+            width: decoded.width >= decoded.height ? _maxImageDimension : null,
+            height: decoded.height > decoded.width ? _maxImageDimension : null,
+            interpolation: img.Interpolation.cubic,
+          )
+        : decoded;
+
+    final encoded = Uint8List.fromList(img.encodeJpg(resized, quality: 84));
+    return _PreparedUploadImage(
+      bytes: encoded,
+      fileName: _replaceExtension(fileName, 'jpg'),
+      mimeType: 'image/jpeg',
+    );
+  }
+
+  String _buildRemoteFailureMessage(String rawError) {
+    final normalized = rawError.toLowerCase();
+    if (normalized.contains('payload is too large') ||
+        normalized.contains('413')) {
+      return 'The image is too large for remote AI. A local fallback draft was created.';
+    }
+    if (normalized.contains('missing gemini_api_key')) {
+      return 'Remote AI is not configured on backend. A local fallback draft was created.';
+    }
+    return 'Remote image interpretation failed. A fallback draft was created.';
+  }
+
+  String _fileExtension(String fileName) {
+    final parts = fileName.split('.');
+    if (parts.length < 2) {
+      return '';
+    }
+    return parts.last.toLowerCase();
+  }
+
+  String _replaceExtension(String fileName, String extension) {
+    final lastDot = fileName.lastIndexOf('.');
+    if (lastDot == -1) {
+      return '$fileName.$extension';
+    }
+    return '${fileName.substring(0, lastDot)}.$extension';
+  }
+
+  String _mimeTypeForExtension(String extension) {
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
     }
   }
 
@@ -288,6 +385,18 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       );
     }
   }
+}
+
+class _PreparedUploadImage {
+  final Uint8List bytes;
+  final String fileName;
+  final String mimeType;
+
+  const _PreparedUploadImage({
+    required this.bytes,
+    required this.fileName,
+    required this.mimeType,
+  });
 }
 
 class MealPhotoCaptureScreenArguments {

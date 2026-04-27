@@ -20,6 +20,7 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
       birthday: fields[0] as DateTime,
       heightCM: fields[1] as double,
       weightKG: fields[2] as double,
+      profileImagePath: fields[6] as String?,
       gender: fields[3] as UserGenderDBO,
       goal: fields[4] as UserWeightGoalDBO,
       pal: fields[5] as UserPALDBO,
@@ -29,13 +30,15 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
   @override
   void write(BinaryWriter writer, UserDBO obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.birthday)
       ..writeByte(1)
       ..write(obj.heightCM)
       ..writeByte(2)
       ..write(obj.weightKG)
+      ..writeByte(6)
+      ..write(obj.profileImagePath)
       ..writeByte(3)
       ..write(obj.gender)
       ..writeByte(4)

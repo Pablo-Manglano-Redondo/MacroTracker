@@ -56,6 +56,8 @@ class GetGymTargetsUsecase {
       baseCarbsGoal: baseCarbsGoal,
       baseFatGoal: baseFatGoal,
       baseProteinGoal: baseProteinGoal,
+      userWeightKg: user.weightKG,
+      userHeightCm: user.heightCM,
     );
   }
 }

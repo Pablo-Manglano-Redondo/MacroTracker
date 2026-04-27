@@ -11,6 +11,7 @@ class InterpretMealFromPhotoUsecase {
   Future<InterpretationDraftEntity> interpret({
     required Uint8List imageBytes,
     required String fileName,
+    required String mimeType,
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
@@ -18,6 +19,7 @@ class InterpretMealFromPhotoUsecase {
     return _repository.interpretPhoto(
       imageBytes: imageBytes,
       fileName: fileName,
+      mimeType: mimeType,
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
