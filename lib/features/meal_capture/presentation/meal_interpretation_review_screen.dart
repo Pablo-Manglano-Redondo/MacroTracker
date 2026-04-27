@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -29,6 +30,7 @@ class MealInterpretationReviewScreen extends StatefulWidget {
 
 class _MealInterpretationReviewScreenState
     extends State<MealInterpretationReviewScreen> {
+  static const _aiCorrectionsBoxName = 'AiCorrectionsBox';
   late MealInterpretationReviewScreenArguments _args;
   final _servingsController = TextEditingController(text: '1');
   InterpretationDraftEntity? _draft;
@@ -36,6 +38,7 @@ class _MealInterpretationReviewScreenState
   bool _isSaving = false;
   bool _isPersistingEdits = false;
   bool _didLoadDraft = false;
+  Map<String, _SavedCorrection> _savedCorrections = const {};
 
   @override
   void didChangeDependencies() {
@@ -207,16 +210,32 @@ class _MealInterpretationReviewScreenState
         ..._draft!.items.map(
           (item) => Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _DraftItemCard(
-              item: item,
-              onEditPressed:
-                  item.editable ? () => _showAmountEditor(item) : null,
-              onReplacePressed:
-                  item.editable ? () => _showReplaceDialog(item) : null,
-              onPresetSelected: item.editable
-                  ? (factor) => _applyPortionPreset(item, factor)
-                  : null,
-              onToggleRemoved: () => _toggleRemoved(item),
+            child: Builder(
+              builder: (_) {
+                final saved = _savedCorrections[_correctionKey(item.label)];
+                final savedLabel = saved == null
+                    ? null
+                    : '${saved.amount.toStringAsFixed(saved.amount % 1 == 0 ? 0 : 1)} ${saved.unit}';
+                return _DraftItemCard(
+                  item: item,
+                  unitPresets: _quickUnitsForItem(item),
+                  savedCorrectionLabel: savedLabel,
+                  onEditPressed:
+                      item.editable ? () => _showAmountEditor(item) : null,
+                  onReplacePressed:
+                      item.editable ? () => _showReplaceDialog(item) : null,
+                  onUnitSelected: item.editable
+                      ? (unit) => _applyUnitPreset(item, unit)
+                      : null,
+                  onPresetSelected: item.editable
+                      ? (factor) => _applyPortionPreset(item, factor)
+                      : null,
+                  onApplySavedCorrection: item.editable && saved != null
+                      ? () => _applySavedCorrection(item)
+                      : null,
+                  onToggleRemoved: () => _toggleRemoved(item),
+                );
+              },
             ),
           ),
         ),
@@ -240,6 +259,7 @@ class _MealInterpretationReviewScreenState
   Future<void> _loadDraft() async {
     final draft = await locator<CommitInterpretationDraftUsecase>()
         .getDraftById(_args.draftId);
+    final corrections = await _loadSavedCorrections();
     if (!mounted) {
       return;
     }
@@ -247,6 +267,7 @@ class _MealInterpretationReviewScreenState
     setState(() {
       _draft = draft;
       _isLoading = false;
+      _savedCorrections = corrections;
     });
   }
 
@@ -317,6 +338,7 @@ class _MealInterpretationReviewScreenState
       protein: item.protein * scaleFactor,
     );
 
+    _saveCorrection(updatedItem);
     _replaceItem(updatedItem);
   }
 
@@ -325,6 +347,65 @@ class _MealInterpretationReviewScreenState
       return;
     }
     _updateItemAmount(item, item.amount * factor);
+  }
+
+  Future<void> _applyUnitPreset(
+      InterpretationDraftItemEntity item, String updatedUnit) async {
+    if (_draft == null || item.unit == updatedUnit) {
+      return;
+    }
+
+    InterpretationDraftItemEntity updatedItem;
+    final meal = item.matchedMealSnapshot;
+    if (meal != null) {
+      final nutrition =
+          MealPortionCalculator.calculate(meal, item.amount, updatedUnit);
+      updatedItem = item.copyWith(
+        unit: updatedUnit,
+        kcal: nutrition.kcal,
+        carbs: nutrition.carbs,
+        fat: nutrition.fat,
+        protein: nutrition.protein,
+      );
+    } else {
+      updatedItem = item.copyWith(unit: updatedUnit);
+    }
+
+    await _saveCorrection(updatedItem);
+    await _replaceItem(updatedItem);
+  }
+
+  Future<void> _applySavedCorrection(InterpretationDraftItemEntity item) async {
+    final correction = _savedCorrections[_correctionKey(item.label)];
+    if (correction == null) {
+      return;
+    }
+
+    InterpretationDraftItemEntity updatedItem;
+    final meal = item.matchedMealSnapshot;
+    if (meal != null) {
+      final nutrition = MealPortionCalculator.calculate(
+        meal,
+        correction.amount,
+        correction.unit,
+      );
+      updatedItem = item.copyWith(
+        amount: correction.amount,
+        unit: correction.unit,
+        kcal: nutrition.kcal,
+        carbs: nutrition.carbs,
+        fat: nutrition.fat,
+        protein: nutrition.protein,
+      );
+    } else {
+      updatedItem = item.copyWith(
+        amount: correction.amount,
+        unit: correction.unit,
+      );
+    }
+
+    await _saveCorrection(updatedItem);
+    await _replaceItem(updatedItem);
   }
 
   void _toggleRemoved(InterpretationDraftItemEntity item) {
@@ -524,6 +605,64 @@ class _MealInterpretationReviewScreenState
       return 'Cut-friendly';
     }
     return 'Balanced';
+  }
+
+  List<String> _quickUnitsForItem(InterpretationDraftItemEntity item) {
+    final meal = item.matchedMealSnapshot;
+    if (meal == null) {
+      final defaults = <String>{item.unit, 'serving', 'g', 'ml'};
+      return defaults.where((value) => value.trim().isNotEmpty).toList();
+    }
+    if (meal.hasServingValues) {
+      return const ['serving', 'g', 'ml', 'g/ml'];
+    }
+    if (meal.isLiquid) {
+      return const ['ml', 'fl.oz', 'g/ml'];
+    }
+    if (meal.isSolid) {
+      return const ['g', 'oz', 'g/ml'];
+    }
+    return const ['g/ml', 'g', 'ml'];
+  }
+
+  String _correctionKey(String label) =>
+      label.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+
+  Future<Map<String, _SavedCorrection>> _loadSavedCorrections() async {
+    final box = await Hive.openBox(_aiCorrectionsBoxName);
+    final loaded = <String, _SavedCorrection>{};
+    for (final key in box.keys) {
+      final raw = box.get(key);
+      if (raw is Map) {
+        final amount = (raw['amount'] as num?)?.toDouble();
+        final unit = raw['unit']?.toString();
+        if (amount != null && amount > 0 && unit != null && unit.isNotEmpty) {
+          loaded[key.toString()] = _SavedCorrection(amount: amount, unit: unit);
+        }
+      }
+    }
+    return loaded;
+  }
+
+  Future<void> _saveCorrection(InterpretationDraftItemEntity item) async {
+    final key = _correctionKey(item.label);
+    if (key.isEmpty || item.amount <= 0 || item.unit.trim().isEmpty) {
+      return;
+    }
+
+    final correction = _SavedCorrection(amount: item.amount, unit: item.unit);
+    final updated = Map<String, _SavedCorrection>.from(_savedCorrections);
+    updated[key] = correction;
+    if (mounted) {
+      setState(() {
+        _savedCorrections = updated;
+      });
+    } else {
+      _savedCorrections = updated;
+    }
+
+    final box = await Hive.openBox(_aiCorrectionsBoxName);
+    await box.put(key, correction.toMap());
   }
 
   Future<void> _showSaveRecipeDialog() async {
@@ -1047,16 +1186,24 @@ class _MacroTile extends StatelessWidget {
 
 class _DraftItemCard extends StatelessWidget {
   final InterpretationDraftItemEntity item;
+  final List<String> unitPresets;
+  final String? savedCorrectionLabel;
   final VoidCallback? onEditPressed;
   final VoidCallback? onReplacePressed;
+  final ValueChanged<String>? onUnitSelected;
   final ValueChanged<double>? onPresetSelected;
+  final VoidCallback? onApplySavedCorrection;
   final VoidCallback onToggleRemoved;
 
   const _DraftItemCard({
     required this.item,
+    required this.unitPresets,
+    required this.savedCorrectionLabel,
     required this.onEditPressed,
     required this.onReplacePressed,
+    required this.onUnitSelected,
     required this.onPresetSelected,
+    required this.onApplySavedCorrection,
     required this.onToggleRemoved,
   });
 
@@ -1100,12 +1247,33 @@ class _DraftItemCard extends StatelessWidget {
                             icon: Icons.local_fire_department_outlined,
                             label: '${item.kcal.toStringAsFixed(0)} kcal',
                           ),
-                          _DraftChip(
-                            icon: _confidenceIcon(item.confidenceBand),
-                            label: _confidenceLabel(item.confidenceBand),
-                          ),
+                          _ConfidenceChip(band: item.confidenceBand),
                         ],
                       ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: unitPresets
+                            .map(
+                              (unit) => ChoiceChip(
+                                label: Text(unit),
+                                selected: item.unit == unit,
+                                onSelected:
+                                    item.removed || onUnitSelected == null
+                                        ? null
+                                        : (_) => onUnitSelected!(unit),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      if (savedCorrectionLabel != null) ...[
+                        const SizedBox(height: 8),
+                        _PresetChip(
+                          label: 'Apply typical: $savedCorrectionLabel',
+                          onTap: item.removed ? null : onApplySavedCorrection,
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1189,28 +1357,6 @@ class _DraftItemCard extends StatelessWidget {
       ),
     );
   }
-
-  static String _confidenceLabel(ConfidenceBandEntity band) {
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        return 'High';
-      case ConfidenceBandEntity.medium:
-        return 'Medium';
-      case ConfidenceBandEntity.low:
-        return 'Low';
-    }
-  }
-
-  static IconData _confidenceIcon(ConfidenceBandEntity band) {
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        return Icons.verified_outlined;
-      case ConfidenceBandEntity.medium:
-        return Icons.rule_folder_outlined;
-      case ConfidenceBandEntity.low:
-        return Icons.error_outline;
-    }
-  }
 }
 
 class _PresetChip extends StatelessWidget {
@@ -1230,6 +1376,70 @@ class _PresetChip extends StatelessWidget {
       onPressed: onTap,
     );
   }
+}
+
+class _ConfidenceChip extends StatelessWidget {
+  final ConfidenceBandEntity band;
+
+  const _ConfidenceChip({required this.band});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        color = Colors.green;
+        label = 'High confidence';
+        break;
+      case ConfidenceBandEntity.medium:
+        color = Colors.orange;
+        label = 'Medium confidence';
+        break;
+      case ConfidenceBandEntity.low:
+        color = Colors.red;
+        label = 'Low confidence';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.16),
+        border: Border.all(color: color.withValues(alpha: 0.32)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.traffic_outlined, size: 14, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedCorrection {
+  final double amount;
+  final String unit;
+
+  const _SavedCorrection({
+    required this.amount,
+    required this.unit,
+  });
+
+  Map<String, dynamic> toMap() => {
+        'amount': amount,
+        'unit': unit,
+      };
 }
 
 class _DraftChip extends StatelessWidget {
