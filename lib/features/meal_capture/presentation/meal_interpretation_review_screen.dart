@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
@@ -45,7 +47,10 @@ class _MealInterpretationReviewScreenState
     _args = ModalRoute.of(context)?.settings.arguments
             as MealInterpretationReviewScreenArguments? ??
         MealInterpretationReviewScreenArguments(
-            '', DateTime.now(), IntakeTypeEntity.breakfast);
+          '',
+          DateTime.now(),
+          IntakeTypeEntity.breakfast,
+        );
     _didLoadDraft = true;
     _loadDraft();
   }
@@ -60,7 +65,7 @@ class _MealInterpretationReviewScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review draft'),
+        title: const Text('Review AI draft'),
         actions: [
           IconButton(
             onPressed: _activeItems.isEmpty || _isLoading
@@ -71,7 +76,25 @@ class _MealInterpretationReviewScreenState
           ),
         ],
       ),
+      bottomNavigationBar: _buildBottomBar(context),
       body: _buildBody(context),
+    );
+  }
+
+  Widget? _buildBottomBar(BuildContext context) {
+    if (_isLoading || _draft == null) {
+      return null;
+    }
+
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: FilledButton.icon(
+        onPressed: _activeItems.isEmpty || _isSaving
+            ? null
+            : () => _commitDraft(_draft!),
+        icon: Icon(_isSaving ? Icons.hourglass_top_outlined : Icons.check),
+        label: Text(_isSaving ? 'Saving meal...' : 'Save meal'),
+      ),
     );
   }
 
@@ -99,88 +122,101 @@ class _MealInterpretationReviewScreenState
     final adjustedFat = _draft!.totalFat * servings;
     final adjustedProtein = _draft!.totalProtein * servings;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(_draft!.title, style: Theme.of(context).textTheme.headlineSmall),
-          if (_draft!.summary != null) ...[
-            const SizedBox(height: 8.0),
-            Text(_draft!.summary!),
-          ],
-          const SizedBox(height: 16.0),
-          _MacroOverviewCard(
-            kcal: adjustedKcal,
-            carbs: adjustedCarbs,
-            fat: adjustedFat,
-            protein: adjustedProtein,
-            servings: servings,
-          ),
-          const SizedBox(height: 16.0),
-          TextField(
-            controller: _servingsController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Servings',
-              helperText: 'Adjust the final logged quantity.',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            children: [
-              Text(
-                'Detected items',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(width: 8.0),
-              TextButton.icon(
-                onPressed: _isPersistingEdits ? null : _showAddIngredientFlow,
-                icon: const Icon(Icons.add_outlined),
-                label: const Text('Add ingredient'),
-              ),
-              const Spacer(),
-              Text(
-                _isPersistingEdits
-                    ? 'Saving edits...'
-                    : '${activeItems.length} active',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontStyle: _isPersistingEdits ? FontStyle.italic : null),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8.0),
-          Expanded(
-            child: ListView.separated(
-              itemCount: _draft!.items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8.0),
-              itemBuilder: (context, index) {
-                final item = _draft!.items[index];
-                return _DraftItemCard(
-                  item: item,
-                  onEditPressed:
-                      item.editable ? () => _showAmountEditor(item) : null,
-                  onReplacePressed:
-                      item.editable ? () => _showReplaceDialog(item) : null,
-                  onToggleRemoved: () => _toggleRemoved(item),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 16.0),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: activeItems.isEmpty || _isSaving
-                  ? null
-                  : () => _commitDraft(_draft!),
-              child: Text(_isSaving ? 'Saving...' : 'Save meal'),
-            ),
-          ),
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _DraftHeroCard(
+          draft: _draft!,
+          intakeType: _args.intakeTypeEntity,
+          activeItemCount: activeItems.length,
+          servingsController: _servingsController,
+          onServingsChanged: () => setState(() {}),
+          onQuickServingSelected: _setQuickServing,
+          quickServingValue: _parsedServings,
+        ),
+        if (_draft!.localImagePath != null &&
+            _draft!.localImagePath!.trim().isNotEmpty) ...[
+          const SizedBox(height: 12),
+          _DraftImagePreviewCard(imagePath: _draft!.localImagePath!),
         ],
-      ),
+        const SizedBox(height: 16),
+        _MacroHeroCard(
+          kcal: adjustedKcal,
+          carbs: adjustedCarbs,
+          fat: adjustedFat,
+          protein: adjustedProtein,
+          servings: servings,
+        ),
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Detected items',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                    ),
+                    Text(
+                      _isPersistingEdits
+                          ? 'Saving edits...'
+                          : '${activeItems.length} active',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontStyle:
+                                _isPersistingEdits ? FontStyle.italic : null,
+                          ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed:
+                          _isPersistingEdits ? null : _showAddIngredientFlow,
+                      icon: const Icon(Icons.add_outlined),
+                      label: const Text('Add ingredient'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: _activeItems.isEmpty || _isPersistingEdits
+                          ? null
+                          : () => _showSaveRecipeDialog(),
+                      icon: const Icon(Icons.bookmark_add_outlined),
+                      label: const Text('Save recipe'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ..._draft!.items.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _DraftItemCard(
+              item: item,
+              onEditPressed:
+                  item.editable ? () => _showAmountEditor(item) : null,
+              onReplacePressed:
+                  item.editable ? () => _showReplaceDialog(item) : null,
+              onToggleRemoved: () => _toggleRemoved(item),
+            ),
+          ),
+        ),
+        const SizedBox(height: 90),
+      ],
     );
   }
 
@@ -207,6 +243,11 @@ class _MealInterpretationReviewScreenState
       _draft = draft;
       _isLoading = false;
     });
+  }
+
+  void _setQuickServing(double value) {
+    _servingsController.text = value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
+    setState(() {});
   }
 
   Future<void> _showAmountEditor(InterpretationDraftItemEntity item) async {
@@ -532,14 +573,208 @@ class _MealInterpretationReviewScreenState
   }
 }
 
-class _MacroOverviewCard extends StatelessWidget {
+class _DraftImagePreviewCard extends StatelessWidget {
+  final String imagePath;
+
+  const _DraftImagePreviewCard({required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    final file = File(imagePath);
+    if (!file.existsSync()) {
+      return const SizedBox();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Captured photo',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: AspectRatio(
+                aspectRatio: 4 / 3,
+                child: Image.file(
+                  file,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Could not load image preview',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DraftHeroCard extends StatelessWidget {
+  final InterpretationDraftEntity draft;
+  final IntakeTypeEntity intakeType;
+  final int activeItemCount;
+  final TextEditingController servingsController;
+  final VoidCallback onServingsChanged;
+  final ValueChanged<double> onQuickServingSelected;
+  final double quickServingValue;
+
+  const _DraftHeroCard({
+    required this.draft,
+    required this.intakeType,
+    required this.activeItemCount,
+    required this.servingsController,
+    required this.onServingsChanged,
+    required this.onQuickServingSelected,
+    required this.quickServingValue,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: Color.alphaBlend(
+          colorScheme.primary.withValues(alpha: 0.08),
+          colorScheme.surfaceContainerLow,
+        ),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _DraftChip(
+                icon: draft.sourceType == DraftSourceEntity.photo
+                    ? Icons.camera_alt_outlined
+                    : Icons.notes_outlined,
+                label: draft.sourceType == DraftSourceEntity.photo
+                    ? 'Photo AI'
+                    : 'Text AI',
+              ),
+              _DraftChip(
+                icon: Icons.restaurant_outlined,
+                label: intakeType.name,
+              ),
+              _DraftChip(
+                icon: Icons.layers_outlined,
+                label: '$activeItemCount active items',
+              ),
+              _DraftChip(
+                icon: _confidenceIcon(draft.confidenceBand),
+                label: _confidenceLabel(draft.confidenceBand),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            draft.title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          if (draft.summary != null && draft.summary!.trim().isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              draft.summary!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+          const SizedBox(height: 16),
+          Text(
+            'Servings to log',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [0.5, 1.0, 1.5, 2.0]
+                .map(
+                  (value) => ChoiceChip(
+                    label: Text(
+                      value % 1 == 0 ? value.toInt().toString() : '$value',
+                    ),
+                    selected: quickServingValue == value,
+                    onSelected: (_) => onQuickServingSelected(value),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: servingsController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Custom servings',
+              helperText: 'Adjust the final portion before saving.',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (_) => onServingsChanged(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _confidenceLabel(ConfidenceBandEntity band) {
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        return 'High confidence';
+      case ConfidenceBandEntity.medium:
+        return 'Medium confidence';
+      case ConfidenceBandEntity.low:
+        return 'Low confidence';
+    }
+  }
+
+  static IconData _confidenceIcon(ConfidenceBandEntity band) {
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        return Icons.verified_outlined;
+      case ConfidenceBandEntity.medium:
+        return Icons.rule_folder_outlined;
+      case ConfidenceBandEntity.low:
+        return Icons.error_outline;
+    }
+  }
+}
+
+class _MacroHeroCard extends StatelessWidget {
   final double kcal;
   final double carbs;
   final double fat;
   final double protein;
   final double servings;
 
-  const _MacroOverviewCard({
+  const _MacroHeroCard({
     required this.kcal,
     required this.carbs,
     required this.fat,
@@ -549,31 +784,121 @@ class _MacroOverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${kcal.toStringAsFixed(0)} kcal',
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${servings.toStringAsFixed(servings % 1 == 0 ? 0 : 2)} servings ready to log',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                  ),
+                  child: Text(
+                    'Editable',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _MacroTile(
+                  label: 'Protein',
+                  value: '${protein.toStringAsFixed(1)} g',
+                  accentColor: colorScheme.primary,
+                ),
+                _MacroTile(
+                  label: 'Carbs',
+                  value: '${carbs.toStringAsFixed(1)} g',
+                  accentColor: colorScheme.tertiary,
+                ),
+                _MacroTile(
+                  label: 'Fat',
+                  value: '${fat.toStringAsFixed(1)} g',
+                  accentColor: const Color(0xFFE7A83B),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MacroTile extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color accentColor;
+
+  const _MacroTile({
+    required this.label,
+    required this.value,
+    required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12.0),
+      constraints: const BoxConstraints(minWidth: 110),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(14),
+        color: accentColor.withValues(alpha: 0.12),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.22),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${kcal.toStringAsFixed(0)} kcal',
-            style: Theme.of(context).textTheme.titleMedium,
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
           ),
-          const SizedBox(height: 4.0),
+          const SizedBox(height: 4),
           Text(
-            'C ${carbs.toStringAsFixed(1)} | F ${fat.toStringAsFixed(1)} | P ${protein.toStringAsFixed(1)}',
-          ),
-          const SizedBox(height: 4.0),
-          Text(
-            '${servings.toStringAsFixed(servings % 1 == 0 ? 0 : 2)} servings to log',
-            style: Theme.of(context).textTheme.bodySmall,
+            value,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
           ),
         ],
       ),
@@ -596,74 +921,158 @@ class _DraftItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final textStyle = item.removed
         ? Theme.of(context).textTheme.titleSmall?.copyWith(
               decoration: TextDecoration.lineThrough,
               color: Theme.of(context).disabledColor,
             )
-        : Theme.of(context).textTheme.titleSmall;
+        : Theme.of(context).textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            );
 
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: item.removed
-              ? Theme.of(context).disabledColor.withValues(alpha: 0.2)
-              : Theme.of(context)
-                  .colorScheme
-                  .outlineVariant
-                  .withValues(alpha: 0.6),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(item.label, style: textStyle),
-              ),
-              if (onEditPressed != null)
-                IconButton(
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.label, style: textStyle),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _DraftChip(
+                            icon: Icons.scale_outlined,
+                            label:
+                                '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 2)} ${item.unit}',
+                          ),
+                          _DraftChip(
+                            icon: Icons.local_fire_department_outlined,
+                            label: '${item.kcal.toStringAsFixed(0)} kcal',
+                          ),
+                          _DraftChip(
+                            icon: _confidenceIcon(item.confidenceBand),
+                            label: _confidenceLabel(item.confidenceBand),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: !item.removed,
+                  onChanged: (_) => onToggleRemoved(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'C ${item.carbs.toStringAsFixed(1)}  |  F ${item.fat.toStringAsFixed(1)}  |  P ${item.protein.toStringAsFixed(1)}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: item.removed
+                        ? Theme.of(context).disabledColor
+                        : colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                OutlinedButton.icon(
                   onPressed: item.removed ? null : onEditPressed,
                   icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Edit amount',
+                  label: const Text('Amount'),
                 ),
-              if (onReplacePressed != null)
-                IconButton(
+                OutlinedButton.icon(
                   onPressed: item.removed ? null : onReplacePressed,
                   icon: const Icon(Icons.swap_horiz_outlined),
-                  tooltip: 'Replace ingredient',
+                  label: const Text('Replace'),
                 ),
-              IconButton(
-                onPressed: onToggleRemoved,
-                icon: Icon(
-                    item.removed ? Icons.undo : Icons.remove_circle_outline),
-                tooltip: item.removed ? 'Restore item' : 'Remove item',
+                OutlinedButton.icon(
+                  onPressed: onToggleRemoved,
+                  icon: Icon(
+                    item.removed
+                        ? Icons.undo_outlined
+                        : Icons.remove_circle_outline,
+                  ),
+                  label: Text(item.removed ? 'Restore' : 'Remove'),
+                ),
+              ],
+            ),
+            if (item.removed) ...[
+              const SizedBox(height: 10),
+              Text(
+                'Excluded from the final meal.',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
-          ),
-          Text(
-            '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 2)} ${item.unit} | ${item.kcal.toStringAsFixed(0)} kcal',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: item.removed ? Theme.of(context).disabledColor : null,
-                ),
-          ),
-          const SizedBox(height: 4.0),
-          Text(
-            'C ${item.carbs.toStringAsFixed(1)} | F ${item.fat.toStringAsFixed(1)} | P ${item.protein.toStringAsFixed(1)}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: item.removed ? Theme.of(context).disabledColor : null,
-                ),
-          ),
-          if (item.removed) ...[
-            const SizedBox(height: 6.0),
-            Text(
-              'Excluded from the final meal.',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  static String _confidenceLabel(ConfidenceBandEntity band) {
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        return 'High';
+      case ConfidenceBandEntity.medium:
+        return 'Medium';
+      case ConfidenceBandEntity.low:
+        return 'Low';
+    }
+  }
+
+  static IconData _confidenceIcon(ConfidenceBandEntity band) {
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        return Icons.verified_outlined;
+      case ConfidenceBandEntity.medium:
+        return Icons.rule_folder_outlined;
+      case ConfidenceBandEntity.low:
+        return Icons.error_outline;
+    }
+  }
+}
+
+class _DraftChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _DraftChip({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.45),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
         ],
       ),
     );
