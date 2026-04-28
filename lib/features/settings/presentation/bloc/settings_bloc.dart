@@ -44,7 +44,12 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           appVersion,
           userConfig.hasAcceptedSendAnonymousData,
           userConfig.appTheme,
-          usesImperialUnits));
+          usesImperialUnits,
+          aiEstimatedCostTotalUsd: userConfig.aiEstimatedCostTotalUsd,
+          aiEstimatedCostTodayUsd: userConfig.aiEstimatedCostTodayUsd,
+          aiEstimatedCostMonthUsd: userConfig.aiEstimatedCostMonthUsd,
+          aiTextCallsTotal: userConfig.aiTextCallsTotal,
+          aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal));
     });
   }
 
@@ -89,6 +94,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       double carbGoalPct, double proteinGoalPct, double fatGoalPct) {
     _addConfigUsecase.setConfigMacroGoalPct(carbGoalPct.toInt() / 100,
         proteinGoalPct.toInt() / 100, fatGoalPct.toInt() / 100);
+  }
+
+  Future<void> resetAiCostTracking() async {
+    await _addConfigUsecase.resetAiCostTracking();
   }
 
   void updateTrackedDay(DateTime day) async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -287,7 +288,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
   }
 
   String _buildRemoteFailureMessage(String rawError) {
-    final normalized = rawError.toLowerCase();
+    final extractedError = _extractBackendError(rawError);
+    final normalized = extractedError.toLowerCase();
     if (normalized.contains('payload is too large') ||
         normalized.contains('413')) {
       return 'The image is too large for remote AI. A local fallback draft was created.';
@@ -295,7 +297,17 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     if (normalized.contains('missing gemini_api_key')) {
       return 'Remote AI is not configured on backend. A local fallback draft was created.';
     }
-    return 'Remote image interpretation failed. A fallback draft was created.';
+    if (normalized.contains('429') ||
+        normalized.contains('resource_exhausted') ||
+        normalized.contains('quota')) {
+      return 'Remote AI quota/rate limit reached. A local fallback draft was created.';
+    }
+    if (normalized.contains('mime') ||
+        normalized.contains('unsupported') ||
+        normalized.contains('invalid argument')) {
+      return 'Unsupported image format for remote AI. Try JPG/PNG. A local fallback draft was created.';
+    }
+    return 'Remote image interpretation failed. A fallback draft was created. (${_truncateError(extractedError)})';
   }
 
   String _fileExtension(String fileName) {
@@ -322,11 +334,44 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         return 'image/webp';
       case 'gif':
         return 'image/gif';
+      case 'heic':
+        return 'image/heic';
+      case 'heif':
+        return 'image/heif';
       case 'jpg':
       case 'jpeg':
       default:
         return 'image/jpeg';
     }
+  }
+
+  String _extractBackendError(String rawError) {
+    final jsonStart = rawError.indexOf('{');
+    if (jsonStart == -1) {
+      return rawError;
+    }
+
+    final possibleJson = rawError.substring(jsonStart);
+    try {
+      final decoded = jsonDecode(possibleJson);
+      if (decoded is Map<String, dynamic>) {
+        final error = decoded['error'];
+        if (error is String && error.trim().isNotEmpty) {
+          return error;
+        }
+      }
+    } catch (_) {
+      // Keep raw error when payload is not valid JSON.
+    }
+    return rawError;
+  }
+
+  String _truncateError(String error) {
+    final compact = error.replaceAll('\n', ' ').trim();
+    if (compact.length <= 90) {
+      return compact;
+    }
+    return '${compact.substring(0, 87)}...';
   }
 
   void _openTextFlow() {

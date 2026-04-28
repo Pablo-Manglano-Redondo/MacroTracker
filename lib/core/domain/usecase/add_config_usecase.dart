@@ -42,4 +42,18 @@ class AddConfigUsecase {
   Future<void> setConfigDailyFocus(DailyFocusEntity dailyFocus) async {
     _configRepository.setDailyFocus(dailyFocus);
   }
+
+  Future<void> addAiEstimatedCost({
+    required bool isPhoto,
+    required double usdCost,
+  }) async {
+    await _configRepository.addAiEstimatedCost(
+      isPhoto: isPhoto,
+      usdCost: usdCost,
+    );
+  }
+
+  Future<void> resetAiCostTracking() async {
+    await _configRepository.resetAiCostTracking();
+  }
 }

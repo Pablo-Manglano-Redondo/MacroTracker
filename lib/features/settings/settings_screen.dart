@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -97,6 +98,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(S.of(context).settingsPrivacySettings),
                   onTap: () =>
                       _showPrivacyDialog(context, state.sendAnonymousData),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.paid_outlined),
+                  title: const Text('AI cost tracking'),
+                  subtitle: Text(
+                    'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} • Today \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
+                  ),
+                  onTap: () => _showAiCostDialog(context, state),
                 ),
                 ListTile(
                   leading: const Icon(Icons.error_outline_outlined),
@@ -376,6 +385,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ))
           ]);
     }
+  }
+
+  void _showAiCostDialog(BuildContext context, SettingsLoadedState state) {
+    final currency = NumberFormat.currency(
+      locale: 'en_US',
+      symbol: '\$',
+      decimalDigits: 3,
+    );
+    final totalCalls = state.aiTextCallsTotal + state.aiPhotoCallsTotal;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('AI cost tracking'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+                'Total estimated: ${currency.format(state.aiEstimatedCostTotalUsd)}'),
+            Text('Today: ${currency.format(state.aiEstimatedCostTodayUsd)}'),
+            Text(
+                'This month: ${currency.format(state.aiEstimatedCostMonthUsd)}'),
+            const SizedBox(height: 10),
+            Text('Calls total: $totalCalls'),
+            Text('Text calls: ${state.aiTextCallsTotal}'),
+            Text('Photo calls: ${state.aiPhotoCallsTotal}'),
+            const SizedBox(height: 10),
+            const Text(
+              'Estimation model: text \$0.002/call, photo \$0.006/call.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(S.of(context).dialogCancelLabel),
+          ),
+          TextButton(
+            onPressed: () async {
+              await _settingsBloc.resetAiCostTracking();
+              if (context.mounted) {
+                Navigator.of(context).pop();
+                _settingsBloc.add(LoadSettingsEvent());
+              }
+            },
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _launchSourceCodeUrl(BuildContext context) async {

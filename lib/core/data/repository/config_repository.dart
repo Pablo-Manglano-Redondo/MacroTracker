@@ -69,4 +69,18 @@ class ConfigRepository {
   Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
     _configDataSource.setConfigDailyFocus(dailyFocus.storageValue);
   }
+
+  Future<void> addAiEstimatedCost({
+    required bool isPhoto,
+    required double usdCost,
+  }) async {
+    await _configDataSource.addAiEstimatedCost(
+      isPhoto: isPhoto,
+      usdCost: usdCost,
+    );
+  }
+
+  Future<void> resetAiCostTracking() async {
+    await _configDataSource.resetAiCostTracking();
+  }
 }

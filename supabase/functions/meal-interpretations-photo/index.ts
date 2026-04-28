@@ -47,11 +47,13 @@ Deno.serve(async (request) => {
 });
 
 function resolveMimeType(rawMimeType: unknown, rawFileName: unknown): string {
-  if (typeof rawMimeType === "string") {
+    if (typeof rawMimeType === "string") {
     const normalized = rawMimeType.trim().toLowerCase();
     if (normalized === "image/jpeg" ||
         normalized === "image/png" ||
         normalized === "image/webp" ||
+        normalized === "image/heic" ||
+        normalized === "image/heif" ||
         normalized === "image/gif") {
       return normalized;
     }
@@ -66,6 +68,10 @@ function resolveMimeType(rawMimeType: unknown, rawFileName: unknown): string {
         return "image/webp";
       case "gif":
         return "image/gif";
+      case "heic":
+        return "image/heic";
+      case "heif":
+        return "image/heif";
       case "jpg":
       case "jpeg":
       default:

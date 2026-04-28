@@ -235,7 +235,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<InterpretationDraftRepository>(
       () => InterpretationDraftRepository(locator()));
   locator.registerLazySingleton<MealInterpretationRepository>(
-      () => MealInterpretationRepository(locator(), locator()));
+      () => MealInterpretationRepository(locator(), locator(), locator()));
   locator.registerLazySingleton<UserActivityRepository>(
       () => UserActivityRepository(locator()));
   locator.registerLazySingleton<PhysicalActivityRepository>(

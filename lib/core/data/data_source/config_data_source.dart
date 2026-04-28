@@ -97,6 +97,59 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> addAiEstimatedCost({
+    required bool isPhoto,
+    required double usdCost,
+  }) async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+
+    final now = DateTime.now();
+    final todayKey =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final monthKey =
+        '${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}';
+
+    if (config.aiCostTodayDate != todayKey) {
+      config.aiCostTodayDate = todayKey;
+      config.aiEstimatedCostTodayUsd = 0;
+    }
+
+    if (config.aiCostMonthKey != monthKey) {
+      config.aiCostMonthKey = monthKey;
+      config.aiEstimatedCostMonthUsd = 0;
+    }
+
+    config.aiEstimatedCostTotalUsd =
+        (config.aiEstimatedCostTotalUsd ?? 0) + usdCost;
+    config.aiEstimatedCostTodayUsd =
+        (config.aiEstimatedCostTodayUsd ?? 0) + usdCost;
+    config.aiEstimatedCostMonthUsd =
+        (config.aiEstimatedCostMonthUsd ?? 0) + usdCost;
+    config.aiTextCallsTotal =
+        (config.aiTextCallsTotal ?? 0) + (isPhoto ? 0 : 1);
+    config.aiPhotoCallsTotal =
+        (config.aiPhotoCallsTotal ?? 0) + (isPhoto ? 1 : 0);
+    await config.save();
+  }
+
+  Future<void> resetAiCostTracking() async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+    config.aiEstimatedCostTotalUsd = 0;
+    config.aiEstimatedCostTodayUsd = 0;
+    config.aiEstimatedCostMonthUsd = 0;
+    config.aiTextCallsTotal = 0;
+    config.aiPhotoCallsTotal = 0;
+    config.aiCostTodayDate = null;
+    config.aiCostMonthKey = null;
+    await config.save();
+  }
+
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }

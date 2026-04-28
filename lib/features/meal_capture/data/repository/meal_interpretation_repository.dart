@@ -1,3 +1,4 @@
+import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'dart:typed_data';
 
 import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
@@ -7,8 +8,10 @@ import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_
 class MealInterpretationRepository {
   final MealInterpretationRemoteDataSource _remoteDataSource;
   final InterpretationDraftRepository _draftRepository;
+  final ConfigRepository _configRepository;
 
-  MealInterpretationRepository(this._remoteDataSource, this._draftRepository);
+  MealInterpretationRepository(
+      this._remoteDataSource, this._draftRepository, this._configRepository);
 
   Future<InterpretationDraftEntity> interpretText({
     required String text,
@@ -21,6 +24,10 @@ class MealInterpretationRepository {
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+    );
+    await _configRepository.addAiEstimatedCost(
+      isPhoto: false,
+      usdCost: 0.0020,
     );
     await _draftRepository.saveDraft(draft);
     return draft;
@@ -41,6 +48,10 @@ class MealInterpretationRepository {
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+    );
+    await _configRepository.addAiEstimatedCost(
+      isPhoto: true,
+      usdCost: 0.0060,
     );
     await _draftRepository.saveDraft(draft);
     return draft;

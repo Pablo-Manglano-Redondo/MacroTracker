@@ -149,6 +149,8 @@ function normalizeMimeType(mimeType: string | undefined): string {
     case "image/png":
     case "image/webp":
     case "image/gif":
+    case "image/heic":
+    case "image/heif":
     case "image/jpeg":
       return normalized;
     default:

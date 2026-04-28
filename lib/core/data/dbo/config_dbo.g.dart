@@ -27,13 +27,20 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
       ..userFatGoalPct = fields[8] as double?
-      ..dailyFocus = fields[9] as String?;
+      ..dailyFocus = fields[9] as String?
+      ..aiEstimatedCostTotalUsd = fields[10] as double?
+      ..aiEstimatedCostTodayUsd = fields[11] as double?
+      ..aiEstimatedCostMonthUsd = fields[12] as double?
+      ..aiTextCallsTotal = fields[13] as int?
+      ..aiPhotoCallsTotal = fields[14] as int?
+      ..aiCostTodayDate = fields[15] as String?
+      ..aiCostMonthKey = fields[16] as String?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -53,7 +60,21 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(8)
       ..write(obj.userFatGoalPct)
       ..writeByte(9)
-      ..write(obj.dailyFocus);
+      ..write(obj.dailyFocus)
+      ..writeByte(10)
+      ..write(obj.aiEstimatedCostTotalUsd)
+      ..writeByte(11)
+      ..write(obj.aiEstimatedCostTodayUsd)
+      ..writeByte(12)
+      ..write(obj.aiEstimatedCostMonthUsd)
+      ..writeByte(13)
+      ..write(obj.aiTextCallsTotal)
+      ..writeByte(14)
+      ..write(obj.aiPhotoCallsTotal)
+      ..writeByte(15)
+      ..write(obj.aiCostTodayDate)
+      ..writeByte(16)
+      ..write(obj.aiCostMonthKey);
   }
 
   @override
@@ -82,7 +103,17 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
     )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
-      ..userFatGoalPct = (json['userFatGoalPct'] as num?)?.toDouble();
+      ..userFatGoalPct = (json['userFatGoalPct'] as num?)?.toDouble()
+      ..aiEstimatedCostTotalUsd =
+          (json['aiEstimatedCostTotalUsd'] as num?)?.toDouble()
+      ..aiEstimatedCostTodayUsd =
+          (json['aiEstimatedCostTodayUsd'] as num?)?.toDouble()
+      ..aiEstimatedCostMonthUsd =
+          (json['aiEstimatedCostMonthUsd'] as num?)?.toDouble()
+      ..aiTextCallsTotal = json['aiTextCallsTotal'] as int?
+      ..aiPhotoCallsTotal = json['aiPhotoCallsTotal'] as int?
+      ..aiCostTodayDate = json['aiCostTodayDate'] as String?
+      ..aiCostMonthKey = json['aiCostMonthKey'] as String?;
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -95,6 +126,13 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'userProteinGoalPct': instance.userProteinGoalPct,
       'userFatGoalPct': instance.userFatGoalPct,
       'dailyFocus': instance.dailyFocus,
+      'aiEstimatedCostTotalUsd': instance.aiEstimatedCostTotalUsd,
+      'aiEstimatedCostTodayUsd': instance.aiEstimatedCostTodayUsd,
+      'aiEstimatedCostMonthUsd': instance.aiEstimatedCostMonthUsd,
+      'aiTextCallsTotal': instance.aiTextCallsTotal,
+      'aiPhotoCallsTotal': instance.aiPhotoCallsTotal,
+      'aiCostTodayDate': instance.aiCostTodayDate,
+      'aiCostMonthKey': instance.aiCostMonthKey,
     };
 
 const _$AppThemeDBOEnumMap = {
