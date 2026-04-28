@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class ConfigEntity extends Equatable {
   final bool hasAcceptedDisclaimer;
@@ -21,6 +22,7 @@ class ConfigEntity extends Equatable {
   final int aiPhotoCallsTotal;
   final String? aiCostTodayDate;
   final String? aiCostMonthKey;
+  final TrainingDayTemplateEntity trainingDayTemplate;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
@@ -36,7 +38,8 @@ class ConfigEntity extends Equatable {
       this.aiTextCallsTotal = 0,
       this.aiPhotoCallsTotal = 0,
       this.aiCostTodayDate,
-      this.aiCostMonthKey});
+      this.aiCostMonthKey,
+      this.trainingDayTemplate = TrainingDayTemplateEntity.rest});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -56,6 +59,8 @@ class ConfigEntity extends Equatable {
         aiPhotoCallsTotal: dbo.aiPhotoCallsTotal ?? 0,
         aiCostTodayDate: dbo.aiCostTodayDate,
         aiCostMonthKey: dbo.aiCostMonthKey,
+        trainingDayTemplate: TrainingDayTemplateEntityX.fromStorageValue(
+            dbo.trainingDayTemplate),
       );
 
   @override
@@ -76,5 +81,6 @@ class ConfigEntity extends Equatable {
         aiPhotoCallsTotal,
         aiCostTodayDate,
         aiCostMonthKey,
+        trainingDayTemplate,
       ];
 }

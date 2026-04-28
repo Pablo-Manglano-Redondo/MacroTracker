@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
@@ -48,14 +50,39 @@ class WeeklyInsightsScreen extends StatelessWidget {
                 child: Text(insights.summaryLabel),
               ),
               _InfoCard(
+                title: 'Smart weekly check',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Weight trend: ${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg/week',
+                    ),
+                    const SizedBox(height: 6),
+                    Text(insights.kcalAdjustmentRecommendation),
+                    const SizedBox(height: 10),
+                    if (insights.recommendedKcalAdjustmentDelta != 0)
+                      FilledButton.icon(
+                        onPressed: () =>
+                            _applyRecommendedAdjustment(context, insights),
+                        icon: const Icon(Icons.auto_fix_high_outlined),
+                        label: Text(
+                          'Apply ${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta} kcal/day',
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              _InfoCard(
                 title: 'Weekly averages',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('${insights.averageCalories.toStringAsFixed(0)} kcal / day'),
+                    Text(
+                        '${insights.averageCalories.toStringAsFixed(0)} kcal / day'),
                     Text('Carbs ${insights.averageCarbs.toStringAsFixed(1)} g'),
                     Text('Fat ${insights.averageFat.toStringAsFixed(1)} g'),
-                    Text('Protein ${insights.averageProtein.toStringAsFixed(1)} g'),
+                    Text(
+                        'Protein ${insights.averageProtein.toStringAsFixed(1)} g'),
                   ],
                 ),
               ),
@@ -85,7 +112,8 @@ class WeeklyInsightsScreen extends StatelessWidget {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: insights.topMeals
-                            .map((meal) => Text('${meal.label} (${meal.count}x)'))
+                            .map((meal) =>
+                                Text('${meal.label} (${meal.count}x)'))
                             .toList(),
                       ),
               ),
@@ -102,6 +130,27 @@ class WeeklyInsightsScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _applyRecommendedAdjustment(
+    BuildContext context,
+    WeeklyInsightsEntity insights,
+  ) async {
+    final getConfigUsecase = locator<GetConfigUsecase>();
+    final addConfigUsecase = locator<AddConfigUsecase>();
+    final current =
+        (await getConfigUsecase.getConfig()).userKcalAdjustment ?? 0;
+    final next = current + insights.recommendedKcalAdjustmentDelta;
+    await addConfigUsecase.setConfigKcalAdjustment(next);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Daily kcal adjustment updated to ${next.toStringAsFixed(0)} kcal.',
+          ),
+        ),
+      );
+    }
   }
 }
 

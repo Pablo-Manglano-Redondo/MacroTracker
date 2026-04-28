@@ -119,6 +119,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       baseProteinGoal: baseProteinGoal,
       userWeightKg: user.weightKG,
       userHeightCm: user.heightCM,
+      trainingTemplate: config.trainingDayTemplate,
     );
 
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);

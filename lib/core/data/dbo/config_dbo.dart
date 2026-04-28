@@ -43,6 +43,8 @@ class ConfigDBO extends HiveObject {
   String? aiCostTodayDate;
   @HiveField(16)
   String? aiCostMonthKey;
+  @HiveField(17)
+  String? trainingDayTemplate;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
@@ -70,7 +72,8 @@ class ConfigDBO extends HiveObject {
     ..aiTextCallsTotal = entity.aiTextCallsTotal
     ..aiPhotoCallsTotal = entity.aiPhotoCallsTotal
     ..aiCostTodayDate = entity.aiCostTodayDate
-    ..aiCostMonthKey = entity.aiCostMonthKey;
+    ..aiCostMonthKey = entity.aiCostMonthKey
+    ..trainingDayTemplate = entity.trainingDayTemplate.storageValue;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:macrotracker/generated/l10n.dart';
@@ -26,6 +27,8 @@ void main() {
             onNutritionPhaseChanged: _noopPhaseChange,
             dailyFocus: DailyFocusEntity.training,
             onDailyFocusChanged: _noopFocusChange,
+            trainingTemplate: TrainingDayTemplateEntity.upperBody,
+            onTrainingTemplateChanged: _noopTrainingTemplateChange,
             totalKcalSupplied: 1500,
             totalKcalBurned: 500,
             totalKcalDaily: 2000,
@@ -65,3 +68,5 @@ void main() {
 void _noopPhaseChange(UserWeightGoalEntity _) {}
 
 void _noopFocusChange(DailyFocusEntity _) {}
+
+void _noopTrainingTemplateChange(TrainingDayTemplateEntity _) {}

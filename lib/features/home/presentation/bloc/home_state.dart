@@ -18,6 +18,7 @@ class HomeLoadedState extends HomeState {
   final bool showDisclaimerDialog;
   final UserWeightGoalEntity nutritionPhase;
   final DailyFocusEntity dailyFocus;
+  final TrainingDayTemplateEntity trainingTemplate;
   final double totalKcalDaily;
   final double totalKcalLeft;
   final double totalKcalSupplied;
@@ -39,6 +40,7 @@ class HomeLoadedState extends HomeState {
     required this.showDisclaimerDialog,
     required this.nutritionPhase,
     required this.dailyFocus,
+    required this.trainingTemplate,
     required this.totalKcalDaily,
     required this.totalKcalLeft,
     required this.totalKcalSupplied,
@@ -62,6 +64,7 @@ class HomeLoadedState extends HomeState {
         showDisclaimerDialog,
         nutritionPhase,
         dailyFocus,
+        trainingTemplate,
         totalKcalDaily,
         totalKcalLeft,
         totalKcalSupplied,

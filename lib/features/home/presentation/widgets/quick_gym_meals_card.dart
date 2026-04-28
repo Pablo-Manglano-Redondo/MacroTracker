@@ -9,7 +9,10 @@ import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_preset_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/frequent_intake_preset_entity.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
 
@@ -182,11 +185,66 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   );
                 },
               ),
+              const SizedBox(height: 12),
+              FutureBuilder<List<FrequentIntakePresetEntity>>(
+                future: locator<GetFrequentIntakePresetsUsecase>()
+                    .getTopPresets(limit: 10),
+                builder: (context, snapshot) {
+                  final presets =
+                      snapshot.data ?? const <FrequentIntakePresetEntity>[];
+                  if (presets.isEmpty) return const SizedBox.shrink();
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Frequent meals (1-tap)',
+                        style: Theme.of(context).textTheme.titleSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: presets
+                            .map(
+                              (preset) => ActionChip(
+                                avatar: const Icon(Icons.flash_on_outlined,
+                                    size: 16),
+                                label: Text(
+                                  '${preset.title} (${preset.amount.toStringAsFixed(preset.amount % 1 == 0 ? 0 : 1)} ${preset.unit})',
+                                ),
+                                onPressed: () =>
+                                    _logFrequentPreset(context, preset),
+                              ),
+                            )
+                            .toList(growable: false),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _logFrequentPreset(
+    BuildContext context,
+    FrequentIntakePresetEntity preset,
+  ) async {
+    await locator<LogFrequentIntakePresetUsecase>().logPreset(preset);
+    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                '${preset.title} added (${preset.amount.toStringAsFixed(1)} ${preset.unit})')),
+      );
+    }
   }
 
   Future<void> _logPreset(

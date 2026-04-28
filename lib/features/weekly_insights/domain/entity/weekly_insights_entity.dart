@@ -23,6 +23,9 @@ class WeeklyInsightsEntity extends Equatable {
   final String overeatingTimeSlotLabel;
   final List<FrequentMealInsightEntity> topMeals;
   final String summaryLabel;
+  final double weeklyWeightDeltaKg;
+  final int recommendedKcalAdjustmentDelta;
+  final String kcalAdjustmentRecommendation;
 
   const WeeklyInsightsEntity({
     required this.weekStart,
@@ -37,6 +40,9 @@ class WeeklyInsightsEntity extends Equatable {
     required this.overeatingTimeSlotLabel,
     required this.topMeals,
     required this.summaryLabel,
+    required this.weeklyWeightDeltaKg,
+    required this.recommendedKcalAdjustmentDelta,
+    required this.kcalAdjustmentRecommendation,
   });
 
   @override
@@ -53,5 +59,8 @@ class WeeklyInsightsEntity extends Equatable {
         overeatingTimeSlotLabel,
         topMeals,
         summaryLabel,
+        weeklyWeightDeltaKg,
+        recommendedKcalAdjustmentDelta,
+        kcalAdjustmentRecommendation,
       ];
 }

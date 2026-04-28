@@ -2,6 +2,7 @@ import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class AddConfigUsecase {
   final ConfigRepository _configRepository;
@@ -41,6 +42,11 @@ class AddConfigUsecase {
 
   Future<void> setConfigDailyFocus(DailyFocusEntity dailyFocus) async {
     _configRepository.setDailyFocus(dailyFocus);
+  }
+
+  Future<void> setConfigTrainingDayTemplate(
+      TrainingDayTemplateEntity trainingDayTemplate) async {
+    await _configRepository.setTrainingDayTemplate(trainingDayTemplate);
   }
 
   Future<void> addAiEstimatedCost({

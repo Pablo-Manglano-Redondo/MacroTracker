@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -11,7 +12,9 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/home/presentation/widgets/body_progress_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
+import 'package:macrotracker/features/home/presentation/widgets/adherence_nudges_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.dart';
+import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
@@ -57,6 +60,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.showDisclaimerDialog,
               state.nutritionPhase,
               state.dailyFocus,
+              state.trainingTemplate,
               state.totalKcalDaily,
               state.totalKcalLeft,
               state.totalKcalSupplied,
@@ -100,6 +104,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       bool showDisclaimerDialog,
       UserWeightGoalEntity nutritionPhase,
       DailyFocusEntity dailyFocus,
+      TrainingDayTemplateEntity trainingTemplate,
       double totalKcalDaily,
       double totalKcalLeft,
       double totalKcalSupplied,
@@ -141,6 +146,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
                   dailyFocus: dailyFocus,
                   onDailyFocusChanged: _homeBloc.setDailyFocus,
+                  trainingTemplate: trainingTemplate,
+                  onTrainingTemplateChanged: _homeBloc.setTrainingTemplate,
                   totalKcalDaily: totalKcalDaily,
                   totalKcalLeft: totalKcalLeft,
                   totalKcalSupplied: totalKcalSupplied,
@@ -161,6 +168,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   dailyFocus: dailyFocus,
                   nutritionPhase: nutritionPhase,
+                ),
+                AdherenceNudgesCard(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  dailyFocus: dailyFocus,
+                  totalKcalDaily: totalKcalDaily,
+                  totalKcalSupplied: totalKcalSupplied,
+                  totalProteinsGoal: totalProteinsGoal,
+                  totalProteinsIntake: totalProteinsIntake,
+                ),
+                const NutritionKpiCard(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),

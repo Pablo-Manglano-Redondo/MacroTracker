@@ -73,7 +73,9 @@ import 'package:macrotracker/features/recipes/data/data_source/recipe_data_sourc
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
@@ -171,6 +173,10 @@ Future<void> initLocator() async {
       () => SetRecipeFavoriteUsecase(locator()));
   locator.registerLazySingleton<LogRecipeUsecase>(
       () => LogRecipeUsecase(locator(), locator(), locator()));
+  locator.registerLazySingleton<GetFrequentIntakePresetsUsecase>(
+      () => GetFrequentIntakePresetsUsecase(locator()));
+  locator.registerLazySingleton<LogFrequentIntakePresetUsecase>(
+      () => LogFrequentIntakePresetUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton<GetInterpretationDraftUsecase>(
       () => GetInterpretationDraftUsecase(locator()));
   locator.registerLazySingleton<InterpretMealFromTextUsecase>(
@@ -220,7 +226,13 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
       () => GenerateMacroSuggestionsUsecase(locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(
-      () => BuildWeeklyInsightsUsecase(locator(), locator()));
+      () => BuildWeeklyInsightsUsecase(
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+          ));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));

@@ -4,6 +4,7 @@ import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class ConfigRepository {
   final ConfigDataSource _configDataSource;
@@ -68,6 +69,12 @@ class ConfigRepository {
 
   Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
     _configDataSource.setConfigDailyFocus(dailyFocus.storageValue);
+  }
+
+  Future<void> setTrainingDayTemplate(
+      TrainingDayTemplateEntity trainingDayTemplate) async {
+    await _configDataSource
+        .setConfigTrainingDayTemplate(trainingDayTemplate.storageValue);
   }
 
   Future<void> addAiEstimatedCost({

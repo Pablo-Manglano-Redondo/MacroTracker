@@ -97,6 +97,13 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setConfigTrainingDayTemplate(String template) async {
+    _log.fine('Updating config trainingDayTemplate to $template');
+    final config = _configBox.get(_configKey);
+    config?.trainingDayTemplate = template;
+    await config?.save();
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

@@ -34,13 +34,14 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..aiTextCallsTotal = fields[13] as int?
       ..aiPhotoCallsTotal = fields[14] as int?
       ..aiCostTodayDate = fields[15] as String?
-      ..aiCostMonthKey = fields[16] as String?;
+      ..aiCostMonthKey = fields[16] as String?
+      ..trainingDayTemplate = fields[17] as String?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -74,7 +75,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(15)
       ..write(obj.aiCostTodayDate)
       ..writeByte(16)
-      ..write(obj.aiCostMonthKey);
+      ..write(obj.aiCostMonthKey)
+      ..writeByte(17)
+      ..write(obj.trainingDayTemplate);
   }
 
   @override
@@ -113,7 +116,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..aiTextCallsTotal = json['aiTextCallsTotal'] as int?
       ..aiPhotoCallsTotal = json['aiPhotoCallsTotal'] as int?
       ..aiCostTodayDate = json['aiCostTodayDate'] as String?
-      ..aiCostMonthKey = json['aiCostMonthKey'] as String?;
+      ..aiCostMonthKey = json['aiCostMonthKey'] as String?
+      ..trainingDayTemplate = json['trainingDayTemplate'] as String?;
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -133,6 +137,7 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'aiPhotoCallsTotal': instance.aiPhotoCallsTotal,
       'aiCostTodayDate': instance.aiCostTodayDate,
       'aiCostMonthKey': instance.aiCostMonthKey,
+      'trainingDayTemplate': instance.trainingDayTemplate,
     };
 
 const _$AppThemeDBOEnumMap = {

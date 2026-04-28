@@ -58,6 +58,7 @@ class GetGymTargetsUsecase {
       baseProteinGoal: baseProteinGoal,
       userWeightKg: user.weightKG,
       userHeightCm: user.heightCM,
+      trainingTemplate: config.trainingDayTemplate,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 
 class DashboardWidget extends StatelessWidget {
@@ -9,6 +10,8 @@ class DashboardWidget extends StatelessWidget {
   final ValueChanged<UserWeightGoalEntity> onNutritionPhaseChanged;
   final DailyFocusEntity dailyFocus;
   final ValueChanged<DailyFocusEntity> onDailyFocusChanged;
+  final TrainingDayTemplateEntity trainingTemplate;
+  final ValueChanged<TrainingDayTemplateEntity> onTrainingTemplateChanged;
   final double totalKcalDaily;
   final double totalKcalLeft;
   final double totalKcalSupplied;
@@ -29,6 +32,8 @@ class DashboardWidget extends StatelessWidget {
     required this.onNutritionPhaseChanged,
     required this.dailyFocus,
     required this.onDailyFocusChanged,
+    required this.trainingTemplate,
+    required this.onTrainingTemplateChanged,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
     required this.totalKcalDaily,
@@ -182,6 +187,25 @@ class DashboardWidget extends StatelessWidget {
                     selected: {dailyFocus},
                     onSelectionChanged: (selection) {
                       onDailyFocusChanged(selection.first);
+                    },
+                    style: _segmentedStyle(colorScheme),
+                  ),
+                ),
+                ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(minWidth: 280, maxWidth: 420),
+                  child: SegmentedButton<TrainingDayTemplateEntity>(
+                    showSelectedIcon: false,
+                    segments: TrainingDayTemplateEntity.values
+                        .map((template) =>
+                            ButtonSegment<TrainingDayTemplateEntity>(
+                              value: template,
+                              label: Text(template.label),
+                            ))
+                        .toList(),
+                    selected: {trainingTemplate},
+                    onSelectionChanged: (selection) {
+                      onTrainingTemplateChanged(selection.first);
                     },
                     style: _segmentedStyle(colorScheme),
                   ),
