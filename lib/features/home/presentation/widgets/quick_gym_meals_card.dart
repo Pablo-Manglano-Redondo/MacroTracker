@@ -93,12 +93,12 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Quick gym meals',
+                          'Comidas rápidas de gimnasio',
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Favorites first. One tap logs 1 serving to the best slot.',
+                          'Favoritas primero. Un toque registra 1 ración en la mejor franja.',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -115,7 +115,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       );
                     },
                     icon: const Icon(Icons.bookmarks_outlined),
-                    tooltip: 'Saved meals',
+                    tooltip: 'Comidas guardadas',
                   ),
                 ],
               ),
@@ -165,8 +165,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       ),
                       child: Text(
                         _selectedFilter == _QuickGymMealsFilter.all
-                            ? 'Save meals as recipes and mark the ones you reuse as favorites.'
-                            : 'No quick meals in this lane yet. Add a recipe with pre, post, shake or cut in the name.',
+                            ? 'Guarda comidas como recetas y marca tus repetidas como favoritas.'
+                            : 'Aún no hay comidas rápidas en este carril. Añade una receta con pre, post, shake o cut en el nombre.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     );
@@ -197,7 +197,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Frequent meals (1-tap)',
+                        'Comidas frecuentes (1 toque)',
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
                       const SizedBox(height: 8),
@@ -242,7 +242,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(
-                '${preset.title} added (${preset.amount.toStringAsFixed(1)} ${preset.unit})')),
+                '${preset.title} añadida (${preset.amount.toStringAsFixed(1)} ${preset.unit})')),
       );
     }
   }
@@ -265,7 +265,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              '${preset.recipe.name} added to ${_slotLabel(preset.defaultIntakeType)}'),
+              '${preset.recipe.name} añadida a ${_slotLabel(preset.defaultIntakeType)}'),
         ),
       );
     }
@@ -279,7 +279,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       return _QuickGymMealsFilter.leanMeal;
     }
     switch (dailyFocus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
+      case DailyFocusEntity.upperBody:
         return _QuickGymMealsFilter.postWorkout;
       case DailyFocusEntity.cardio:
         return _QuickGymMealsFilter.shake;
@@ -306,26 +307,26 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
   String _labelForFilter(_QuickGymMealsFilter filter) {
     switch (filter) {
       case _QuickGymMealsFilter.all:
-        return 'All';
+        return 'Todo';
       case _QuickGymMealsFilter.preWorkout:
         return 'Pre';
       case _QuickGymMealsFilter.postWorkout:
         return 'Post';
       case _QuickGymMealsFilter.shake:
-        return 'Shake';
+        return 'Batido';
       case _QuickGymMealsFilter.leanMeal:
-        return 'Lean';
+        return 'Magra';
     }
   }
 
   String _slotLabel(IntakeTypeEntity intakeType) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'breakfast';
+        return 'desayuno';
       case IntakeTypeEntity.lunch:
-        return 'lunch';
+        return 'comida';
       case IntakeTypeEntity.dinner:
-        return 'dinner';
+        return 'cena';
       case IntakeTypeEntity.snack:
         return 'snack';
     }
@@ -375,7 +376,7 @@ class _QuickRecipeTile extends StatelessWidget {
               IconButton.filledTonal(
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add),
-                tooltip: 'Log 1 serving',
+                tooltip: 'Registrar 1 ración',
               ),
             ],
           ),

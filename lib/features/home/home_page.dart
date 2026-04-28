@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
-import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -60,7 +59,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.showDisclaimerDialog,
               state.nutritionPhase,
               state.dailyFocus,
-              state.trainingTemplate,
               state.totalKcalDaily,
               state.totalKcalLeft,
               state.totalKcalSupplied,
@@ -104,7 +102,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       bool showDisclaimerDialog,
       UserWeightGoalEntity nutritionPhase,
       DailyFocusEntity dailyFocus,
-      TrainingDayTemplateEntity trainingTemplate,
       double totalKcalDaily,
       double totalKcalLeft,
       double totalKcalSupplied,
@@ -146,8 +143,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
                   dailyFocus: dailyFocus,
                   onDailyFocusChanged: _homeBloc.setDailyFocus,
-                  trainingTemplate: trainingTemplate,
-                  onTrainingTemplateChanged: _homeBloc.setTrainingTemplate,
                   totalKcalDaily: totalKcalDaily,
                   totalKcalLeft: totalKcalLeft,
                   totalKcalSupplied: totalKcalSupplied,
@@ -163,6 +158,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       dinnerIntakeList.length +
                       snackIntakeList.length,
                   sessionsLogged: userActivities.length,
+                ),
+                MacroSuggestionsCard(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  dailyFocus: dailyFocus,
+                  nutritionPhase: nutritionPhase,
+                  remainingKcal: _positiveRemaining(totalKcalLeft),
+                  remainingCarbs:
+                      _positiveRemaining(totalCarbsGoal - totalCarbsIntake),
+                  remainingFat:
+                      _positiveRemaining(totalFatsGoal - totalFatsIntake),
+                  remainingProtein: _positiveRemaining(
+                      totalProteinsGoal - totalProteinsIntake),
                 ),
                 QuickGymMealsCard(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -183,7 +190,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
                   child: Text(
-                    'Performance overview',
+                    'Resumen de rendimiento',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -222,18 +229,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       ),
                     ],
                   ),
-                ),
-                MacroSuggestionsCard(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  dailyFocus: dailyFocus,
-                  nutritionPhase: nutritionPhase,
-                  remainingKcal: _positiveRemaining(totalKcalLeft),
-                  remainingCarbs:
-                      _positiveRemaining(totalCarbsGoal - totalCarbsIntake),
-                  remainingFat:
-                      _positiveRemaining(totalFatsGoal - totalFatsIntake),
-                  remainingProtein: _positiveRemaining(
-                      totalProteinsGoal - totalProteinsIntake),
                 ),
                 const SizedBox(height: 48.0),
               ],
@@ -287,9 +282,9 @@ class _WeeklyInsightsCard extends StatelessWidget {
       elevation: 0.5,
       child: ListTile(
         leading: const Icon(Icons.insights_outlined),
-        title: const Text('Weekly insights'),
+        title: const Text('Resumen semanal'),
         subtitle: const Text(
-          'Review averages, adherence, protein consistency and top meals',
+          'Revisa promedios, adherencia, proteína y comidas top',
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

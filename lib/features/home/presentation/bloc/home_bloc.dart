@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
-import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
@@ -69,7 +68,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final usesImperialUnits = configData.usesImperialUnits;
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
       final dailyFocus = configData.dailyFocus;
-      final trainingTemplate = configData.trainingDayTemplate;
       final nutritionPhase = user.goal;
 
       final breakfastIntakeList =
@@ -132,7 +130,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final targets = GymTargetCalc.buildTargets(
         phase: nutritionPhase,
         dailyFocus: dailyFocus,
-        trainingTemplate: trainingTemplate,
         baseKcalGoal: baseKcalGoal,
         baseCarbsGoal: baseCarbsGoal,
         baseFatGoal: baseFatsGoal,
@@ -148,7 +145,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           showDisclaimerDialog: showDisclaimerDialog,
           nutritionPhase: nutritionPhase,
           dailyFocus: dailyFocus,
-          trainingTemplate: trainingTemplate,
           totalKcalDaily: targets.kcalGoal,
           totalKcalLeft: totalKcalLeft,
           totalKcalSupplied: totalKcalIntake,
@@ -171,13 +167,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
     await _addConfigUsecase.setConfigDailyFocus(dailyFocus);
     await _syncTodayTrackedDay(dailyFocus: dailyFocus);
-    add(const LoadItemsEvent());
-  }
-
-  Future<void> setTrainingTemplate(
-      TrainingDayTemplateEntity trainingTemplate) async {
-    await _addConfigUsecase.setConfigTrainingDayTemplate(trainingTemplate);
-    await _syncTodayTrackedDay(trainingTemplate: trainingTemplate);
     add(const LoadItemsEvent());
   }
 
@@ -280,7 +269,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     UserWeightGoalEntity? phase,
     DailyFocusEntity? dailyFocus,
     UserEntity? user,
-    TrainingDayTemplateEntity? trainingTemplate,
   }) async {
     final day = DateTime.now();
     final hasTrackedDay = await _addTrackedDayUseCase.hasTrackedDay(day);
@@ -313,7 +301,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       baseProteinGoal: baseProteinGoal,
       userWeightKg: currentUser.weightKG,
       userHeightCm: currentUser.heightCM,
-      trainingTemplate: trainingTemplate ?? config.trainingDayTemplate,
     );
 
     await _addTrackedDayUseCase.updateDayCalorieGoal(day, targets.kcalGoal);

@@ -50,7 +50,7 @@ class ConfigDBO extends HiveObject {
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
       {this.usesImperialUnits = false,
       this.userKcalAdjustment,
-      this.dailyFocus = 'training'});
+      this.dailyFocus = 'upperBody'});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);

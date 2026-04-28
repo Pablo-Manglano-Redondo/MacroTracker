@@ -1,6 +1,5 @@
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
-import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 
 class GymTargetCalc {
@@ -30,7 +29,6 @@ class GymTargetCalc {
     required double baseProteinGoal,
     double? userWeightKg,
     double? userHeightCm,
-    TrainingDayTemplateEntity? trainingTemplate,
   }) {
     final useCustomProfile = _shouldUseCustomProfile(
       userWeightKg: userWeightKg,
@@ -41,7 +39,6 @@ class GymTargetCalc {
       return _buildCustomTargets(
         phase: phase,
         dailyFocus: dailyFocus,
-        trainingTemplate: trainingTemplate,
       );
     }
 
@@ -73,18 +70,12 @@ class GymTargetCalc {
   static GymTargetsEntity _buildCustomTargets({
     required UserWeightGoalEntity phase,
     required DailyFocusEntity dailyFocus,
-    required TrainingDayTemplateEntity? trainingTemplate,
   }) {
     final phaseBase = _phaseBase(phase);
-    final focusAdjusted =
-        _applyCustomDailyFocus(dailyFocus: dailyFocus, base: phaseBase);
-    final templateAdjusted = _applyTrainingTemplate(
-      template: trainingTemplate ?? TrainingDayTemplateEntity.rest,
-      base: focusAdjusted,
-    );
-    final kcal = templateAdjusted.kcal;
-    final protein = templateAdjusted.protein;
-    final fat = templateAdjusted.fat;
+    final adjusted = _applyCustomDailyFocus(dailyFocus: dailyFocus, base: phaseBase);
+    final kcal = adjusted.kcal;
+    final protein = adjusted.protein;
+    final fat = adjusted.fat;
     final carbs = _carbsFromKcal(kcal: kcal, protein: protein, fat: fat);
 
     return GymTargetsEntity(
@@ -95,54 +86,34 @@ class GymTargetCalc {
     );
   }
 
-  static _PhaseBase _applyTrainingTemplate({
-    required TrainingDayTemplateEntity template,
-    required _PhaseBase base,
-  }) {
-    switch (template) {
-      case TrainingDayTemplateEntity.lowerBody:
-        return _PhaseBase(
-          kcal: base.kcal + 90,
-          protein: base.protein + 5,
-          fat: (base.fat - 2).clamp(50, 120).toDouble(),
-        );
-      case TrainingDayTemplateEntity.upperBody:
-        return _PhaseBase(
-          kcal: base.kcal + 45,
-          protein: base.protein + 2,
-          fat: (base.fat - 1).clamp(50, 120).toDouble(),
-        );
-      case TrainingDayTemplateEntity.rest:
-        return _PhaseBase(
-          kcal: base.kcal - 60,
-          protein: base.protein,
-          fat: (base.fat + 2).clamp(50, 120).toDouble(),
-        );
-    }
-  }
-
   static _PhaseBase _applyCustomDailyFocus({
     required DailyFocusEntity dailyFocus,
     required _PhaseBase base,
   }) {
     switch (dailyFocus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
         return _PhaseBase(
-          kcal: base.kcal + 80,
-          protein: base.protein,
-          fat: (base.fat - 2).clamp(50, 120).toDouble(),
+          kcal: base.kcal + 140,
+          protein: base.protein + 6,
+          fat: (base.fat - 3).clamp(50, 120).toDouble(),
         );
-      case DailyFocusEntity.rest:
+      case DailyFocusEntity.upperBody:
         return _PhaseBase(
-          kcal: base.kcal - 80,
-          protein: base.protein + 5,
-          fat: (base.fat + 3).clamp(50, 120).toDouble(),
+          kcal: base.kcal + 70,
+          protein: base.protein + 3,
+          fat: (base.fat - 1).clamp(50, 120).toDouble(),
         );
       case DailyFocusEntity.cardio:
         return _PhaseBase(
           kcal: base.kcal + 40,
           protein: base.protein,
           fat: (base.fat - 1).clamp(50, 120).toDouble(),
+        );
+      case DailyFocusEntity.rest:
+        return _PhaseBase(
+          kcal: base.kcal - 90,
+          protein: base.protein + 5,
+          fat: (base.fat + 3).clamp(50, 120).toDouble(),
         );
     }
   }

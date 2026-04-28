@@ -29,40 +29,41 @@ class NutritionKpiCard extends StatelessWidget {
                 );
               }
               if (snapshot.hasError || snapshot.data == null) {
-                return const Text('Nutrition KPI unavailable right now.');
+                return const Text(
+                    'KPI nutricionales no disponibles ahora mismo.');
               }
               final kpi = snapshot.data!;
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Nutrition performance',
+                    'Rendimiento nutricional',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '10-second weekly checkpoint',
+                    'Chequeo semanal en 10 segundos',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 12),
                   _kpiRow(
                     context,
-                    'Kcal adherence',
+                    'Adherencia kcal',
                     '${(kpi.goalAdherenceRate * 100).round()}%',
                   ),
                   _kpiRow(
                     context,
-                    'Avg protein',
-                    '${kpi.averageProtein.toStringAsFixed(0)} g/day',
+                    'Proteína media',
+                    '${kpi.averageProtein.toStringAsFixed(0)} g/día',
                   ),
                   _kpiRow(
                     context,
-                    'Protein consistency',
+                    'Consistencia proteica',
                     '${(kpi.proteinConsistencyRate * 100).round()}%',
                   ),
                   _kpiRow(
                     context,
-                    'Tracked days',
+                    'Días registrados',
                     '${kpi.trackedDays}/7',
                   ),
                 ],

@@ -33,9 +33,7 @@ class MacroSuggestionsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (_shouldHideCard()) {
-      return const SizedBox.shrink();
-    }
+    if (_shouldHideCard()) return const SizedBox.shrink();
 
     return Padding(
       padding: padding,
@@ -66,13 +64,11 @@ class MacroSuggestionsCard extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _title,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
+                    Text(_title,
+                        style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8.0),
                     Text(
-                      'Save a few recipes and this section will start talking like your current gym day.',
+                      'Guarda algunas recetas y esta sección empezará a sugerirte según tu día de entrenamiento.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -158,7 +154,7 @@ class MacroSuggestionsCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${suggestion.recipe.name} logged to ${_slotLabel(suggestion.recommendedIntakeType)}',
+            '${suggestion.recipe.name} añadida a ${_slotLabel(suggestion.recommendedIntakeType)}',
           ),
         ),
       );
@@ -167,38 +163,42 @@ class MacroSuggestionsCard extends StatelessWidget {
 
   String get _title {
     if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return 'Cut moves';
+      return 'Opciones para definición';
     }
-    if (dailyFocus == DailyFocusEntity.training) {
-      return 'Training moves';
+    if (dailyFocus == DailyFocusEntity.lowerBody) {
+      return 'Opciones para pierna';
+    }
+    if (dailyFocus == DailyFocusEntity.upperBody) {
+      return 'Opciones para torso';
     }
     if (dailyFocus == DailyFocusEntity.cardio) {
-      return 'Cardio moves';
+      return 'Opciones para cardio';
     }
-    return 'Rest-day moves';
+    return 'Opciones para descanso';
   }
 
   String get _subtitle {
-    if (dailyFocus == DailyFocusEntity.training) {
-      return 'Best next meals for fueling or closing recovery.';
+    if (dailyFocus == DailyFocusEntity.lowerBody ||
+        dailyFocus == DailyFocusEntity.upperBody) {
+      return 'Comidas recomendadas para rendir y recuperar mejor.';
     }
     if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return 'Protein-first options that keep calories under control.';
+      return 'Opciones altas en proteína con calorías controladas.';
     }
     if (dailyFocus == DailyFocusEntity.rest) {
-      return 'Cleaner closes that keep protein high without wasting calories.';
+      return 'Cierres limpios con proteína alta y sin exceso calórico.';
     }
-    return 'Saved meals ranked against what your day still needs.';
+    return 'Comidas guardadas según lo que aún te falta hoy.';
   }
 
   String _slotLabel(IntakeTypeEntity intakeType) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'breakfast';
+        return 'desayuno';
       case IntakeTypeEntity.lunch:
-        return 'lunch';
+        return 'comida';
       case IntakeTypeEntity.dinner:
-        return 'dinner';
+        return 'cena';
       case IntakeTypeEntity.snack:
         return 'snack';
     }
@@ -245,7 +245,7 @@ class _SuggestionTile extends StatelessWidget {
               TextButton.icon(
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Log'),
+                label: const Text('Añadir'),
               ),
             ],
           ),
@@ -273,7 +273,7 @@ class _SuggestionTile extends StatelessWidget {
           ),
           const SizedBox(height: 4.0),
           Text(
-            '${_formatServings(suggestion.suggestedServings)} servings | C ${suggestion.predictedCarbs.toStringAsFixed(1)} | F ${suggestion.predictedFat.toStringAsFixed(1)} | P ${suggestion.predictedProtein.toStringAsFixed(1)}',
+            '${_formatServings(suggestion.suggestedServings)} porciones | C ${suggestion.predictedCarbs.toStringAsFixed(1)} | F ${suggestion.predictedFat.toStringAsFixed(1)} | P ${suggestion.predictedProtein.toStringAsFixed(1)}',
           ),
           const SizedBox(height: 4.0),
           Text(
@@ -292,11 +292,11 @@ class _SuggestionTile extends StatelessWidget {
   String _slotText(IntakeTypeEntity intakeType) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'Breakfast';
+        return 'Desayuno';
       case IntakeTypeEntity.lunch:
-        return 'Lunch';
+        return 'Comida';
       case IntakeTypeEntity.dinner:
-        return 'Dinner';
+        return 'Cena';
       case IntakeTypeEntity.snack:
         return 'Snack';
     }

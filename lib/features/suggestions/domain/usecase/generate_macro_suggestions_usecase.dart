@@ -179,13 +179,15 @@ class GenerateMacroSuggestionsUsecase {
         predictedFat <= _remainingFatCap(predictedKcal)) {
       return 'Lean close for cut days: protein-first with calories kept tight.';
     }
-    if (dailyFocus == DailyFocusEntity.training &&
+    if ((dailyFocus == DailyFocusEntity.lowerBody ||
+            dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.postWorkout &&
         predictedProtein >= 20 &&
         predictedCarbs >= 25) {
       return 'Post-workout recovery hit with enough carbs and protein to reload.';
     }
-    if (dailyFocus == DailyFocusEntity.training &&
+    if ((dailyFocus == DailyFocusEntity.lowerBody ||
+            dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.preWorkout &&
         predictedCarbs >= 20 &&
         predictedFat <= 18) {
@@ -243,7 +245,20 @@ class GenerateMacroSuggestionsUsecase {
     }
 
     switch (dailyFocus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
+        if (category == QuickRecipeCategoryEntity.postWorkout) {
+          bonus += 0.5;
+        }
+        if (category == QuickRecipeCategoryEntity.preWorkout &&
+            remainingCarbs > 25) {
+          bonus += 0.35;
+        }
+        if (category == QuickRecipeCategoryEntity.leanMeal &&
+            predictedFat > 20) {
+          bonus -= 0.15;
+        }
+        break;
+      case DailyFocusEntity.upperBody:
         if (category == QuickRecipeCategoryEntity.postWorkout) {
           bonus += 0.45;
         }

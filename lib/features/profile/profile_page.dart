@@ -79,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Profile photo',
+                        'Foto de perfil',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -87,7 +87,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Set your own avatar for a more personal dashboard.',
+                        'Configura tu avatar para personalizar el panel.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -98,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 PopupMenuButton<_ProfilePhotoAction>(
-                  tooltip: 'Photo options',
+                  tooltip: 'Opciones de foto',
                   icon: const Icon(Icons.more_vert),
                   onSelected: (action) {
                     switch (action) {
@@ -116,12 +116,12 @@ class _ProfilePageState extends State<ProfilePage> {
                     return [
                       const PopupMenuItem(
                         value: _ProfilePhotoAction.change,
-                        child: Text('Change photo'),
+                        child: Text('Cambiar foto'),
                       ),
                       if (hasPhoto)
                         const PopupMenuItem(
                           value: _ProfilePhotoAction.remove,
-                          child: Text('Remove photo'),
+                          child: Text('Eliminar foto'),
                         ),
                     ];
                   },
@@ -137,8 +137,9 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
-          title: 'Targets',
-          subtitle: 'Set the intake strategy that drives the rest of the app.',
+          title: 'Objetivos',
+          subtitle:
+              'Define la estrategia de ingesta que guia el resto de la app.',
           children: [
             _ProfileActionTile(
               title: S.of(context).activityLabel,
@@ -153,8 +154,8 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () => _showSetGoalDialog(context, user),
             ),
             _ProfileActionTile(
-              title: 'Body progress',
-              subtitle: 'Weight trend, 7d average and waist check-ins',
+              title: 'Progreso corporal',
+              subtitle: 'Tendencia de peso, media 7d y cintura',
               icon: Icons.show_chart_outlined,
               onTap: () {
                 Navigator.of(context)
@@ -165,8 +166,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
-          title: 'Body stats',
-          subtitle: 'Keep the baseline numbers current so targets stay usable.',
+          title: 'Datos corporales',
+          subtitle: 'Mantiene al dia los datos base para objetivos utiles.',
           children: [
             _ProfileActionTile(
               title: S.of(context).weightLabel,
@@ -198,8 +199,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
-          title: 'Profile',
-          subtitle: 'Keep personal context aligned with the formulas.',
+          title: 'Perfil',
+          subtitle: 'Mantiene el contexto personal alineado con los calculos.',
           children: [
             _ProfileActionTile(
               title: S.of(context).genderLabel,

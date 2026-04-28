@@ -72,12 +72,12 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Supplements & habits',
+                              'Suplementos y hábitos',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '$completedCount/7 locked in today',
+                              '$completedCount/7 completados hoy',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -129,7 +129,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Hydration',
+                              'Hidratación',
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 4),
@@ -143,12 +143,12 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                       IconButton(
                         onPressed: () => _adjustWater(-0.25),
                         icon: const Icon(Icons.remove),
-                        tooltip: 'Reduce water',
+                        tooltip: 'Reducir agua',
                       ),
                       IconButton(
                         onPressed: () => _adjustWater(0.25),
                         icon: const Icon(Icons.add),
-                        tooltip: 'Add water',
+                        tooltip: 'Añadir agua',
                       ),
                     ],
                   ),
@@ -174,11 +174,11 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                     children: [
                       Expanded(
                         child: _MetricAdjuster(
-                          label: 'Sleep',
+                          label: 'Sueño',
                           value:
                               '${log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1)} h',
                           target:
-                              'Goal ${sleepGoalHours.toStringAsFixed(sleepGoalHours % 1 == 0 ? 0 : 1)} h',
+                              'Objetivo ${sleepGoalHours.toStringAsFixed(sleepGoalHours % 1 == 0 ? 0 : 1)} h',
                           onDecrease: () => _adjustSleep(-0.5),
                           onIncrease: () => _adjustSleep(0.5),
                           accentColor: _goalTone(
@@ -188,9 +188,9 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: _MetricAdjuster(
-                          label: 'Steps',
+                          label: 'Pasos',
                           value: _formatSteps(log.steps),
-                          target: 'Goal ${_formatSteps(stepGoal)}',
+                          target: 'Objetivo ${_formatSteps(stepGoal)}',
                           onDecrease: () => _adjustSteps(-1000),
                           onIncrease: () => _adjustSteps(1000),
                           accentColor:
@@ -201,7 +201,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Energy',
+                    'Energía',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -300,7 +300,9 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   double _hydrationGoalForFocus(DailyFocusEntity focus) {
     switch (focus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
+        return 3.8;
+      case DailyFocusEntity.upperBody:
         return 3.5;
       case DailyFocusEntity.cardio:
         return 3.75;
@@ -311,7 +313,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   double _sleepGoalForFocus(DailyFocusEntity focus) {
     switch (focus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
+      case DailyFocusEntity.upperBody:
         return 8;
       case DailyFocusEntity.cardio:
         return 8;
@@ -322,7 +325,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   int _stepGoalForFocus(DailyFocusEntity focus) {
     switch (focus) {
-      case DailyFocusEntity.training:
+      case DailyFocusEntity.lowerBody:
+      case DailyFocusEntity.upperBody:
         return 8000;
       case DailyFocusEntity.cardio:
         return 10000;
@@ -333,23 +337,27 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   String _focusLabel(DailyFocusEntity focus) {
     switch (focus) {
-      case DailyFocusEntity.training:
-        return 'Training day';
+      case DailyFocusEntity.lowerBody:
+        return 'Día de pierna';
+      case DailyFocusEntity.upperBody:
+        return 'Día de torso';
       case DailyFocusEntity.cardio:
-        return 'Cardio day';
+        return 'Día de cardio';
       case DailyFocusEntity.rest:
-        return 'Rest day';
+        return 'Día de descanso';
     }
   }
 
   String _hydrationHint(DailyFocusEntity focus, double hydrationGoalLiters) {
     switch (focus) {
-      case DailyFocusEntity.training:
-        return 'Push hydration harder on training days. Goal ${_formatWater(hydrationGoalLiters)}.';
+      case DailyFocusEntity.lowerBody:
+        return 'En pierna sube hidratación: objetivo ${_formatWater(hydrationGoalLiters)}.';
+      case DailyFocusEntity.upperBody:
+        return 'En torso mantén hidratación alta: objetivo ${_formatWater(hydrationGoalLiters)}.';
       case DailyFocusEntity.cardio:
-        return 'Cardio days need the highest fluid target. Goal ${_formatWater(hydrationGoalLiters)}.';
+        return 'En cardio prioriza líquidos: objetivo ${_formatWater(hydrationGoalLiters)}.';
       case DailyFocusEntity.rest:
-        return 'Rest days still need steady hydration. Goal ${_formatWater(hydrationGoalLiters)}.';
+        return 'En descanso mantén hidratación estable: objetivo ${_formatWater(hydrationGoalLiters)}.';
     }
   }
 
@@ -362,7 +370,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   }
 
   String _formatSteps(int steps) {
-    return '${steps.toString()} steps';
+    return '${steps.toString()} pasos';
   }
 
   _ReadinessTone _readinessTone({
@@ -476,12 +484,12 @@ class _MetricAdjuster extends StatelessWidget {
               IconButton(
                 onPressed: onDecrease,
                 icon: Icon(Icons.remove, color: accentColor),
-                tooltip: 'Decrease $label',
+                tooltip: 'Reducir $label',
               ),
               IconButton(
                 onPressed: onIncrease,
                 icon: Icon(Icons.add, color: accentColor),
-                tooltip: 'Increase $label',
+                tooltip: 'Aumentar $label',
               ),
             ],
           ),
@@ -537,11 +545,13 @@ class _ReadinessTone {
   const _ReadinessTone._(this.label, this.icon, this.kind);
 
   const _ReadinessTone.good()
-      : this._('On track', Icons.check_circle_outline, _ReadinessToneKind.good);
+      : this._(
+            'En objetivo', Icons.check_circle_outline, _ReadinessToneKind.good);
   const _ReadinessTone.caution()
-      : this._('Mixed', Icons.adjust, _ReadinessToneKind.caution);
+      : this._('Mejorable', Icons.adjust, _ReadinessToneKind.caution);
   const _ReadinessTone.bad()
-      : this._('Off track', Icons.error_outline, _ReadinessToneKind.bad);
+      : this._(
+            'Fuera de objetivo', Icons.error_outline, _ReadinessToneKind.bad);
 
   Color foreground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

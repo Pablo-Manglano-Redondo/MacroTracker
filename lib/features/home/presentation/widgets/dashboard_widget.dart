@@ -1,7 +1,6 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
-import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 
 class DashboardWidget extends StatelessWidget {
@@ -10,8 +9,6 @@ class DashboardWidget extends StatelessWidget {
   final ValueChanged<UserWeightGoalEntity> onNutritionPhaseChanged;
   final DailyFocusEntity dailyFocus;
   final ValueChanged<DailyFocusEntity> onDailyFocusChanged;
-  final TrainingDayTemplateEntity trainingTemplate;
-  final ValueChanged<TrainingDayTemplateEntity> onTrainingTemplateChanged;
   final double totalKcalDaily;
   final double totalKcalLeft;
   final double totalKcalSupplied;
@@ -32,8 +29,6 @@ class DashboardWidget extends StatelessWidget {
     required this.onNutritionPhaseChanged,
     required this.dailyFocus,
     required this.onDailyFocusChanged,
-    required this.trainingTemplate,
-    required this.onTrainingTemplateChanged,
     required this.totalKcalSupplied,
     required this.totalKcalBurned,
     required this.totalKcalDaily,
@@ -105,7 +100,7 @@ class DashboardWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Gym nutrition',
+                        'Nutrición de gimnasio',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: bodyColor,
@@ -114,7 +109,7 @@ class DashboardWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Today\'s fueling, recovery and compliance in one surface.',
+                        'Alimentación, recuperación y adherencia del día en un solo bloque.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: mutedColor,
                             ),
@@ -132,19 +127,19 @@ class DashboardWidget extends StatelessWidget {
               children: [
                 _SummaryChip(
                   icon: Icons.restaurant_outlined,
-                  label: '$mealsLogged meals logged',
+                  label: '$mealsLogged comidas registradas',
                   color: bodyColor,
                   background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.local_fire_department_outlined,
-                  label: '${totalKcalBurned.toInt()} burned',
+                  label: '${totalKcalBurned.toInt()} quemadas',
                   color: bodyColor,
                   background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.fitness_center_outlined,
-                  label: '$sessionsLogged sessions',
+                  label: '$sessionsLogged sesiones',
                   color: bodyColor,
                   background: subtleSurface,
                 ),
@@ -191,25 +186,6 @@ class DashboardWidget extends StatelessWidget {
                     style: _segmentedStyle(colorScheme),
                   ),
                 ),
-                ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(minWidth: 280, maxWidth: 420),
-                  child: SegmentedButton<TrainingDayTemplateEntity>(
-                    showSelectedIcon: false,
-                    segments: TrainingDayTemplateEntity.values
-                        .map((template) =>
-                            ButtonSegment<TrainingDayTemplateEntity>(
-                              value: template,
-                              label: Text(template.label),
-                            ))
-                        .toList(),
-                    selected: {trainingTemplate},
-                    onSelectionChanged: (selection) {
-                      onTrainingTemplateChanged(selection.first);
-                    },
-                    style: _segmentedStyle(colorScheme),
-                  ),
-                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -240,7 +216,7 @@ class DashboardWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: _PrimaryMetric(
-                    label: 'Protein left',
+                    label: 'Proteína restante',
                     value: proteinRemaining.toInt(),
                     suffix: 'g',
                     textColor: bodyColor,
@@ -250,7 +226,9 @@ class DashboardWidget extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _PrimaryMetric(
-                    label: totalKcalLeft >= 0 ? 'Kcal left' : 'Over target',
+                    label: totalKcalLeft >= 0
+                        ? 'Kcal restantes'
+                        : 'Sobre objetivo',
                     value: totalKcalLeft.abs().toInt(),
                     suffix: 'kcal',
                     textColor: bodyColor,
@@ -273,14 +251,14 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${totalKcalSupplied.toInt()} of ${totalKcalDaily.toInt()} kcal',
+              '${totalKcalSupplied.toInt()} de ${totalKcalDaily.toInt()} kcal',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: mutedColor,
                   ),
             ),
             const SizedBox(height: 18),
             _MacroTrackRow(
-              label: 'Protein',
+              label: 'Proteína',
               intake: totalProteinsIntake,
               goal: totalProteinsGoal,
               remaining: proteinRemaining,
@@ -289,7 +267,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _MacroTrackRow(
-              label: 'Carbs',
+              label: 'Carbohidratos',
               intake: totalCarbsIntake,
               goal: totalCarbsGoal,
               remaining: carbsRemaining,
@@ -297,7 +275,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _MacroTrackRow(
-              label: 'Fat',
+              label: 'Grasa',
               intake: totalFatsIntake,
               goal: totalFatsGoal,
               remaining: fatRemaining,
@@ -343,25 +321,25 @@ class DashboardWidget extends StatelessWidget {
     if (nutritionPhase == UserWeightGoalEntity.loseWeight &&
         kcalRemaining < 200 &&
         kcalRemaining >= 0) {
-      return 'Cut is on pace. Keep the last meal high-protein and low-noise.';
+      return 'La definición va en ritmo. Mantén la última comida alta en proteína y limpia.';
     }
     if (nutritionPhase == UserWeightGoalEntity.gainWeight &&
         kcalRemaining >= 450) {
-      return 'Bulk phase still has room. Use an easy carb and protein hit.';
+      return 'Aún tienes margen en volumen. Mete carbohidrato fácil y proteína.';
     }
     if (proteinRemaining >= 30) {
-      return 'Protein is still the main gap. Make the next meal protein-first.';
+      return 'La proteína sigue siendo la principal brecha. Prioriza proteína en la siguiente comida.';
     }
-    if (dailyFocus == DailyFocusEntity.training && carbsRemaining >= 45) {
-      return 'You still have room for carbs. Good spot for pre or post workout fuel.';
+    if (dailyFocus == DailyFocusEntity.lowerBody && carbsRemaining >= 45) {
+      return 'Aún tienes margen de carbohidratos. Buen momento para pre o post entreno.';
     }
     if (dailyFocus == DailyFocusEntity.rest && kcalRemaining < 150) {
-      return 'Recovery day is nearly on target. Keep the last meal lean and easy.';
+      return 'El día de descanso está casi en objetivo. Cierra con comida ligera y limpia.';
     }
     if (kcalRemaining < 0) {
-      return 'You are above target. Keep the rest of the day tight and protein-led.';
+      return 'Estás por encima del objetivo. Mantén el resto del día controlado y con proteína alta.';
     }
-    return 'Good pacing. Stay consistent and finish the day with a clean landing.';
+    return 'Buen ritmo. Mantén consistencia y cierra el día de forma limpia.';
   }
 
   double _positiveRemaining(double value) {
@@ -548,7 +526,9 @@ class _MacroTrackRow extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          remaining > 0 ? '${remaining.toInt()} g remaining' : 'Target hit',
+          remaining > 0
+              ? '${remaining.toInt()} g restantes'
+              : 'Objetivo cumplido',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

@@ -43,7 +43,8 @@ class AdherenceNudgesCard extends StatelessWidget {
 
               final habit = snapshot.data;
               final hydrationGoal = switch (dailyFocus) {
-                DailyFocusEntity.training => 3.5,
+                DailyFocusEntity.lowerBody => 3.8,
+                DailyFocusEntity.upperBody => 3.5,
                 DailyFocusEntity.cardio => 3.75,
                 DailyFocusEntity.rest => 2.75,
               };
@@ -68,12 +69,12 @@ class AdherenceNudgesCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Smart reminders',
+                      'Recordatorios inteligentes',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Sin nudges pendientes. Vas bien hoy.',
+                      'Sin recordatorios pendientes. Vas bien hoy.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -84,7 +85,7 @@ class AdherenceNudgesCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Smart reminders',
+                    'Recordatorios inteligentes',
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 6),

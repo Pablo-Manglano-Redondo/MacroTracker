@@ -39,7 +39,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Replace ingredient'),
+      title: const Text('Reemplazar ingrediente'),
       content: SizedBox(
         width: 520,
         child: Column(
@@ -51,7 +51,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
               textInputAction: TextInputAction.search,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search_outlined),
-                hintText: 'Search foods',
+                hintText: 'Buscar alimentos',
                 border: OutlineInputBorder(),
               ),
               onSubmitted: _search,
@@ -64,11 +64,11 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () => _search(_searchController.text),
-          child: const Text('Search'),
+          child: const Text('Buscar'),
         ),
       ],
     );
@@ -96,7 +96,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
         child: Padding(
           padding: EdgeInsets.all(12.0),
           child: Text(
-            'Search for a food to replace this ingredient.',
+            'Busca un alimento para reemplazar este ingrediente.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -118,7 +118,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
 
         return ListTile(
           dense: true,
-          title: Text(meal.name ?? 'Unnamed meal'),
+          title: Text(meal.name ?? 'Comida sin nombre'),
           subtitle: subtitle.isEmpty ? null : Text(subtitle),
           onTap: () => Navigator.of(context).pop(meal),
         );
@@ -131,7 +131,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
     if (normalized.length < 2) {
       setState(() {
         _results = const [];
-        _errorText = 'Type at least 2 characters.';
+        _errorText = 'Escribe al menos 2 caracteres.';
       });
       return;
     }
@@ -164,7 +164,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       setState(() {
         _results = merged.values.take(12).toList(growable: false);
         _isLoading = false;
-        _errorText = _results.isEmpty ? 'No matches found.' : null;
+        _errorText = _results.isEmpty ? 'No se encontraron resultados.' : null;
       });
     } catch (_) {
       if (!mounted) {
@@ -174,7 +174,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       setState(() {
         _results = const [];
         _isLoading = false;
-        _errorText = 'Could not search foods right now.';
+        _errorText = 'No se pueden buscar alimentos ahora mismo.';
       });
     }
   }

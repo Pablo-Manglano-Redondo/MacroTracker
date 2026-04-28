@@ -50,7 +50,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('AI photo meal')),
+      appBar: AppBar(title: const Text('Comida por foto IA')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -84,14 +84,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Photo-first logging',
+                  'Registro por foto',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Import a meal image, get an editable macro draft, fix portions fast and save it into ${_args.intakeTypeEntity.name}.',
+                  'Importa una imagen de comida, revisa el borrador editable y guardalo en ${_args.intakeTypeEntity.name}.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -103,15 +103,15 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                   children: const [
                     _CaptureStepChip(
                       icon: Icons.image_outlined,
-                      label: 'Pick image',
+                      label: 'Elegir imagen',
                     ),
                     _CaptureStepChip(
                       icon: Icons.tune_outlined,
-                      label: 'Review items',
+                      label: 'Revisar items',
                     ),
                     _CaptureStepChip(
                       icon: Icons.restaurant_outlined,
-                      label: 'Save meal',
+                      label: 'Guardar comida',
                     ),
                   ],
                 ),
@@ -126,7 +126,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'What works best',
+                    'Recomendaciones',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -134,22 +134,23 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                   const SizedBox(height: 12),
                   const _CaptureHintRow(
                     icon: Icons.crop_free_outlined,
-                    title: 'Keep the whole plate visible',
-                    subtitle: 'Better framing means better ingredient guesses.',
+                    title: 'Muestra el plato completo',
+                    subtitle:
+                        'Mejor encuadre, mejor deteccion de ingredientes.',
                   ),
                   const SizedBox(height: 10),
                   const _CaptureHintRow(
                     icon: Icons.opacity_outlined,
-                    title: 'Sauces and oils still need review',
+                    title: 'Revisa salsas y aceites',
                     subtitle:
-                        'The draft is only the first pass. Correct hidden calories.',
+                        'El borrador es solo el primer paso. Corrige calorias ocultas.',
                   ),
                   const SizedBox(height: 10),
                   const _CaptureHintRow(
                     icon: Icons.fitness_center_outlined,
-                    title: 'Built for gym meals',
+                    title: 'Pensado para comidas de gimnasio',
                     subtitle:
-                        'Use it for bowls, shakes, post-workout plates and repeats.',
+                        'Util para bowls, batidos, post entreno y comidas repetidas.',
                   ),
                 ],
               ),
@@ -162,7 +163,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
               _isLoading ? Icons.hourglass_top_outlined : Icons.auto_awesome,
             ),
             label: Text(
-              _isLoading ? 'Building AI draft...' : 'Take photo and review',
+              _isLoading ? 'Creando borrador IA...' : 'Hacer foto y revisar',
             ),
           ),
           const SizedBox(height: 8),
@@ -170,7 +171,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             child: TextButton.icon(
               onPressed: _isLoading ? null : _pickAndInterpretPhoto,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Choose from gallery'),
+              label: const Text('Elegir de galeria'),
             ),
           ),
           const SizedBox(height: 4),
@@ -178,7 +179,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             child: TextButton.icon(
               onPressed: _isLoading ? null : _openTextFlow,
               icon: const Icon(Icons.notes_outlined),
-              label: const Text('Use text instead'),
+              label: const Text('Usar texto'),
             ),
           ),
         ],
@@ -326,22 +327,22 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final normalized = extractedError.toLowerCase();
     if (normalized.contains('payload is too large') ||
         normalized.contains('413')) {
-      return 'The image is too large for remote AI. A local fallback draft was created.';
+      return 'La imagen es demasiado grande para IA remota. Se creo borrador local.';
     }
     if (normalized.contains('missing gemini_api_key')) {
-      return 'Remote AI is not configured on backend. A local fallback draft was created.';
+      return 'La IA remota no esta configurada en backend. Se creo borrador local.';
     }
     if (normalized.contains('429') ||
         normalized.contains('resource_exhausted') ||
         normalized.contains('quota')) {
-      return 'Remote AI quota/rate limit reached. A local fallback draft was created.';
+      return 'Se alcanzo limite de cuota/rate de IA remota. Se creo borrador local.';
     }
     if (normalized.contains('mime') ||
         normalized.contains('unsupported') ||
         normalized.contains('invalid argument')) {
-      return 'Unsupported image format for remote AI. Try JPG/PNG. A local fallback draft was created.';
+      return 'Formato de imagen no soportado por IA remota. Prueba JPG/PNG. Se creo borrador local.';
     }
-    return 'Remote image interpretation failed. A fallback draft was created. (${_truncateError(extractedError)})';
+    return 'Fallo la interpretacion remota de imagen. Se creo borrador local. (${_truncateError(extractedError)})';
   }
 
   String _fileExtension(String fileName) {
@@ -424,8 +425,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       sourceType: DraftSourceEntity.photo,
       inputText: null,
       localImagePath: imagePath,
-      title: 'Photo meal draft',
-      summary: 'Fallback AI draft from image flow',
+      title: 'Borrador de comida por foto',
+      summary: 'Borrador local de respaldo en flujo de imagen',
       totalKcal: 650,
       totalCarbs: 55,
       totalFat: 22,
@@ -437,7 +438,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       items: [
         InterpretationDraftItemEntity(
           id: IdGenerator.getUniqueID(),
-          label: 'Detected meal',
+          label: 'Comida detectada',
           matchedMealSnapshot: null,
           amount: 1,
           unit: 'serving',

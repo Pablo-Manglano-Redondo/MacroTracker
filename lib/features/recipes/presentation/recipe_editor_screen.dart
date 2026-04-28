@@ -7,7 +7,8 @@ class RecipeEditorScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       body: Center(
-        child: Text('Recipe editor will be implemented in the next slice.'),
+        child: Text(
+            'El editor de recetas se implementara en la siguiente iteracion.'),
       ),
     );
   }

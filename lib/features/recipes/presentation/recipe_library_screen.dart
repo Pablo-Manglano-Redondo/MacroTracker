@@ -35,7 +35,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Saved meals')),
+      appBar: AppBar(title: const Text('Comidas guardadas')),
       body: Column(
         children: [
           Padding(
@@ -44,7 +44,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
               controller: _searchController,
               decoration: const InputDecoration(
                 prefixIcon: Icon(Icons.search_outlined),
-                hintText: 'Search saved meals',
+                hintText: 'Buscar comidas guardadas',
                 border: OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
@@ -65,7 +65,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                     child: Padding(
                       padding: EdgeInsets.all(24.0),
                       child: Text(
-                        'No saved meals yet.\nSave meals as recipes to reuse them here.',
+                        'Aun no hay comidas guardadas.\nGuarda comidas como recetas para reutilizarlas.',
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -86,7 +86,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${recipe.ingredients.length} ingredients | ${recipe.defaultServings.toStringAsFixed(recipe.defaultServings % 1 == 0 ? 0 : 1)} servings',
+                            '${recipe.ingredients.length} ingredientes | ${recipe.defaultServings.toStringAsFixed(recipe.defaultServings % 1 == 0 ? 0 : 1)} raciones',
                           ),
                           const SizedBox(height: 6),
                           Wrap(
@@ -100,7 +100,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                               if (recipe.favorite)
                                 const _RecipeMetaChip(
                                   icon: Icons.favorite,
-                                  label: 'Favorite',
+                                  label: 'Favorita',
                                 ),
                             ],
                           ),
@@ -115,8 +115,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                           color: recipe.favorite ? Colors.redAccent : null,
                         ),
                         tooltip: recipe.favorite
-                            ? 'Remove favorite'
-                            : 'Mark favorite',
+                            ? 'Quitar favorita'
+                            : 'Marcar favorita',
                       ),
                       onTap: () => _showAddRecipeDialog(recipe),
                     );
@@ -152,21 +152,21 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              labelText: 'Servings',
+              labelText: 'Raciones',
               border: OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancel'),
+              child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop(
                     double.tryParse(controller.text.replaceAll(',', '.')) ?? 1);
               },
-              child: const Text('Add'),
+              child: const Text('Anadir'),
             ),
           ],
         );
@@ -185,7 +185,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${recipe.name} added')),
+        SnackBar(content: Text('${recipe.name} anadida')),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));

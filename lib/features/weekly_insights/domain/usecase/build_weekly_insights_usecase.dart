@@ -141,14 +141,14 @@ class BuildWeeklyInsightsUsecase {
         .map((day) => DateTime(day.day.year, day.day.month, day.day.day))
         .toSet();
     if (overGoalDays.isEmpty) {
-      return 'No clear overeating pattern';
+      return 'Sin patron claro de sobreingesta';
     }
 
     final slotCalories = <String, double>{
-      'Morning': 0,
-      'Afternoon': 0,
-      'Evening': 0,
-      'Late night': 0,
+      'Manana': 0,
+      'Tarde': 0,
+      'Noche': 0,
+      'Madrugada': 0,
     };
 
     for (final intake in weekIntakes) {
@@ -164,39 +164,39 @@ class BuildWeeklyInsightsUsecase {
     final top =
         slotCalories.entries.sorted((a, b) => b.value.compareTo(a.value)).first;
     if (top.value <= 0) {
-      return 'No clear overeating pattern';
+      return 'Sin patron claro de sobreingesta';
     }
     return top.key;
   }
 
   String _hourToSlot(int hour) {
     if (hour < 12) {
-      return 'Morning';
+      return 'Manana';
     }
     if (hour < 17) {
-      return 'Afternoon';
+      return 'Tarde';
     }
     if (hour < 22) {
-      return 'Evening';
+      return 'Noche';
     }
-    return 'Late night';
+    return 'Madrugada';
   }
 
   String _buildSummaryLabel(
       int adherenceCount, int proteinConsistentCount, int trackedDayCount) {
     if (trackedDayCount == 0) {
-      return 'No logged days this week yet.';
+      return 'Aun no hay dias registrados esta semana.';
     }
     if (adherenceCount >= 5 && proteinConsistentCount >= 5) {
-      return 'Strong week: good calorie adherence and solid protein consistency.';
+      return 'Semana solida: buena adherencia calorica y consistencia proteica.';
     }
     if (adherenceCount <= 2) {
-      return 'Calorie adherence was inconsistent this week.';
+      return 'La adherencia calorica fue irregular esta semana.';
     }
     if (proteinConsistentCount <= 2) {
-      return 'Protein target consistency was the main gap this week.';
+      return 'La principal brecha fue la consistencia de proteina.';
     }
-    return 'This week was fairly steady, with room to tighten consistency.';
+    return 'Semana bastante estable, con margen para mejorar consistencia.';
   }
 
   Future<double> _computeWeeklyWeightDelta(DateTime referenceDay) async {
@@ -213,7 +213,7 @@ class BuildWeeklyInsightsUsecase {
     if (adherenceRate < 0.6) {
       return const _KcalAdjustmentRecommendation(
         0,
-        'Adherence too low for an automatic adjustment. Tighten consistency first.',
+        'Adherencia demasiado baja para ajuste automatico. Primero mejora consistencia.',
       );
     }
 
@@ -222,64 +222,64 @@ class BuildWeeklyInsightsUsecase {
         if (weeklyWeightDeltaKg > -0.05) {
           return const _KcalAdjustmentRecommendation(
             -100,
-            'Fat-loss is stalling: suggest -100 kcal/day.',
+            'La perdida de grasa se estanca: sugerencia -100 kcal/dia.',
           );
         }
         if (weeklyWeightDeltaKg > -0.12) {
           return const _KcalAdjustmentRecommendation(
             -50,
-            'Fat-loss is slow: suggest -50 kcal/day.',
+            'Perdida de grasa lenta: sugerencia -50 kcal/dia.',
           );
         }
         if (weeklyWeightDeltaKg < -0.45) {
           return const _KcalAdjustmentRecommendation(
             50,
-            'Weight is dropping too fast: suggest +50 kcal/day.',
+            'El peso baja demasiado rapido: sugerencia +50 kcal/dia.',
           );
         }
         return const _KcalAdjustmentRecommendation(
           0,
-          'Current cut pace looks good. No kcal change suggested.',
+          'Ritmo de definicion correcto. Sin cambio de kcal.',
         );
       case UserWeightGoalEntity.maintainWeight:
         if (weeklyWeightDeltaKg > 0.25) {
           return const _KcalAdjustmentRecommendation(
             -50,
-            'Weight is trending up: suggest -50 kcal/day.',
+            'El peso va al alza: sugerencia -50 kcal/dia.',
           );
         }
         if (weeklyWeightDeltaKg < -0.25) {
           return const _KcalAdjustmentRecommendation(
             50,
-            'Weight is trending down: suggest +50 kcal/day.',
+            'El peso va a la baja: sugerencia +50 kcal/dia.',
           );
         }
         return const _KcalAdjustmentRecommendation(
           0,
-          'Maintenance trend is stable. No kcal change suggested.',
+          'Mantenimiento estable. Sin cambio de kcal.',
         );
       case UserWeightGoalEntity.gainWeight:
         if (weeklyWeightDeltaKg < 0.05) {
           return const _KcalAdjustmentRecommendation(
             100,
-            'Bulk is too slow: suggest +100 kcal/day.',
+            'Volumen demasiado lento: sugerencia +100 kcal/dia.',
           );
         }
         if (weeklyWeightDeltaKg < 0.12) {
           return const _KcalAdjustmentRecommendation(
             50,
-            'Bulk pace is mild: suggest +50 kcal/day.',
+            'Ritmo de volumen suave: sugerencia +50 kcal/dia.',
           );
         }
         if (weeklyWeightDeltaKg > 0.45) {
           return const _KcalAdjustmentRecommendation(
             -50,
-            'Weight is climbing too fast: suggest -50 kcal/day.',
+            'El peso sube demasiado rapido: sugerencia -50 kcal/dia.',
           );
         }
         return const _KcalAdjustmentRecommendation(
           0,
-          'Bulk pace looks controlled. No kcal change suggested.',
+          'Ritmo de volumen controlado. Sin cambio de kcal.',
         );
     }
   }

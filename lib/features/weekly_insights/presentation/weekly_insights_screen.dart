@@ -16,7 +16,7 @@ class WeeklyInsightsScreen extends StatelessWidget {
     final focusedWeek = args?.focusedWeek ?? DateTime.now();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Weekly insights')),
+      appBar: AppBar(title: const Text('Resumen semanal')),
       body: FutureBuilder<WeeklyInsightsEntity>(
         future: locator<BuildWeeklyInsightsUsecase>().build(focusedWeek),
         builder: (context, snapshot) {
@@ -29,7 +29,7 @@ class WeeklyInsightsScreen extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(24.0),
                 child: Text(
-                  'Weekly insights could not be loaded.',
+                  'No se pudo cargar el resumen semanal.',
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -46,16 +46,16 @@ class WeeklyInsightsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12.0),
               _InfoCard(
-                title: 'Summary',
+                title: 'Resumen',
                 child: Text(insights.summaryLabel),
               ),
               _InfoCard(
-                title: 'Smart weekly check',
+                title: 'Chequeo semanal inteligente',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Weight trend: ${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg/week',
+                      'Tendencia de peso: ${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg/semana',
                     ),
                     const SizedBox(height: 6),
                     Text(insights.kcalAdjustmentRecommendation),
@@ -66,23 +66,24 @@ class WeeklyInsightsScreen extends StatelessWidget {
                             _applyRecommendedAdjustment(context, insights),
                         icon: const Icon(Icons.auto_fix_high_outlined),
                         label: Text(
-                          'Apply ${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta} kcal/day',
+                          'Aplicar ${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta} kcal/dia',
                         ),
                       ),
                   ],
                 ),
               ),
               _InfoCard(
-                title: 'Weekly averages',
+                title: 'Promedios semanales',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        '${insights.averageCalories.toStringAsFixed(0)} kcal / day'),
-                    Text('Carbs ${insights.averageCarbs.toStringAsFixed(1)} g'),
-                    Text('Fat ${insights.averageFat.toStringAsFixed(1)} g'),
+                        '${insights.averageCalories.toStringAsFixed(0)} kcal / dia'),
                     Text(
-                        'Protein ${insights.averageProtein.toStringAsFixed(1)} g'),
+                        'Carbohidratos ${insights.averageCarbs.toStringAsFixed(1)} g'),
+                    Text('Grasa ${insights.averageFat.toStringAsFixed(1)} g'),
+                    Text(
+                        'Proteina ${insights.averageProtein.toStringAsFixed(1)} g'),
                   ],
                 ),
               ),
@@ -90,25 +91,26 @@ class WeeklyInsightsScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _InfoCard(
-                      title: 'Adherence',
+                      title: 'Adherencia',
                       child: Text(
-                          '${(insights.goalAdherenceRate * 100).round()}% of tracked days'),
+                          '${(insights.goalAdherenceRate * 100).round()}% de dias registrados'),
                     ),
                   ),
                   const SizedBox(width: 12.0),
                   Expanded(
                     child: _InfoCard(
-                      title: 'Protein consistency',
+                      title: 'Consistencia de proteina',
                       child: Text(
-                          '${(insights.proteinConsistencyRate * 100).round()}% of tracked days'),
+                          '${(insights.proteinConsistencyRate * 100).round()}% de dias registrados'),
                     ),
                   ),
                 ],
               ),
               _InfoCard(
-                title: 'Most frequent meals',
+                title: 'Comidas mas frecuentes',
                 child: insights.topMeals.isEmpty
-                    ? const Text('No repeated meals detected this week.')
+                    ? const Text(
+                        'No se detectaron comidas repetidas esta semana.')
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: insights.topMeals
@@ -118,12 +120,13 @@ class WeeklyInsightsScreen extends StatelessWidget {
                       ),
               ),
               _InfoCard(
-                title: 'Overeating pattern',
+                title: 'Patron de sobreingesta',
                 child: Text(insights.overeatingTimeSlotLabel),
               ),
               _InfoCard(
-                title: 'Coverage',
-                child: Text('${insights.trackedDays} tracked days this week'),
+                title: 'Cobertura',
+                child: Text(
+                    '${insights.trackedDays} dias registrados esta semana'),
               ),
             ],
           );
@@ -146,7 +149,7 @@ class WeeklyInsightsScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Daily kcal adjustment updated to ${next.toStringAsFixed(0)} kcal.',
+            'Ajuste diario actualizado a ${next.toStringAsFixed(0)} kcal.',
           ),
         ),
       );

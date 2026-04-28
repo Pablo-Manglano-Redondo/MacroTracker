@@ -43,33 +43,33 @@ enum UserWeightGoalEntity {
   String get gymPhaseLabel {
     switch (this) {
       case UserWeightGoalEntity.loseWeight:
-        return 'Cut';
+        return 'Definición';
       case UserWeightGoalEntity.maintainWeight:
-        return 'Maintain';
+        return 'Recomposición';
       case UserWeightGoalEntity.gainWeight:
-        return 'Bulk';
+        return 'Volumen';
     }
   }
 
   String get gymHeadline {
     switch (this) {
       case UserWeightGoalEntity.loseWeight:
-        return 'Protect muscle while bringing calories down';
+        return 'Protege músculo mientras bajas calorías';
       case UserWeightGoalEntity.maintainWeight:
-        return 'Hold bodyweight steady and sharpen consistency';
+        return 'Mantén el peso estable y mejora la consistencia';
       case UserWeightGoalEntity.gainWeight:
-        return 'Feed performance and recover hard';
+        return 'Impulsa el rendimiento y recupera fuerte';
     }
   }
 
   String get macroHint {
     switch (this) {
       case UserWeightGoalEntity.loseWeight:
-        return 'Higher protein, tighter carbs, enough fats to stay stable.';
+        return 'Más proteína, carbohidrato más ajustado y grasas suficientes para sostener energía.';
       case UserWeightGoalEntity.maintainWeight:
-        return 'Balanced macros with protein kept comfortably high.';
+        return 'Macros equilibrados con proteína alta y constante.';
       case UserWeightGoalEntity.gainWeight:
-        return 'Extra carbs and enough total food to support progression.';
+        return 'Carbohidrato extra y suficiente energía total para progresar.';
     }
   }
 

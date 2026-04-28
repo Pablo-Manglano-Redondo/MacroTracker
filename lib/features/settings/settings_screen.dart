@@ -101,9 +101,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.paid_outlined),
-                  title: const Text('AI cost tracking'),
+                  title: const Text('Coste de IA'),
                   subtitle: Text(
-                    'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} • Today \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
+                    'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} • Hoy \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
                   ),
                   onTap: () => _showAiCostDialog(context, state),
                 ),
@@ -389,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showAiCostDialog(BuildContext context, SettingsLoadedState state) {
     final currency = NumberFormat.currency(
-      locale: 'en_US',
+      locale: 'es_ES',
       symbol: '\$',
       decimalDigits: 3,
     );
@@ -398,23 +398,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('AI cost tracking'),
+        title: const Text('Coste de IA'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                'Total estimated: ${currency.format(state.aiEstimatedCostTotalUsd)}'),
-            Text('Today: ${currency.format(state.aiEstimatedCostTodayUsd)}'),
-            Text(
-                'This month: ${currency.format(state.aiEstimatedCostMonthUsd)}'),
+                'Total estimado: ${currency.format(state.aiEstimatedCostTotalUsd)}'),
+            Text('Hoy: ${currency.format(state.aiEstimatedCostTodayUsd)}'),
+            Text('Este mes: ${currency.format(state.aiEstimatedCostMonthUsd)}'),
             const SizedBox(height: 10),
-            Text('Calls total: $totalCalls'),
-            Text('Text calls: ${state.aiTextCallsTotal}'),
-            Text('Photo calls: ${state.aiPhotoCallsTotal}'),
+            Text('Llamadas totales: $totalCalls'),
+            Text('Llamadas texto: ${state.aiTextCallsTotal}'),
+            Text('Llamadas foto: ${state.aiPhotoCallsTotal}'),
             const SizedBox(height: 10),
             const Text(
-              'Based on backend token usage per request (input/output tokens).',
+              'Basado en uso real de tokens por peticion en backend.',
               style: TextStyle(fontSize: 12),
             ),
           ],
@@ -432,7 +431,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _settingsBloc.add(LoadSettingsEvent());
               }
             },
-            child: const Text('Reset'),
+            child: const Text('Reiniciar'),
           ),
         ],
       ),

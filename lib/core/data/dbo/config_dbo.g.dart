@@ -102,7 +102,7 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       $enumDecode(_$AppThemeDBOEnumMap, json['selectedAppTheme']),
       usesImperialUnits: json['usesImperialUnits'] as bool? ?? false,
       userKcalAdjustment: (json['userKcalAdjustment'] as num?)?.toDouble(),
-      dailyFocus: json['dailyFocus'] as String? ?? 'training',
+      dailyFocus: json['dailyFocus'] as String? ?? 'upperBody',
     )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()

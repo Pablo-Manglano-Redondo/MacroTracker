@@ -31,7 +31,7 @@ class ConfigEntity extends Equatable {
       this.userCarbGoalPct,
       this.userProteinGoalPct,
       this.userFatGoalPct,
-      this.dailyFocus = DailyFocusEntity.training,
+      this.dailyFocus = DailyFocusEntity.upperBody,
       this.aiEstimatedCostTotalUsd = 0,
       this.aiEstimatedCostTodayUsd = 0,
       this.aiEstimatedCostMonthUsd = 0,

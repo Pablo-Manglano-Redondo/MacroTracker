@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
-import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:macrotracker/generated/l10n.dart';
@@ -25,10 +24,8 @@ void main() {
           child: DashboardWidget(
             nutritionPhase: UserWeightGoalEntity.gainWeight,
             onNutritionPhaseChanged: _noopPhaseChange,
-            dailyFocus: DailyFocusEntity.training,
+            dailyFocus: DailyFocusEntity.upperBody,
             onDailyFocusChanged: _noopFocusChange,
-            trainingTemplate: TrainingDayTemplateEntity.upperBody,
-            onTrainingTemplateChanged: _noopTrainingTemplateChange,
             totalKcalSupplied: 1500,
             totalKcalBurned: 500,
             totalKcalDaily: 2000,
@@ -47,16 +44,16 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    expect(find.text('Gym nutrition'), findsOneWidget);
-    expect(find.text('4 meals logged'), findsOneWidget);
-    expect(find.text('500 burned'), findsOneWidget);
-    expect(find.text('1 sessions'), findsOneWidget);
-    expect(find.text('Protein left'), findsOneWidget);
-    expect(find.text('Kcal left'), findsOneWidget);
-    expect(find.text('Feed performance and recover hard'), findsOneWidget);
-    expect(find.text('Push performance and recovery'), findsOneWidget);
-    expect(find.text('Bulk'), findsOneWidget);
-    expect(find.text('Training'), findsOneWidget);
+    expect(find.text('Nutrición de gimnasio'), findsOneWidget);
+    expect(find.text('4 comidas registradas'), findsOneWidget);
+    expect(find.text('500 quemadas'), findsOneWidget);
+    expect(find.text('1 sesiones'), findsOneWidget);
+    expect(find.text('Proteína restante'), findsOneWidget);
+    expect(find.text('Kcal restantes'), findsOneWidget);
+    expect(find.text('Día de torso: rendimiento estable con buena recuperación.'),
+        findsOneWidget);
+    expect(find.text('Volumen'), findsOneWidget);
+    expect(find.text('Torso'), findsOneWidget);
 
     final counters = tester.widgetList<AnimatedFlipCounter>(
       find.byType(AnimatedFlipCounter),
@@ -68,5 +65,3 @@ void main() {
 void _noopPhaseChange(UserWeightGoalEntity _) {}
 
 void _noopFocusChange(DailyFocusEntity _) {}
-
-void _noopTrainingTemplateChange(TrainingDayTemplateEntity _) {}
