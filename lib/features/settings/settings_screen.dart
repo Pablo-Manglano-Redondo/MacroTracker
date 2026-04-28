@@ -414,7 +414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text('Photo calls: ${state.aiPhotoCallsTotal}'),
             const SizedBox(height: 10),
             const Text(
-              'Estimation model: text \$0.002/call, photo \$0.006/call.',
+              'Based on backend token usage per request (input/output tokens).',
               style: TextStyle(fontSize: 12),
             ),
           ],

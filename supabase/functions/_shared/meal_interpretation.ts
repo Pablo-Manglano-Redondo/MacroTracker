@@ -85,7 +85,7 @@ export async function buildMealInterpretationDraft(
 
   const payload = await response.json();
   const parsed = extractStructuredResponse(payload);
-  return normalizeDraftResponse(parsed, request, model);
+  return normalizeDraftResponse(parsed, request, model, payload?.usageMetadata);
 }
 
 function buildSystemPrompt(mode: InterpretationMode): string {
@@ -178,7 +178,11 @@ export function normalizeDraftResponse(
   data: MealInterpretationResponse,
   request: MealInterpretationRequest,
   model: string,
+  usageMetadata?: any,
 ) {
+  const usage = normalizeUsageMetadata(usageMetadata);
+  const estimatedCostUsd = estimateGeminiCostUsd(usage);
+
   const items = data.items.map((item, index) => ({
     id: item.id || `item_${index + 1}`,
     label: item.label,
@@ -215,11 +219,64 @@ export function normalizeDraftResponse(
       retentionSeconds: 0,
       provider: "gemini",
       model,
+      usage,
+      estimatedCostUsd,
     },
     totals,
     items,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   };
+}
+
+function normalizeUsageMetadata(usageMetadata: any) {
+  const promptTokens = toNonNegativeInt(usageMetadata?.promptTokenCount);
+  const outputTokens = toNonNegativeInt(usageMetadata?.candidatesTokenCount);
+  const totalTokens = toNonNegativeInt(
+    usageMetadata?.totalTokenCount,
+    promptTokens + outputTokens,
+  );
+  return {
+    promptTokenCount: promptTokens,
+    candidatesTokenCount: outputTokens,
+    totalTokenCount: totalTokens,
+  };
+}
+
+function toNonNegativeInt(value: unknown, fallback = 0): number {
+  const numberValue = typeof value === "number"
+    ? value
+    : typeof value === "string"
+    ? Number(value)
+    : NaN;
+  if (!Number.isFinite(numberValue) || numberValue < 0) {
+    return fallback;
+  }
+  return Math.round(numberValue);
+}
+
+function estimateGeminiCostUsd(
+  usage: { promptTokenCount: number; candidatesTokenCount: number },
+): number {
+  const inputPer1M = Number(
+    Deno.env.get("GEMINI_INPUT_TOKEN_USD_PER_1M") ?? "0.075",
+  );
+  const outputPer1M = Number(
+    Deno.env.get("GEMINI_OUTPUT_TOKEN_USD_PER_1M") ?? "0.30",
+  );
+  const safeInputPer1M = Number.isFinite(inputPer1M) && inputPer1M >= 0
+    ? inputPer1M
+    : 0;
+  const safeOutputPer1M = Number.isFinite(outputPer1M) && outputPer1M >= 0
+    ? outputPer1M
+    : 0;
+
+  const inputCost = (usage.promptTokenCount / 1_000_000) * safeInputPer1M;
+  const outputCost = (usage.candidatesTokenCount / 1_000_000) * safeOutputPer1M;
+  return round6(inputCost + outputCost);
+}
+
+function round6(value: number): number {
+  return Math.round(value * 1_000_000) / 1_000_000;
 }
 
 function normalizeUnit(unit: string | undefined): string {

@@ -19,7 +19,7 @@ class MealInterpretationRepository {
     required String unitSystem,
     String? mealTypeHint,
   }) async {
-    final draft = await _remoteDataSource.interpretText(
+    final result = await _remoteDataSource.interpretText(
       text: text,
       locale: locale,
       unitSystem: unitSystem,
@@ -27,8 +27,9 @@ class MealInterpretationRepository {
     );
     await _configRepository.addAiEstimatedCost(
       isPhoto: false,
-      usdCost: 0.0020,
+      usdCost: result.estimatedCostUsd,
     );
+    final draft = result.draft;
     await _draftRepository.saveDraft(draft);
     return draft;
   }
@@ -41,7 +42,7 @@ class MealInterpretationRepository {
     required String unitSystem,
     String? mealTypeHint,
   }) async {
-    final draft = await _remoteDataSource.interpretPhoto(
+    final result = await _remoteDataSource.interpretPhoto(
       imageBytes: imageBytes,
       fileName: fileName,
       mimeType: mimeType,
@@ -51,8 +52,9 @@ class MealInterpretationRepository {
     );
     await _configRepository.addAiEstimatedCost(
       isPhoto: true,
-      usdCost: 0.0060,
+      usdCost: result.estimatedCostUsd,
     );
+    final draft = result.draft;
     await _draftRepository.saveDraft(draft);
     return draft;
   }

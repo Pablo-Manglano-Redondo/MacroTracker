@@ -17,7 +17,7 @@ class MealInterpretationRemoteDataSource {
 
   final _log = Logger('MealInterpretationRemoteDataSource');
 
-  Future<InterpretationDraftEntity> interpretText({
+  Future<MealInterpretationRemoteResult> interpretText({
     required String text,
     required String locale,
     required String unitSystem,
@@ -35,7 +35,11 @@ class MealInterpretationRemoteDataSource {
         },
       );
 
-      return mapDraftResponse(response.data, fallbackTitle: text);
+      final payload = _normalizePayload(response.data);
+      return MealInterpretationRemoteResult(
+        draft: mapDraftResponse(payload, fallbackTitle: text),
+        estimatedCostUsd: _extractEstimatedCost(payload),
+      );
     } catch (exception, stacktrace) {
       _log.severe('Exception while interpreting text meal $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -43,7 +47,7 @@ class MealInterpretationRemoteDataSource {
     }
   }
 
-  Future<InterpretationDraftEntity> interpretPhoto({
+  Future<MealInterpretationRemoteResult> interpretPhoto({
     required Uint8List imageBytes,
     required String fileName,
     required String mimeType,
@@ -65,7 +69,11 @@ class MealInterpretationRemoteDataSource {
         },
       );
 
-      return mapDraftResponse(response.data, fallbackTitle: 'Photo meal');
+      final payload = _normalizePayload(response.data);
+      return MealInterpretationRemoteResult(
+        draft: mapDraftResponse(payload, fallbackTitle: 'Photo meal'),
+        estimatedCostUsd: _extractEstimatedCost(payload),
+      );
     } catch (exception, stacktrace) {
       _log.severe('Exception while interpreting photo meal $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
@@ -76,12 +84,11 @@ class MealInterpretationRemoteDataSource {
   @visibleForTesting
   InterpretationDraftEntity mapDraftResponse(dynamic data,
       {required String fallbackTitle}) {
-    if (data is String) {
-      data = jsonDecode(data);
-    }
-    if (data is! Map<String, dynamic>) {
+    final normalized = _normalizePayload(data);
+    if (normalized is! Map<String, dynamic>) {
       throw const FormatException('Invalid draft response format');
     }
+    data = normalized;
 
     final draftId = (data['draftId'] as String?) ?? IdGenerator.getUniqueID();
     final totals =
@@ -107,6 +114,20 @@ class MealInterpretationRemoteDataSource {
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 1)),
       items: items.map(_mapItem).toList(),
     );
+  }
+
+  dynamic _normalizePayload(dynamic data) {
+    if (data is String) {
+      return jsonDecode(data);
+    }
+    return data;
+  }
+
+  double _extractEstimatedCost(dynamic data) {
+    if (data is! Map<String, dynamic>) return 0;
+    final processing = data['processing'];
+    if (processing is! Map) return 0;
+    return _toDouble(processing['estimatedCostUsd']);
   }
 
   InterpretationDraftItemEntity _mapItem(dynamic item) {
@@ -167,4 +188,14 @@ class MealInterpretationRemoteDataSource {
     }
     return 0;
   }
+}
+
+class MealInterpretationRemoteResult {
+  final InterpretationDraftEntity draft;
+  final double estimatedCostUsd;
+
+  const MealInterpretationRemoteResult({
+    required this.draft,
+    required this.estimatedCostUsd,
+  });
 }

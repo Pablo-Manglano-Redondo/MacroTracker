@@ -94,28 +94,37 @@ class _ProfilePageState extends State<ProfilePage> {
                                   .onSurfaceVariant,
                             ),
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: () =>
-                                _showSetProfilePhotoDialog(context, user),
-                            icon: const Icon(Icons.image_outlined),
-                            label: const Text('Choose photo'),
-                          ),
-                          if (user.profileImagePath != null &&
-                              user.profileImagePath!.trim().isNotEmpty)
-                            OutlinedButton.icon(
-                              onPressed: () => _removeProfilePhoto(user),
-                              icon: const Icon(Icons.delete_outline),
-                              label: const Text('Remove'),
-                            ),
-                        ],
-                      ),
                     ],
                   ),
+                ),
+                PopupMenuButton<_ProfilePhotoAction>(
+                  tooltip: 'Photo options',
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (action) {
+                    switch (action) {
+                      case _ProfilePhotoAction.change:
+                        _showSetProfilePhotoDialog(context, user);
+                        break;
+                      case _ProfilePhotoAction.remove:
+                        _removeProfilePhoto(user);
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) {
+                    final hasPhoto = user.profileImagePath != null &&
+                        user.profileImagePath!.trim().isNotEmpty;
+                    return [
+                      const PopupMenuItem(
+                        value: _ProfilePhotoAction.change,
+                        child: Text('Change photo'),
+                      ),
+                      if (hasPhoto)
+                        const PopupMenuItem(
+                          value: _ProfilePhotoAction.remove,
+                          child: Text('Remove photo'),
+                        ),
+                    ];
+                  },
                 ),
               ],
             ),
@@ -348,6 +357,11 @@ class _ProfileAvatar extends StatelessWidget {
             ),
     );
   }
+}
+
+enum _ProfilePhotoAction {
+  change,
+  remove,
 }
 
 class _ProfileSectionCard extends StatelessWidget {

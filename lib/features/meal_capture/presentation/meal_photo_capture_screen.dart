@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
+import 'package:image_picker/image_picker.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
@@ -29,6 +30,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
   static const _maxUploadBytes = 4 * 1024 * 1024;
   static const _maxImageDimension = 1600;
 
+  final ImagePicker _imagePicker = ImagePicker();
   late MealPhotoCaptureScreenArguments _args;
   bool _isLoading = false;
 
@@ -155,15 +157,23 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
-            onPressed: _isLoading ? null : _pickAndInterpretPhoto,
+            onPressed: _isLoading ? null : _captureAndInterpretPhoto,
             icon: Icon(
               _isLoading ? Icons.hourglass_top_outlined : Icons.auto_awesome,
             ),
             label: Text(
-              _isLoading ? 'Building AI draft...' : 'Choose image and review',
+              _isLoading ? 'Building AI draft...' : 'Take photo and review',
             ),
           ),
           const SizedBox(height: 8),
+          Center(
+            child: TextButton.icon(
+              onPressed: _isLoading ? null : _pickAndInterpretPhoto,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: const Text('Choose from gallery'),
+            ),
+          ),
+          const SizedBox(height: 4),
           Center(
             child: TextButton.icon(
               onPressed: _isLoading ? null : _openTextFlow,
@@ -173,6 +183,19 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _captureAndInterpretPhoto() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 92,
+    );
+    if (picked == null) return;
+    await _interpretPickedFile(
+      fileName: picked.name.isEmpty ? 'captured.jpg' : picked.name,
+      filePath: picked.path,
+      bytes: await picked.readAsBytes(),
     );
   }
 
@@ -192,7 +215,18 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     if (bytes == null) {
       return;
     }
+    await _interpretPickedFile(
+      fileName: file.name,
+      filePath: file.path,
+      bytes: bytes,
+    );
+  }
 
+  Future<void> _interpretPickedFile({
+    required String fileName,
+    required String? filePath,
+    required Uint8List bytes,
+  }) async {
     setState(() {
       _isLoading = true;
     });
@@ -200,7 +234,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     try {
       final preparedImage = _prepareImageForUpload(
         imageBytes: bytes,
-        fileName: file.name,
+        fileName: fileName,
       );
       final config = await locator<GetConfigUsecase>().getConfig();
       final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
@@ -211,7 +245,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
       );
-      final updatedDraft = draft.copyWith(localImagePath: file.path);
+      final updatedDraft = draft.copyWith(localImagePath: filePath);
       await locator<SaveInterpretationDraftUsecase>().saveDraft(updatedDraft);
 
       if (mounted) {
@@ -225,7 +259,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         );
       }
     } catch (exception) {
-      await _createLocalDraft(imagePath: file.path);
+      await _createLocalDraft(imagePath: filePath);
       if (mounted) {
         final message = _buildRemoteFailureMessage(exception.toString());
         ScaffoldMessenger.of(context).showSnackBar(
