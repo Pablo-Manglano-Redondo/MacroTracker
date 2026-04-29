@@ -22,6 +22,8 @@ class MealInterpretationRemoteDataSource {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     try {
       final supabaseClient = locator<SupabaseClient>();
@@ -32,6 +34,9 @@ class MealInterpretationRemoteDataSource {
           'locale': locale,
           'unitSystem': unitSystem,
           'mealTypeHint': mealTypeHint,
+          if (analysisContext != null && analysisContext.trim().isNotEmpty)
+            'analysisContext': analysisContext,
+          if (personalExamples.isNotEmpty) 'personalExamples': personalExamples,
         },
       );
 
@@ -54,6 +59,8 @@ class MealInterpretationRemoteDataSource {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     try {
       final supabaseClient = locator<SupabaseClient>();
@@ -66,6 +73,9 @@ class MealInterpretationRemoteDataSource {
           'locale': locale,
           'unitSystem': unitSystem,
           'mealTypeHint': mealTypeHint,
+          if (analysisContext != null && analysisContext.trim().isNotEmpty)
+            'analysisContext': analysisContext,
+          if (personalExamples.isNotEmpty) 'personalExamples': personalExamples,
         },
       );
 

@@ -11,12 +11,16 @@ class InterpretMealFromTextUsecase {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     return _repository.interpretText(
       text: text,
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+      analysisContext: analysisContext,
+      personalExamples: personalExamples,
     );
   }
 }

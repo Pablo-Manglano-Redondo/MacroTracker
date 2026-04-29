@@ -8,13 +8,11 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
-import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
@@ -91,7 +89,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Importa una imagen de comida, revisa el borrador editable y guardalo en ${_args.intakeTypeEntity.name}.',
+                  'Importa una imagen de comida, revisa el borrador editable y guárdalo en ${_args.intakeTypeEntity.name}.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -136,21 +134,21 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                     icon: Icons.crop_free_outlined,
                     title: 'Muestra el plato completo',
                     subtitle:
-                        'Mejor encuadre, mejor deteccion de ingredientes.',
+                        'Mejor encuadre, mejor detección de ingredientes.',
                   ),
                   const SizedBox(height: 10),
                   const _CaptureHintRow(
                     icon: Icons.opacity_outlined,
                     title: 'Revisa salsas y aceites',
                     subtitle:
-                        'El borrador es solo el primer paso. Corrige calorias ocultas.',
+                        'El borrador es solo el primer paso. Corrige calorías ocultas.',
                   ),
                   const SizedBox(height: 10),
                   const _CaptureHintRow(
                     icon: Icons.fitness_center_outlined,
                     title: 'Pensado para comidas de gimnasio',
                     subtitle:
-                        'Util para bowls, batidos, post entreno y comidas repetidas.',
+                        'Útil para bowls, batidos, post entreno y comidas repetidas.',
                   ),
                 ],
               ),
@@ -171,7 +169,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             child: TextButton.icon(
               onPressed: _isLoading ? null : _pickAndInterpretPhoto,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Elegir de galeria'),
+              label: const Text('Elegir de galería'),
             ),
           ),
           const SizedBox(height: 4),
@@ -238,6 +236,10 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         fileName: fileName,
       );
       final config = await locator<GetConfigUsecase>().getConfig();
+      final personalizationContext =
+          await locator<MealInterpretationPersonalizationUsecase>().buildContext(
+        intakeType: _args.intakeTypeEntity,
+      );
       final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
         imageBytes: preparedImage.bytes,
         fileName: preparedImage.fileName,
@@ -245,8 +247,18 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         locale: Platform.localeName,
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
+        analysisContext: personalizationContext.promptContext,
+        personalExamples: personalizationContext.remoteExamples,
       );
-      final updatedDraft = draft.copyWith(localImagePath: filePath);
+      final personalizedDraft =
+          await locator<MealInterpretationPersonalizationUsecase>()
+              .personalizeDraft(
+        draft: draft,
+        intakeType: _args.intakeTypeEntity,
+        context: personalizationContext,
+      );
+      final updatedDraft =
+          personalizedDraft.copyWith(localImagePath: filePath);
       await locator<SaveInterpretationDraftUsecase>().saveDraft(updatedDraft);
 
       if (mounted) {
@@ -260,7 +272,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         );
       }
     } catch (exception) {
-      await _createLocalDraft(imagePath: filePath);
+      await _createLocalDraft(imagePath: filePath, fileName: fileName);
       if (mounted) {
         final message = _buildRemoteFailureMessage(exception.toString());
         ScaffoldMessenger.of(context).showSnackBar(
@@ -330,19 +342,19 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       return 'La imagen es demasiado grande para IA remota. Se creo borrador local.';
     }
     if (normalized.contains('missing gemini_api_key')) {
-      return 'La IA remota no esta configurada en backend. Se creo borrador local.';
+      return 'La IA remota no está configurada en backend. Se creó un borrador local.';
     }
     if (normalized.contains('429') ||
         normalized.contains('resource_exhausted') ||
         normalized.contains('quota')) {
-      return 'Se alcanzo limite de cuota/rate de IA remota. Se creo borrador local.';
+      return 'Se alcanzó el límite de cuota/rate de IA remota. Se creó un borrador local.';
     }
     if (normalized.contains('mime') ||
         normalized.contains('unsupported') ||
         normalized.contains('invalid argument')) {
-      return 'Formato de imagen no soportado por IA remota. Prueba JPG/PNG. Se creo borrador local.';
+      return 'Formato de imagen no soportado por IA remota. Prueba JPG/PNG. Se creó un borrador local.';
     }
-    return 'Fallo la interpretacion remota de imagen. Se creo borrador local. (${_truncateError(extractedError)})';
+    return 'Falló la interpretación remota de imagen. Se creó un borrador local con apoyo de memoria. (${_truncateError(extractedError)})';
   }
 
   String _fileExtension(String fileName) {
@@ -419,38 +431,17 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     );
   }
 
-  Future<void> _createLocalDraft({String? imagePath}) async {
-    final draft = InterpretationDraftEntity(
-      id: IdGenerator.getUniqueID(),
+  Future<void> _createLocalDraft({
+    String? imagePath,
+    required String fileName,
+  }) async {
+    final draft = await locator<MealInterpretationPersonalizationUsecase>()
+        .buildFallbackDraft(
       sourceType: DraftSourceEntity.photo,
-      inputText: null,
-      localImagePath: imagePath,
       title: 'Borrador de comida por foto',
-      summary: 'Borrador local de respaldo en flujo de imagen',
-      totalKcal: 650,
-      totalCarbs: 55,
-      totalFat: 22,
-      totalProtein: 38,
-      confidenceBand: ConfidenceBandEntity.low,
-      status: DraftStatusEntity.ready,
-      createdAt: DateTime.now(),
-      expiresAt: DateTime.now().add(const Duration(days: 1)),
-      items: [
-        InterpretationDraftItemEntity(
-          id: IdGenerator.getUniqueID(),
-          label: 'Comida detectada',
-          matchedMealSnapshot: null,
-          amount: 1,
-          unit: 'serving',
-          kcal: 650,
-          carbs: 55,
-          fat: 22,
-          protein: 38,
-          confidenceBand: ConfidenceBandEntity.low,
-          editable: true,
-          removed: false,
-        ),
-      ],
+      intakeType: _args.intakeTypeEntity,
+      inputText: fileName,
+      localImagePath: imagePath,
     );
 
     await locator<SaveInterpretationDraftUsecase>().saveDraft(draft);

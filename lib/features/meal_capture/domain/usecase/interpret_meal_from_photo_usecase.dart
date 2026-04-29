@@ -15,6 +15,8 @@ class InterpretMealFromPhotoUsecase {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     return _repository.interpretPhoto(
       imageBytes: imageBytes,
@@ -23,6 +25,8 @@ class InterpretMealFromPhotoUsecase {
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+      analysisContext: analysisContext,
+      personalExamples: personalExamples,
     );
   }
 }

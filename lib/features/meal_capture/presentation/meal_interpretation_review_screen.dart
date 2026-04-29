@@ -12,10 +12,12 @@ import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/meal_capture/domain/entity/ai_food_memory_entry.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/commit_interpretation_draft_usecase.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/widgets/meal_replacement_dialog.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
@@ -30,7 +32,6 @@ class MealInterpretationReviewScreen extends StatefulWidget {
 
 class _MealInterpretationReviewScreenState
     extends State<MealInterpretationReviewScreen> {
-  static const _aiCorrectionsBoxName = 'AiCorrectionsBox';
   late MealInterpretationReviewScreenArguments _args;
   final _servingsController = TextEditingController(text: '1');
   InterpretationDraftEntity? _draft;
@@ -38,7 +39,8 @@ class _MealInterpretationReviewScreenState
   bool _isSaving = false;
   bool _isPersistingEdits = false;
   bool _didLoadDraft = false;
-  Map<String, _SavedCorrection> _savedCorrections = const {};
+  Map<String, AiFoodMemoryEntry> _savedCorrections = const {};
+  List<MealInterpretationSuggestion> _mealSuggestions = const [];
 
   @override
   void didChangeDependencies() {
@@ -68,14 +70,14 @@ class _MealInterpretationReviewScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Review AI draft'),
+        title: const Text('Revisar borrador IA'),
         actions: [
           IconButton(
             onPressed: _activeItems.isEmpty || _isLoading
                 ? null
                 : () => _showSaveRecipeDialog(),
             icon: const Icon(Icons.bookmark_add_outlined),
-            tooltip: 'Save as recipe',
+            tooltip: 'Guardar como receta',
           ),
         ],
       ),
@@ -96,7 +98,7 @@ class _MealInterpretationReviewScreenState
             ? null
             : () => _commitDraft(_draft!),
         icon: Icon(_isSaving ? Icons.hourglass_top_outlined : Icons.check),
-        label: Text(_isSaving ? 'Saving meal...' : 'Save meal'),
+        label: Text(_isSaving ? 'Guardando comida...' : 'Guardar comida'),
       ),
     );
   }
@@ -111,7 +113,7 @@ class _MealInterpretationReviewScreenState
         child: Padding(
           padding: EdgeInsets.all(24.0),
           child: Text(
-            'Draft not found or expired.',
+            'Borrador no encontrado o caducado.',
             textAlign: TextAlign.center,
           ),
         ),
@@ -152,6 +154,13 @@ class _MealInterpretationReviewScreenState
           protein: adjustedProtein,
           servings: servings,
         ),
+        if (_mealSuggestions.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _MealSuggestionsCard(
+            suggestions: _mealSuggestions,
+            onApply: _applyMealSuggestion,
+          ),
+        ],
         const SizedBox(height: 16),
         Card(
           child: Padding(
@@ -162,7 +171,7 @@ class _MealInterpretationReviewScreenState
                   children: [
                     Expanded(
                       child: Text(
-                        'Detected items',
+                        'Ingredientes detectados',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -171,8 +180,8 @@ class _MealInterpretationReviewScreenState
                     ),
                     Text(
                       _isPersistingEdits
-                          ? 'Saving edits...'
-                          : '${activeItems.length} active',
+                          ? 'Guardando cambios...'
+                          : '${activeItems.length} activos',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -191,14 +200,14 @@ class _MealInterpretationReviewScreenState
                       onPressed:
                           _isPersistingEdits ? null : _showAddIngredientFlow,
                       icon: const Icon(Icons.add_outlined),
-                      label: const Text('Add ingredient'),
+                      label: const Text('Añadir ingrediente'),
                     ),
                     OutlinedButton.icon(
                       onPressed: _activeItems.isEmpty || _isPersistingEdits
                           ? null
                           : () => _showSaveRecipeDialog(),
                       icon: const Icon(Icons.bookmark_add_outlined),
-                      label: const Text('Save recipe'),
+                      label: const Text('Guardar receta'),
                     ),
                   ],
                 ),
@@ -260,6 +269,13 @@ class _MealInterpretationReviewScreenState
     final draft = await locator<CommitInterpretationDraftUsecase>()
         .getDraftById(_args.draftId);
     final corrections = await _loadSavedCorrections();
+    final suggestions = draft == null
+        ? const <MealInterpretationSuggestion>[]
+        : await locator<MealInterpretationPersonalizationUsecase>()
+            .suggestMealsForDraft(
+            draft: draft,
+            intakeType: _args.intakeTypeEntity,
+          );
     if (!mounted) {
       return;
     }
@@ -268,6 +284,7 @@ class _MealInterpretationReviewScreenState
       _draft = draft;
       _isLoading = false;
       _savedCorrections = corrections;
+      _mealSuggestions = suggestions;
     });
   }
 
@@ -284,20 +301,20 @@ class _MealInterpretationReviewScreenState
     final updatedAmount = await showDialog<double>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit ${item.label}'),
+        title: Text('Editar ${item.label}'),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Amount (${item.unit})',
+            labelText: 'Cantidad (${item.unit})',
             border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const Text('Cancelar'),
           ),
           TextButton(
             onPressed: () {
@@ -308,7 +325,7 @@ class _MealInterpretationReviewScreenState
               }
               Navigator.of(context).pop(parsed);
             },
-            child: const Text('Save'),
+            child: const Text('Guardar'),
           ),
         ],
       ),
@@ -382,7 +399,7 @@ class _MealInterpretationReviewScreenState
     }
 
     InterpretationDraftItemEntity updatedItem;
-    final meal = item.matchedMealSnapshot;
+    final meal = correction.mealSnapshot ?? item.matchedMealSnapshot;
     if (meal != null) {
       final nutrition = MealPortionCalculator.calculate(
         meal,
@@ -390,6 +407,8 @@ class _MealInterpretationReviewScreenState
         correction.unit,
       );
       updatedItem = item.copyWith(
+        label: correction.displayLabel,
+        matchedMealSnapshot: meal,
         amount: correction.amount,
         unit: correction.unit,
         kcal: nutrition.kcal,
@@ -433,6 +452,7 @@ class _MealInterpretationReviewScreenState
       protein: nutrition.protein,
       removed: false,
     );
+    await _saveCorrection(updatedItem);
     await _replaceItem(updatedItem);
   }
 
@@ -538,7 +558,7 @@ class _MealInterpretationReviewScreenState
         _isPersistingEdits = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not save draft changes')),
+        const SnackBar(content: Text('No se pudieron guardar los cambios del borrador')),
       );
     }
   }
@@ -555,6 +575,11 @@ class _MealInterpretationReviewScreenState
         _args.day,
         servings: _parsedServings,
       );
+      await locator<MealInterpretationPersonalizationUsecase>()
+          .saveMealMemoryFromDraft(
+        draft: draft,
+        intakeType: _args.intakeTypeEntity,
+      );
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());
       locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
@@ -564,7 +589,7 @@ class _MealInterpretationReviewScreenState
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Meal saved')),
+        const SnackBar(content: Text('Comida guardada')),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
@@ -577,7 +602,7 @@ class _MealInterpretationReviewScreenState
         _isSaving = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not save this meal')),
+        const SnackBar(content: Text('No se pudo guardar esta comida')),
       );
     }
   }
@@ -593,18 +618,18 @@ class _MealInterpretationReviewScreenState
     final kcal = draft.totalKcal;
 
     if (protein >= 35 && carbs >= 45) {
-      return 'Post-workout';
+      return 'Post entreno';
     }
     if (carbs >= 50 && fat <= 20) {
-      return 'Pre-workout';
+      return 'Pre entreno';
     }
     if (protein >= 35 && fat <= 20) {
-      return 'Protein-first';
+      return 'Alta en proteína';
     }
     if (kcal <= 550 && fat <= 18) {
-      return 'Cut-friendly';
+      return 'Ligera para definición';
     }
-    return 'Balanced';
+    return 'Balanceada';
   }
 
   List<String> _quickUnitsForItem(InterpretationDraftItemEntity item) {
@@ -628,16 +653,17 @@ class _MealInterpretationReviewScreenState
   String _correctionKey(String label) =>
       label.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
-  Future<Map<String, _SavedCorrection>> _loadSavedCorrections() async {
-    final box = await Hive.openBox(_aiCorrectionsBoxName);
-    final loaded = <String, _SavedCorrection>{};
+  Future<Map<String, AiFoodMemoryEntry>> _loadSavedCorrections() async {
+    final box = await Hive.openBox(
+      MealInterpretationPersonalizationUsecase.aiMemoryBoxName,
+    );
+    final loaded = <String, AiFoodMemoryEntry>{};
     for (final key in box.keys) {
       final raw = box.get(key);
       if (raw is Map) {
-        final amount = (raw['amount'] as num?)?.toDouble();
-        final unit = raw['unit']?.toString();
-        if (amount != null && amount > 0 && unit != null && unit.isNotEmpty) {
-          loaded[key.toString()] = _SavedCorrection(amount: amount, unit: unit);
+        final entry = AiFoodMemoryEntry.fromMap(key.toString(), raw);
+        if (entry.amount > 0 && entry.unit.trim().isNotEmpty) {
+          loaded[key.toString()] = entry;
         }
       }
     }
@@ -650,8 +676,21 @@ class _MealInterpretationReviewScreenState
       return;
     }
 
-    final correction = _SavedCorrection(amount: item.amount, unit: item.unit);
-    final updated = Map<String, _SavedCorrection>.from(_savedCorrections);
+    final previous = _savedCorrections[key];
+    final correction = AiFoodMemoryEntry(
+      key: key,
+      displayLabel: item.label,
+      amount: item.amount,
+      unit: item.unit,
+      kcal: item.kcal,
+      carbs: item.carbs,
+      fat: item.fat,
+      protein: item.protein,
+      mealSnapshot: item.matchedMealSnapshot ?? previous?.mealSnapshot,
+      uses: (previous?.uses ?? 0) + 1,
+      updatedAt: DateTime.now(),
+    );
+    final updated = Map<String, AiFoodMemoryEntry>.from(_savedCorrections);
     updated[key] = correction;
     if (mounted) {
       setState(() {
@@ -661,8 +700,60 @@ class _MealInterpretationReviewScreenState
       _savedCorrections = updated;
     }
 
-    final box = await Hive.openBox(_aiCorrectionsBoxName);
+    final box = await Hive.openBox(
+      MealInterpretationPersonalizationUsecase.aiMemoryBoxName,
+    );
     await box.put(key, correction.toMap());
+  }
+
+  Future<void> _applyMealSuggestion(
+      MealInterpretationSuggestion suggestion) async {
+    if (_draft == null) {
+      return;
+    }
+
+    final nutrition = MealPortionCalculator.calculate(
+      suggestion.meal,
+      suggestion.defaultAmount,
+      suggestion.defaultUnit,
+    );
+    final item = InterpretationDraftItemEntity(
+      id: IdGenerator.getUniqueID(),
+      label: suggestion.title,
+      matchedMealSnapshot: suggestion.meal,
+      amount: suggestion.defaultAmount,
+      unit: suggestion.defaultUnit,
+      kcal: nutrition.kcal,
+      carbs: nutrition.carbs,
+      fat: nutrition.fat,
+      protein: nutrition.protein,
+      confidenceBand: ConfidenceBandEntity.high,
+      editable: true,
+      removed: false,
+    );
+    final updatedDraft = _draft!.copyWith(
+      title: suggestion.title,
+      summary:
+          'Sustituido por ${suggestion.sourceLabel.toLowerCase()} para mejorar la precisión.',
+      totalKcal: nutrition.kcal,
+      totalCarbs: nutrition.carbs,
+      totalFat: nutrition.fat,
+      totalProtein: nutrition.protein,
+      confidenceBand: ConfidenceBandEntity.high,
+      items: [item],
+    );
+
+    await _saveCorrection(item);
+    await _persistUpdatedDraft(updatedDraft);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _mealSuggestions = const [];
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Aplicada sugerencia: ${suggestion.title}')),
+    );
   }
 
   Future<void> _showSaveRecipeDialog() async {
@@ -679,16 +770,16 @@ class _MealInterpretationReviewScreenState
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Save as recipe'),
+              title: const Text('Guardar como receta'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: controller,
                     decoration: const InputDecoration(
-                      labelText: 'Recipe name',
+                      labelText: 'Nombre de la receta',
                       helperText:
-                          'Use names like pre oats, post chicken rice or shake.',
+                          'Usa nombres como avena pre, pollo arroz post o batido.',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -701,14 +792,14 @@ class _MealInterpretationReviewScreenState
                         favorite = value ?? true;
                       });
                     },
-                    title: const Text('Favorite for quick access'),
+                    title: const Text('Favorita para acceso rápido'),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancel'),
+                  child: const Text('Cancelar'),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -729,11 +820,11 @@ class _MealInterpretationReviewScreenState
                     Navigator.of(dialogContext).pop();
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Recipe saved')),
+                        const SnackBar(content: Text('Receta guardada')),
                       );
                     }
                   },
-                  child: const Text('Save'),
+                  child: const Text('Guardar'),
                 ),
               ],
             );
@@ -771,14 +862,14 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Captured photo',
+              'Foto capturada',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Tap to zoom. Toggle crop/fit for quick inspection.',
+              'Toca para ampliar. Alterna recorte/ajuste para inspección rápida.',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -800,7 +891,7 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                             Theme.of(context).colorScheme.surfaceContainerHigh,
                         alignment: Alignment.center,
                         child: Text(
-                          'Could not load image preview',
+                          'No se pudo cargar la vista previa',
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       );
@@ -823,7 +914,7 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                       ? Icons.crop_outlined
                       : Icons.fit_screen_outlined,
                 ),
-                label: Text(_cropPreview ? 'Crop' : 'Fit'),
+                label: Text(_cropPreview ? 'Recorte' : 'Ajuste'),
               ),
             ),
           ],
@@ -850,7 +941,7 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                       children: [
                         const Expanded(
                           child: Text(
-                            'Photo zoom',
+                            'Zoom de la foto',
                             style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
@@ -863,7 +954,7 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                           icon: Icon(cropDialog
                               ? Icons.crop_outlined
                               : Icons.fit_screen_outlined),
-                          label: Text(cropDialog ? 'Crop' : 'Fit'),
+                          label: Text(cropDialog ? 'Recorte' : 'Ajuste'),
                         ),
                         const SizedBox(width: 8),
                         IconButton(
@@ -946,8 +1037,8 @@ class _DraftHeroCard extends StatelessWidget {
                     ? Icons.camera_alt_outlined
                     : Icons.notes_outlined,
                 label: draft.sourceType == DraftSourceEntity.photo
-                    ? 'Photo AI'
-                    : 'Text AI',
+                    ? 'Foto IA'
+                    : 'Texto IA',
               ),
               _DraftChip(
                 icon: Icons.restaurant_outlined,
@@ -955,7 +1046,7 @@ class _DraftHeroCard extends StatelessWidget {
               ),
               _DraftChip(
                 icon: Icons.layers_outlined,
-                label: '$activeItemCount active items',
+                label: '$activeItemCount ingredientes',
               ),
               _DraftChip(
                 icon: Icons.fitness_center_outlined,
@@ -985,7 +1076,7 @@ class _DraftHeroCard extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           Text(
-            'Servings to log',
+            'Raciones a guardar',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -1011,8 +1102,8 @@ class _DraftHeroCard extends StatelessWidget {
             controller: servingsController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              labelText: 'Custom servings',
-              helperText: 'Adjust the final portion before saving.',
+              labelText: 'Raciones personalizadas',
+              helperText: 'Ajusta la ración final antes de guardar.',
               border: OutlineInputBorder(),
             ),
             onChanged: (_) => onServingsChanged(),
@@ -1025,11 +1116,11 @@ class _DraftHeroCard extends StatelessWidget {
   static String _confidenceLabel(ConfidenceBandEntity band) {
     switch (band) {
       case ConfidenceBandEntity.high:
-        return 'High confidence';
+        return 'Confianza alta';
       case ConfidenceBandEntity.medium:
-        return 'Medium confidence';
+        return 'Confianza media';
       case ConfidenceBandEntity.low:
-        return 'Low confidence';
+        return 'Confianza baja';
     }
   }
 
@@ -1042,6 +1133,110 @@ class _DraftHeroCard extends StatelessWidget {
       case ConfidenceBandEntity.low:
         return Icons.error_outline;
     }
+  }
+}
+
+class _MealSuggestionsCard extends StatelessWidget {
+  final List<MealInterpretationSuggestion> suggestions;
+  final ValueChanged<MealInterpretationSuggestion> onApply;
+
+  const _MealSuggestionsCard({
+    required this.suggestions,
+    required this.onApply,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Coincidencias tuyas',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Usa una comida frecuente, receta o corrección previa si se parece más a lo que has comido.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 14),
+            ...suggestions.map(
+              (suggestion) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => onApply(suggestion),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: colorScheme.surfaceContainerHighest,
+                      border: Border.all(color: colorScheme.outlineVariant),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: colorScheme.primary.withValues(alpha: 0.14),
+                          ),
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.auto_fix_high_outlined,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                suggestion.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${suggestion.sourceLabel} • ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton.tonal(
+                          onPressed: () => onApply(suggestion),
+                          child: const Text('Usar'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -1116,17 +1311,17 @@ class _MacroHeroCard extends StatelessWidget {
               runSpacing: 12,
               children: [
                 _MacroTile(
-                  label: 'Protein',
+                  label: 'Proteína',
                   value: '${protein.toStringAsFixed(1)} g',
                   accentColor: colorScheme.primary,
                 ),
                 _MacroTile(
-                  label: 'Carbs',
+                  label: 'Carbohidratos',
                   value: '${carbs.toStringAsFixed(1)} g',
                   accentColor: colorScheme.tertiary,
                 ),
                 _MacroTile(
-                  label: 'Fat',
+                  label: 'Grasas',
                   value: '${fat.toStringAsFixed(1)} g',
                   accentColor: const Color(0xFFE7A83B),
                 ),
@@ -1270,7 +1465,7 @@ class _DraftItemCard extends StatelessWidget {
                       if (savedCorrectionLabel != null) ...[
                         const SizedBox(height: 8),
                         _PresetChip(
-                          label: 'Apply typical: $savedCorrectionLabel',
+                          label: 'Usar habitual: $savedCorrectionLabel',
                           onTap: item.removed ? null : onApplySavedCorrection,
                         ),
                       ],
@@ -1298,19 +1493,19 @@ class _DraftItemCard extends StatelessWidget {
               runSpacing: 8,
               children: [
                 _PresetChip(
-                  label: 'Small',
+                  label: 'Pequeña',
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(0.75),
                 ),
                 _PresetChip(
-                  label: 'Medium',
+                  label: 'Media',
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(1.0),
                 ),
                 _PresetChip(
-                  label: 'Large',
+                  label: 'Grande',
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(1.25),
@@ -1325,12 +1520,12 @@ class _DraftItemCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onEditPressed,
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Amount'),
+                  label: const Text('Cantidad'),
                 ),
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onReplacePressed,
                   icon: const Icon(Icons.swap_horiz_outlined),
-                  label: const Text('Replace'),
+                  label: const Text('Sustituir'),
                 ),
                 OutlinedButton.icon(
                   onPressed: onToggleRemoved,
@@ -1339,14 +1534,14 @@ class _DraftItemCard extends StatelessWidget {
                         ? Icons.undo_outlined
                         : Icons.remove_circle_outline,
                   ),
-                  label: Text(item.removed ? 'Restore' : 'Remove'),
+                  label: Text(item.removed ? 'Restaurar' : 'Quitar'),
                 ),
               ],
             ),
             if (item.removed) ...[
               const SizedBox(height: 10),
               Text(
-                'Excluded from the final meal.',
+                'Excluido de la comida final.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -1390,15 +1585,15 @@ class _ConfidenceChip extends StatelessWidget {
     switch (band) {
       case ConfidenceBandEntity.high:
         color = Colors.green;
-        label = 'High confidence';
+        label = 'Confianza alta';
         break;
       case ConfidenceBandEntity.medium:
         color = Colors.orange;
-        label = 'Medium confidence';
+        label = 'Confianza media';
         break;
       case ConfidenceBandEntity.low:
         color = Colors.red;
-        label = 'Low confidence';
+        label = 'Confianza baja';
         break;
     }
 
@@ -1425,21 +1620,6 @@ class _ConfidenceChip extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SavedCorrection {
-  final double amount;
-  final String unit;
-
-  const _SavedCorrection({
-    required this.amount,
-    required this.unit,
-  });
-
-  Map<String, dynamic> toMap() => {
-        'amount': amount,
-        'unit': unit,
-      };
 }
 
 class _DraftChip extends StatelessWidget {
@@ -1536,7 +1716,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              labelText: 'Amount',
+              labelText: 'Cantidad',
               border: OutlineInputBorder(),
             ),
           ),
@@ -1544,7 +1724,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
           DropdownButtonFormField<String>(
             initialValue: _selectedUnit,
             decoration: const InputDecoration(
-              labelText: 'Unit',
+              labelText: 'Unidad',
               border: OutlineInputBorder(),
             ),
             items: units
@@ -1567,7 +1747,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: const Text('Cancelar'),
         ),
         TextButton(
           onPressed: () {
@@ -1580,7 +1760,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
               _IngredientPortionResult(amount: amount, unit: _selectedUnit),
             );
           },
-          child: const Text('Add'),
+          child: const Text('Añadir'),
         ),
       ],
     );

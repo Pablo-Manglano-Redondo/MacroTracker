@@ -29,6 +29,11 @@ Deno.serve(async (request) => {
         typeof body?.unitSystem === "string" ? body.unitSystem : "metric",
       mealTypeHint:
         typeof body?.mealTypeHint === "string" ? body.mealTypeHint : null,
+      analysisContext:
+        typeof body?.analysisContext === "string" ? body.analysisContext : null,
+      personalExamples: Array.isArray(body?.personalExamples)
+          ? body.personalExamples
+          : null,
     });
 
     return jsonResponse(draft);

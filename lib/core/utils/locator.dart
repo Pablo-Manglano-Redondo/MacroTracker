@@ -64,6 +64,7 @@ import 'package:macrotracker/features/meal_capture/data/repository/meal_interpre
 import 'package:macrotracker/features/meal_capture/domain/usecase/commit_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/get_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_text_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
@@ -189,6 +190,9 @@ Future<void> initLocator() async {
       () => InterpretMealFromTextUsecase(locator()));
   locator.registerLazySingleton<InterpretMealFromPhotoUsecase>(
       () => InterpretMealFromPhotoUsecase(locator()));
+  locator.registerLazySingleton<MealInterpretationPersonalizationUsecase>(() =>
+      MealInterpretationPersonalizationUsecase(
+          locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<SaveInterpretationDraftUsecase>(
       () => SaveInterpretationDraftUsecase(locator()));
   locator.registerLazySingleton<CommitInterpretationDraftUsecase>(() =>

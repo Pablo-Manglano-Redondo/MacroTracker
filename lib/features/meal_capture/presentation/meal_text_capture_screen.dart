@@ -3,13 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
-import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
-import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_text_usecase.dart';
+import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
 
@@ -29,37 +27,48 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
   void didChangeDependencies() {
     _args = ModalRoute.of(context)?.settings.arguments
             as MealTextCaptureScreenArguments? ??
-        MealTextCaptureScreenArguments(DateTime.now(), IntakeTypeEntity.breakfast);
+        MealTextCaptureScreenArguments(
+          DateTime.now(),
+          IntakeTypeEntity.breakfast,
+        );
     super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Text meal')),
+      appBar: AppBar(title: const Text('Comida por texto')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: _controller,
               maxLines: 4,
               decoration: const InputDecoration(
-                hintText: 'Example: 2 eggs, toast with butter and coffee with milk',
+                hintText:
+                    'Ejemplo: 2 huevos, tostadas con mantequilla y café con leche',
                 border: OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
                 onPressed: _isLoading ? null : _createDraft,
-                child: Text(_isLoading ? 'Interpreting...' : 'Interpret meal'),
+                child:
+                    Text(_isLoading ? 'Interpretando...' : 'Interpretar comida'),
               ),
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 16),
             const Text(
-              'Describe the meal naturally. The text may be processed remotely to estimate ingredients and macros, and you will always review the draft before saving.',
+              'Describe la comida de forma natural. El texto puede procesarse de forma remota para estimar ingredientes y macros, y siempre revisarás el borrador antes de guardarlo.',
               textAlign: TextAlign.center,
             ),
           ],
@@ -80,18 +89,39 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
 
     try {
       final config = await locator<GetConfigUsecase>().getConfig();
+      final personalizationContext =
+          await locator<MealInterpretationPersonalizationUsecase>().buildContext(
+        intakeType: _args.intakeTypeEntity,
+        freeText: input,
+      );
+
       final draft = await locator<InterpretMealFromTextUsecase>().interpret(
         text: input,
         locale: Platform.localeName,
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
+        analysisContext: personalizationContext.promptContext,
+        personalExamples: personalizationContext.remoteExamples,
       );
+
+      final personalizedDraft =
+          await locator<MealInterpretationPersonalizationUsecase>()
+              .personalizeDraft(
+        draft: draft,
+        intakeType: _args.intakeTypeEntity,
+        context: personalizationContext,
+      );
+      await locator<SaveInterpretationDraftUsecase>()
+          .saveDraft(personalizedDraft);
 
       if (mounted) {
         Navigator.of(context).pushNamed(
           NavigationOptions.mealInterpretationReviewRoute,
           arguments: MealInterpretationReviewScreenArguments(
-              draft.id, _args.day, _args.intakeTypeEntity),
+            personalizedDraft.id,
+            _args.day,
+            _args.intakeTypeEntity,
+          ),
         );
       }
     } catch (_) {
@@ -100,7 +130,8 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Remote interpretation unavailable. A local fallback draft was created instead.'),
+              'Interpretación remota no disponible. Se creó un borrador local con apoyo de memoria.',
+            ),
           ),
         );
       }
@@ -114,38 +145,12 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
   }
 
   Future<void> _createLocalDraft(String input) async {
-    final itemId = IdGenerator.getUniqueID();
-    final draft = InterpretationDraftEntity(
-      id: IdGenerator.getUniqueID(),
+    final draft = await locator<MealInterpretationPersonalizationUsecase>()
+        .buildFallbackDraft(
       sourceType: DraftSourceEntity.text,
-      inputText: input,
-      localImagePath: null,
       title: input,
-      summary: 'Local placeholder interpretation',
-      totalKcal: 500,
-      totalCarbs: 40,
-      totalFat: 20,
-      totalProtein: 30,
-      confidenceBand: ConfidenceBandEntity.low,
-      status: DraftStatusEntity.ready,
-      createdAt: DateTime.now(),
-      expiresAt: DateTime.now().add(const Duration(days: 1)),
-      items: [
-        InterpretationDraftItemEntity(
-          id: itemId,
-          label: input,
-          matchedMealSnapshot: null,
-          amount: 1,
-          unit: 'serving',
-          kcal: 500,
-          carbs: 40,
-          fat: 20,
-          protein: 30,
-          confidenceBand: ConfidenceBandEntity.low,
-          editable: true,
-          removed: false,
-        ),
-      ],
+      intakeType: _args.intakeTypeEntity,
+      inputText: input,
     );
 
     await locator<SaveInterpretationDraftUsecase>().saveDraft(draft);
@@ -153,7 +158,10 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
       Navigator.of(context).pushNamed(
         NavigationOptions.mealInterpretationReviewRoute,
         arguments: MealInterpretationReviewScreenArguments(
-            draft.id, _args.day, _args.intakeTypeEntity),
+          draft.id,
+          _args.day,
+          _args.intakeTypeEntity,
+        ),
       );
     }
   }

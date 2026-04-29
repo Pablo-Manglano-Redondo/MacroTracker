@@ -10,6 +10,17 @@ export type MealInterpretationRequest = {
   locale: string;
   unitSystem: string;
   mealTypeHint?: string | null;
+  analysisContext?: string | null;
+  personalExamples?: Array<{
+    title: string;
+    sourceLabel?: string;
+    defaultAmount?: number;
+    defaultUnit?: string;
+    kcal?: number;
+    carbs?: number;
+    fat?: number;
+    protein?: number;
+  }> | null;
 };
 
 export type MealInterpretationItem = {
@@ -45,7 +56,9 @@ export async function buildMealInterpretationDraft(
     request.mode === "photo"
       ? "GEMINI_MEAL_PHOTO_MODEL"
       : "GEMINI_MEAL_TEXT_MODEL",
-  ) ?? "gemini-2.5-flash-lite";
+  ) ?? (request.mode === "photo"
+    ? "gemini-2.5-flash"
+    : "gemini-2.5-flash-lite");
   const apiKey = Deno.env.get("GEMINI_API_KEY");
 
   if (!apiKey) {
@@ -98,6 +111,9 @@ function buildSystemPrompt(mode: InterpretationMode): string {
     "Estimate calories, carbs, fat and protein for each item and for the total meal.",
     "Use confidenceBand conservatively. If unsure about portion size or hidden ingredients, choose low or medium.",
     "Do not invent brands unless the user explicitly names one.",
+    "If personal context or repeated meal examples are provided, prefer them when they plausibly match the observed meal.",
+    "Treat oils, dressings, sauces, cheese, nut butters and toppings conservatively unless they are clearly visible or explicitly mentioned.",
+    "When a dish appears to match a saved user meal, align portions and macros to that example instead of returning a generic alternative.",
     mode === "photo"
       ? "For photos, describe the dish and visible ingredients only. Do not claim certainty about hidden ingredients."
       : "For text input, parse the foods the user actually described and choose reasonable defaults for ambiguous portions.",
@@ -106,13 +122,30 @@ function buildSystemPrompt(mode: InterpretationMode): string {
 }
 
 function buildUserParts(request: MealInterpretationRequest) {
-  const metadata = [
+  const metadataLines = [
     buildSystemPrompt(request.mode),
     `Locale: ${request.locale || "unknown"}`,
     `Unit system: ${request.unitSystem || "metric"}`,
     `Meal type hint: ${request.mealTypeHint || "none"}`,
     "Output JSON only.",
-  ].join("\n");
+  ];
+
+  const analysisContext = request.analysisContext?.trim();
+  if (analysisContext) {
+    metadataLines.push(`User context:\n${analysisContext}`);
+  }
+
+  const personalExamples = request.personalExamples
+    ?.filter((example) => typeof example?.title === "string" && example.title.trim().length > 0)
+    .slice(0, 4) ?? [];
+  if (personalExamples.length > 0) {
+    metadataLines.push("Repeated personal meal examples:");
+    for (const example of personalExamples) {
+      metadataLines.push(formatPersonalExample(example));
+    }
+  }
+
+  const metadata = metadataLines.join("\n");
 
   if (request.mode === "photo") {
     if (!request.imageBase64) {
@@ -141,6 +174,41 @@ function buildUserParts(request: MealInterpretationRequest) {
       text: `${metadata}\nUser meal description: ${request.text}`,
     },
   ];
+}
+
+function formatPersonalExample(
+  example: NonNullable<MealInterpretationRequest["personalExamples"]>[number],
+): string {
+  const amount = typeof example.defaultAmount === "number" && Number.isFinite(example.defaultAmount)
+    ? example.defaultAmount.toFixed(example.defaultAmount % 1 === 0 ? 0 : 1)
+    : null;
+  const unit = typeof example.defaultUnit === "string" && example.defaultUnit.trim().length > 0
+    ? example.defaultUnit.trim()
+    : null;
+  const macros = [
+    typeof example.kcal === "number" && Number.isFinite(example.kcal)
+      ? `${Math.round(example.kcal)} kcal`
+      : null,
+    typeof example.protein === "number" && Number.isFinite(example.protein)
+      ? `${Math.round(example.protein)}p`
+      : null,
+    typeof example.carbs === "number" && Number.isFinite(example.carbs)
+      ? `${Math.round(example.carbs)}c`
+      : null,
+    typeof example.fat === "number" && Number.isFinite(example.fat)
+      ? `${Math.round(example.fat)}f`
+      : null,
+  ].filter(Boolean).join(", ");
+
+  const details = [
+    amount != null && unit != null ? `${amount} ${unit}` : null,
+    macros || null,
+    example.sourceLabel?.trim() ? `source: ${example.sourceLabel.trim()}` : null,
+  ].filter(Boolean).join(" | ");
+
+  return details.length === 0
+    ? `- ${example.title.trim()}`
+    : `- ${example.title.trim()} -> ${details}`;
 }
 
 function normalizeMimeType(mimeType: string | undefined): string {

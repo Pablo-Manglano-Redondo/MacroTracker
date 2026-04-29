@@ -33,6 +33,11 @@ Deno.serve(async (request) => {
         typeof body?.unitSystem === "string" ? body.unitSystem : "metric",
       mealTypeHint:
         typeof body?.mealTypeHint === "string" ? body.mealTypeHint : null,
+      analysisContext:
+        typeof body?.analysisContext === "string" ? body.analysisContext : null,
+      personalExamples: Array.isArray(body?.personalExamples)
+          ? body.personalExamples
+          : null,
     });
 
     return jsonResponse(draft);
@@ -47,7 +52,7 @@ Deno.serve(async (request) => {
 });
 
 function resolveMimeType(rawMimeType: unknown, rawFileName: unknown): string {
-    if (typeof rawMimeType === "string") {
+  if (typeof rawMimeType === "string") {
     const normalized = rawMimeType.trim().toLowerCase();
     if (normalized === "image/jpeg" ||
         normalized === "image/png" ||

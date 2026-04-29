@@ -18,12 +18,16 @@ class MealInterpretationRepository {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     final result = await _remoteDataSource.interpretText(
       text: text,
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+      analysisContext: analysisContext,
+      personalExamples: personalExamples,
     );
     await _configRepository.addAiEstimatedCost(
       isPhoto: false,
@@ -41,6 +45,8 @@ class MealInterpretationRepository {
     required String locale,
     required String unitSystem,
     String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
   }) async {
     final result = await _remoteDataSource.interpretPhoto(
       imageBytes: imageBytes,
@@ -49,6 +55,8 @@ class MealInterpretationRepository {
       locale: locale,
       unitSystem: unitSystem,
       mealTypeHint: mealTypeHint,
+      analysisContext: analysisContext,
+      personalExamples: personalExamples,
     );
     await _configRepository.addAiEstimatedCost(
       isPhoto: true,
