@@ -34,7 +34,7 @@ class BMIOverview extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Body composition',
+                        'Composici\u00f3n corporal',
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -42,7 +42,7 @@ class BMIOverview extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Use BMI as context, not as the main score for gym progress.',
+                        'Usa el IMC como referencia secundaria, no como m\u00e9trica principal para tu progreso en el gimnasio.',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -156,15 +156,15 @@ class BMIOverview extends StatelessWidget {
   String _coachingCopy() {
     switch (nutritionalStatus) {
       case UserNutritionalStatus.underWeight:
-        return 'Prioritize consistent calories, protein and progressive training.';
+        return 'Prioriza calor\u00edas consistentes, prote\u00edna suficiente y entrenamiento progresivo.';
       case UserNutritionalStatus.normalWeight:
-        return 'Good baseline. Let waist, performance and weekly trend lead decisions.';
+        return 'Buen punto de partida. Deja que cintura, rendimiento y tendencia semanal gu\u00eden las decisiones.';
       case UserNutritionalStatus.preObesity:
-        return 'Track waist and weekly average closely so the phase stays controlled.';
+        return 'Controla de cerca la cintura y la media semanal para que la fase siga bien ajustada.';
       case UserNutritionalStatus.obesityClassI:
       case UserNutritionalStatus.obesityClassII:
       case UserNutritionalStatus.obesityClassIII:
-        return 'Use body-weight trend and waist together before making calorie adjustments.';
+        return 'Usa juntos la tendencia del peso y la cintura antes de tocar las calor\u00edas.';
     }
   }
 

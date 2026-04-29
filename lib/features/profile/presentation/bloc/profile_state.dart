@@ -17,14 +17,18 @@ class ProfileLoadingState extends ProfileState {
 class ProfileLoadedState extends ProfileState {
   final UserBMIEntity userBMI;
   final UserEntity userEntity;
-
   final bool usesImperialUnits;
+  final DailyFocusEntity dailyFocus;
+  final GymTargetsEntity currentTargets;
 
   const ProfileLoadedState(
       {required this.userBMI,
       required this.userEntity,
-      required this.usesImperialUnits});
+      required this.usesImperialUnits,
+      required this.dailyFocus,
+      required this.currentTargets});
 
   @override
-  List<Object?> get props => [userBMI, userEntity, usesImperialUnits];
+  List<Object?> get props =>
+      [userBMI, userEntity, usesImperialUnits, dailyFocus, currentTargets];
 }

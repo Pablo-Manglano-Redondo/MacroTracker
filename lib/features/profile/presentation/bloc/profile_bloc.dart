@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
@@ -27,6 +28,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetConfigUsecase _getConfigUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final GetGymTargetsUsecase _getGymTargetsUsecase;
 
   ProfileBloc(
       this._getUserUsecase,
@@ -34,7 +36,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       this._addTrackedDayUsecase,
       this._getConfigUsecase,
       this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
+      this._getMacroGoalUsecase,
+      this._getGymTargetsUsecase)
       : super(ProfileInitial()) {
     on<LoadProfileEvent>((event, emit) async {
       emit(ProfileLoadingState());
@@ -45,11 +48,16 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           bmiValue: userBMIValue,
           nutritionalStatus: BMICalc.getNutritionalStatus(userBMIValue));
       final userConfig = await _getConfigUsecase.getConfig();
+      final currentTargets =
+          await _getGymTargetsUsecase.getTargetsForDay(DateTime.now(),
+              userEntity: user, dailyFocus: userConfig.dailyFocus);
 
       emit(ProfileLoadedState(
           userBMI: userBMIEntity,
           userEntity: user,
-          usesImperialUnits: userConfig.usesImperialUnits));
+          usesImperialUnits: userConfig.usesImperialUnits,
+          dailyFocus: userConfig.dailyFocus,
+          currentTargets: currentTargets));
     });
   }
 
