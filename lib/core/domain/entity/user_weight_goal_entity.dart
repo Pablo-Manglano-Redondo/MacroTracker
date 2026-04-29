@@ -45,7 +45,7 @@ enum UserWeightGoalEntity {
       case UserWeightGoalEntity.loseWeight:
         return 'Definición';
       case UserWeightGoalEntity.maintainWeight:
-        return 'Recomposición';
+        return 'Recomp.';
       case UserWeightGoalEntity.gainWeight:
         return 'Volumen';
     }

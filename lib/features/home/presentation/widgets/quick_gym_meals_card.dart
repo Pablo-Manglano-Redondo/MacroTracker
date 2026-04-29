@@ -7,9 +7,9 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/entity/frequent_intake_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_preset_entity.dart';
-import 'package:macrotracker/features/recipes/domain/entity/frequent_intake_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
@@ -62,11 +62,21 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final cardBackground =
+        isDark ? colorScheme.surfaceContainerLow : colorScheme.surface;
 
     return Padding(
       padding: widget.padding,
       child: Card(
         elevation: 0.5,
+        color: cardBackground,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.20),
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -75,11 +85,11 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
               Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: colorScheme.primary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(14),
+                      color: colorScheme.primary.withValues(alpha: 0.12),
                     ),
                     child: Icon(
                       Icons.bolt_outlined,
@@ -94,12 +104,19 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       children: [
                         Text(
                           'Comidas rápidas de gimnasio',
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Favoritas primero. Un toque registra 1 ración en la mejor franja.',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          'Tus favoritas primero. Un toque registra una ración en la mejor franja.',
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    height: 1.3,
+                                  ),
                         ),
                       ],
                     ),
@@ -119,7 +136,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: SegmentedButton<_QuickGymMealsFilter>(
@@ -159,9 +176,9 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                         color: colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.35),
+                            .withValues(alpha: 0.40),
                       ),
                       child: Text(
                         _selectedFilter == _QuickGymMealsFilter.all
@@ -197,18 +214,29 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Comidas frecuentes (1 toque)',
-                        style: Theme.of(context).textTheme.titleSmall,
+                        'Comidas frecuentes',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Acceso rápido a tus raciones guardadas.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 10),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
                         children: presets
                             .map(
                               (preset) => ActionChip(
-                                avatar: const Icon(Icons.flash_on_outlined,
-                                    size: 16),
+                                avatar: const Icon(
+                                  Icons.flash_on_outlined,
+                                  size: 16,
+                                ),
                                 label: Text(
                                   '${preset.title} (${preset.amount.toStringAsFixed(preset.amount % 1 == 0 ? 0 : 1)} ${preset.unit})',
                                 ),
@@ -241,8 +269,10 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(
-                '${preset.title} añadida (${preset.amount.toStringAsFixed(1)} ${preset.unit})')),
+          content: Text(
+            '${preset.title} añadida (${preset.amount.toStringAsFixed(1)} ${preset.unit})',
+          ),
+        ),
       );
     }
   }
@@ -265,7 +295,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              '${preset.recipe.name} añadida a ${_slotLabel(preset.defaultIntakeType)}'),
+            '${preset.recipe.name} añadida a ${_slotLabel(preset.defaultIntakeType)}',
+          ),
         ),
       );
     }
@@ -352,7 +383,7 @@ class _QuickRecipeTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
         ),
       ),
       child: Column(
@@ -363,7 +394,9 @@ class _QuickRecipeTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   preset.recipe.name,
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                 ),
               ),
               if (preset.recipe.favorite)
@@ -376,11 +409,11 @@ class _QuickRecipeTile extends StatelessWidget {
               IconButton.filledTonal(
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add),
-                tooltip: 'Registrar 1 ración',
+                tooltip: 'Registrar una ración',
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -402,7 +435,9 @@ class _QuickRecipeTile extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'C ${preset.carbsPerServing.toStringAsFixed(1)} | F ${preset.fatPerServing.toStringAsFixed(1)} | P ${preset.proteinPerServing.toStringAsFixed(1)}',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),

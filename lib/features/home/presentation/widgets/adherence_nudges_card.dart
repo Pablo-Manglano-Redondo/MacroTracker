@@ -24,10 +24,18 @@ class AdherenceNudgesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Padding(
       padding: padding,
       child: Card(
         elevation: 0.5,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.20),
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<DailyHabitLogEntity>(
@@ -53,56 +61,119 @@ class AdherenceNudgesCard extends StatelessWidget {
 
               if (now.hour >= 18 && proteinLeft >= 25) {
                 reminders.add(
-                    'Te quedan ${proteinLeft.toStringAsFixed(0)} g de proteína. Prioriza una comida alta en proteína.');
+                  'Te quedan ${proteinLeft.toStringAsFixed(0)} g de proteína. Prioriza una comida alta en proteína.',
+                );
               }
               if (now.hour >= 17 && hydrationProgress < 0.7) {
                 reminders.add(
-                    'Hidratación baja hoy. Sube agua para cerrar al menos al 100%.');
+                  'Hidratación baja hoy. Sube agua para cerrar al menos al 100%.',
+                );
               }
               if (now.hour >= 21 && kcalProgress < 0.85) {
                 reminders.add(
-                    'Cierra el día: te falta energía para objetivo. Añade una comida limpia de cierre.');
-              }
-
-              if (reminders.isEmpty) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Recordatorios inteligentes',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Sin recordatorios pendientes. Vas bien hoy.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                  'Cierra el día: te falta energía para objetivo. Añade una comida limpia de cierre.',
                 );
               }
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Recordatorios inteligentes',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          color: colorScheme.tertiary.withValues(alpha: 0.12),
+                        ),
+                        child: Icon(
+                          Icons.notifications_active_outlined,
+                          color: colorScheme.tertiary,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Recordatorios inteligentes',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              reminders.isEmpty
+                                  ? 'Sin acciones pendientes por ahora.'
+                                  : 'Solo avisos útiles para mantener adherencia.',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 6),
-                  ...reminders.map(
-                    (message) => Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.notifications_none_outlined,
-                              size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(message)),
-                        ],
+                  const SizedBox(height: 14),
+                  if (reminders.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: colorScheme.primary.withValues(alpha: 0.08),
+                      ),
+                      child: Text(
+                        'Sin recordatorios pendientes. Vas bien hoy.',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    )
+                  else
+                    ...reminders.map(
+                      (message) => Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.35),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant
+                                .withValues(alpha: 0.25),
+                          ),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: colorScheme.tertiary
+                                    .withValues(alpha: 0.12),
+                              ),
+                              child: Icon(
+                                Icons.arrow_upward_rounded,
+                                size: 16,
+                                color: colorScheme.tertiary,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(child: Text(message)),
+                          ],
+                        ),
                       ),
                     ),
-                  )
                 ],
               );
             },

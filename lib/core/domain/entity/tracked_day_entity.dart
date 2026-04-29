@@ -40,9 +40,28 @@ class TrackedDayEntity extends Equatable {
         proteinTracked: trackedDayDBO.proteinTracked);
   }
 
-  // TODO: make enum class for rating
+  bool get isCalorieOnTarget =>
+      _hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked);
+
+  bool get hasProteinGoal =>
+      proteinGoal != null && proteinGoal! > 0 && proteinTracked != null;
+
+  bool get isProteinOnTarget {
+    if (!hasProteinGoal) return false;
+    return proteinTracked! >= proteinGoal!;
+  }
+
+  double get calorieAdherenceScore {
+    final difference = (calorieGoal - caloriesTracked).abs();
+    final maxDifference = caloriesTracked > calorieGoal
+        ? maxKcalDifferenceOverGoal
+        : maxKcalDifferenceUnderGoal;
+    final normalized = 1 - (difference / maxDifference);
+    return normalized.clamp(0, 1).toDouble();
+  }
+
   Color getCalendarDayRatingColor(BuildContext context) {
-    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
+    if (isCalorieOnTarget) {
       return Theme.of(context).colorScheme.primary;
     } else {
       return Theme.of(context).colorScheme.error;
@@ -50,7 +69,7 @@ class TrackedDayEntity extends Equatable {
   }
 
   Color getRatingDayTextColor(BuildContext context) {
-    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
+    if (isCalorieOnTarget) {
       return Theme.of(context).colorScheme.onSecondaryContainer;
     } else {
       return Theme.of(context).colorScheme.onErrorContainer;
@@ -58,15 +77,14 @@ class TrackedDayEntity extends Equatable {
   }
 
   Color getRatingDayTextBackgroundColor(BuildContext context) {
-    if (_hasExceededMaxKcalDifferenceGoal(calorieGoal, caloriesTracked)) {
+    if (isCalorieOnTarget) {
       return Theme.of(context).colorScheme.secondaryContainer;
     } else {
       return Theme.of(context).colorScheme.errorContainer;
     }
   }
 
-  bool _hasExceededMaxKcalDifferenceGoal(
-      double calorieGoal, caloriesTracked) {
+  bool _hasExceededMaxKcalDifferenceGoal(double calorieGoal, caloriesTracked) {
     double difference = calorieGoal - caloriesTracked;
 
     if (calorieGoal < caloriesTracked) {
