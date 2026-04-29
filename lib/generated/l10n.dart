@@ -2441,10 +2441,10 @@ class S {
     );
   }
 
-  /// `e.g. disco, folk, Irish step dancing, line dancing, polka, contra, country`
+  /// `e.g. disco, folk, Irish step dancing, line dancing, polka, country`
   String get paDancingGeneralDesc {
     return Intl.message(
-      'e.g. disco, folk, Irish step dancing, line dancing, polka, contra, country',
+      'e.g. disco, folk, Irish step dancing, line dancing, polka, country',
       name: 'paDancingGeneralDesc',
       desc: '',
       args: [],
@@ -4781,36 +4781,6 @@ class S {
     );
   }
 
-  /// `High confidence`
-  String get aiConfidenceHigh {
-    return Intl.message(
-      'High confidence',
-      name: 'aiConfidenceHigh',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Medium confidence`
-  String get aiConfidenceMedium {
-    return Intl.message(
-      'Medium confidence',
-      name: 'aiConfidenceMedium',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Low confidence`
-  String get aiConfidenceLow {
-    return Intl.message(
-      'Low confidence',
-      name: 'aiConfidenceLow',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Your matches`
   String get aiYourMatches {
     return Intl.message(
@@ -4886,6 +4856,36 @@ class S {
     return Intl.message(
       'Excluded from the final meal.',
       name: 'aiExcludeFromMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High confidence`
+  String get aiConfidenceHigh {
+    return Intl.message(
+      'High confidence',
+      name: 'aiConfidenceHigh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Medium confidence`
+  String get aiConfidenceMedium {
+    return Intl.message(
+      'Medium confidence',
+      name: 'aiConfidenceMedium',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low confidence`
+  String get aiConfidenceLow {
+    return Intl.message(
+      'Low confidence',
+      name: 'aiConfidenceLow',
       desc: '',
       args: [],
     );
@@ -6209,6 +6209,696 @@ class S {
     return Intl.message(
       'Servings',
       name: 'servingsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Performance Summary`
+  String get homePerformanceSummary {
+    return Intl.message(
+      'Performance Summary',
+      name: 'homePerformanceSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Smart reminders`
+  String get nudgeSmartReminders {
+    return Intl.message(
+      'Smart reminders',
+      name: 'nudgeSmartReminders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No pending actions for now.`
+  String get nudgeNoPendingActions {
+    return Intl.message(
+      'No pending actions for now.',
+      name: 'nudgeNoPendingActions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Only useful alerts to maintain adherence.`
+  String get nudgeKeepAdherence {
+    return Intl.message(
+      'Only useful alerts to maintain adherence.',
+      name: 'nudgeKeepAdherence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You have {amount}g of protein left. Prioritize a high protein meal.`
+  String nudgeProteinLeft(Object amount) {
+    return Intl.message(
+      'You have ${amount}g of protein left. Prioritize a high protein meal.',
+      name: 'nudgeProteinLeft',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Low hydration today. Drink water to close at 100%.`
+  String get nudgeLowHydration {
+    return Intl.message(
+      'Low hydration today. Drink water to close at 100%.',
+      name: 'nudgeLowHydration',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Closing the day: you lack energy for goal. Add a clean closing meal.`
+  String get nudgeDayClosing {
+    return Intl.message(
+      'Closing the day: you lack energy for goal. Add a clean closing meal.',
+      name: 'nudgeDayClosing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No pending reminders. Doing great today.`
+  String get nudgeNoReminders {
+    return Intl.message(
+      'No pending reminders. Doing great today.',
+      name: 'nudgeNoReminders',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No clear overeating pattern`
+  String get weeklyInsightsNoOvereatingPattern {
+    return Intl.message(
+      'No clear overeating pattern',
+      name: 'weeklyInsightsNoOvereatingPattern',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Morning`
+  String get weeklyInsightsSlotMorning {
+    return Intl.message(
+      'Morning',
+      name: 'weeklyInsightsSlotMorning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Afternoon`
+  String get weeklyInsightsSlotAfternoon {
+    return Intl.message(
+      'Afternoon',
+      name: 'weeklyInsightsSlotAfternoon',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Evening`
+  String get weeklyInsightsSlotEvening {
+    return Intl.message(
+      'Evening',
+      name: 'weeklyInsightsSlotEvening',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Late night`
+  String get weeklyInsightsSlotLateNight {
+    return Intl.message(
+      'Late night',
+      name: 'weeklyInsightsSlotLateNight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No days registered this week yet.`
+  String get weeklyInsightsSummaryNoDays {
+    return Intl.message(
+      'No days registered this week yet.',
+      name: 'weeklyInsightsSummaryNoDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Solid week: good caloric adherence and protein consistency.`
+  String get weeklyInsightsSummarySolid {
+    return Intl.message(
+      'Solid week: good caloric adherence and protein consistency.',
+      name: 'weeklyInsightsSummarySolid',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Caloric adherence was irregular this week.`
+  String get weeklyInsightsSummaryIrregular {
+    return Intl.message(
+      'Caloric adherence was irregular this week.',
+      name: 'weeklyInsightsSummaryIrregular',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The main gap was protein consistency.`
+  String get weeklyInsightsSummaryProteinGap {
+    return Intl.message(
+      'The main gap was protein consistency.',
+      name: 'weeklyInsightsSummaryProteinGap',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stable week, with room to improve consistency.`
+  String get weeklyInsightsSummaryStable {
+    return Intl.message(
+      'Stable week, with room to improve consistency.',
+      name: 'weeklyInsightsSummaryStable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adherence too low for automatic adjustment. Improve consistency first.`
+  String get weeklyInsightsRecAdherenceLow {
+    return Intl.message(
+      'Adherence too low for automatic adjustment. Improve consistency first.',
+      name: 'weeklyInsightsRecAdherenceLow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fat loss stalled: suggestion -100 kcal/day.`
+  String get weeklyInsightsRecLoseWeightStalled {
+    return Intl.message(
+      'Fat loss stalled: suggestion -100 kcal/day.',
+      name: 'weeklyInsightsRecLoseWeightStalled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Slow fat loss: suggestion -50 kcal/day.`
+  String get weeklyInsightsRecLoseWeightSlow {
+    return Intl.message(
+      'Slow fat loss: suggestion -50 kcal/day.',
+      name: 'weeklyInsightsRecLoseWeightSlow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight dropping too fast: suggestion +50 kcal/day.`
+  String get weeklyInsightsRecLoseWeightFast {
+    return Intl.message(
+      'Weight dropping too fast: suggestion +50 kcal/day.',
+      name: 'weeklyInsightsRecLoseWeightFast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Correct definition pace. No kcal change.`
+  String get weeklyInsightsRecLoseWeightCorrect {
+    return Intl.message(
+      'Correct definition pace. No kcal change.',
+      name: 'weeklyInsightsRecLoseWeightCorrect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trending up: suggestion -50 kcal/day.`
+  String get weeklyInsightsRecMaintainUp {
+    return Intl.message(
+      'Weight trending up: suggestion -50 kcal/day.',
+      name: 'weeklyInsightsRecMaintainUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trending down: suggestion +50 kcal/day.`
+  String get weeklyInsightsRecMaintainDown {
+    return Intl.message(
+      'Weight trending down: suggestion +50 kcal/day.',
+      name: 'weeklyInsightsRecMaintainDown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stable maintenance. No kcal change.`
+  String get weeklyInsightsRecMaintainStable {
+    return Intl.message(
+      'Stable maintenance. No kcal change.',
+      name: 'weeklyInsightsRecMaintainStable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Bulk too slow: suggestion +100 kcal/day.`
+  String get weeklyInsightsRecGainSlow {
+    return Intl.message(
+      'Bulk too slow: suggestion +100 kcal/day.',
+      name: 'weeklyInsightsRecGainSlow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Soft bulk pace: suggestion +50 kcal/day.`
+  String get weeklyInsightsRecGainSoft {
+    return Intl.message(
+      'Soft bulk pace: suggestion +50 kcal/day.',
+      name: 'weeklyInsightsRecGainSoft',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight rising too fast: suggestion -50 kcal/day.`
+  String get weeklyInsightsRecGainFast {
+    return Intl.message(
+      'Weight rising too fast: suggestion -50 kcal/day.',
+      name: 'weeklyInsightsRecGainFast',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Controlled bulk pace. No kcal change.`
+  String get weeklyInsightsRecGainCorrect {
+    return Intl.message(
+      'Controlled bulk pace. No kcal change.',
+      name: 'weeklyInsightsRecGainCorrect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current adjustment: {kcal} kcal.`
+  String weeklyInsightsCurrentAdjustment(Object kcal) {
+    return Intl.message(
+      'Current adjustment: $kcal kcal.',
+      name: 'weeklyInsightsCurrentAdjustment',
+      desc: '',
+      args: [kcal],
+    );
+  }
+
+  /// `Body progress`
+  String get bodyProgressTitle {
+    return Intl.message(
+      'Body progress',
+      name: 'bodyProgressTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Body progress could not be loaded.`
+  String get bodyProgressLoadError {
+    return Intl.message(
+      'Body progress could not be loaded.',
+      name: 'bodyProgressLoadError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log body data`
+  String get bodyProgressLogData {
+    return Intl.message(
+      'Log body data',
+      name: 'bodyProgressLogData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Day`
+  String get bodyProgressDay {
+    return Intl.message(
+      'Day',
+      name: 'bodyProgressDay',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight`
+  String get bodyProgressWeight {
+    return Intl.message(
+      'Weight',
+      name: 'bodyProgressWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist`
+  String get bodyProgressWaist {
+    return Intl.message(
+      'Waist',
+      name: 'bodyProgressWaist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not enough data for this metric yet.`
+  String get bodyProgressNotEnoughData {
+    return Intl.message(
+      'Not enough data for this metric yet.',
+      name: 'bodyProgressNotEnoughData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `History`
+  String get historyLabel {
+    return Intl.message(
+      'History',
+      name: 'historyLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log today`
+  String get logTodayLabel {
+    return Intl.message(
+      'Log today',
+      name: 'logTodayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `min`
+  String get minutesLabel {
+    return Intl.message(
+      'min',
+      name: 'minutesLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recent check-ins`
+  String get bodyProgressRecentCheckins {
+    return Intl.message(
+      'Recent check-ins',
+      name: 'bodyProgressRecentCheckins',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No body check-ins yet. Start logging weight and waist to get a usable trend.`
+  String get bodyProgressNoCheckins {
+    return Intl.message(
+      'No body check-ins yet. Start logging weight and waist to get a usable trend.',
+      name: 'bodyProgressNoCheckins',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trend`
+  String get bodyProgressTrend {
+    return Intl.message(
+      'Trend',
+      name: 'bodyProgressTrend',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latest weight`
+  String get bodyProgressLatestWeight {
+    return Intl.message(
+      'Latest weight',
+      name: 'bodyProgressLatestWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `7d average`
+  String get bodyProgress7dAverage {
+    return Intl.message(
+      '7d average',
+      name: 'bodyProgress7dAverage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weekly delta`
+  String get bodyProgressWeeklyDelta {
+    return Intl.message(
+      'Weekly delta',
+      name: 'bodyProgressWeeklyDelta',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latest waist`
+  String get bodyProgressLatestWaist {
+    return Intl.message(
+      'Latest waist',
+      name: 'bodyProgressLatestWaist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Auto read`
+  String get bodyProgressAutoRead {
+    return Intl.message(
+      'Auto read',
+      name: 'bodyProgressAutoRead',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trend needs another full week of check-ins.`
+  String get bodyProgressTrendWeightNeedData {
+    return Intl.message(
+      'Weight trend needs another full week of check-ins.',
+      name: 'bodyProgressTrendWeightNeedData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight is holding steady week over week.`
+  String get bodyProgressTrendWeightSteady {
+    return Intl.message(
+      'Weight is holding steady week over week.',
+      name: 'bodyProgressTrendWeightSteady',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight is trending down versus the previous 7-day average.`
+  String get bodyProgressTrendWeightDown {
+    return Intl.message(
+      'Weight is trending down versus the previous 7-day average.',
+      name: 'bodyProgressTrendWeightDown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight is trending up versus the previous 7-day average.`
+  String get bodyProgressTrendWeightUp {
+    return Intl.message(
+      'Weight is trending up versus the previous 7-day average.',
+      name: 'bodyProgressTrendWeightUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist trend needs at least two waist check-ins.`
+  String get bodyProgressTrendWaistNeedData {
+    return Intl.message(
+      'Waist trend needs at least two waist check-ins.',
+      name: 'bodyProgressTrendWaistNeedData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist is stable across the latest check-ins.`
+  String get bodyProgressTrendWaistSteady {
+    return Intl.message(
+      'Waist is stable across the latest check-ins.',
+      name: 'bodyProgressTrendWaistSteady',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist is tightening versus the previous waist check-in.`
+  String get bodyProgressTrendWaistDown {
+    return Intl.message(
+      'Waist is tightening versus the previous waist check-in.',
+      name: 'bodyProgressTrendWaistDown',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist is up versus the previous waist check-in.`
+  String get bodyProgressTrendWaistUp {
+    return Intl.message(
+      'Waist is up versus the previous waist check-in.',
+      name: 'bodyProgressTrendWaistUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No trend`
+  String get bodyProgressTrendNoTrend {
+    return Intl.message(
+      'No trend',
+      name: 'bodyProgressTrendNoTrend',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `On track`
+  String get bodyProgressTrendOnTrack {
+    return Intl.message(
+      'On track',
+      name: 'bodyProgressTrendOnTrack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Off track`
+  String get bodyProgressTrendOffTrack {
+    return Intl.message(
+      'Off track',
+      name: 'bodyProgressTrendOffTrack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mixed`
+  String get bodyProgressTrendMixed {
+    return Intl.message(
+      'Mixed',
+      name: 'bodyProgressTrendMixed',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trend chart`
+  String get bodyProgressTrendChart {
+    return Intl.message(
+      'Trend chart',
+      name: 'bodyProgressTrendChart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trend with 7d rolling average`
+  String get bodyProgressTrendChartWeightSubtitle {
+    return Intl.message(
+      'Weight trend with 7d rolling average',
+      name: 'bodyProgressTrendChartWeightSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Waist trend by check-in`
+  String get bodyProgressTrendChartWaistSubtitle {
+    return Intl.message(
+      'Waist trend by check-in',
+      name: 'bodyProgressTrendChartWaistSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add a few body check-ins to unlock the trend chart.`
+  String get bodyProgressAddCheckinsUnlockChart {
+    return Intl.message(
+      'Add a few body check-ins to unlock the trend chart.',
+      name: 'bodyProgressAddCheckinsUnlockChart',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No check-ins yet.`
+  String get bodyProgressNoCheckinsYet {
+    return Intl.message(
+      'No check-ins yet.',
+      name: 'bodyProgressNoCheckinsYet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latest check-in {date}`
+  String bodyProgressLatestCheckin(Object date) {
+    return Intl.message(
+      'Latest check-in $date',
+      name: 'bodyProgressLatestCheckin',
+      desc: '',
+      args: [date],
+    );
+  }
+
+  /// `Open history`
+  String get bodyProgressOpenHistoryTooltip {
+    return Intl.message(
+      'Open history',
+      name: 'bodyProgressOpenHistoryTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delta`
+  String get bodyProgressDelta {
+    return Intl.message(
+      'Delta',
+      name: 'bodyProgressDelta',
       desc: '',
       args: [],
     );

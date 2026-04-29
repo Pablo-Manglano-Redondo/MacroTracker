@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/features/body_progress/domain/entity/body_measurement_entity.dart';
 
@@ -32,11 +33,11 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
         sortedMeasurements.any((measurement) => measurement.waistCm != null);
 
     if (!hasWeightData && !hasWaistData) {
-      return const Card(
+      return Card(
         child: Padding(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Text(
-            'Add a few body check-ins to unlock the trend chart.',
+            S.of(context).bodyProgressAddCheckinsUnlockChart,
           ),
         ),
       );
@@ -63,14 +64,14 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Trend chart',
+                        S.of(context).bodyProgressTrendChart,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         selectedMetric == BodyProgressChartMetric.weight
-                            ? 'Weight trend with 7d rolling average'
-                            : 'Waist trend by check-in',
+                            ? S.of(context).bodyProgressTrendChartWeightSubtitle
+                            : S.of(context).bodyProgressTrendChartWaistSubtitle,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -81,12 +82,12 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
                   segments: [
                     ButtonSegment(
                       value: BodyProgressChartMetric.weight,
-                      label: const Text('Weight'),
+                      label: Text(S.of(context).weightLabel),
                       enabled: hasWeightData,
                     ),
                     ButtonSegment(
                       value: BodyProgressChartMetric.waist,
-                      label: const Text('Waist'),
+                      label: Text(S.of(context).bodyProgressWaist),
                       enabled: hasWaistData,
                     ),
                   ],
@@ -101,9 +102,9 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
             ),
             const SizedBox(height: 16),
             if (series.primary.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Text('Not enough data for this metric yet.'),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(S.of(context).bodyProgressNotEnoughData),
               )
             else ...[
               AspectRatio(
@@ -122,6 +123,7 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
                     textStyle: Theme.of(context).textTheme.labelSmall!,
                     bottomLabelBuilder: _buildBottomLabel,
                     valueLabelBuilder: (value) => _formatMetricValue(
+                      context,
                       value,
                       selectedMetric,
                     ),
@@ -136,8 +138,8 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
                   _LegendItem(
                     color: Theme.of(context).colorScheme.primary,
                     label: selectedMetric == BodyProgressChartMetric.weight
-                        ? 'Weight'
-                        : 'Waist',
+                        ? S.of(context).weightLabel
+                        : S.of(context).bodyProgressWaist,
                   ),
                   if (series.secondary.isNotEmpty)
                     _LegendItem(
@@ -173,7 +175,8 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
     return '';
   }
 
-  String _formatMetricValue(double value, BodyProgressChartMetric metric) {
+  String _formatMetricValue(
+      BuildContext context, double value, BodyProgressChartMetric metric) {
     final displayValue = switch (metric) {
       BodyProgressChartMetric.weight =>
         widget.usesImperialUnits ? UnitCalc.kgToLbs(value) : value,
@@ -181,8 +184,10 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
         widget.usesImperialUnits ? UnitCalc.cmToInches(value) : value,
     };
     final unit = switch (metric) {
-      BodyProgressChartMetric.weight => widget.usesImperialUnits ? 'lb' : 'kg',
-      BodyProgressChartMetric.waist => widget.usesImperialUnits ? 'in' : 'cm',
+      BodyProgressChartMetric.weight =>
+        widget.usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel,
+      BodyProgressChartMetric.waist =>
+        widget.usesImperialUnits ? 'in' : S.of(context).cmLabel,
     };
     return '${displayValue.toStringAsFixed(displayValue % 1 == 0 ? 0 : 1)} $unit';
   }

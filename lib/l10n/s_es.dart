@@ -246,7 +246,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ecuación del Instituto de Medicina';
 
   @override
-  String get calculationsRecommendedLabel => '(recomendado)';
+  String get calculationsRecommendedLabel => '(recommended)';
 
   @override
   String get calculationsMacronutrientsDistributionLabel =>
@@ -1391,7 +1391,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aiStatusConsulting => 'Consultando IA...';
 
   @override
-  String get aiStatusPersonalizing => 'Personalizando...';
+  String get aiStatusPersonalizing => 'Personalizing...';
 
   @override
   String get aiErrorPayloadTooLarge =>
@@ -1505,15 +1505,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ajusta la ración final antes de guardar.';
 
   @override
-  String get aiConfidenceHigh => 'Confianza alta';
-
-  @override
-  String get aiConfidenceMedium => 'Confianza media';
-
-  @override
-  String get aiConfidenceLow => 'Confianza baja';
-
-  @override
   String get aiYourMatches => 'Coincidencias tuyas';
 
   @override
@@ -1541,6 +1532,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aiExcludeFromMeal => 'Excluido de la comida final.';
+
+  @override
+  String get aiConfidenceHigh => 'Confianza alta';
+
+  @override
+  String get aiConfidenceMedium => 'Confianza media';
+
+  @override
+  String get aiConfidenceLow => 'Confianza baja';
 
   @override
   String get aiConfidenceLowHint =>
@@ -2022,4 +2022,251 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get servingsLabel => 'Raciones';
+
+  @override
+  String get homePerformanceSummary => 'Resumen de rendimiento';
+
+  @override
+  String get nudgeSmartReminders => 'Recordatorios inteligentes';
+
+  @override
+  String get nudgeNoPendingActions => 'Sin acciones pendientes por ahora.';
+
+  @override
+  String get nudgeKeepAdherence =>
+      'Solo avisos útiles para mantener adherencia.';
+
+  @override
+  String nudgeProteinLeft(Object amount) {
+    return 'Te quedan $amount g de proteína. Prioriza una comida alta en proteína.';
+  }
+
+  @override
+  String get nudgeLowHydration =>
+      'Hidratación baja hoy. Sube agua para cerrar al menos al 100%.';
+
+  @override
+  String get nudgeDayClosing =>
+      'Cierra el día: te falta energía para objetivo. Añade una comida limpia de cierre.';
+
+  @override
+  String get nudgeNoReminders => 'Sin recordatorios pendientes. Vas bien hoy.';
+
+  @override
+  String get weeklyInsightsNoOvereatingPattern =>
+      'Sin patrón claro de sobreingesta';
+
+  @override
+  String get weeklyInsightsSlotMorning => 'Mañana';
+
+  @override
+  String get weeklyInsightsSlotAfternoon => 'Tarde';
+
+  @override
+  String get weeklyInsightsSlotEvening => 'Noche';
+
+  @override
+  String get weeklyInsightsSlotLateNight => 'Madrugada';
+
+  @override
+  String get weeklyInsightsSummaryNoDays =>
+      'Aún no hay días registrados esta semana.';
+
+  @override
+  String get weeklyInsightsSummarySolid =>
+      'Semana sólida: buena adherencia calórica y consistencia proteica.';
+
+  @override
+  String get weeklyInsightsSummaryIrregular =>
+      'La adherencia calórica fue irregular esta semana.';
+
+  @override
+  String get weeklyInsightsSummaryProteinGap =>
+      'La principal brecha fue la consistencia de proteína.';
+
+  @override
+  String get weeklyInsightsSummaryStable =>
+      'Semana bastante estable, con margen para mejorar consistencia.';
+
+  @override
+  String get weeklyInsightsRecAdherenceLow =>
+      'Adherencia demasiado baja para ajuste automático. Primero mejora consistencia.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightStalled =>
+      'La pérdida de grasa se estanca: sugerencia -100 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightSlow =>
+      'Pérdida de grasa lenta: sugerencia -50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightFast =>
+      'El peso baja demasiado rápido: sugerencia +50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightCorrect =>
+      'Ritmo de definición correcto. Sin cambio de kcal.';
+
+  @override
+  String get weeklyInsightsRecMaintainUp =>
+      'El peso va al alza: sugerencia -50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecMaintainDown =>
+      'El peso va a la baja: sugerencia +50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecMaintainStable =>
+      'Mantenimiento estable. Sin cambio de kcal.';
+
+  @override
+  String get weeklyInsightsRecGainSlow =>
+      'Volumen demasiado lento: sugerencia +100 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecGainSoft =>
+      'Ritmo de volumen suave: sugerencia +50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecGainFast =>
+      'El peso sube demasiado rápido: sugerencia -50 kcal/día.';
+
+  @override
+  String get weeklyInsightsRecGainCorrect =>
+      'Ritmo de volumen controlado. Sin cambio de kcal.';
+
+  @override
+  String weeklyInsightsCurrentAdjustment(Object kcal) {
+    return 'Ajuste actual: $kcal kcal.';
+  }
+
+  @override
+  String get bodyProgressTitle => 'Progreso corporal';
+
+  @override
+  String get bodyProgressLoadError => 'No se pudo cargar el progreso corporal.';
+
+  @override
+  String get bodyProgressLogData => 'Registrar datos corporales';
+
+  @override
+  String get bodyProgressDay => 'Día';
+
+  @override
+  String get bodyProgressWeight => 'Peso';
+
+  @override
+  String get bodyProgressWaist => 'Cintura';
+
+  @override
+  String get bodyProgressNotEnoughData =>
+      'Aún no hay suficientes datos para esta métrica.';
+
+  @override
+  String get historyLabel => 'Historial';
+
+  @override
+  String get logTodayLabel => 'Registrar hoy';
+
+  @override
+  String get minutesLabel => 'min';
+
+  @override
+  String get bodyProgressRecentCheckins => 'Registros recientes';
+
+  @override
+  String get bodyProgressNoCheckins =>
+      'Aún no hay registros corporales. Registra peso y cintura para obtener una tendencia útil.';
+
+  @override
+  String get bodyProgressTrend => 'Tendencia';
+
+  @override
+  String get bodyProgressLatestWeight => 'Último peso';
+
+  @override
+  String get bodyProgress7dAverage => 'Media 7d';
+
+  @override
+  String get bodyProgressWeeklyDelta => 'Delta semanal';
+
+  @override
+  String get bodyProgressLatestWaist => 'Última cintura';
+
+  @override
+  String get bodyProgressAutoRead => 'Lectura automática';
+
+  @override
+  String get bodyProgressTrendWeightNeedData =>
+      'La tendencia de peso necesita otra semana completa de registros.';
+
+  @override
+  String get bodyProgressTrendWeightSteady =>
+      'El peso se mantiene estable semana tras semana.';
+
+  @override
+  String get bodyProgressTrendWeightDown =>
+      'El peso tiende a la baja respecto a la media de los últimos 7 días.';
+
+  @override
+  String get bodyProgressTrendWeightUp =>
+      'El peso tiende al alza respecto a la media de los últimos 7 días.';
+
+  @override
+  String get bodyProgressTrendWaistNeedData =>
+      'La tendencia de cintura necesita al menos dos registros.';
+
+  @override
+  String get bodyProgressTrendWaistSteady =>
+      'La cintura está estable según los últimos registros.';
+
+  @override
+  String get bodyProgressTrendWaistDown =>
+      'La cintura se está reduciendo respecto al registro anterior.';
+
+  @override
+  String get bodyProgressTrendWaistUp =>
+      'La cintura ha subido respecto al registro anterior.';
+
+  @override
+  String get bodyProgressTrendNoTrend => 'Sin tendencia';
+
+  @override
+  String get bodyProgressTrendOnTrack => 'En camino';
+
+  @override
+  String get bodyProgressTrendOffTrack => 'Fuera de camino';
+
+  @override
+  String get bodyProgressTrendMixed => 'Mixto';
+
+  @override
+  String get bodyProgressTrendChart => 'Gráfico de tendencia';
+
+  @override
+  String get bodyProgressTrendChartWeightSubtitle =>
+      'Tendencia de peso con media móvil de 7 días';
+
+  @override
+  String get bodyProgressTrendChartWaistSubtitle =>
+      'Tendencia de cintura por registro';
+
+  @override
+  String get bodyProgressAddCheckinsUnlockChart =>
+      'Añade algunos registros corporales para desbloquear el gráfico de tendencia.';
+
+  @override
+  String get bodyProgressNoCheckinsYet => 'Aún no hay registros.';
+
+  @override
+  String bodyProgressLatestCheckin(Object date) {
+    return 'Último registro $date';
+  }
+
+  @override
+  String get bodyProgressOpenHistoryTooltip => 'Abrir historial';
+
+  @override
+  String get bodyProgressDelta => 'Delta';
 }

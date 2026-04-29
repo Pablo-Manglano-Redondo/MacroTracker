@@ -8,6 +8,7 @@ import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class BuildWeeklyInsightsUsecase {
   final GetTrackedDayUsecase _getTrackedDayUsecase;
@@ -92,7 +93,7 @@ class BuildWeeklyInsightsUsecase {
       weeklyWeightDeltaKg: weeklyWeightDeltaKg,
       recommendedKcalAdjustmentDelta: recommendation.deltaKcal,
       kcalAdjustmentRecommendation:
-          '${recommendation.label} Current adjustment: ${config.userKcalAdjustment?.toStringAsFixed(0) ?? '0'} kcal.',
+          '${recommendation.label} ${S.current.weeklyInsightsCurrentAdjustment(config.userKcalAdjustment?.toStringAsFixed(0) ?? '0')}',
     );
   }
 
@@ -141,14 +142,14 @@ class BuildWeeklyInsightsUsecase {
         .map((day) => DateTime(day.day.year, day.day.month, day.day.day))
         .toSet();
     if (overGoalDays.isEmpty) {
-      return 'Sin patron claro de sobreingesta';
+      return S.current.weeklyInsightsNoOvereatingPattern;
     }
 
     final slotCalories = <String, double>{
-      'Manana': 0,
-      'Tarde': 0,
-      'Noche': 0,
-      'Madrugada': 0,
+      S.current.weeklyInsightsSlotMorning: 0,
+      S.current.weeklyInsightsSlotAfternoon: 0,
+      S.current.weeklyInsightsSlotEvening: 0,
+      S.current.weeklyInsightsSlotLateNight: 0,
     };
 
     for (final intake in weekIntakes) {
@@ -164,39 +165,39 @@ class BuildWeeklyInsightsUsecase {
     final top =
         slotCalories.entries.sorted((a, b) => b.value.compareTo(a.value)).first;
     if (top.value <= 0) {
-      return 'Sin patron claro de sobreingesta';
+      return S.current.weeklyInsightsNoOvereatingPattern;
     }
     return top.key;
   }
 
   String _hourToSlot(int hour) {
     if (hour < 12) {
-      return 'Manana';
+      return S.current.weeklyInsightsSlotMorning;
     }
     if (hour < 17) {
-      return 'Tarde';
+      return S.current.weeklyInsightsSlotAfternoon;
     }
     if (hour < 22) {
-      return 'Noche';
+      return S.current.weeklyInsightsSlotEvening;
     }
-    return 'Madrugada';
+    return S.current.weeklyInsightsSlotLateNight;
   }
 
   String _buildSummaryLabel(
       int adherenceCount, int proteinConsistentCount, int trackedDayCount) {
     if (trackedDayCount == 0) {
-      return 'Aun no hay dias registrados esta semana.';
+      return S.current.weeklyInsightsSummaryNoDays;
     }
     if (adherenceCount >= 5 && proteinConsistentCount >= 5) {
-      return 'Semana solida: buena adherencia calorica y consistencia proteica.';
+      return S.current.weeklyInsightsSummarySolid;
     }
     if (adherenceCount <= 2) {
-      return 'La adherencia calorica fue irregular esta semana.';
+      return S.current.weeklyInsightsSummaryIrregular;
     }
     if (proteinConsistentCount <= 2) {
-      return 'La principal brecha fue la consistencia de proteina.';
+      return S.current.weeklyInsightsSummaryProteinGap;
     }
-    return 'Semana bastante estable, con margen para mejorar consistencia.';
+    return S.current.weeklyInsightsSummaryStable;
   }
 
   Future<double> _computeWeeklyWeightDelta(DateTime referenceDay) async {
@@ -211,75 +212,75 @@ class BuildWeeklyInsightsUsecase {
     required double weeklyWeightDeltaKg,
   }) {
     if (adherenceRate < 0.6) {
-      return const _KcalAdjustmentRecommendation(
+      return _KcalAdjustmentRecommendation(
         0,
-        'Adherencia demasiado baja para ajuste automatico. Primero mejora consistencia.',
+        S.current.weeklyInsightsRecAdherenceLow,
       );
     }
 
     switch (goal) {
       case UserWeightGoalEntity.loseWeight:
         if (weeklyWeightDeltaKg > -0.05) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             -100,
-            'La perdida de grasa se estanca: sugerencia -100 kcal/dia.',
+            S.current.weeklyInsightsRecLoseWeightStalled,
           );
         }
         if (weeklyWeightDeltaKg > -0.12) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             -50,
-            'Perdida de grasa lenta: sugerencia -50 kcal/dia.',
+            S.current.weeklyInsightsRecLoseWeightSlow,
           );
         }
         if (weeklyWeightDeltaKg < -0.45) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             50,
-            'El peso baja demasiado rapido: sugerencia +50 kcal/dia.',
+            S.current.weeklyInsightsRecLoseWeightFast,
           );
         }
-        return const _KcalAdjustmentRecommendation(
+        return _KcalAdjustmentRecommendation(
           0,
-          'Ritmo de definicion correcto. Sin cambio de kcal.',
+          S.current.weeklyInsightsRecLoseWeightCorrect,
         );
       case UserWeightGoalEntity.maintainWeight:
         if (weeklyWeightDeltaKg > 0.25) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             -50,
-            'El peso va al alza: sugerencia -50 kcal/dia.',
+            S.current.weeklyInsightsRecMaintainUp,
           );
         }
         if (weeklyWeightDeltaKg < -0.25) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             50,
-            'El peso va a la baja: sugerencia +50 kcal/dia.',
+            S.current.weeklyInsightsRecMaintainDown,
           );
         }
-        return const _KcalAdjustmentRecommendation(
+        return _KcalAdjustmentRecommendation(
           0,
-          'Mantenimiento estable. Sin cambio de kcal.',
+          S.current.weeklyInsightsRecMaintainStable,
         );
       case UserWeightGoalEntity.gainWeight:
         if (weeklyWeightDeltaKg < 0.05) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             100,
-            'Volumen demasiado lento: sugerencia +100 kcal/dia.',
+            S.current.weeklyInsightsRecGainSlow,
           );
         }
         if (weeklyWeightDeltaKg < 0.12) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             50,
-            'Ritmo de volumen suave: sugerencia +50 kcal/dia.',
+            S.current.weeklyInsightsRecGainSoft,
           );
         }
         if (weeklyWeightDeltaKg > 0.45) {
-          return const _KcalAdjustmentRecommendation(
+          return _KcalAdjustmentRecommendation(
             -50,
-            'El peso sube demasiado rapido: sugerencia -50 kcal/dia.',
+            S.current.weeklyInsightsRecGainFast,
           );
         }
-        return const _KcalAdjustmentRecommendation(
+        return _KcalAdjustmentRecommendation(
           0,
-          'Ritmo de volumen controlado. Sin cambio de kcal.',
+          S.current.weeklyInsightsRecGainCorrect,
         );
     }
   }

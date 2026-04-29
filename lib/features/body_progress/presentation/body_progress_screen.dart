@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -27,7 +28,7 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Body progress')),
+      appBar: AppBar(title: Text(S.of(context).bodyProgressTitle)),
       floatingActionButton: FloatingActionButton(
         onPressed: _showLogDialog,
         child: const Icon(Icons.add),
@@ -41,8 +42,8 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
 
           final data = snapshot.data;
           if (data == null) {
-            return const Center(
-                child: Text('Body progress could not be loaded.'));
+            return Center(
+                child: Text(S.of(context).bodyProgressLoadError));
           }
 
           return ListView(
@@ -59,16 +60,16 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Recent check-ins',
+                S.of(context).bodyProgressRecentCheckins,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
               if (data.measurements.isEmpty)
-                const Card(
+                Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No body check-ins yet. Start logging weight and waist to get a usable trend.',
+                      S.of(context).bodyProgressNoCheckins,
                     ),
                   ),
                 )
@@ -148,14 +149,14 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
           ? UnitCalc.kgToLbs(measurement.weightKg!)
           : measurement.weightKg!;
       parts.add(
-          'Weight ${weight.toStringAsFixed(weight % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'lb' : 'kg'}');
+          '${S.of(context).weightLabel} ${weight.toStringAsFixed(weight % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}');
     }
     if (measurement.waistCm != null) {
       final waist = usesImperialUnits
           ? UnitCalc.cmToInches(measurement.waistCm!)
           : measurement.waistCm!;
       parts.add(
-          'Waist ${waist.toStringAsFixed(waist % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'in' : 'cm'}');
+          '${S.of(context).bodyProgressWaist} ${waist.toStringAsFixed(waist % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'in' : S.of(context).cmLabel}');
     }
     return parts.join(' | ');
   }
@@ -184,7 +185,7 @@ class _SummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Trend',
+                    S.of(context).bodyProgressTrend,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -202,23 +203,23 @@ class _SummaryCard extends StatelessWidget {
               runSpacing: 12,
               children: [
                 _MetricTile(
-                  label: 'Latest weight',
-                  value: _weight(summary.latestWeightKg),
+                  label: S.of(context).bodyProgressLatestWeight,
+                  value: _weight(context, summary.latestWeightKg),
                   accentColor: tone.foreground,
                 ),
                 _MetricTile(
-                  label: '7d average',
-                  value: _weight(summary.rollingWeightAverageKg),
+                  label: S.of(context).bodyProgress7dAverage,
+                  value: _weight(context, summary.rollingWeightAverageKg),
                   accentColor: Theme.of(context).colorScheme.primary,
                 ),
                 _MetricTile(
-                  label: 'Weekly delta',
-                  value: _weight(summary.weeklyWeightDeltaKg, signed: true),
+                  label: S.of(context).bodyProgressWeeklyDelta,
+                  value: _weight(context, summary.weeklyWeightDeltaKg, signed: true),
                   accentColor: tone.foreground,
                 ),
                 _MetricTile(
-                  label: 'Latest waist',
-                  value: _waist(summary.latestWaistCm),
+                  label: S.of(context).bodyProgressLatestWaist,
+                  value: _waist(context, summary.latestWaistCm),
                   accentColor: tone.foreground,
                 ),
               ],
@@ -239,20 +240,20 @@ class _SummaryCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Auto read',
+                      S.of(context).bodyProgressAutoRead,
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: 8),
                     if (summary.hasWeightTrend)
                       Text(
-                        _weightTrendText(),
+                      _weightTrendText(context),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     if (summary.hasWeightTrend && summary.hasWaistTrend)
                       const SizedBox(height: 6),
                     if (summary.hasWaistTrend)
                       Text(
-                        _waistTrendText(),
+                        _waistTrendText(context),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                   ],
@@ -264,49 +265,49 @@ class _SummaryCard extends StatelessWidget {
     );
   }
 
-  String _weight(double? kg, {bool signed = false}) {
+  String _weight(BuildContext context, double? kg, {bool signed = false}) {
     if (kg == null) {
       return '--';
     }
     final value = usesImperialUnits ? UnitCalc.kgToLbs(kg) : kg;
     final prefix = signed && value > 0 ? '+' : '';
-    return '$prefix${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'lb' : 'kg'}';
+    return '$prefix${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
   }
 
-  String _waist(double? cm) {
+  String _waist(BuildContext context, double? cm) {
     if (cm == null) {
       return '--';
     }
     final value = usesImperialUnits ? UnitCalc.cmToInches(cm) : cm;
-    return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'in' : 'cm'}';
+    return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${usesImperialUnits ? 'in' : S.of(context).cmLabel}';
   }
 
-  String _weightTrendText() {
+  String _weightTrendText(BuildContext context) {
     final delta = summary.weeklyWeightDeltaKg;
     if (delta == null) {
-      return 'Weight trend needs another full week of check-ins.';
+      return S.of(context).bodyProgressTrendWeightNeedData;
     }
     if (summary.isWeightStable) {
-      return 'Weight is holding steady week over week.';
+      return S.of(context).bodyProgressTrendWeightSteady;
     }
     if (delta < 0) {
-      return 'Weight is trending down versus the previous 7-day average.';
+      return S.of(context).bodyProgressTrendWeightDown;
     }
-    return 'Weight is trending up versus the previous 7-day average.';
+    return S.of(context).bodyProgressTrendWeightUp;
   }
 
-  String _waistTrendText() {
+  String _waistTrendText(BuildContext context) {
     final delta = summary.latestWaistDeltaCm;
     if (delta == null) {
-      return 'Waist trend needs at least two waist check-ins.';
+      return S.of(context).bodyProgressTrendWaistNeedData;
     }
     if (summary.isWaistStable) {
-      return 'Waist is stable across the latest check-ins.';
+      return S.of(context).bodyProgressTrendWaistSteady;
     }
     if (delta < 0) {
-      return 'Waist is tightening versus the previous waist check-in.';
+      return S.of(context).bodyProgressTrendWaistDown;
     }
-    return 'Waist is up versus the previous waist check-in.';
+    return S.of(context).bodyProgressTrendWaistUp;
   }
 
   _TrendTone _trendTone(BuildContext context) {
@@ -324,7 +325,7 @@ class _SummaryCard extends StatelessWidget {
 
     if (!summary.hasData) {
       return _TrendTone(
-        label: 'No trend',
+        label: S.of(context).bodyProgressTrendNoTrend,
         icon: Icons.radio_button_unchecked,
         foreground: scheme.onSurfaceVariant,
         background: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
@@ -332,7 +333,7 @@ class _SummaryCard extends StatelessWidget {
     }
     if (waistGood || weightGood) {
       return _TrendTone(
-        label: 'On track',
+        label: S.of(context).bodyProgressTrendOnTrack,
         icon: Icons.north_east,
         foreground: scheme.primary,
         background: scheme.primary.withValues(alpha: 0.10),
@@ -340,14 +341,14 @@ class _SummaryCard extends StatelessWidget {
     }
     if (waistBad || weightBad) {
       return _TrendTone(
-        label: 'Off track',
+        label: S.of(context).bodyProgressTrendOffTrack,
         icon: Icons.south_east,
         foreground: scheme.error,
         background: scheme.error.withValues(alpha: 0.10),
       );
     }
     return _TrendTone(
-      label: 'Mixed',
+      label: S.of(context).bodyProgressTrendMixed,
       icon: Icons.horizontal_rule,
       foreground: scheme.tertiary,
       background: scheme.tertiary.withValues(alpha: 0.10),

@@ -1458,7 +1458,7 @@ class _DraftItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final confidenceTone = _ConfidenceTone.fromBand(item.confidenceBand);
+    final confidenceTone = _ConfidenceTone.fromBand(item.confidenceBand, context);
     final textStyle = item.removed
         ? Theme.of(context).textTheme.titleSmall?.copyWith(
               decoration: TextDecoration.lineThrough,
@@ -1550,15 +1550,18 @@ class _DraftItemCard extends StatelessWidget {
               children: [
                 _InlineInfoChip(
                   icon: Icons.bubble_chart_outlined,
-                  label: 'C ${item.carbs.toStringAsFixed(1)}',
+                  label:
+                      '${S.of(context).carbsLabel[0].toUpperCase()} ${item.carbs.toStringAsFixed(1)}',
                 ),
                 _InlineInfoChip(
                   icon: Icons.opacity_outlined,
-                  label: 'G ${item.fat.toStringAsFixed(1)}',
+                  label:
+                      '${S.of(context).fatLabel[0].toUpperCase()} ${item.fat.toStringAsFixed(1)}',
                 ),
                 _InlineInfoChip(
                   icon: Icons.fitness_center_outlined,
-                  label: 'P ${item.protein.toStringAsFixed(1)}',
+                  label:
+                      '${S.of(context).proteinLabel[0].toUpperCase()} ${item.protein.toStringAsFixed(1)}',
                 ),
               ],
             ),
@@ -1668,6 +1671,7 @@ class _DraftItemCard extends StatelessWidget {
     );
   }
 }
+
 class _PresetChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
@@ -1684,16 +1688,19 @@ class _PresetChip extends StatelessWidget {
     );
   }
 }
+
 class _ConfidenceNotice extends StatelessWidget {
   final ConfidenceBandEntity band;
   final bool hasSavedCorrection;
+
   const _ConfidenceNotice({
     required this.band,
     required this.hasSavedCorrection,
   });
+
   @override
   Widget build(BuildContext context) {
-    final tone = _ConfidenceTone.fromBand(band);
+    final tone = _ConfidenceTone.fromBand(band, context);
     final colorScheme = Theme.of(context).colorScheme;
     final message = switch (band) {
       ConfidenceBandEntity.low => hasSavedCorrection
@@ -1730,12 +1737,13 @@ class _ConfidenceNotice extends StatelessWidget {
     );
   }
 }
+
 class _ConfidenceChip extends StatelessWidget {
   final ConfidenceBandEntity band;
   const _ConfidenceChip({required this.band});
   @override
   Widget build(BuildContext context) {
-    final tone = _ConfidenceTone.fromBand(band);
+    final tone = _ConfidenceTone.fromBand(band, context);
     final color = tone.color;
     final label = tone.label;
     return Container(
@@ -1762,6 +1770,7 @@ class _ConfidenceChip extends StatelessWidget {
     );
   }
 }
+
 class _InlineInfoChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1794,38 +1803,42 @@ class _InlineInfoChip extends StatelessWidget {
     );
   }
 }
+
 class _ConfidenceTone {
   final Color color;
   final String label;
   final IconData icon;
+
   const _ConfidenceTone({
     required this.color,
     required this.label,
     required this.icon,
   });
-  factory _ConfidenceTone.fromBand(ConfidenceBandEntity band) {
+
+  static _ConfidenceTone fromBand(ConfidenceBandEntity band, BuildContext context) {
     switch (band) {
       case ConfidenceBandEntity.high:
-        return const _ConfidenceTone(
+        return _ConfidenceTone(
           color: Colors.green,
-          label: 'Confianza alta',
+          label: S.of(context).aiConfidenceHigh,
           icon: Icons.verified_outlined,
         );
       case ConfidenceBandEntity.medium:
-        return const _ConfidenceTone(
+        return _ConfidenceTone(
           color: Colors.orange,
-          label: 'Confianza media',
+          label: S.of(context).aiConfidenceMedium,
           icon: Icons.tune_outlined,
         );
       case ConfidenceBandEntity.low:
-        return const _ConfidenceTone(
+        return _ConfidenceTone(
           color: Colors.red,
-          label: 'Confianza baja',
+          label: S.of(context).aiConfidenceLow,
           icon: Icons.warning_amber_outlined,
         );
     }
   }
 }
+
 class _DraftChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1996,4 +2009,3 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
     return 'g/ml';
   }
 }
-

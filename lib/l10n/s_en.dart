@@ -760,7 +760,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paDancingGeneralDesc =>
-      'e.g. disco, folk, Irish step dancing, line dancing, polka, contra, country';
+      'e.g. disco, folk, Irish step dancing, line dancing, polka, country';
 
   @override
   String get paJoggingGeneral => 'jogging';
@@ -1497,15 +1497,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Adjust the final portion before saving.';
 
   @override
-  String get aiConfidenceHigh => 'High confidence';
-
-  @override
-  String get aiConfidenceMedium => 'Medium confidence';
-
-  @override
-  String get aiConfidenceLow => 'Low confidence';
-
-  @override
   String get aiYourMatches => 'Your matches';
 
   @override
@@ -1533,6 +1524,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aiExcludeFromMeal => 'Excluded from the final meal.';
+
+  @override
+  String get aiConfidenceHigh => 'High confidence';
+
+  @override
+  String get aiConfidenceMedium => 'Medium confidence';
+
+  @override
+  String get aiConfidenceLow => 'Low confidence';
 
   @override
   String get aiConfidenceLowHint =>
@@ -2013,4 +2013,247 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get servingsLabel => 'Servings';
+
+  @override
+  String get homePerformanceSummary => 'Performance Summary';
+
+  @override
+  String get nudgeSmartReminders => 'Smart reminders';
+
+  @override
+  String get nudgeNoPendingActions => 'No pending actions for now.';
+
+  @override
+  String get nudgeKeepAdherence => 'Only useful alerts to maintain adherence.';
+
+  @override
+  String nudgeProteinLeft(Object amount) {
+    return 'You have ${amount}g of protein left. Prioritize a high protein meal.';
+  }
+
+  @override
+  String get nudgeLowHydration =>
+      'Low hydration today. Drink water to close at 100%.';
+
+  @override
+  String get nudgeDayClosing =>
+      'Closing the day: you lack energy for goal. Add a clean closing meal.';
+
+  @override
+  String get nudgeNoReminders => 'No pending reminders. Doing great today.';
+
+  @override
+  String get weeklyInsightsNoOvereatingPattern => 'No clear overeating pattern';
+
+  @override
+  String get weeklyInsightsSlotMorning => 'Morning';
+
+  @override
+  String get weeklyInsightsSlotAfternoon => 'Afternoon';
+
+  @override
+  String get weeklyInsightsSlotEvening => 'Evening';
+
+  @override
+  String get weeklyInsightsSlotLateNight => 'Late night';
+
+  @override
+  String get weeklyInsightsSummaryNoDays => 'No days registered this week yet.';
+
+  @override
+  String get weeklyInsightsSummarySolid =>
+      'Solid week: good caloric adherence and protein consistency.';
+
+  @override
+  String get weeklyInsightsSummaryIrregular =>
+      'Caloric adherence was irregular this week.';
+
+  @override
+  String get weeklyInsightsSummaryProteinGap =>
+      'The main gap was protein consistency.';
+
+  @override
+  String get weeklyInsightsSummaryStable =>
+      'Stable week, with room to improve consistency.';
+
+  @override
+  String get weeklyInsightsRecAdherenceLow =>
+      'Adherence too low for automatic adjustment. Improve consistency first.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightStalled =>
+      'Fat loss stalled: suggestion -100 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightSlow =>
+      'Slow fat loss: suggestion -50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightFast =>
+      'Weight dropping too fast: suggestion +50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecLoseWeightCorrect =>
+      'Correct definition pace. No kcal change.';
+
+  @override
+  String get weeklyInsightsRecMaintainUp =>
+      'Weight trending up: suggestion -50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecMaintainDown =>
+      'Weight trending down: suggestion +50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecMaintainStable =>
+      'Stable maintenance. No kcal change.';
+
+  @override
+  String get weeklyInsightsRecGainSlow =>
+      'Bulk too slow: suggestion +100 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecGainSoft =>
+      'Soft bulk pace: suggestion +50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecGainFast =>
+      'Weight rising too fast: suggestion -50 kcal/day.';
+
+  @override
+  String get weeklyInsightsRecGainCorrect =>
+      'Controlled bulk pace. No kcal change.';
+
+  @override
+  String weeklyInsightsCurrentAdjustment(Object kcal) {
+    return 'Current adjustment: $kcal kcal.';
+  }
+
+  @override
+  String get bodyProgressTitle => 'Body progress';
+
+  @override
+  String get bodyProgressLoadError => 'Body progress could not be loaded.';
+
+  @override
+  String get bodyProgressLogData => 'Log body data';
+
+  @override
+  String get bodyProgressDay => 'Day';
+
+  @override
+  String get bodyProgressWeight => 'Weight';
+
+  @override
+  String get bodyProgressWaist => 'Waist';
+
+  @override
+  String get bodyProgressNotEnoughData =>
+      'Not enough data for this metric yet.';
+
+  @override
+  String get historyLabel => 'History';
+
+  @override
+  String get logTodayLabel => 'Log today';
+
+  @override
+  String get minutesLabel => 'min';
+
+  @override
+  String get bodyProgressRecentCheckins => 'Recent check-ins';
+
+  @override
+  String get bodyProgressNoCheckins =>
+      'No body check-ins yet. Start logging weight and waist to get a usable trend.';
+
+  @override
+  String get bodyProgressTrend => 'Trend';
+
+  @override
+  String get bodyProgressLatestWeight => 'Latest weight';
+
+  @override
+  String get bodyProgress7dAverage => '7d average';
+
+  @override
+  String get bodyProgressWeeklyDelta => 'Weekly delta';
+
+  @override
+  String get bodyProgressLatestWaist => 'Latest waist';
+
+  @override
+  String get bodyProgressAutoRead => 'Auto read';
+
+  @override
+  String get bodyProgressTrendWeightNeedData =>
+      'Weight trend needs another full week of check-ins.';
+
+  @override
+  String get bodyProgressTrendWeightSteady =>
+      'Weight is holding steady week over week.';
+
+  @override
+  String get bodyProgressTrendWeightDown =>
+      'Weight is trending down versus the previous 7-day average.';
+
+  @override
+  String get bodyProgressTrendWeightUp =>
+      'Weight is trending up versus the previous 7-day average.';
+
+  @override
+  String get bodyProgressTrendWaistNeedData =>
+      'Waist trend needs at least two waist check-ins.';
+
+  @override
+  String get bodyProgressTrendWaistSteady =>
+      'Waist is stable across the latest check-ins.';
+
+  @override
+  String get bodyProgressTrendWaistDown =>
+      'Waist is tightening versus the previous waist check-in.';
+
+  @override
+  String get bodyProgressTrendWaistUp =>
+      'Waist is up versus the previous waist check-in.';
+
+  @override
+  String get bodyProgressTrendNoTrend => 'No trend';
+
+  @override
+  String get bodyProgressTrendOnTrack => 'On track';
+
+  @override
+  String get bodyProgressTrendOffTrack => 'Off track';
+
+  @override
+  String get bodyProgressTrendMixed => 'Mixed';
+
+  @override
+  String get bodyProgressTrendChart => 'Trend chart';
+
+  @override
+  String get bodyProgressTrendChartWeightSubtitle =>
+      'Weight trend with 7d rolling average';
+
+  @override
+  String get bodyProgressTrendChartWaistSubtitle => 'Waist trend by check-in';
+
+  @override
+  String get bodyProgressAddCheckinsUnlockChart =>
+      'Add a few body check-ins to unlock the trend chart.';
+
+  @override
+  String get bodyProgressNoCheckinsYet => 'No check-ins yet.';
+
+  @override
+  String bodyProgressLatestCheckin(Object date) {
+    return 'Latest check-in $date';
+  }
+
+  @override
+  String get bodyProgressOpenHistoryTooltip => 'Open history';
+
+  @override
+  String get bodyProgressDelta => 'Delta';
 }

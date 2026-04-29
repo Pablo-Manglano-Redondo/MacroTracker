@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
@@ -57,7 +58,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                     weeklyWeightDeltaKg: null,
                     latestWaistDeltaCm: null,
                   );
-              final tone = _bodyProgressTone(summary);
+              final tone = _bodyProgressTone(context, summary);
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,14 +70,14 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Body progress',
+                              S.of(context).bodyProgressTitle,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               summary.latestMeasurementDay == null
-                                  ? 'No check-ins yet.'
-                                  : 'Latest check-in ${DateFormat.MMMd().format(summary.latestMeasurementDay!)}',
+                                  ? S.of(context).bodyProgressNoCheckinsYet
+                                  : S.of(context).bodyProgressLatestCheckin(DateFormat.MMMd().format(summary.latestMeasurementDay!)),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -93,7 +94,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                         onPressed: () => Navigator.of(context)
                             .pushNamed(NavigationOptions.bodyProgressRoute),
                         icon: const Icon(Icons.chevron_right),
-                        tooltip: 'Open history',
+                        tooltip: S.of(context).bodyProgressOpenHistoryTooltip,
                       ),
                     ],
                   ),
@@ -103,24 +104,24 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                     runSpacing: 12,
                     children: [
                       _BodyMetricPill(
-                        label: 'Weight',
-                        value: _formatWeight(summary.latestWeightKg),
+                        label: S.of(context).weightLabel,
+                        value: _formatWeight(context, summary.latestWeightKg),
                         accentColor: tone.foreground(context),
                       ),
                       _BodyMetricPill(
-                        label: '7d avg',
-                        value: _formatWeight(summary.rollingWeightAverageKg),
+                        label: S.of(context).bodyProgress7dAverage,
+                        value: _formatWeight(context, summary.rollingWeightAverageKg),
                         accentColor: Theme.of(context).colorScheme.primary,
                       ),
                       _BodyMetricPill(
-                        label: 'Delta',
-                        value: _formatWeight(summary.weeklyWeightDeltaKg,
+                        label: S.of(context).bodyProgressDelta,
+                        value: _formatWeight(context, summary.weeklyWeightDeltaKg,
                             signed: true),
                         accentColor: tone.foreground(context),
                       ),
                       _BodyMetricPill(
-                        label: 'Waist',
-                        value: _formatWaist(summary.latestWaistCm),
+                        label: S.of(context).bodyProgressWaist,
+                        value: _formatWaist(context, summary.latestWaistCm),
                         accentColor: tone.foreground(context),
                       ),
                     ],
@@ -131,14 +132,14 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                       FilledButton.icon(
                         onPressed: _showTodayDialog,
                         icon: const Icon(Icons.add),
-                        label: const Text('Log today'),
+                        label: Text(S.of(context).logTodayLabel),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton.icon(
                         onPressed: () => Navigator.of(context)
                             .pushNamed(NavigationOptions.bodyProgressRoute),
                         icon: const Icon(Icons.show_chart),
-                        label: const Text('History'),
+                        label: Text(S.of(context).historyLabel),
                       ),
                     ],
                   ),
@@ -189,26 +190,26 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
     return locator<GetBodyProgressUsecase>().getSummary();
   }
 
-  String _formatWeight(double? kg, {bool signed = false}) {
+  String _formatWeight(BuildContext context, double? kg, {bool signed = false}) {
     if (kg == null) {
       return '--';
     }
     final value = widget.usesImperialUnits ? UnitCalc.kgToLbs(kg) : kg;
     final prefix = signed && value > 0 ? '+' : '';
-    return '$prefix${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${widget.usesImperialUnits ? 'lb' : 'kg'}';
+    return '$prefix${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${widget.usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
   }
 
-  String _formatWaist(double? cm) {
+  String _formatWaist(BuildContext context, double? cm) {
     if (cm == null) {
       return '--';
     }
     final value = widget.usesImperialUnits ? UnitCalc.cmToInches(cm) : cm;
-    return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${widget.usesImperialUnits ? 'in' : 'cm'}';
+    return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${widget.usesImperialUnits ? 'in' : S.of(context).cmLabel}';
   }
 
-  _StatusTone _bodyProgressTone(BodyProgressSummaryEntity summary) {
+  _StatusTone _bodyProgressTone(BuildContext context, BodyProgressSummaryEntity summary) {
     if (!summary.hasData) {
-      return const _StatusTone.neutral();
+      return _StatusTone.neutral(context);
     }
 
     final waistGood = summary.hasWaistTrend &&
@@ -223,12 +224,12 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
         (summary.weeklyWeightDeltaKg ?? 0) > 0;
 
     if (waistGood || weightGood) {
-      return const _StatusTone.good();
+      return _StatusTone.good(context);
     }
     if (waistBad || weightBad) {
-      return const _StatusTone.bad();
+      return _StatusTone.bad(context);
     }
-    return const _StatusTone.caution();
+    return _StatusTone.caution(context);
   }
 }
 
@@ -317,15 +318,15 @@ class _StatusTone {
 
   const _StatusTone._(this.label, this.icon, this.kind);
 
-  const _StatusTone.good()
-      : this._('On track', Icons.north_east, _StatusToneKind.good);
-  const _StatusTone.caution()
-      : this._('Mixed', Icons.horizontal_rule, _StatusToneKind.caution);
-  const _StatusTone.bad()
-      : this._('Off track', Icons.south_east, _StatusToneKind.bad);
-  const _StatusTone.neutral()
-      : this._(
-            'No trend', Icons.radio_button_unchecked, _StatusToneKind.neutral);
+  factory _StatusTone.good(BuildContext context) =>
+      _StatusTone._(S.of(context).bodyProgressTrendOnTrack, Icons.north_east, _StatusToneKind.good);
+  factory _StatusTone.caution(BuildContext context) =>
+      _StatusTone._(S.of(context).bodyProgressTrendMixed, Icons.horizontal_rule, _StatusToneKind.caution);
+  factory _StatusTone.bad(BuildContext context) =>
+      _StatusTone._(S.of(context).bodyProgressTrendOffTrack, Icons.south_east, _StatusToneKind.bad);
+  factory _StatusTone.neutral(BuildContext context) =>
+      _StatusTone._(
+            S.of(context).bodyProgressTrendNoTrend, Icons.radio_button_unchecked, _StatusToneKind.neutral);
 
   Color foreground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

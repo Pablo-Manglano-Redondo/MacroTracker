@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
                   child: Text(
-                    'Resumen de rendimiento',
+                    S.of(context).homePerformanceSummary,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),

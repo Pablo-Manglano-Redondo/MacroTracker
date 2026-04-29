@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/features/body_progress/domain/entity/body_measurement_entity.dart';
 
@@ -54,7 +55,7 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Log body data'),
+      title: Text(S.of(context).bodyProgressLogData),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -62,7 +63,7 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.calendar_today_outlined),
-              title: const Text('Day'),
+              title: Text(S.of(context).bodyProgressDay),
               subtitle: Text(DateFormat.yMMMd().format(_selectedDay)),
               onTap: _pickDay,
             ),
@@ -72,8 +73,9 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
             controller: _weightController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText:
-                  widget.usesImperialUnits ? 'Weight (lb)' : 'Weight (kg)',
+              labelText: widget.usesImperialUnits
+                  ? '${S.of(context).weightLabel} (${S.of(context).lbsLabel})'
+                  : '${S.of(context).weightLabel} (${S.of(context).kgLabel})',
               border: const OutlineInputBorder(),
             ),
           ),
@@ -82,7 +84,9 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
             controller: _waistController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: widget.usesImperialUnits ? 'Waist (in)' : 'Waist (cm)',
+              labelText: widget.usesImperialUnits
+                  ? '${S.of(context).bodyProgressWaist} (in)'
+                  : '${S.of(context).bodyProgressWaist} (${S.of(context).cmLabel})',
               border: const OutlineInputBorder(),
             ),
           ),
@@ -91,11 +95,11 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(S.of(context).dialogCancelLabel),
         ),
         FilledButton(
           onPressed: _canSave ? _save : null,
-          child: const Text('Save'),
+          child: Text(S.of(context).buttonSaveLabel),
         ),
       ],
     );

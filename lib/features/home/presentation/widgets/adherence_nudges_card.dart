@@ -3,6 +3,7 @@ import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class AdherenceNudgesCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
@@ -61,17 +62,17 @@ class AdherenceNudgesCard extends StatelessWidget {
 
               if (now.hour >= 18 && proteinLeft >= 25) {
                 reminders.add(
-                  'Te quedan ${proteinLeft.toStringAsFixed(0)} g de proteína. Prioriza una comida alta en proteína.',
+                  S.of(context).nudgeProteinLeft(proteinLeft.toStringAsFixed(0)),
                 );
               }
               if (now.hour >= 17 && hydrationProgress < 0.7) {
                 reminders.add(
-                  'Hidratación baja hoy. Sube agua para cerrar al menos al 100%.',
+                  S.of(context).nudgeLowHydration,
                 );
               }
               if (now.hour >= 21 && kcalProgress < 0.85) {
                 reminders.add(
-                  'Cierra el día: te falta energía para objetivo. Añade una comida limpia de cierre.',
+                  S.of(context).nudgeDayClosing,
                 );
               }
 
@@ -99,7 +100,7 @@ class AdherenceNudgesCard extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Recordatorios inteligentes',
+                              S.of(context).nudgeSmartReminders,
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -108,8 +109,8 @@ class AdherenceNudgesCard extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(
                               reminders.isEmpty
-                                  ? 'Sin acciones pendientes por ahora.'
-                                  : 'Solo avisos útiles para mantener adherencia.',
+                                  ? S.of(context).nudgeNoPendingActions
+                                  : S.of(context).nudgeKeepAdherence,
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
@@ -132,7 +133,7 @@ class AdherenceNudgesCard extends StatelessWidget {
                         color: colorScheme.primary.withValues(alpha: 0.08),
                       ),
                       child: Text(
-                        'Sin recordatorios pendientes. Vas bien hoy.',
+                        S.of(context).nudgeNoReminders,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     )

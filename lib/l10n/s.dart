@@ -1536,7 +1536,7 @@ abstract class AppLocalizations {
   /// No description provided for @paDancingGeneralDesc.
   ///
   /// In en, this message translates to:
-  /// **'e.g. disco, folk, Irish step dancing, line dancing, polka, contra, country'**
+  /// **'e.g. disco, folk, Irish step dancing, line dancing, polka, country'**
   String get paDancingGeneralDesc;
 
   /// No description provided for @paJoggingGeneral.
@@ -2937,24 +2937,6 @@ abstract class AppLocalizations {
   /// **'Adjust the final portion before saving.'**
   String get aiCustomServingsHelper;
 
-  /// No description provided for @aiConfidenceHigh.
-  ///
-  /// In en, this message translates to:
-  /// **'High confidence'**
-  String get aiConfidenceHigh;
-
-  /// No description provided for @aiConfidenceMedium.
-  ///
-  /// In en, this message translates to:
-  /// **'Medium confidence'**
-  String get aiConfidenceMedium;
-
-  /// No description provided for @aiConfidenceLow.
-  ///
-  /// In en, this message translates to:
-  /// **'Low confidence'**
-  String get aiConfidenceLow;
-
   /// No description provided for @aiYourMatches.
   ///
   /// In en, this message translates to:
@@ -3002,6 +2984,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Excluded from the final meal.'**
   String get aiExcludeFromMeal;
+
+  /// No description provided for @aiConfidenceHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High confidence'**
+  String get aiConfidenceHigh;
+
+  /// No description provided for @aiConfidenceMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium confidence'**
+  String get aiConfidenceMedium;
+
+  /// No description provided for @aiConfidenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low confidence'**
+  String get aiConfidenceLow;
 
   /// No description provided for @aiConfidenceLowHint.
   ///
@@ -3794,6 +3794,420 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Servings'**
   String get servingsLabel;
+
+  /// No description provided for @homePerformanceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Performance Summary'**
+  String get homePerformanceSummary;
+
+  /// No description provided for @nudgeSmartReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Smart reminders'**
+  String get nudgeSmartReminders;
+
+  /// No description provided for @nudgeNoPendingActions.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending actions for now.'**
+  String get nudgeNoPendingActions;
+
+  /// No description provided for @nudgeKeepAdherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Only useful alerts to maintain adherence.'**
+  String get nudgeKeepAdherence;
+
+  /// No description provided for @nudgeProteinLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'You have {amount}g of protein left. Prioritize a high protein meal.'**
+  String nudgeProteinLeft(Object amount);
+
+  /// No description provided for @nudgeLowHydration.
+  ///
+  /// In en, this message translates to:
+  /// **'Low hydration today. Drink water to close at 100%.'**
+  String get nudgeLowHydration;
+
+  /// No description provided for @nudgeDayClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing the day: you lack energy for goal. Add a clean closing meal.'**
+  String get nudgeDayClosing;
+
+  /// No description provided for @nudgeNoReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending reminders. Doing great today.'**
+  String get nudgeNoReminders;
+
+  /// No description provided for @weeklyInsightsNoOvereatingPattern.
+  ///
+  /// In en, this message translates to:
+  /// **'No clear overeating pattern'**
+  String get weeklyInsightsNoOvereatingPattern;
+
+  /// No description provided for @weeklyInsightsSlotMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Morning'**
+  String get weeklyInsightsSlotMorning;
+
+  /// No description provided for @weeklyInsightsSlotAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Afternoon'**
+  String get weeklyInsightsSlotAfternoon;
+
+  /// No description provided for @weeklyInsightsSlotEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Evening'**
+  String get weeklyInsightsSlotEvening;
+
+  /// No description provided for @weeklyInsightsSlotLateNight.
+  ///
+  /// In en, this message translates to:
+  /// **'Late night'**
+  String get weeklyInsightsSlotLateNight;
+
+  /// No description provided for @weeklyInsightsSummaryNoDays.
+  ///
+  /// In en, this message translates to:
+  /// **'No days registered this week yet.'**
+  String get weeklyInsightsSummaryNoDays;
+
+  /// No description provided for @weeklyInsightsSummarySolid.
+  ///
+  /// In en, this message translates to:
+  /// **'Solid week: good caloric adherence and protein consistency.'**
+  String get weeklyInsightsSummarySolid;
+
+  /// No description provided for @weeklyInsightsSummaryIrregular.
+  ///
+  /// In en, this message translates to:
+  /// **'Caloric adherence was irregular this week.'**
+  String get weeklyInsightsSummaryIrregular;
+
+  /// No description provided for @weeklyInsightsSummaryProteinGap.
+  ///
+  /// In en, this message translates to:
+  /// **'The main gap was protein consistency.'**
+  String get weeklyInsightsSummaryProteinGap;
+
+  /// No description provided for @weeklyInsightsSummaryStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable week, with room to improve consistency.'**
+  String get weeklyInsightsSummaryStable;
+
+  /// No description provided for @weeklyInsightsRecAdherenceLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Adherence too low for automatic adjustment. Improve consistency first.'**
+  String get weeklyInsightsRecAdherenceLow;
+
+  /// No description provided for @weeklyInsightsRecLoseWeightStalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat loss stalled: suggestion -100 kcal/day.'**
+  String get weeklyInsightsRecLoseWeightStalled;
+
+  /// No description provided for @weeklyInsightsRecLoseWeightSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow fat loss: suggestion -50 kcal/day.'**
+  String get weeklyInsightsRecLoseWeightSlow;
+
+  /// No description provided for @weeklyInsightsRecLoseWeightFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight dropping too fast: suggestion +50 kcal/day.'**
+  String get weeklyInsightsRecLoseWeightFast;
+
+  /// No description provided for @weeklyInsightsRecLoseWeightCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct definition pace. No kcal change.'**
+  String get weeklyInsightsRecLoseWeightCorrect;
+
+  /// No description provided for @weeklyInsightsRecMaintainUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight trending up: suggestion -50 kcal/day.'**
+  String get weeklyInsightsRecMaintainUp;
+
+  /// No description provided for @weeklyInsightsRecMaintainDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight trending down: suggestion +50 kcal/day.'**
+  String get weeklyInsightsRecMaintainDown;
+
+  /// No description provided for @weeklyInsightsRecMaintainStable.
+  ///
+  /// In en, this message translates to:
+  /// **'Stable maintenance. No kcal change.'**
+  String get weeklyInsightsRecMaintainStable;
+
+  /// No description provided for @weeklyInsightsRecGainSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk too slow: suggestion +100 kcal/day.'**
+  String get weeklyInsightsRecGainSlow;
+
+  /// No description provided for @weeklyInsightsRecGainSoft.
+  ///
+  /// In en, this message translates to:
+  /// **'Soft bulk pace: suggestion +50 kcal/day.'**
+  String get weeklyInsightsRecGainSoft;
+
+  /// No description provided for @weeklyInsightsRecGainFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight rising too fast: suggestion -50 kcal/day.'**
+  String get weeklyInsightsRecGainFast;
+
+  /// No description provided for @weeklyInsightsRecGainCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Controlled bulk pace. No kcal change.'**
+  String get weeklyInsightsRecGainCorrect;
+
+  /// No description provided for @weeklyInsightsCurrentAdjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Current adjustment: {kcal} kcal.'**
+  String weeklyInsightsCurrentAdjustment(Object kcal);
+
+  /// No description provided for @bodyProgressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Body progress'**
+  String get bodyProgressTitle;
+
+  /// No description provided for @bodyProgressLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Body progress could not be loaded.'**
+  String get bodyProgressLoadError;
+
+  /// No description provided for @bodyProgressLogData.
+  ///
+  /// In en, this message translates to:
+  /// **'Log body data'**
+  String get bodyProgressLogData;
+
+  /// No description provided for @bodyProgressDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Day'**
+  String get bodyProgressDay;
+
+  /// No description provided for @bodyProgressWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get bodyProgressWeight;
+
+  /// No description provided for @bodyProgressWaist.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist'**
+  String get bodyProgressWaist;
+
+  /// No description provided for @bodyProgressNotEnoughData.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough data for this metric yet.'**
+  String get bodyProgressNotEnoughData;
+
+  /// No description provided for @historyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get historyLabel;
+
+  /// No description provided for @logTodayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log today'**
+  String get logTodayLabel;
+
+  /// No description provided for @minutesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get minutesLabel;
+
+  /// No description provided for @bodyProgressRecentCheckins.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent check-ins'**
+  String get bodyProgressRecentCheckins;
+
+  /// No description provided for @bodyProgressNoCheckins.
+  ///
+  /// In en, this message translates to:
+  /// **'No body check-ins yet. Start logging weight and waist to get a usable trend.'**
+  String get bodyProgressNoCheckins;
+
+  /// No description provided for @bodyProgressTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get bodyProgressTrend;
+
+  /// No description provided for @bodyProgressLatestWeight.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest weight'**
+  String get bodyProgressLatestWeight;
+
+  /// No description provided for @bodyProgress7dAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'7d average'**
+  String get bodyProgress7dAverage;
+
+  /// No description provided for @bodyProgressWeeklyDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly delta'**
+  String get bodyProgressWeeklyDelta;
+
+  /// No description provided for @bodyProgressLatestWaist.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest waist'**
+  String get bodyProgressLatestWaist;
+
+  /// No description provided for @bodyProgressAutoRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto read'**
+  String get bodyProgressAutoRead;
+
+  /// No description provided for @bodyProgressTrendWeightNeedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight trend needs another full week of check-ins.'**
+  String get bodyProgressTrendWeightNeedData;
+
+  /// No description provided for @bodyProgressTrendWeightSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight is holding steady week over week.'**
+  String get bodyProgressTrendWeightSteady;
+
+  /// No description provided for @bodyProgressTrendWeightDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight is trending down versus the previous 7-day average.'**
+  String get bodyProgressTrendWeightDown;
+
+  /// No description provided for @bodyProgressTrendWeightUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight is trending up versus the previous 7-day average.'**
+  String get bodyProgressTrendWeightUp;
+
+  /// No description provided for @bodyProgressTrendWaistNeedData.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist trend needs at least two waist check-ins.'**
+  String get bodyProgressTrendWaistNeedData;
+
+  /// No description provided for @bodyProgressTrendWaistSteady.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist is stable across the latest check-ins.'**
+  String get bodyProgressTrendWaistSteady;
+
+  /// No description provided for @bodyProgressTrendWaistDown.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist is tightening versus the previous waist check-in.'**
+  String get bodyProgressTrendWaistDown;
+
+  /// No description provided for @bodyProgressTrendWaistUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist is up versus the previous waist check-in.'**
+  String get bodyProgressTrendWaistUp;
+
+  /// No description provided for @bodyProgressTrendNoTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'No trend'**
+  String get bodyProgressTrendNoTrend;
+
+  /// No description provided for @bodyProgressTrendOnTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'On track'**
+  String get bodyProgressTrendOnTrack;
+
+  /// No description provided for @bodyProgressTrendOffTrack.
+  ///
+  /// In en, this message translates to:
+  /// **'Off track'**
+  String get bodyProgressTrendOffTrack;
+
+  /// No description provided for @bodyProgressTrendMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed'**
+  String get bodyProgressTrendMixed;
+
+  /// No description provided for @bodyProgressTrendChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend chart'**
+  String get bodyProgressTrendChart;
+
+  /// No description provided for @bodyProgressTrendChartWeightSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weight trend with 7d rolling average'**
+  String get bodyProgressTrendChartWeightSubtitle;
+
+  /// No description provided for @bodyProgressTrendChartWaistSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Waist trend by check-in'**
+  String get bodyProgressTrendChartWaistSubtitle;
+
+  /// No description provided for @bodyProgressAddCheckinsUnlockChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a few body check-ins to unlock the trend chart.'**
+  String get bodyProgressAddCheckinsUnlockChart;
+
+  /// No description provided for @bodyProgressNoCheckinsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No check-ins yet.'**
+  String get bodyProgressNoCheckinsYet;
+
+  /// No description provided for @bodyProgressLatestCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest check-in {date}'**
+  String bodyProgressLatestCheckin(Object date);
+
+  /// No description provided for @bodyProgressOpenHistoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open history'**
+  String get bodyProgressOpenHistoryTooltip;
+
+  /// No description provided for @bodyProgressDelta.
+  ///
+  /// In en, this message translates to:
+  /// **'Delta'**
+  String get bodyProgressDelta;
 }
 
 class _AppLocalizationsDelegate
