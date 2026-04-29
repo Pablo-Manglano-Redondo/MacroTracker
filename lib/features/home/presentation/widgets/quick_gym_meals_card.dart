@@ -162,7 +162,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   limit: 3,
                 ),
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState != ConnectionState.done) {
+                  if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                     return const SizedBox(
                       height: 108,
                       child: Center(child: CircularProgressIndicator()),

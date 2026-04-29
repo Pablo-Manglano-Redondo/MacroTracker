@@ -1,166 +1,144 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
-class WeeklyInsightsScreen extends StatelessWidget {
+class WeeklyInsightsScreenArguments {
+  final DateTime focusedDate;
+
+  WeeklyInsightsScreenArguments(this.focusedDate);
+}
+
+class WeeklyInsightsScreen extends StatefulWidget {
   const WeeklyInsightsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as WeeklyInsightsScreenArguments?;
-    final focusedWeek = args?.focusedWeek ?? DateTime.now();
+  State<WeeklyInsightsScreen> createState() => _WeeklyInsightsScreenState();
+}
 
+class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
+  late Future<WeeklyInsightsEntity> _insightsFuture;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)!.settings.arguments as WeeklyInsightsScreenArguments;
+    _insightsFuture = locator<BuildWeeklyInsightsUsecase>().build(args.focusedDate);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Resumen semanal')),
+      appBar: AppBar(
+        title: Text(S.of(context).weeklyInsightsTitle),
+      ),
       body: FutureBuilder<WeeklyInsightsEntity>(
-        future: locator<BuildWeeklyInsightsUsecase>().build(focusedWeek),
+        future: _insightsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (snapshot.hasError) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Text(
-                  'No se pudo cargar el resumen semanal.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
+            return Center(child: Text(S.of(context).weeklyInsightsError));
           }
-
           final insights = snapshot.data!;
-          return ListView(
+          return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
-            children: [
-              Text(
-                '${DateFormat.MMMd().format(insights.weekStart)} - ${DateFormat.MMMd().format(insights.weekEnd)}',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12.0),
-              _InfoCard(
-                title: 'Resumen',
-                child: Text(insights.summaryLabel),
-              ),
-              _InfoCard(
-                title: 'Chequeo semanal inteligente',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Tendencia de peso: ${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg/semana',
-                    ),
-                    const SizedBox(height: 6),
-                    Text(insights.kcalAdjustmentRecommendation),
-                    const SizedBox(height: 10),
-                    if (insights.recommendedKcalAdjustmentDelta != 0)
-                      FilledButton.icon(
-                        onPressed: () =>
-                            _applyRecommendedAdjustment(context, insights),
-                        icon: const Icon(Icons.auto_fix_high_outlined),
-                        label: Text(
-                          'Aplicar ${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta} kcal/dia',
+            child: Column(
+              children: [
+                _InfoCard(
+                  title: S.of(context).weeklyInsightsSummary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        S.of(context).weeklyInsightsTrend(
+                              '${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)}',
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(insights.kcalAdjustmentRecommendation),
+                      const SizedBox(height: 10),
+                      if (insights.recommendedKcalAdjustmentDelta != 0)
+                        FilledButton.icon(
+                          onPressed: () =>
+                              _applyRecommendedAdjustment(context, insights),
+                          icon: const Icon(Icons.auto_fix_high_outlined),
+                          label: Text(
+                            S.of(context).weeklyInsightsApplyAdjustment(
+                                  '${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta}',
+                                ),
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              _InfoCard(
-                title: 'Promedios semanales',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                _InfoCard(
+                  title: S.of(context).weeklyInsightsAverages,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          '${insights.averageCalories.toStringAsFixed(0)} kcal / ${S.of(context).dayLabel.toLowerCase()}'),
+                      Text(
+                          '${S.of(context).carbohydrateLabel} ${insights.averageCarbs.toStringAsFixed(1)} g'),
+                      Text('${S.of(context).fatLabel} ${insights.averageFat.toStringAsFixed(1)} g'),
+                      Text(
+                          '${S.of(context).proteinLabel} ${insights.averageProtein.toStringAsFixed(1)} g'),
+                    ],
+                  ),
+                ),
+                Row(
                   children: [
-                    Text(
-                        '${insights.averageCalories.toStringAsFixed(0)} kcal / dia'),
-                    Text(
-                        'Carbohidratos ${insights.averageCarbs.toStringAsFixed(1)} g'),
-                    Text('Grasa ${insights.averageFat.toStringAsFixed(1)} g'),
-                    Text(
-                        'Proteina ${insights.averageProtein.toStringAsFixed(1)} g'),
+                    Expanded(
+                      child: _InfoCard(
+                        title: S.of(context).weeklyInsightsAdherence,
+                        child: Text(S.of(context).weeklyInsightsRegisteredDays(
+                            (insights.goalAdherenceRate * 100).round())),
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: _InfoCard(
+                        title: S.of(context).weeklyInsightsProteinConsistency,
+                        child: Text(S.of(context).weeklyInsightsRegisteredDays(
+                            (insights.proteinConsistencyRate * 100).round())),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: _InfoCard(
-                      title: 'Adherencia',
-                      child: Text(
-                          '${(insights.goalAdherenceRate * 100).round()}% de dias registrados'),
-                    ),
-                  ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: _InfoCard(
-                      title: 'Consistencia de proteina',
-                      child: Text(
-                          '${(insights.proteinConsistencyRate * 100).round()}% de dias registrados'),
-                    ),
-                  ),
-                ],
-              ),
-              _InfoCard(
-                title: 'Comidas mas frecuentes',
-                child: insights.topMeals.isEmpty
-                    ? const Text(
-                        'No se detectaron comidas repetidas esta semana.')
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: insights.topMeals
-                            .map((meal) =>
-                                Text('${meal.label} (${meal.count}x)'))
-                            .toList(),
-                      ),
-              ),
-              _InfoCard(
-                title: 'Patron de sobreingesta',
-                child: Text(insights.overeatingTimeSlotLabel),
-              ),
-              _InfoCard(
-                title: 'Cobertura',
-                child: Text(
-                    '${insights.trackedDays} dias registrados esta semana'),
-              ),
-            ],
+                _InfoCard(
+                  title: S.of(context).weeklyInsightsTopMeals,
+                  child: insights.topMeals.isEmpty
+                      ? Text(S.of(context).weeklyInsightsNoFrequentMeals)
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: insights.topMeals
+                              .map((meal) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 4.0),
+                                    child: Text('• ${meal.label} (${meal.count})'),
+                                  ))
+                              .toList(),
+                        ),
+                ),
+              ],
+            ),
           );
         },
       ),
     );
   }
 
-  Future<void> _applyRecommendedAdjustment(
-    BuildContext context,
-    WeeklyInsightsEntity insights,
-  ) async {
-    final getConfigUsecase = locator<GetConfigUsecase>();
-    final addConfigUsecase = locator<AddConfigUsecase>();
-    final current =
-        (await getConfigUsecase.getConfig()).userKcalAdjustment ?? 0;
-    final next = current + insights.recommendedKcalAdjustmentDelta;
-    await addConfigUsecase.setConfigKcalAdjustment(next);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Ajuste diario actualizado a ${next.toStringAsFixed(0)} kcal.',
-          ),
-        ),
-      );
-    }
+  void _applyRecommendedAdjustment(
+      BuildContext context, WeeklyInsightsEntity insights) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(S.of(context).weeklyInsightsAdjustmentSuccess(
+            insights.recommendedKcalAdjustmentDelta.toString())),
+      ),
+    );
   }
-}
-
-class WeeklyInsightsScreenArguments {
-  final DateTime focusedWeek;
-
-  WeeklyInsightsScreenArguments(this.focusedWeek);
 }
 
 class _InfoCard extends StatelessWidget {
@@ -172,14 +150,19 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12.0),
+      margin: const EdgeInsets.only(bottom: 16.0),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8.0),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12.0),
             child,
           ],
         ),

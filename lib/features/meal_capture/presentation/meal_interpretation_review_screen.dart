@@ -21,6 +21,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpret
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/widgets/meal_replacement_dialog.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class MealInterpretationReviewScreen extends StatefulWidget {
   const MealInterpretationReviewScreen({super.key});
@@ -70,14 +71,14 @@ class _MealInterpretationReviewScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Revisar borrador IA'),
+        title: Text(S.of(context).aiReviewDraftTitle),
         actions: [
           IconButton(
             onPressed: _activeItems.isEmpty || _isLoading
                 ? null
                 : () => _showSaveRecipeDialog(),
             icon: const Icon(Icons.bookmark_add_outlined),
-            tooltip: 'Guardar como receta',
+            tooltip: S.of(context).aiSaveAsRecipe,
           ),
         ],
       ),
@@ -98,7 +99,9 @@ class _MealInterpretationReviewScreenState
             ? null
             : () => _commitDraft(_draft!),
         icon: Icon(_isSaving ? Icons.hourglass_top_outlined : Icons.check),
-        label: Text(_isSaving ? 'Guardando comida...' : 'Guardar comida'),
+        label: Text(_isSaving
+            ? S.of(context).aiSavingMeal
+            : S.of(context).aiSaveMeal),
       ),
     );
   }
@@ -109,11 +112,11 @@ class _MealInterpretationReviewScreenState
     }
 
     if (_draft == null) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
           child: Text(
-            'Borrador no encontrado o caducado.',
+            S.of(context).aiDraftNotFound,
             textAlign: TextAlign.center,
           ),
         ),
@@ -171,7 +174,7 @@ class _MealInterpretationReviewScreenState
                   children: [
                     Expanded(
                       child: Text(
-                        'Ingredientes detectados',
+                        S.of(context).aiDetectedIngredients,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
@@ -180,8 +183,8 @@ class _MealInterpretationReviewScreenState
                     ),
                     Text(
                       _isPersistingEdits
-                          ? 'Guardando cambios...'
-                          : '${activeItems.length} activos',
+                          ? S.of(context).buttonSaveLabel
+                          : S.of(context).aiActiveItemsCount(activeItems.length),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -200,14 +203,14 @@ class _MealInterpretationReviewScreenState
                       onPressed:
                           _isPersistingEdits ? null : _showAddIngredientFlow,
                       icon: const Icon(Icons.add_outlined),
-                      label: const Text('Añadir ingrediente'),
+                      label: Text(S.of(context).aiAddIngredient),
                     ),
                     OutlinedButton.icon(
                       onPressed: _activeItems.isEmpty || _isPersistingEdits
                           ? null
                           : () => _showSaveRecipeDialog(),
                       icon: const Icon(Icons.bookmark_add_outlined),
-                      label: const Text('Guardar receta'),
+                      label: Text(S.of(context).aiSaveAsRecipe),
                     ),
                   ],
                 ),
@@ -301,20 +304,20 @@ class _MealInterpretationReviewScreenState
     final updatedAmount = await showDialog<double>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Editar ${item.label}'),
+        title: Text(S.of(context).aiEditAmountTitle(item.label)),
         content: TextField(
           controller: controller,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
-            labelText: 'Cantidad (${item.unit})',
+            labelText: S.of(context).aiQuantityUnitLabel(item.unit),
             border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text(S.of(context).dialogCancelLabel),
           ),
           TextButton(
             onPressed: () {
@@ -325,7 +328,7 @@ class _MealInterpretationReviewScreenState
               }
               Navigator.of(context).pop(parsed);
             },
-            child: const Text('Guardar'),
+            child: Text(S.of(context).buttonSaveLabel),
           ),
         ],
       ),
@@ -479,7 +482,7 @@ class _MealInterpretationReviewScreenState
         MealPortionCalculator.calculate(meal, portion.amount, portion.unit);
     final item = InterpretationDraftItemEntity(
       id: IdGenerator.getUniqueID(),
-      label: meal.name ?? 'Added ingredient',
+      label: meal.name ?? S.current.aiAddIngredient,
       matchedMealSnapshot: meal,
       amount: portion.amount,
       unit: portion.unit,
@@ -558,7 +561,7 @@ class _MealInterpretationReviewScreenState
         _isPersistingEdits = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudieron guardar los cambios del borrador')),
+        SnackBar(content: Text(S.current.aiSaveDraftChangesError)),
       );
     }
   }
@@ -589,7 +592,7 @@ class _MealInterpretationReviewScreenState
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Comida guardada')),
+        SnackBar(content: Text(S.current.aiMealSavedSuccess)),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
@@ -602,7 +605,7 @@ class _MealInterpretationReviewScreenState
         _isSaving = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo guardar esta comida')),
+        SnackBar(content: Text(S.current.aiMealSaveError)),
       );
     }
   }
@@ -618,18 +621,18 @@ class _MealInterpretationReviewScreenState
     final kcal = draft.totalKcal;
 
     if (protein >= 35 && carbs >= 45) {
-      return 'Post entreno';
+      return S.current.aiGymLabelPostWorkout;
     }
     if (carbs >= 50 && fat <= 20) {
-      return 'Pre entreno';
+      return S.current.aiGymLabelPreWorkout;
     }
     if (protein >= 35 && fat <= 20) {
-      return 'Alta en proteína';
+      return S.current.aiGymLabelHighProtein;
     }
     if (kcal <= 550 && fat <= 18) {
-      return 'Ligera para definición';
+      return S.current.aiGymLabelLeanDefinition;
     }
-    return 'Balanceada';
+    return S.current.aiGymLabelBalanced;
   }
 
   List<String> _quickUnitsForItem(InterpretationDraftItemEntity item) {
@@ -733,8 +736,7 @@ class _MealInterpretationReviewScreenState
     );
     final updatedDraft = _draft!.copyWith(
       title: suggestion.title,
-      summary:
-          'Sustituido por ${suggestion.sourceLabel.toLowerCase()} para mejorar la precisión.',
+      summary: S.current.aiReplacedBySummary(suggestion.sourceLabel.toLowerCase()),
       totalKcal: nutrition.kcal,
       totalCarbs: nutrition.carbs,
       totalFat: nutrition.fat,
@@ -752,7 +754,7 @@ class _MealInterpretationReviewScreenState
       _mealSuggestions = const [];
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Aplicada sugerencia: ${suggestion.title}')),
+      SnackBar(content: Text(S.of(context).aiSuggestionApplied(suggestion.title))),
     );
   }
 
@@ -770,17 +772,16 @@ class _MealInterpretationReviewScreenState
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Guardar como receta'),
+              title: Text(S.of(context).aiSaveAsRecipe),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Nombre de la receta',
-                      helperText:
-                          'Usa nombres como avena pre, pollo arroz post o batido.',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).aiRecipeNameLabel,
+                      helperText: S.of(context).aiRecipeNameHelper,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -792,14 +793,14 @@ class _MealInterpretationReviewScreenState
                         favorite = value ?? true;
                       });
                     },
-                    title: const Text('Favorita para acceso rápido'),
+                    title: Text(S.of(context).aiFavoriteQuickAccess),
                   ),
                 ],
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Cancelar'),
+                  child: Text(S.of(context).dialogCancelLabel),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -820,11 +821,11 @@ class _MealInterpretationReviewScreenState
                     Navigator.of(dialogContext).pop();
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Receta guardada')),
+                        SnackBar(content: Text(S.of(context).recipeSavedSnackbar)),
                       );
                     }
                   },
-                  child: const Text('Guardar'),
+                  child: Text(S.of(context).buttonSaveLabel),
                 ),
               ],
             );
@@ -862,14 +863,14 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Foto capturada',
+              S.of(context).aiPhotoCaptured,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 6),
             Text(
-              'Toca para ampliar. Alterna recorte/ajuste para inspección rápida.',
+              S.of(context).aiPhotoCapturedHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -891,7 +892,7 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                             Theme.of(context).colorScheme.surfaceContainerHigh,
                         alignment: Alignment.center,
                         child: Text(
-                          'No se pudo cargar la vista previa',
+                          S.of(context).aiPhotoPreviewError,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       );
@@ -914,7 +915,9 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                       ? Icons.crop_outlined
                       : Icons.fit_screen_outlined,
                 ),
-                label: Text(_cropPreview ? 'Recorte' : 'Ajuste'),
+                label: Text(_cropPreview
+                    ? S.of(context).aiCropLabel
+                    : S.of(context).aiFitLabel),
               ),
             ),
           ],
@@ -939,10 +942,10 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                   children: [
                     Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'Zoom de la foto',
-                            style: TextStyle(fontWeight: FontWeight.w700),
+                            S.of(context).aiPhotoZoomTitle,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
                         OutlinedButton.icon(
@@ -954,7 +957,9 @@ class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
                           icon: Icon(cropDialog
                               ? Icons.crop_outlined
                               : Icons.fit_screen_outlined),
-                          label: Text(cropDialog ? 'Recorte' : 'Ajuste'),
+                          label: Text(cropDialog
+                              ? S.of(context).aiCropLabel
+                              : S.of(context).aiFitLabel),
                         ),
                         const SizedBox(width: 8),
                         IconButton(
@@ -1037,8 +1042,8 @@ class _DraftHeroCard extends StatelessWidget {
                     ? Icons.camera_alt_outlined
                     : Icons.notes_outlined,
                 label: draft.sourceType == DraftSourceEntity.photo
-                    ? 'Foto IA'
-                    : 'Texto IA',
+                    ? S.of(context).aiSourcePhoto
+                    : S.of(context).aiSourceText,
               ),
               _DraftChip(
                 icon: Icons.restaurant_outlined,
@@ -1046,7 +1051,7 @@ class _DraftHeroCard extends StatelessWidget {
               ),
               _DraftChip(
                 icon: Icons.layers_outlined,
-                label: '$activeItemCount ingredientes',
+                label: S.of(context).aiIngredientsCount(activeItemCount),
               ),
               _DraftChip(
                 icon: Icons.fitness_center_outlined,
@@ -1076,7 +1081,7 @@ class _DraftHeroCard extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           Text(
-            'Raciones a guardar',
+            S.of(context).aiServingsToSave,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -1101,10 +1106,10 @@ class _DraftHeroCard extends StatelessWidget {
           TextField(
             controller: servingsController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Raciones personalizadas',
-              helperText: 'Ajusta la ración final antes de guardar.',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: S.of(context).aiCustomServingsLabel,
+              helperText: S.of(context).aiCustomServingsHelper,
+              border: const OutlineInputBorder(),
             ),
             onChanged: (_) => onServingsChanged(),
           ),
@@ -1116,11 +1121,11 @@ class _DraftHeroCard extends StatelessWidget {
   static String _confidenceLabel(ConfidenceBandEntity band) {
     switch (band) {
       case ConfidenceBandEntity.high:
-        return 'Confianza alta';
+        return S.current.aiConfidenceHigh;
       case ConfidenceBandEntity.medium:
-        return 'Confianza media';
+        return S.current.aiConfidenceMedium;
       case ConfidenceBandEntity.low:
-        return 'Confianza baja';
+        return S.current.aiConfidenceLow;
     }
   }
 
@@ -1139,107 +1144,157 @@ class _DraftHeroCard extends StatelessWidget {
 class _MealSuggestionsCard extends StatelessWidget {
   final List<MealInterpretationSuggestion> suggestions;
   final ValueChanged<MealInterpretationSuggestion> onApply;
-
   const _MealSuggestionsCard({
     required this.suggestions,
     required this.onApply,
   });
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Coincidencias tuyas',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+            Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: colorScheme.primary.withValues(alpha: 0.12),
                   ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.history_toggle_off_outlined,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    S.of(context).aiYourMatches,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 6),
             Text(
-              'Usa una comida frecuente, receta o corrección previa si se parece más a lo que has comido.',
+              S.of(context).aiMatchesHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
             ),
             const SizedBox(height: 14),
             ...suggestions.map(
-              (suggestion) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => onApply(suggestion),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: colorScheme.surfaceContainerHighest,
-                      border: Border.all(color: colorScheme.outlineVariant),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
-                            color: colorScheme.primary.withValues(alpha: 0.14),
+              (suggestion) {
+                final suggestionNutrition = MealPortionCalculator.calculate(
+                  suggestion.meal,
+                  suggestion.defaultAmount,
+                  suggestion.defaultUnit,
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => onApply(suggestion),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: colorScheme.surfaceContainerHighest,
+                        border: Border.all(color: colorScheme.outlineVariant),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: colorScheme.primary.withValues(alpha: 0.14),
+                            ),
+                            alignment: Alignment.center,
+                            child: Icon(
+                              Icons.auto_fix_high_outlined,
+                              color: colorScheme.primary,
+                            ),
                           ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.auto_fix_high_outlined,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                suggestion.title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${suggestion.sourceLabel} • ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  suggestion.title,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${suggestion.sourceLabel} \u00b7 ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    _InlineInfoChip(
+                                      icon: Icons.local_fire_department_outlined,
+                                      label:
+                                          '${suggestionNutrition.kcal.toStringAsFixed(0)} kcal',
                                     ),
-                              ),
-                            ],
+                                    _InlineInfoChip(
+                                      icon: Icons.auto_awesome_outlined,
+                                      label: _suggestionMatchLabel(
+                                        suggestion.score,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton.tonal(
-                          onPressed: () => onApply(suggestion),
-                          child: const Text('Usar'),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          FilledButton.tonal(
+                            onPressed: () => onApply(suggestion),
+                            child: Text(S.of(context).aiButtonUse),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ],
         ),
       ),
     );
   }
+  String _suggestionMatchLabel(double score) {
+    if (score >= 0.8) {
+      return S.current.aiMatchHigh;
+    }
+    if (score >= 0.6) {
+      return S.current.aiMatchGood;
+    }
+    return S.current.aiMatchPossible;
+  }
 }
-
 class _MacroHeroCard extends StatelessWidget {
   final double kcal;
   final double carbs;
@@ -1280,7 +1335,7 @@ class _MacroHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${servings.toStringAsFixed(servings % 1 == 0 ? 0 : 2)} servings ready to log',
+                        S.of(context).aiServingsReady(servings % 1 == 0 ? servings.toInt() : servings),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -1296,7 +1351,7 @@ class _MacroHeroCard extends StatelessWidget {
                     color: colorScheme.primary.withValues(alpha: 0.12),
                   ),
                   child: Text(
-                    'Editable',
+                    S.of(context).aiEditableLabel,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.w600,
@@ -1311,17 +1366,17 @@ class _MacroHeroCard extends StatelessWidget {
               runSpacing: 12,
               children: [
                 _MacroTile(
-                  label: 'Proteína',
+                  label: S.of(context).proteinLabel,
                   value: '${protein.toStringAsFixed(1)} g',
                   accentColor: colorScheme.primary,
                 ),
                 _MacroTile(
-                  label: 'Carbohidratos',
+                  label: S.of(context).carbohydrateLabel,
                   value: '${carbs.toStringAsFixed(1)} g',
                   accentColor: colorScheme.tertiary,
                 ),
                 _MacroTile(
-                  label: 'Grasas',
+                  label: S.of(context).fatLabel,
                   value: '${fat.toStringAsFixed(1)} g',
                   accentColor: const Color(0xFFE7A83B),
                 ),
@@ -1389,7 +1444,6 @@ class _DraftItemCard extends StatelessWidget {
   final ValueChanged<double>? onPresetSelected;
   final VoidCallback? onApplySavedCorrection;
   final VoidCallback onToggleRemoved;
-
   const _DraftItemCard({
     required this.item,
     required this.unitPresets,
@@ -1401,10 +1455,10 @@ class _DraftItemCard extends StatelessWidget {
     required this.onApplySavedCorrection,
     required this.onToggleRemoved,
   });
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final confidenceTone = _ConfidenceTone.fromBand(item.confidenceBand);
     final textStyle = item.removed
         ? Theme.of(context).textTheme.titleSmall?.copyWith(
               decoration: TextDecoration.lineThrough,
@@ -1413,8 +1467,21 @@ class _DraftItemCard extends StatelessWidget {
         : Theme.of(context).textTheme.titleSmall?.copyWith(
               fontWeight: FontWeight.w700,
             );
-
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: item.removed
+            ? colorScheme.surfaceContainerLow
+            : Color.alphaBlend(
+                confidenceTone.color.withValues(alpha: 0.06),
+                colorScheme.surface,
+              ),
+        border: Border.all(
+          color: item.removed
+              ? colorScheme.outlineVariant.withValues(alpha: 0.45)
+              : confidenceTone.color.withValues(alpha: 0.24),
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1427,7 +1494,13 @@ class _DraftItemCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.label, style: textStyle),
+                      Row(
+                        children: [
+                          Expanded(child: Text(item.label, style: textStyle)),
+                          const SizedBox(width: 8),
+                          _ConfidenceChip(band: item.confidenceBand),
+                        ],
+                      ),
                       const SizedBox(height: 6),
                       Wrap(
                         spacing: 8,
@@ -1442,31 +1515,23 @@ class _DraftItemCard extends StatelessWidget {
                             icon: Icons.local_fire_department_outlined,
                             label: '${item.kcal.toStringAsFixed(0)} kcal',
                           ),
-                          _ConfidenceChip(band: item.confidenceBand),
                         ],
                       ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: unitPresets
-                            .map(
-                              (unit) => ChoiceChip(
-                                label: Text(unit),
-                                selected: item.unit == unit,
-                                onSelected:
-                                    item.removed || onUnitSelected == null
-                                        ? null
-                                        : (_) => onUnitSelected!(unit),
-                              ),
-                            )
-                            .toList(),
-                      ),
+                      if (!item.removed &&
+                          item.confidenceBand != ConfidenceBandEntity.high) ...[
+                        const SizedBox(height: 12),
+                        _ConfidenceNotice(
+                          band: item.confidenceBand,
+                          hasSavedCorrection: savedCorrectionLabel != null,
+                        ),
+                      ],
                       if (savedCorrectionLabel != null) ...[
-                        const SizedBox(height: 8),
-                        _PresetChip(
-                          label: 'Usar habitual: $savedCorrectionLabel',
-                          onTap: item.removed ? null : onApplySavedCorrection,
+                        const SizedBox(height: 12),
+                        FilledButton.tonalIcon(
+                          onPressed:
+                              item.removed ? null : onApplySavedCorrection,
+                          icon: const Icon(Icons.history_outlined),
+                          label: Text(S.of(context).aiUseHabitual(savedCorrectionLabel!)),
                         ),
                       ],
                     ],
@@ -1479,36 +1544,84 @@ class _DraftItemCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
-              'C ${item.carbs.toStringAsFixed(1)}  |  F ${item.fat.toStringAsFixed(1)}  |  P ${item.protein.toStringAsFixed(1)}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: item.removed
-                        ? Theme.of(context).disabledColor
-                        : colorScheme.onSurfaceVariant,
-                  ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _InlineInfoChip(
+                  icon: Icons.bubble_chart_outlined,
+                  label: 'C ${item.carbs.toStringAsFixed(1)}',
+                ),
+                _InlineInfoChip(
+                  icon: Icons.opacity_outlined,
+                  label: 'G ${item.fat.toStringAsFixed(1)}',
+                ),
+                _InlineInfoChip(
+                  icon: Icons.fitness_center_outlined,
+                  label: 'P ${item.protein.toStringAsFixed(1)}',
+                ),
+              ],
             ),
             const SizedBox(height: 12),
+            Text(
+              S.of(context).unitLabel,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: unitPresets
+                  .map(
+                    (unit) => ChoiceChip(
+                      label: Text(unit),
+                      selected: item.unit == unit,
+                      onSelected: item.removed || onUnitSelected == null
+                          ? null
+                          : (_) => onUnitSelected!(unit),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              S.of(context).aiQuickAdjustment,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 _PresetChip(
-                  label: 'Pequeña',
+                  label: '-25 %',
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(0.75),
                 ),
                 _PresetChip(
-                  label: 'Media',
+                  label: S.of(context).allItemsLabel,
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(1.0),
                 ),
                 _PresetChip(
-                  label: 'Grande',
+                  label: '+25 %',
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(1.25),
+                ),
+                _PresetChip(
+                  label: '+50 %',
+                  onTap: item.removed || onPresetSelected == null
+                      ? null
+                      : () => onPresetSelected!(1.5),
                 ),
               ],
             ),
@@ -1520,12 +1633,12 @@ class _DraftItemCard extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onEditPressed,
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Cantidad'),
+                  label: Text(S.of(context).aiAmountLabel),
                 ),
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onReplacePressed,
                   icon: const Icon(Icons.swap_horiz_outlined),
-                  label: const Text('Sustituir'),
+                  label: Text(S.of(context).aiSubstituteLabel),
                 ),
                 OutlinedButton.icon(
                   onPressed: onToggleRemoved,
@@ -1534,14 +1647,16 @@ class _DraftItemCard extends StatelessWidget {
                         ? Icons.undo_outlined
                         : Icons.remove_circle_outline,
                   ),
-                  label: Text(item.removed ? 'Restaurar' : 'Quitar'),
+                  label: Text(item.removed
+                      ? S.of(context).aiRestoreLabel
+                      : S.of(context).aiRemoveLabel),
                 ),
               ],
             ),
             if (item.removed) ...[
               const SizedBox(height: 10),
               Text(
-                'Excluido de la comida final.',
+                S.of(context).aiExcludeFromMeal,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),
@@ -1553,50 +1668,76 @@ class _DraftItemCard extends StatelessWidget {
     );
   }
 }
-
 class _PresetChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
-
   const _PresetChip({
     required this.label,
     required this.onTap,
   });
-
   @override
   Widget build(BuildContext context) {
     return ActionChip(
       label: Text(label),
-      avatar: const Icon(Icons.straighten, size: 16),
+      avatar: const Icon(Icons.tune_outlined, size: 16),
       onPressed: onTap,
     );
   }
 }
-
-class _ConfidenceChip extends StatelessWidget {
+class _ConfidenceNotice extends StatelessWidget {
   final ConfidenceBandEntity band;
-
-  const _ConfidenceChip({required this.band});
-
+  final bool hasSavedCorrection;
+  const _ConfidenceNotice({
+    required this.band,
+    required this.hasSavedCorrection,
+  });
   @override
   Widget build(BuildContext context) {
-    Color color;
-    String label;
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        color = Colors.green;
-        label = 'Confianza alta';
-        break;
-      case ConfidenceBandEntity.medium:
-        color = Colors.orange;
-        label = 'Confianza media';
-        break;
-      case ConfidenceBandEntity.low:
-        color = Colors.red;
-        label = 'Confianza baja';
-        break;
-    }
-
+    final tone = _ConfidenceTone.fromBand(band);
+    final colorScheme = Theme.of(context).colorScheme;
+    final message = switch (band) {
+      ConfidenceBandEntity.low => hasSavedCorrection
+          ? S.of(context).aiConfidenceLowHint
+          : S.of(context).aiConfidenceLowGenericHint,
+      ConfidenceBandEntity.medium => S.of(context).aiConfidenceMediumHint,
+      ConfidenceBandEntity.high => '',
+    };
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Color.alphaBlend(
+          tone.color.withValues(alpha: 0.08),
+          colorScheme.surfaceContainerLow,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(tone.icon, size: 18, color: tone.color),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _ConfidenceChip extends StatelessWidget {
+  final ConfidenceBandEntity band;
+  const _ConfidenceChip({required this.band});
+  @override
+  Widget build(BuildContext context) {
+    final tone = _ConfidenceTone.fromBand(band);
+    final color = tone.color;
+    final label = tone.label;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -1607,7 +1748,7 @@ class _ConfidenceChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.traffic_outlined, size: 14, color: color),
+          Icon(tone.icon, size: 14, color: color),
           const SizedBox(width: 6),
           Text(
             label,
@@ -1621,7 +1762,70 @@ class _ConfidenceChip extends StatelessWidget {
     );
   }
 }
-
+class _InlineInfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _InlineInfoChip({
+    required this.icon,
+    required this.label,
+  });
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+class _ConfidenceTone {
+  final Color color;
+  final String label;
+  final IconData icon;
+  const _ConfidenceTone({
+    required this.color,
+    required this.label,
+    required this.icon,
+  });
+  factory _ConfidenceTone.fromBand(ConfidenceBandEntity band) {
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        return const _ConfidenceTone(
+          color: Colors.green,
+          label: 'Confianza alta',
+          icon: Icons.verified_outlined,
+        );
+      case ConfidenceBandEntity.medium:
+        return const _ConfidenceTone(
+          color: Colors.orange,
+          label: 'Confianza media',
+          icon: Icons.tune_outlined,
+        );
+      case ConfidenceBandEntity.low:
+        return const _ConfidenceTone(
+          color: Colors.red,
+          label: 'Confianza baja',
+          icon: Icons.warning_amber_outlined,
+        );
+    }
+  }
+}
 class _DraftChip extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1707,7 +1911,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
     final units = _allowedUnits(widget.meal);
 
     return AlertDialog(
-      title: Text(widget.meal.name ?? 'Add ingredient'),
+      title: Text(widget.meal.name ?? S.of(context).aiAddIngredient),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1715,17 +1919,17 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
             controller: _amountController,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Cantidad',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: S.of(context).quantityLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12.0),
           DropdownButtonFormField<String>(
             initialValue: _selectedUnit,
-            decoration: const InputDecoration(
-              labelText: 'Unidad',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: S.of(context).unitLabel,
+              border: const OutlineInputBorder(),
             ),
             items: units
                 .map((unit) => DropdownMenuItem(
@@ -1747,7 +1951,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
           onPressed: () {
@@ -1760,7 +1964,7 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
               _IngredientPortionResult(amount: amount, unit: _selectedUnit),
             );
           },
-          child: const Text('Añadir'),
+          child: Text(S.of(context).addLabel),
         ),
       ],
     );
@@ -1792,3 +1996,4 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
     return 'g/ml';
   }
 }
+

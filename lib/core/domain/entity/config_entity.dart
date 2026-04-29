@@ -23,6 +23,7 @@ class ConfigEntity extends Equatable {
   final String? aiCostTodayDate;
   final String? aiCostMonthKey;
   final TrainingDayTemplateEntity trainingDayTemplate;
+  final String? selectedLocale;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
@@ -39,7 +40,8 @@ class ConfigEntity extends Equatable {
       this.aiPhotoCallsTotal = 0,
       this.aiCostTodayDate,
       this.aiCostMonthKey,
-      this.trainingDayTemplate = TrainingDayTemplateEntity.rest});
+      this.trainingDayTemplate = TrainingDayTemplateEntity.rest,
+      this.selectedLocale});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -61,6 +63,7 @@ class ConfigEntity extends Equatable {
         aiCostMonthKey: dbo.aiCostMonthKey,
         trainingDayTemplate: TrainingDayTemplateEntityX.fromStorageValue(
             dbo.trainingDayTemplate),
+        selectedLocale: dbo.selectedLocale,
       );
 
   @override
@@ -82,5 +85,6 @@ class ConfigEntity extends Equatable {
         aiCostTodayDate,
         aiCostMonthKey,
         trainingDayTemplate,
+        selectedLocale,
       ];
 }

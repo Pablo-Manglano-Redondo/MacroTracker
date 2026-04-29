@@ -30,7 +30,7 @@ class NutritionKpiCard extends StatelessWidget {
           child: FutureBuilder<WeeklyInsightsEntity>(
             future: locator<BuildWeeklyInsightsUsecase>().build(DateTime.now()),
             builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
+              if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 140,
                   child: Center(child: CircularProgressIndicator()),

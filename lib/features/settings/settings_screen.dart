@@ -79,6 +79,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => _showThemeDialog(context, state.appTheme),
                 ),
                 ListTile(
+                  leading: const Icon(Icons.language_outlined),
+                  title: Text(S.of(context).settingsLanguageLabel),
+                  onTap: () => _showLanguageDialog(context, state.currentLocale),
+                ),
+                ListTile(
                   leading: const Icon(Icons.import_export),
                   title: Text(S.of(context).exportImportLabel),
                   onTap: () => _showExportImportDialog(context),
@@ -101,9 +106,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.paid_outlined),
-                  title: const Text('Coste de IA'),
+                  title: Text(S.of(context).settingsAiCostLabel),
                   subtitle: Text(
-                    'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} • Hoy \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
+                    'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} • ${S.of(context).todayLabel} \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
                   ),
                   onTap: () => _showAiCostDialog(context, state),
                 ),
@@ -262,6 +267,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
   }
 
+  void _showLanguageDialog(BuildContext context, String? currentLocale) {
+    String? selectedLocale = currentLocale;
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            contentPadding: EdgeInsets.zero,
+            title: Text(S.of(context).settingsSelectLanguageTitle),
+            content: StatefulBuilder(
+              builder: (BuildContext context,
+                  void Function(void Function()) setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<String?>(
+                      title: Text(S.of(context).settingsLanguageSystemDefaultLabel),
+                      value: null,
+                      groupValue: selectedLocale,
+                      onChanged: (value) {
+                        setState(() => selectedLocale = value);
+                      },
+                    ),
+                    RadioListTile<String?>(
+                      title: Text(S.of(context).settingsLanguageEnglish),
+                      value: 'en',
+                      groupValue: selectedLocale,
+                      onChanged: (value) {
+                        setState(() => selectedLocale = value);
+                      },
+                    ),
+                    RadioListTile<String?>(
+                      title: Text(S.of(context).settingsLanguageSpanish),
+                      value: 'es',
+                      groupValue: selectedLocale,
+                      onChanged: (value) {
+                        setState(() => selectedLocale = value);
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogCancelLabel)),
+              TextButton(
+                  onPressed: () async {
+                    _settingsBloc.setLocale(selectedLocale);
+                    _settingsBloc.add(LoadSettingsEvent());
+                    if (context.mounted) {
+                      Provider.of<ThemeModeProvider>(context, listen: false)
+                          .updateLocale(selectedLocale != null ? Locale(selectedLocale!) : null);
+                    }
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(S.of(context).dialogOKLabel)),
+            ],
+          );
+        });
+  }
+
   void _showDisclaimerDialog(BuildContext context) {
     showDialog(
         context: context,
@@ -398,23 +467,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Coste de IA'),
+        title: Text(S.of(context).settingsAiCostLabel),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                'Total estimado: ${currency.format(state.aiEstimatedCostTotalUsd)}'),
-            Text('Hoy: ${currency.format(state.aiEstimatedCostTodayUsd)}'),
-            Text('Este mes: ${currency.format(state.aiEstimatedCostMonthUsd)}'),
+                S.of(context).settingsAiCostTotal(currency.format(state.aiEstimatedCostTotalUsd))),
+            Text(S.of(context).settingsAiCostToday(currency.format(state.aiEstimatedCostTodayUsd))),
+            Text(S.of(context).settingsAiCostMonth(currency.format(state.aiEstimatedCostMonthUsd))),
             const SizedBox(height: 10),
-            Text('Llamadas totales: $totalCalls'),
-            Text('Llamadas texto: ${state.aiTextCallsTotal}'),
-            Text('Llamadas foto: ${state.aiPhotoCallsTotal}'),
+            Text(S.of(context).settingsAiCallsTotal(totalCalls)),
+            Text(S.of(context).settingsAiCallsText(state.aiTextCallsTotal)),
+            Text(S.of(context).settingsAiCallsPhoto(state.aiPhotoCallsTotal)),
             const SizedBox(height: 10),
-            const Text(
-              'Basado en uso real de tokens por peticion en backend.',
-              style: TextStyle(fontSize: 12),
+            Text(
+              S.of(context).settingsAiCostDescription,
+              style: const TextStyle(fontSize: 12),
             ),
           ],
         ),
@@ -431,7 +500,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _settingsBloc.add(LoadSettingsEvent());
               }
             },
-            child: const Text('Reiniciar'),
+            child: Text(S.of(context).settingsResetLabel),
           ),
         ],
       ),

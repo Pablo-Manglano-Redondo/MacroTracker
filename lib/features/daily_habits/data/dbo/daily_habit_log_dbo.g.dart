@@ -2,6 +2,10 @@
 
 part of 'daily_habit_log_dbo.dart';
 
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
 class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
   @override
   final int typeId = 25;
@@ -18,9 +22,9 @@ class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
       wheyTaken: fields[2] as bool,
       caffeineTaken: fields[3] as bool,
       waterLiters: fields[4] as double,
-      sleepHours: (fields[5] as double?) ?? 0,
-      steps: (fields[6] as int?) ?? 0,
-      energyLevel: (fields[7] as int?) ?? 0,
+      sleepHours: fields[5] as double,
+      steps: fields[6] as int,
+      energyLevel: fields[7] as int,
     );
   }
 
@@ -56,6 +60,10 @@ class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 DailyHabitLogDBO _$DailyHabitLogDBOFromJson(Map<String, dynamic> json) =>
     DailyHabitLogDBO(

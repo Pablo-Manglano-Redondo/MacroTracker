@@ -57,6 +57,18 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<String?> getLocale() async {
+    final config = _configBox.get(_configKey);
+    return config?.selectedLocale;
+  }
+
+  Future<void> setConfigLocale(String? locale) async {
+    _log.fine('Updating config selectedLocale to $locale');
+    final config = _configBox.get(_configKey);
+    config?.selectedLocale = locale;
+    config?.save();
+  }
+
   Future<double> getKcalAdjustment() async {
     final config = _configBox.get(_configKey);
     return config?.userKcalAdjustment ?? 0;

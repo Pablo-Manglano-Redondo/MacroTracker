@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -35,17 +36,17 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Comidas guardadas')),
+      appBar: AppBar(title: Text(S.of(context).recipeLibraryTitle)),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_outlined),
-                hintText: 'Buscar comidas guardadas',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search_outlined),
+                hintText: S.of(context).recipeLibrarySearchHint,
+                border: const OutlineInputBorder(),
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -61,11 +62,11 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                 final recipes =
                     _filterRecipes(snapshot.data ?? const <RecipeEntity>[]);
                 if (recipes.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(24.0),
                       child: Text(
-                        'Aun no hay comidas guardadas.\nGuarda comidas como recetas para reutilizarlas.',
+                        S.of(context).recipeLibraryEmpty,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -86,7 +87,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '${recipe.ingredients.length} ingredientes | ${recipe.defaultServings.toStringAsFixed(recipe.defaultServings % 1 == 0 ? 0 : 1)} raciones',
+                            '${S.of(context).recipeLibraryIngredientsCount(recipe.ingredients.length)} | ${S.of(context).recipeLibraryServingsCount(recipe.defaultServings % 1 == 0 ? recipe.defaultServings.toInt() : recipe.defaultServings)}',
                           ),
                           const SizedBox(height: 6),
                           Wrap(
@@ -98,9 +99,9 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                                 label: category.label,
                               ),
                               if (recipe.favorite)
-                                const _RecipeMetaChip(
+                                _RecipeMetaChip(
                                   icon: Icons.favorite,
-                                  label: 'Favorita',
+                                  label: S.of(context).recipeLibraryFavorite,
                                 ),
                             ],
                           ),
@@ -115,8 +116,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                           color: recipe.favorite ? Colors.redAccent : null,
                         ),
                         tooltip: recipe.favorite
-                            ? 'Quitar favorita'
-                            : 'Marcar favorita',
+                            ? S.of(context).recipeLibraryRemoveFavorite
+                            : S.of(context).recipeLibraryMarkFavorite,
                       ),
                       onTap: () => _showAddRecipeDialog(recipe),
                     );
@@ -151,22 +152,22 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
           content: TextField(
             controller: controller,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Raciones',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: S.of(context).servingsLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancelar'),
+              child: Text(S.of(context).dialogCancelLabel),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop(
                     double.tryParse(controller.text.replaceAll(',', '.')) ?? 1);
               },
-              child: const Text('Anadir'),
+              child: Text(S.of(context).addLabel),
             ),
           ],
         );
@@ -185,7 +186,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${recipe.name} anadida')),
+        SnackBar(content: Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name))),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));

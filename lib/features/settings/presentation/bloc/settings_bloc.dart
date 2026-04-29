@@ -49,7 +49,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           aiEstimatedCostTodayUsd: userConfig.aiEstimatedCostTodayUsd,
           aiEstimatedCostMonthUsd: userConfig.aiEstimatedCostMonthUsd,
           aiTextCallsTotal: userConfig.aiTextCallsTotal,
-          aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal));
+          aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal,
+          currentLocale: userConfig.selectedLocale));
     });
   }
 
@@ -60,6 +61,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   void setAppTheme(AppThemeEntity appTheme) async {
     await _addConfigUsecase.setConfigAppTheme(appTheme);
+  }
+
+  void setLocale(String? locale) async {
+    await _addConfigUsecase.setConfigLocale(locale);
   }
 
   void setUsesImperialUnits(bool usesImperialUnits) {
@@ -101,7 +106,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   }
 
   void updateTrackedDay(DateTime day) async {
-    final day = DateTime.now();
     final config = await _getConfigUsecase.getConfig();
     final user = await _getUserUsecase.getUserData();
     final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal();

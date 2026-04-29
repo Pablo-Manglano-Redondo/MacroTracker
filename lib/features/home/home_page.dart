@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
@@ -282,9 +283,9 @@ class _WeeklyInsightsCard extends StatelessWidget {
       elevation: 0.5,
       child: ListTile(
         leading: const Icon(Icons.insights_outlined),
-        title: const Text('Resumen semanal'),
-        subtitle: const Text(
-          'Revisa promedios, adherencia, proteína y comidas top',
+        title: Text(S.of(context).weeklyInsightsTitle),
+        subtitle: Text(
+          S.of(context).homeWeeklyInsightsSubtitle,
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: onTap,

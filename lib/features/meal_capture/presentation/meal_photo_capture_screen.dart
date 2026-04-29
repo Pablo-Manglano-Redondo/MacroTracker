@@ -16,6 +16,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpret
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class MealPhotoCaptureScreen extends StatefulWidget {
   const MealPhotoCaptureScreen({super.key});
@@ -30,7 +31,9 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
 
   final ImagePicker _imagePicker = ImagePicker();
   late MealPhotoCaptureScreenArguments _args;
-  bool _isLoading = false;
+  String? _loadingStatus;
+
+  bool get _isLoading => _loadingStatus != null;
 
   @override
   void didChangeDependencies() {
@@ -48,7 +51,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Comida por foto IA')),
+      appBar: AppBar(title: Text(S.of(context).aiMealPhotoTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -82,14 +85,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Registro por foto',
+                  S.of(context).aiCaptureByPhotoTitle,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Importa una imagen de comida, revisa el borrador editable y guárdalo en ${_args.intakeTypeEntity.name}.',
+                  S.of(context).aiCaptureByPhotoSubtitle(_args.intakeTypeEntity.name),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -98,18 +101,18 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: const [
+                  children: [
                     _CaptureStepChip(
                       icon: Icons.image_outlined,
-                      label: 'Elegir imagen',
+                      label: S.of(context).aiStepPickImage,
                     ),
                     _CaptureStepChip(
                       icon: Icons.tune_outlined,
-                      label: 'Revisar items',
+                      label: S.of(context).aiStepReviewItems,
                     ),
                     _CaptureStepChip(
                       icon: Icons.restaurant_outlined,
-                      label: 'Guardar comida',
+                      label: S.of(context).aiStepSaveMeal,
                     ),
                   ],
                 ),
@@ -124,31 +127,28 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Recomendaciones',
+                    S.of(context).aiHintRecommendations,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
                   ),
                   const SizedBox(height: 12),
-                  const _CaptureHintRow(
+                  _CaptureHintRow(
                     icon: Icons.crop_free_outlined,
-                    title: 'Muestra el plato completo',
-                    subtitle:
-                        'Mejor encuadre, mejor detección de ingredientes.',
+                    title: S.of(context).aiHintShowFullPlateTitle,
+                    subtitle: S.of(context).aiHintShowFullPlateSubtitle,
                   ),
                   const SizedBox(height: 10),
-                  const _CaptureHintRow(
+                  _CaptureHintRow(
                     icon: Icons.opacity_outlined,
-                    title: 'Revisa salsas y aceites',
-                    subtitle:
-                        'El borrador es solo el primer paso. Corrige calorías ocultas.',
+                    title: S.of(context).aiHintCheckSaucesTitle,
+                    subtitle: S.of(context).aiHintCheckSaucesSubtitle,
                   ),
                   const SizedBox(height: 10),
-                  const _CaptureHintRow(
+                  _CaptureHintRow(
                     icon: Icons.fitness_center_outlined,
-                    title: 'Pensado para comidas de gimnasio',
-                    subtitle:
-                        'Útil para bowls, batidos, post entreno y comidas repetidas.',
+                    title: S.of(context).aiHintGymMealsTitle,
+                    subtitle: S.of(context).aiHintGymMealsSubtitle,
                   ),
                 ],
               ),
@@ -161,7 +161,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
               _isLoading ? Icons.hourglass_top_outlined : Icons.auto_awesome,
             ),
             label: Text(
-              _isLoading ? 'Creando borrador IA...' : 'Hacer foto y revisar',
+              _isLoading ? _loadingStatus! : S.of(context).aiButtonCapture,
             ),
           ),
           const SizedBox(height: 8),
@@ -169,7 +169,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             child: TextButton.icon(
               onPressed: _isLoading ? null : _pickAndInterpretPhoto,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const Text('Elegir de galería'),
+              label: Text(S.of(context).aiButtonPickGallery),
             ),
           ),
           const SizedBox(height: 4),
@@ -177,7 +177,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             child: TextButton.icon(
               onPressed: _isLoading ? null : _openTextFlow,
               icon: const Icon(Icons.notes_outlined),
-              label: const Text('Usar texto'),
+              label: Text(S.of(context).aiButtonUseText),
             ),
           ),
         ],
@@ -227,7 +227,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     required Uint8List bytes,
   }) async {
     setState(() {
-      _isLoading = true;
+      _loadingStatus = S.of(context).aiStatusPreparing;
     });
 
     try {
@@ -235,6 +235,11 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         imageBytes: bytes,
         fileName: fileName,
       );
+
+      setState(() {
+        _loadingStatus = S.of(context).aiStatusConsulting;
+      });
+
       final config = await locator<GetConfigUsecase>().getConfig();
       final personalizationContext =
           await locator<MealInterpretationPersonalizationUsecase>().buildContext(
@@ -250,6 +255,11 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         analysisContext: personalizationContext.promptContext,
         personalExamples: personalizationContext.remoteExamples,
       );
+
+      setState(() {
+        _loadingStatus = S.of(context).aiStatusPersonalizing;
+      });
+
       final personalizedDraft =
           await locator<MealInterpretationPersonalizationUsecase>()
               .personalizeDraft(
@@ -278,13 +288,26 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(message),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: S.of(context).aiRetry,
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => 
+                    route.settings.name == NavigationOptions.mealPhotoCaptureRoute);
+                _interpretPickedFile(
+                  fileName: fileName,
+                  filePath: filePath,
+                  bytes: bytes,
+                );
+              },
+            ),
           ),
         );
       }
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _loadingStatus = null;
         });
       }
     }
@@ -339,22 +362,22 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final normalized = extractedError.toLowerCase();
     if (normalized.contains('payload is too large') ||
         normalized.contains('413')) {
-      return 'La imagen es demasiado grande para IA remota. Se creo borrador local.';
+      return S.current.aiErrorPayloadTooLarge;
     }
     if (normalized.contains('missing gemini_api_key')) {
-      return 'La IA remota no está configurada en backend. Se creó un borrador local.';
+      return S.current.aiErrorMissingKey;
     }
     if (normalized.contains('429') ||
         normalized.contains('resource_exhausted') ||
         normalized.contains('quota')) {
-      return 'Se alcanzó el límite de cuota/rate de IA remota. Se creó un borrador local.';
+      return S.current.aiErrorQuotaExceeded;
     }
     if (normalized.contains('mime') ||
         normalized.contains('unsupported') ||
         normalized.contains('invalid argument')) {
-      return 'Formato de imagen no soportado por IA remota. Prueba JPG/PNG. Se creó un borrador local.';
+      return S.current.aiErrorUnsupportedFormat;
     }
-    return 'Falló la interpretación remota de imagen. Se creó un borrador local con apoyo de memoria. (${_truncateError(extractedError)})';
+    return S.current.aiErrorGeneric;
   }
 
   String _fileExtension(String fileName) {
@@ -438,7 +461,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final draft = await locator<MealInterpretationPersonalizationUsecase>()
         .buildFallbackDraft(
       sourceType: DraftSourceEntity.photo,
-      title: 'Borrador de comida por foto',
+      title: S.current.aiReviewDraftTitle,
       intakeType: _args.intakeTypeEntity,
       inputText: fileName,
       localImagePath: imagePath,

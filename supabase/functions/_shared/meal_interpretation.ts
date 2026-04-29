@@ -84,7 +84,7 @@ export async function buildMealInterpretationDraft(
       generationConfig: {
         temperature: 0.2,
         topK: 20,
-        maxOutputTokens: 1200,
+        maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseJsonSchema: mealInterpretationSchema,
       },

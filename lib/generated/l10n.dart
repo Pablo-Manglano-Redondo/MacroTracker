@@ -4150,6 +4150,2069 @@ class S {
       args: [],
     );
   }
+
+  /// `Today`
+  String get todayLabel {
+    return Intl.message(
+      'Today',
+      name: 'todayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `day`
+  String get dayLabel {
+    return Intl.message(
+      'day',
+      name: 'dayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `AI Meal Photo`
+  String get aiMealPhotoTitle {
+    return Intl.message(
+      'AI Meal Photo',
+      name: 'aiMealPhotoTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review AI Draft`
+  String get aiReviewDraftTitle {
+    return Intl.message(
+      'Review AI Draft',
+      name: 'aiReviewDraftTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Detected ingredients`
+  String get aiDetectedIngredients {
+    return Intl.message(
+      'Detected ingredients',
+      name: 'aiDetectedIngredients',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} active`
+  String aiActiveItemsCount(Object count) {
+    return Intl.message(
+      '$count active',
+      name: 'aiActiveItemsCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Save as recipe`
+  String get aiSaveAsRecipe {
+    return Intl.message(
+      'Save as recipe',
+      name: 'aiSaveAsRecipe',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add ingredient`
+  String get aiAddIngredient {
+    return Intl.message(
+      'Add ingredient',
+      name: 'aiAddIngredient',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saving meal...`
+  String get aiSavingMeal {
+    return Intl.message(
+      'Saving meal...',
+      name: 'aiSavingMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save meal`
+  String get aiSaveMeal {
+    return Intl.message(
+      'Save meal',
+      name: 'aiSaveMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Draft not found or expired.`
+  String get aiDraftNotFound {
+    return Intl.message(
+      'Draft not found or expired.',
+      name: 'aiDraftNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recipe name`
+  String get aiRecipeNameLabel {
+    return Intl.message(
+      'Recipe name',
+      name: 'aiRecipeNameLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use names like pre-workout oats, post-workout chicken rice, or shake.`
+  String get aiRecipeNameHelper {
+    return Intl.message(
+      'Use names like pre-workout oats, post-workout chicken rice, or shake.',
+      name: 'aiRecipeNameHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Favorite for quick access`
+  String get aiFavoriteQuickAccess {
+    return Intl.message(
+      'Favorite for quick access',
+      name: 'aiFavoriteQuickAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Capture by photo`
+  String get aiCaptureByPhotoTitle {
+    return Intl.message(
+      'Capture by photo',
+      name: 'aiCaptureByPhotoTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Import a meal image, review the editable draft, and save it to {mealType}.`
+  String aiCaptureByPhotoSubtitle(Object mealType) {
+    return Intl.message(
+      'Import a meal image, review the editable draft, and save it to $mealType.',
+      name: 'aiCaptureByPhotoSubtitle',
+      desc: '',
+      args: [mealType],
+    );
+  }
+
+  /// `Pick image`
+  String get aiStepPickImage {
+    return Intl.message(
+      'Pick image',
+      name: 'aiStepPickImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review items`
+  String get aiStepReviewItems {
+    return Intl.message(
+      'Review items',
+      name: 'aiStepReviewItems',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save meal`
+  String get aiStepSaveMeal {
+    return Intl.message(
+      'Save meal',
+      name: 'aiStepSaveMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommendations`
+  String get aiHintRecommendations {
+    return Intl.message(
+      'Recommendations',
+      name: 'aiHintRecommendations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show full plate`
+  String get aiHintShowFullPlateTitle {
+    return Intl.message(
+      'Show full plate',
+      name: 'aiHintShowFullPlateTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Better framing, better ingredient detection.`
+  String get aiHintShowFullPlateSubtitle {
+    return Intl.message(
+      'Better framing, better ingredient detection.',
+      name: 'aiHintShowFullPlateSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check sauces and oils`
+  String get aiHintCheckSaucesTitle {
+    return Intl.message(
+      'Check sauces and oils',
+      name: 'aiHintCheckSaucesTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The draft is just the first step. Correct hidden calories.`
+  String get aiHintCheckSaucesSubtitle {
+    return Intl.message(
+      'The draft is just the first step. Correct hidden calories.',
+      name: 'aiHintCheckSaucesSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Designed for gym meals`
+  String get aiHintGymMealsTitle {
+    return Intl.message(
+      'Designed for gym meals',
+      name: 'aiHintGymMealsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Useful for bowls, shakes, post-workouts, and repeated meals.`
+  String get aiHintGymMealsSubtitle {
+    return Intl.message(
+      'Useful for bowls, shakes, post-workouts, and repeated meals.',
+      name: 'aiHintGymMealsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Take photo and review`
+  String get aiButtonCapture {
+    return Intl.message(
+      'Take photo and review',
+      name: 'aiButtonCapture',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick from gallery`
+  String get aiButtonPickGallery {
+    return Intl.message(
+      'Pick from gallery',
+      name: 'aiButtonPickGallery',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use text`
+  String get aiButtonUseText {
+    return Intl.message(
+      'Use text',
+      name: 'aiButtonUseText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Preparing image...`
+  String get aiStatusPreparing {
+    return Intl.message(
+      'Preparing image...',
+      name: 'aiStatusPreparing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Consulting AI...`
+  String get aiStatusConsulting {
+    return Intl.message(
+      'Consulting AI...',
+      name: 'aiStatusConsulting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Personalizing...`
+  String get aiStatusPersonalizing {
+    return Intl.message(
+      'Personalizing...',
+      name: 'aiStatusPersonalizing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Image is too large for remote AI. Local draft created.`
+  String get aiErrorPayloadTooLarge {
+    return Intl.message(
+      'Image is too large for remote AI. Local draft created.',
+      name: 'aiErrorPayloadTooLarge',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote AI is not configured in backend. Local draft created.`
+  String get aiErrorMissingKey {
+    return Intl.message(
+      'Remote AI is not configured in backend. Local draft created.',
+      name: 'aiErrorMissingKey',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote AI quota/rate limit reached. Local draft created.`
+  String get aiErrorQuotaExceeded {
+    return Intl.message(
+      'Remote AI quota/rate limit reached. Local draft created.',
+      name: 'aiErrorQuotaExceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Image format not supported by remote AI. Try JPG/PNG. Local draft created.`
+  String get aiErrorUnsupportedFormat {
+    return Intl.message(
+      'Image format not supported by remote AI. Try JPG/PNG. Local draft created.',
+      name: 'aiErrorUnsupportedFormat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote image interpretation failed. Local draft created with memory support.`
+  String get aiErrorGeneric {
+    return Intl.message(
+      'Remote image interpretation failed. Local draft created with memory support.',
+      name: 'aiErrorGeneric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Retry`
+  String get aiRetry {
+    return Intl.message(
+      'Retry',
+      name: 'aiRetry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit {item}`
+  String aiEditAmountTitle(Object item) {
+    return Intl.message(
+      'Edit $item',
+      name: 'aiEditAmountTitle',
+      desc: '',
+      args: [item],
+    );
+  }
+
+  /// `Quantity ({unit})`
+  String aiQuantityUnitLabel(Object unit) {
+    return Intl.message(
+      'Quantity ($unit)',
+      name: 'aiQuantityUnitLabel',
+      desc: '',
+      args: [unit],
+    );
+  }
+
+  /// `Could not save draft changes`
+  String get aiSaveDraftChangesError {
+    return Intl.message(
+      'Could not save draft changes',
+      name: 'aiSaveDraftChangesError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal saved`
+  String get aiMealSavedSuccess {
+    return Intl.message(
+      'Meal saved',
+      name: 'aiMealSavedSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not save this meal`
+  String get aiMealSaveError {
+    return Intl.message(
+      'Could not save this meal',
+      name: 'aiMealSaveError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Post-workout`
+  String get aiGymLabelPostWorkout {
+    return Intl.message(
+      'Post-workout',
+      name: 'aiGymLabelPostWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pre-workout`
+  String get aiGymLabelPreWorkout {
+    return Intl.message(
+      'Pre-workout',
+      name: 'aiGymLabelPreWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High protein`
+  String get aiGymLabelHighProtein {
+    return Intl.message(
+      'High protein',
+      name: 'aiGymLabelHighProtein',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Lean for definition`
+  String get aiGymLabelLeanDefinition {
+    return Intl.message(
+      'Lean for definition',
+      name: 'aiGymLabelLeanDefinition',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Balanced`
+  String get aiGymLabelBalanced {
+    return Intl.message(
+      'Balanced',
+      name: 'aiGymLabelBalanced',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Applied suggestion: {title}`
+  String aiSuggestionApplied(Object title) {
+    return Intl.message(
+      'Applied suggestion: $title',
+      name: 'aiSuggestionApplied',
+      desc: '',
+      args: [title],
+    );
+  }
+
+  /// `Replaced by {source} to improve accuracy.`
+  String aiReplacedBySummary(Object source) {
+    return Intl.message(
+      'Replaced by $source to improve accuracy.',
+      name: 'aiReplacedBySummary',
+      desc: '',
+      args: [source],
+    );
+  }
+
+  /// `Recipe saved`
+  String get recipeSavedSnackbar {
+    return Intl.message(
+      'Recipe saved',
+      name: 'recipeSavedSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Captured photo`
+  String get aiPhotoCaptured {
+    return Intl.message(
+      'Captured photo',
+      name: 'aiPhotoCaptured',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tap to enlarge. Toggle crop/fit for quick inspection.`
+  String get aiPhotoCapturedHint {
+    return Intl.message(
+      'Tap to enlarge. Toggle crop/fit for quick inspection.',
+      name: 'aiPhotoCapturedHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not load preview`
+  String get aiPhotoPreviewError {
+    return Intl.message(
+      'Could not load preview',
+      name: 'aiPhotoPreviewError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Crop`
+  String get aiCropLabel {
+    return Intl.message(
+      'Crop',
+      name: 'aiCropLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fit`
+  String get aiFitLabel {
+    return Intl.message(
+      'Fit',
+      name: 'aiFitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photo zoom`
+  String get aiPhotoZoomTitle {
+    return Intl.message(
+      'Photo zoom',
+      name: 'aiPhotoZoomTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `AI Photo`
+  String get aiSourcePhoto {
+    return Intl.message(
+      'AI Photo',
+      name: 'aiSourcePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `AI Text`
+  String get aiSourceText {
+    return Intl.message(
+      'AI Text',
+      name: 'aiSourceText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} ingredients`
+  String aiIngredientsCount(Object count) {
+    return Intl.message(
+      '$count ingredients',
+      name: 'aiIngredientsCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Servings to save`
+  String get aiServingsToSave {
+    return Intl.message(
+      'Servings to save',
+      name: 'aiServingsToSave',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Custom servings`
+  String get aiCustomServingsLabel {
+    return Intl.message(
+      'Custom servings',
+      name: 'aiCustomServingsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjust the final portion before saving.`
+  String get aiCustomServingsHelper {
+    return Intl.message(
+      'Adjust the final portion before saving.',
+      name: 'aiCustomServingsHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High confidence`
+  String get aiConfidenceHigh {
+    return Intl.message(
+      'High confidence',
+      name: 'aiConfidenceHigh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Medium confidence`
+  String get aiConfidenceMedium {
+    return Intl.message(
+      'Medium confidence',
+      name: 'aiConfidenceMedium',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low confidence`
+  String get aiConfidenceLow {
+    return Intl.message(
+      'Low confidence',
+      name: 'aiConfidenceLow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your matches`
+  String get aiYourMatches {
+    return Intl.message(
+      'Your matches',
+      name: 'aiYourMatches',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use a frequent meal, recipe, or previous correction if it looks more like what you ate.`
+  String get aiMatchesHint {
+    return Intl.message(
+      'Use a frequent meal, recipe, or previous correction if it looks more like what you ate.',
+      name: 'aiMatchesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use`
+  String get aiButtonUse {
+    return Intl.message(
+      'Use',
+      name: 'aiButtonUse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} servings ready to save`
+  String aiServingsReady(Object count) {
+    return Intl.message(
+      '$count servings ready to save',
+      name: 'aiServingsReady',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Editable`
+  String get aiEditableLabel {
+    return Intl.message(
+      'Editable',
+      name: 'aiEditableLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use habitual: {label}`
+  String aiUseHabitual(Object label) {
+    return Intl.message(
+      'Use habitual: $label',
+      name: 'aiUseHabitual',
+      desc: '',
+      args: [label],
+    );
+  }
+
+  /// `Quick adjustment`
+  String get aiQuickAdjustment {
+    return Intl.message(
+      'Quick adjustment',
+      name: 'aiQuickAdjustment',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Excluded from the final meal.`
+  String get aiExcludeFromMeal {
+    return Intl.message(
+      'Excluded from the final meal.',
+      name: 'aiExcludeFromMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This ingredient has low certainty. Your habitual correction is usually the fastest option.`
+  String get aiConfidenceLowHint {
+    return Intl.message(
+      'This ingredient has low certainty. Your habitual correction is usually the fastest option.',
+      name: 'aiConfidenceLowHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This ingredient has low certainty. Check amount or replace it with a more precise food.`
+  String get aiConfidenceLowGenericHint {
+    return Intl.message(
+      'This ingredient has low certainty. Check amount or replace it with a more precise food.',
+      name: 'aiConfidenceLowGenericHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The amount may vary. Check the portion if you see it doesn't fit the photo.`
+  String get aiConfidenceMediumHint {
+    return Intl.message(
+      'The amount may vary. Check the portion if you see it doesn\'t fit the photo.',
+      name: 'aiConfidenceMediumHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Restore`
+  String get aiRestoreLabel {
+    return Intl.message(
+      'Restore',
+      name: 'aiRestoreLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove`
+  String get aiRemoveLabel {
+    return Intl.message(
+      'Remove',
+      name: 'aiRemoveLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Substitute`
+  String get aiSubstituteLabel {
+    return Intl.message(
+      'Substitute',
+      name: 'aiSubstituteLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Amount`
+  String get aiAmountLabel {
+    return Intl.message(
+      'Amount',
+      name: 'aiAmountLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High match`
+  String get aiMatchHigh {
+    return Intl.message(
+      'High match',
+      name: 'aiMatchHigh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good match`
+  String get aiMatchGood {
+    return Intl.message(
+      'Good match',
+      name: 'aiMatchGood',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Possible match`
+  String get aiMatchPossible {
+    return Intl.message(
+      'Possible match',
+      name: 'aiMatchPossible',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save some recipes and this section will start suggesting based on your training day.`
+  String get macroSuggestionsEmpty {
+    return Intl.message(
+      'Save some recipes and this section will start suggesting based on your training day.',
+      name: 'macroSuggestionsEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Options for definition`
+  String get macroSuggestionsTitleDef {
+    return Intl.message(
+      'Options for definition',
+      name: 'macroSuggestionsTitleDef',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Options for legs`
+  String get macroSuggestionsTitleLeg {
+    return Intl.message(
+      'Options for legs',
+      name: 'macroSuggestionsTitleLeg',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Options for torso`
+  String get macroSuggestionsTitleTorso {
+    return Intl.message(
+      'Options for torso',
+      name: 'macroSuggestionsTitleTorso',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Options for cardio`
+  String get macroSuggestionsTitleCardio {
+    return Intl.message(
+      'Options for cardio',
+      name: 'macroSuggestionsTitleCardio',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Options for rest`
+  String get macroSuggestionsTitleRest {
+    return Intl.message(
+      'Options for rest',
+      name: 'macroSuggestionsTitleRest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recommended meals to perform and recover better.`
+  String get macroSuggestionsSubtitleGym {
+    return Intl.message(
+      'Recommended meals to perform and recover better.',
+      name: 'macroSuggestionsSubtitleGym',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High protein options with controlled calories.`
+  String get macroSuggestionsSubtitleLoseWeight {
+    return Intl.message(
+      'High protein options with controlled calories.',
+      name: 'macroSuggestionsSubtitleLoseWeight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clean closings with high protein and no caloric excess.`
+  String get macroSuggestionsSubtitleRest {
+    return Intl.message(
+      'Clean closings with high protein and no caloric excess.',
+      name: 'macroSuggestionsSubtitleRest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saved meals based on what you are still missing today.`
+  String get macroSuggestionsSubtitleDefault {
+    return Intl.message(
+      'Saved meals based on what you are still missing today.',
+      name: 'macroSuggestionsSubtitleDefault',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{recipe} added to {slot}`
+  String macroSuggestionsAddedTo(Object recipe, Object slot) {
+    return Intl.message(
+      '$recipe added to $slot',
+      name: 'macroSuggestionsAddedTo',
+      desc: '',
+      args: [recipe, slot],
+    );
+  }
+
+  /// `{count} portions`
+  String macroSuggestionsServingsPortions(Object count) {
+    return Intl.message(
+      '$count portions',
+      name: 'macroSuggestionsServingsPortions',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Add water`
+  String get hydrationAddWater {
+    return Intl.message(
+      'Add water',
+      name: 'hydrationAddWater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove water`
+  String get hydrationRemoveWater {
+    return Intl.message(
+      'Remove water',
+      name: 'hydrationRemoveWater',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Goal reached!`
+  String get hydrationGoalReached {
+    return Intl.message(
+      'Goal reached!',
+      name: 'hydrationGoalReached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Hydration`
+  String get hydrationTitle {
+    return Intl.message(
+      'Hydration',
+      name: 'hydrationTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meal by text`
+  String get aiTextCaptureTitle {
+    return Intl.message(
+      'Meal by text',
+      name: 'aiTextCaptureTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Example: 2 eggs, toast with butter and coffee with milk`
+  String get aiTextCaptureHint {
+    return Intl.message(
+      'Example: 2 eggs, toast with butter and coffee with milk',
+      name: 'aiTextCaptureHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Interpret meal`
+  String get aiTextCaptureButton {
+    return Intl.message(
+      'Interpret meal',
+      name: 'aiTextCaptureButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Interpreting...`
+  String get aiTextCaptureLoading {
+    return Intl.message(
+      'Interpreting...',
+      name: 'aiTextCaptureLoading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Describe the meal naturally. The text can be processed remotely to estimate ingredients and macros, and you will always review the draft before saving.`
+  String get aiTextCaptureDescription {
+    return Intl.message(
+      'Describe the meal naturally. The text can be processed remotely to estimate ingredients and macros, and you will always review the draft before saving.',
+      name: 'aiTextCaptureDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remote interpretation not available. Local draft created with memory support.`
+  String get aiTextCaptureError {
+    return Intl.message(
+      'Remote interpretation not available. Local draft created with memory support.',
+      name: 'aiTextCaptureError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Replace ingredient`
+  String get aiReplaceTitle {
+    return Intl.message(
+      'Replace ingredient',
+      name: 'aiReplaceTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search for food`
+  String get aiReplaceHint {
+    return Intl.message(
+      'Search for food',
+      name: 'aiReplaceHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search for a food to replace this ingredient.`
+  String get aiReplaceEmpty {
+    return Intl.message(
+      'Search for a food to replace this ingredient.',
+      name: 'aiReplaceEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter at least 2 characters.`
+  String get aiReplaceMinLength {
+    return Intl.message(
+      'Enter at least 2 characters.',
+      name: 'aiReplaceMinLength',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No results found.`
+  String get aiReplaceNoResults {
+    return Intl.message(
+      'No results found.',
+      name: 'aiReplaceNoResults',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cannot search for food right now.`
+  String get aiReplaceError {
+    return Intl.message(
+      'Cannot search for food right now.',
+      name: 'aiReplaceError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weekly Insights`
+  String get weeklyInsightsTitle {
+    return Intl.message(
+      'Weekly Insights',
+      name: 'weeklyInsightsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not load weekly insights.`
+  String get weeklyInsightsError {
+    return Intl.message(
+      'Could not load weekly insights.',
+      name: 'weeklyInsightsError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Summary`
+  String get weeklyInsightsSummary {
+    return Intl.message(
+      'Summary',
+      name: 'weeklyInsightsSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Smart Weekly Checkup`
+  String get weeklyInsightsCheckup {
+    return Intl.message(
+      'Smart Weekly Checkup',
+      name: 'weeklyInsightsCheckup',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trend: {delta} kg/week`
+  String weeklyInsightsTrend(Object delta) {
+    return Intl.message(
+      'Weight trend: $delta kg/week',
+      name: 'weeklyInsightsTrend',
+      desc: '',
+      args: [delta],
+    );
+  }
+
+  /// `Apply {delta} kcal/day`
+  String weeklyInsightsApplyAdjustment(Object delta) {
+    return Intl.message(
+      'Apply $delta kcal/day',
+      name: 'weeklyInsightsApplyAdjustment',
+      desc: '',
+      args: [delta],
+    );
+  }
+
+  /// `Weekly Averages`
+  String get weeklyInsightsAverages {
+    return Intl.message(
+      'Weekly Averages',
+      name: 'weeklyInsightsAverages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adherence`
+  String get weeklyInsightsAdherence {
+    return Intl.message(
+      'Adherence',
+      name: 'weeklyInsightsAdherence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protein Consistency`
+  String get weeklyInsightsProteinConsistency {
+    return Intl.message(
+      'Protein Consistency',
+      name: 'weeklyInsightsProteinConsistency',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{percent}% of registered days`
+  String weeklyInsightsRegisteredDays(Object percent) {
+    return Intl.message(
+      '$percent% of registered days',
+      name: 'weeklyInsightsRegisteredDays',
+      desc: '',
+      args: [percent],
+    );
+  }
+
+  /// `Most Frequent Meals`
+  String get weeklyInsightsTopMeals {
+    return Intl.message(
+      'Most Frequent Meals',
+      name: 'weeklyInsightsTopMeals',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No repeated meals detected this week.`
+  String get weeklyInsightsNoFrequentMeals {
+    return Intl.message(
+      'No repeated meals detected this week.',
+      name: 'weeklyInsightsNoFrequentMeals',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Overeating Pattern`
+  String get weeklyInsightsOvereatingPattern {
+    return Intl.message(
+      'Overeating Pattern',
+      name: 'weeklyInsightsOvereatingPattern',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Coverage`
+  String get weeklyInsightsCoverage {
+    return Intl.message(
+      'Coverage',
+      name: 'weeklyInsightsCoverage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} days registered this week`
+  String weeklyInsightsTrackedDays(Object count) {
+    return Intl.message(
+      '$count days registered this week',
+      name: 'weeklyInsightsTrackedDays',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Daily adjustment updated to {kcal} kcal.`
+  String weeklyInsightsAdjustmentSuccess(Object kcal) {
+    return Intl.message(
+      'Daily adjustment updated to $kcal kcal.',
+      name: 'weeklyInsightsAdjustmentSuccess',
+      desc: '',
+      args: [kcal],
+    );
+  }
+
+  /// `Saved meals`
+  String get recipeLibraryTitle {
+    return Intl.message(
+      'Saved meals',
+      name: 'recipeLibraryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search saved meals`
+  String get recipeLibrarySearchHint {
+    return Intl.message(
+      'Search saved meals',
+      name: 'recipeLibrarySearchHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No saved meals yet.\nSave meals as recipes to reuse them.`
+  String get recipeLibraryEmpty {
+    return Intl.message(
+      'No saved meals yet.\nSave meals as recipes to reuse them.',
+      name: 'recipeLibraryEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} ingredients`
+  String recipeLibraryIngredientsCount(Object count) {
+    return Intl.message(
+      '$count ingredients',
+      name: 'recipeLibraryIngredientsCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} servings`
+  String recipeLibraryServingsCount(Object count) {
+    return Intl.message(
+      '$count servings',
+      name: 'recipeLibraryServingsCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Favorite`
+  String get recipeLibraryFavorite {
+    return Intl.message(
+      'Favorite',
+      name: 'recipeLibraryFavorite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove favorite`
+  String get recipeLibraryRemoveFavorite {
+    return Intl.message(
+      'Remove favorite',
+      name: 'recipeLibraryRemoveFavorite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mark favorite`
+  String get recipeLibraryMarkFavorite {
+    return Intl.message(
+      'Mark favorite',
+      name: 'recipeLibraryMarkFavorite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{name} added`
+  String recipeLibraryAddedSnackbar(Object name) {
+    return Intl.message(
+      '$name added',
+      name: 'recipeLibraryAddedSnackbar',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `AI Cost`
+  String get settingsAiCostLabel {
+    return Intl.message(
+      'AI Cost',
+      name: 'settingsAiCostLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Total estimated: {cost}`
+  String settingsAiCostTotal(Object cost) {
+    return Intl.message(
+      'Total estimated: $cost',
+      name: 'settingsAiCostTotal',
+      desc: '',
+      args: [cost],
+    );
+  }
+
+  /// `Today: {cost}`
+  String settingsAiCostToday(Object cost) {
+    return Intl.message(
+      'Today: $cost',
+      name: 'settingsAiCostToday',
+      desc: '',
+      args: [cost],
+    );
+  }
+
+  /// `This month: {cost}`
+  String settingsAiCostMonth(Object cost) {
+    return Intl.message(
+      'This month: $cost',
+      name: 'settingsAiCostMonth',
+      desc: '',
+      args: [cost],
+    );
+  }
+
+  /// `Total calls: {count}`
+  String settingsAiCallsTotal(Object count) {
+    return Intl.message(
+      'Total calls: $count',
+      name: 'settingsAiCallsTotal',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Text calls: {count}`
+  String settingsAiCallsText(Object count) {
+    return Intl.message(
+      'Text calls: $count',
+      name: 'settingsAiCallsText',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Photo calls: {count}`
+  String settingsAiCallsPhoto(Object count) {
+    return Intl.message(
+      'Photo calls: $count',
+      name: 'settingsAiCallsPhoto',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Based on real token usage per backend request.`
+  String get settingsAiCostDescription {
+    return Intl.message(
+      'Based on real token usage per backend request.',
+      name: 'settingsAiCostDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reset`
+  String get settingsResetLabel {
+    return Intl.message(
+      'Reset',
+      name: 'settingsResetLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check averages, adherence, protein and top meals`
+  String get homeWeeklyInsightsSubtitle {
+    return Intl.message(
+      'Check averages, adherence, protein and top meals',
+      name: 'homeWeeklyInsightsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Barcode`
+  String get addMealBarcode {
+    return Intl.message(
+      'Barcode',
+      name: 'addMealBarcode',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Text`
+  String get addMealText {
+    return Intl.message(
+      'Text',
+      name: 'addMealText',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photo`
+  String get addMealPhoto {
+    return Intl.message(
+      'Photo',
+      name: 'addMealPhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saved`
+  String get addMealSaved {
+    return Intl.message(
+      'Saved',
+      name: 'addMealSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Day copied to today`
+  String get diaryDayCopied {
+    return Intl.message(
+      'Day copied to today',
+      name: 'diaryDayCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current week`
+  String get diaryCurrentWeek {
+    return Intl.message(
+      'Current week',
+      name: 'diaryCurrentWeek',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{percent}% adherence`
+  String diaryAdherencePill(Object percent) {
+    return Intl.message(
+      '$percent% adherence',
+      name: 'diaryAdherencePill',
+      desc: '',
+      args: [percent],
+    );
+  }
+
+  /// `{amount}g avg protein`
+  String diaryProteinPill(Object amount) {
+    return Intl.message(
+      '${amount}g avg protein',
+      name: 'diaryProteinPill',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `{count}/7 days`
+  String diaryDaysPill(Object count) {
+    return Intl.message(
+      '$count/7 days',
+      name: 'diaryDaysPill',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Selected day`
+  String get diarySelectedDayLabel {
+    return Intl.message(
+      'Selected day',
+      name: 'diarySelectedDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Previous day`
+  String get diaryPreviousDayTooltip {
+    return Intl.message(
+      'Previous day',
+      name: 'diaryPreviousDayTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Next day`
+  String get diaryNextDayTooltip {
+    return Intl.message(
+      'Next day',
+      name: 'diaryNextDayTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Day summary`
+  String get diarySummaryTitle {
+    return Intl.message(
+      'Day summary',
+      name: 'diarySummaryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Copy day to today`
+  String get diaryCopyDayToToday {
+    return Intl.message(
+      'Copy day to today',
+      name: 'diaryCopyDayToToday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In goal`
+  String get diaryInGoal {
+    return Intl.message(
+      'In goal',
+      name: 'diaryInGoal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{amount} kcal remaining`
+  String diaryKcalRemaining(Object amount) {
+    return Intl.message(
+      '$amount kcal remaining',
+      name: 'diaryKcalRemaining',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `+{amount} kcal`
+  String diaryKcalOver(Object amount) {
+    return Intl.message(
+      '+$amount kcal',
+      name: 'diaryKcalOver',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Goal reached`
+  String get diaryGoalReached {
+    return Intl.message(
+      'Goal reached',
+      name: 'diaryGoalReached',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{amount} g remaining`
+  String diaryGramsRemaining(Object amount) {
+    return Intl.message(
+      '$amount g remaining',
+      name: 'diaryGramsRemaining',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `{count} meals`
+  String diaryMealsPill(Object count) {
+    return Intl.message(
+      '$count meals',
+      name: 'diaryMealsPill',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} activities`
+  String diaryActivitiesPill(Object count) {
+    return Intl.message(
+      '$count activities',
+      name: 'diaryActivitiesPill',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `In range`
+  String get diaryStatusInRange {
+    return Intl.message(
+      'In range',
+      name: 'diaryStatusInRange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Below`
+  String get diaryStatusBelow {
+    return Intl.message(
+      'Below',
+      name: 'diaryStatusBelow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Above`
+  String get diaryStatusAbove {
+    return Intl.message(
+      'Above',
+      name: 'diaryStatusAbove',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Carbs {carbsTracked}/{carbsGoal} g, fat {fatTracked}/{fatGoal} g, protein {proteinTracked}/{proteinGoal} g`
+  String diaryMacrosSummary(
+      Object carbsTracked,
+      Object carbsGoal,
+      Object fatTracked,
+      Object fatGoal,
+      Object proteinTracked,
+      Object proteinGoal) {
+    return Intl.message(
+      'Carbs $carbsTracked/$carbsGoal g, fat $fatTracked/$fatGoal g, protein $proteinTracked/$proteinGoal g',
+      name: 'diaryMacrosSummary',
+      desc: '',
+      args: [
+        carbsTracked,
+        carbsGoal,
+        fatTracked,
+        fatGoal,
+        proteinTracked,
+        proteinGoal
+      ],
+    );
+  }
+
+  /// `Empty`
+  String get diaryEmptySection {
+    return Intl.message(
+      'Empty',
+      name: 'diaryEmptySection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} items`
+  String diaryElementsSection(Object count) {
+    return Intl.message(
+      '$count items',
+      name: 'diaryElementsSection',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Sports profile`
+  String get profileSportsProfile {
+    return Intl.message(
+      'Sports profile',
+      name: 'profileSportsProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your profile`
+  String get profileYourProfile {
+    return Intl.message(
+      'Your profile',
+      name: 'profileYourProfile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjust your base data so that calories, macros and recommendations are consistent.`
+  String get profileYourProfileSubtitle {
+    return Intl.message(
+      'Adjust your base data so that calories, macros and recommendations are consistent.',
+      name: 'profileYourProfileSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Calculation base for goals, tracking and suggestions.`
+  String get profileCalculationBase {
+    return Intl.message(
+      'Calculation base for goals, tracking and suggestions.',
+      name: 'profileCalculationBase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current phase: {phase}`
+  String profileCurrentPhase(Object phase) {
+    return Intl.message(
+      'Current phase: $phase',
+      name: 'profileCurrentPhase',
+      desc: '',
+      args: [phase],
+    );
+  }
+
+  /// `Goal and strategy`
+  String get profileGoalAndStrategy {
+    return Intl.message(
+      'Goal and strategy',
+      name: 'profileGoalAndStrategy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What you change here impacts calories, macros and daily adjustments.`
+  String get profileGoalAndStrategySubtitle {
+    return Intl.message(
+      'What you change here impacts calories, macros and daily adjustments.',
+      name: 'profileGoalAndStrategySubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Body progress`
+  String get profileBodyProgress {
+    return Intl.message(
+      'Body progress',
+      name: 'profileBodyProgress',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight trend, 7d average and waist`
+  String get profileBodyProgressSubtitle {
+    return Intl.message(
+      'Weight trend, 7d average and waist',
+      name: 'profileBodyProgressSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Body data`
+  String get profileBodyData {
+    return Intl.message(
+      'Body data',
+      name: 'profileBodyData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight, height, age and sex so that the base calculation remains accurate.`
+  String get profileBodyDataSubtitle {
+    return Intl.message(
+      'Weight, height, age and sex so that the base calculation remains accurate.',
+      name: 'profileBodyDataSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sex`
+  String get profileGenderLabel {
+    return Intl.message(
+      'Sex',
+      name: 'profileGenderLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photo options`
+  String get profilePhotoOptions {
+    return Intl.message(
+      'Photo options',
+      name: 'profilePhotoOptions',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Change photo`
+  String get profileChangePhoto {
+    return Intl.message(
+      'Change photo',
+      name: 'profileChangePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remove photo`
+  String get profileRemovePhoto {
+    return Intl.message(
+      'Remove photo',
+      name: 'profileRemovePhoto',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Definition`
+  String get profileGoalLose {
+    return Intl.message(
+      'Definition',
+      name: 'profileGoalLose',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recomp.`
+  String get profileGoalMaintain {
+    return Intl.message(
+      'Recomp.',
+      name: 'profileGoalMaintain',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Volume`
+  String get profileGoalGain {
+    return Intl.message(
+      'Volume',
+      name: 'profileGoalGain',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Short and controlled deficit to lose fat without compromising performance or muscle mass.`
+  String get profileGoalLoseDesc {
+    return Intl.message(
+      'Short and controlled deficit to lose fat without compromising performance or muscle mass.',
+      name: 'profileGoalLoseDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Maintain stable weight while prioritizing strength, performance and adherence.`
+  String get profileGoalMaintainDesc {
+    return Intl.message(
+      'Maintain stable weight while prioritizing strength, performance and adherence.',
+      name: 'profileGoalMaintainDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Measured surplus to push training, recovery and progression.`
+  String get profileGoalGainDesc {
+    return Intl.message(
+      'Measured surplus to push training, recovery and progression.',
+      name: 'profileGoalGainDesc',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today the distribution increases carbs to support a hard leg session.`
+  String get profileFocusLowerBody {
+    return Intl.message(
+      'Today the distribution increases carbs to support a hard leg session.',
+      name: 'profileFocusLowerBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today the distribution maintains good fuel and clean recovery for torso.`
+  String get profileFocusUpperBody {
+    return Intl.message(
+      'Today the distribution maintains good fuel and clean recovery for torso.',
+      name: 'profileFocusUpperBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today the distribution seeks enough energy without adding extra carbs.`
+  String get profileFocusCardio {
+    return Intl.message(
+      'Today the distribution seeks enough energy without adding extra carbs.',
+      name: 'profileFocusCardio',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today the distribution cuts carbs and maintains high protein to recover.`
+  String get profileFocusRest {
+    return Intl.message(
+      'Today the distribution cuts carbs and maintains high protein to recover.',
+      name: 'profileFocusRest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Language`
+  String get settingsLanguageLabel {
+    return Intl.message(
+      'Language',
+      name: 'settingsLanguageLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `System default`
+  String get settingsLanguageSystemDefaultLabel {
+    return Intl.message(
+      'System default',
+      name: 'settingsLanguageSystemDefaultLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `English`
+  String get settingsLanguageEnglish {
+    return Intl.message(
+      'English',
+      name: 'settingsLanguageEnglish',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Spanish`
+  String get settingsLanguageSpanish {
+    return Intl.message(
+      'Spanish',
+      name: 'settingsLanguageSpanish',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select language`
+  String get settingsSelectLanguageTitle {
+    return Intl.message(
+      'Select language',
+      name: 'settingsSelectLanguageTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Servings`
+  String get servingsLabel {
+    return Intl.message(
+      'Servings',
+      name: 'servingsLabel',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
@@ -4158,8 +6221,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
-      Locale.fromSubtags(languageCode: 'de'),
-      Locale.fromSubtags(languageCode: 'tr'),
+      Locale.fromSubtags(languageCode: 'es'),
     ];
   }
 

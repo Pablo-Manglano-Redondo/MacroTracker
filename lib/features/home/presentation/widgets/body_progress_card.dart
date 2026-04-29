@@ -40,7 +40,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
           child: FutureBuilder<BodyProgressSummaryEntity>(
             future: _loadSummary(_refreshSeed),
             builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
+              if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 110,
                   child: Center(child: CircularProgressIndicator()),

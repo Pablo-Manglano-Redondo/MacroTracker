@@ -2,6 +2,10 @@
 
 part of 'body_measurement_dbo.dart';
 
+// **************************************************************************
+// TypeAdapterGenerator
+// **************************************************************************
+
 class BodyMeasurementDBOAdapter extends TypeAdapter<BodyMeasurementDBO> {
   @override
   final int typeId = 24;
@@ -41,6 +45,10 @@ class BodyMeasurementDBOAdapter extends TypeAdapter<BodyMeasurementDBO> {
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
 
 BodyMeasurementDBO _$BodyMeasurementDBOFromJson(Map<String, dynamic> json) =>
     BodyMeasurementDBO(

@@ -312,17 +312,16 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Save as recipe'),
+              title: Text(S.of(context).aiSaveAsRecipe),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: controller,
-                    decoration: const InputDecoration(
-                      labelText: 'Recipe name',
-                      helperText:
-                          'Use names like post chicken rice or shake yogurt.',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: S.of(context).aiRecipeNameLabel,
+                      helperText: S.of(context).aiRecipeNameHelper,
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -334,7 +333,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         favorite = value ?? true;
                       });
                     },
-                    title: const Text('Favorite for quick access'),
+                    title: Text(S.of(context).aiFavoriteQuickAccess),
                   ),
                 ],
               ),
@@ -366,7 +365,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     Navigator.of(dialogContext).pop();
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Recipe saved')),
+                        SnackBar(content: Text(S.of(context).recipeSavedSnackbar)),
                       );
                     }
                   },

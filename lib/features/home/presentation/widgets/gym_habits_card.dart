@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
@@ -40,7 +41,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
           child: FutureBuilder<DailyHabitLogEntity>(
             future: _loadLog(_refreshSeed),
             builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
+              if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 168,
                   child: Center(child: CircularProgressIndicator()),
@@ -129,7 +130,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Hidratación',
+                              S.of(context).hydrationTitle,
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 4),
@@ -143,12 +144,12 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                       IconButton(
                         onPressed: () => _adjustWater(-0.25),
                         icon: const Icon(Icons.remove),
-                        tooltip: 'Reducir agua',
+                        tooltip: S.of(context).hydrationRemoveWater,
                       ),
                       IconButton(
                         onPressed: () => _adjustWater(0.25),
                         icon: const Icon(Icons.add),
-                        tooltip: 'Añadir agua',
+                        tooltip: S.of(context).hydrationAddWater,
                       ),
                     ],
                   ),

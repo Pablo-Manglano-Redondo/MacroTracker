@@ -39,6 +39,14 @@ class ConfigRepository {
         .setConfigAppTheme(AppThemeDBO.fromAppThemeEntity(appTheme));
   }
 
+  Future<String?> getConfigLocale() async {
+    return await _configDataSource.getLocale();
+  }
+
+  Future<void> setConfigLocale(String? locale) async {
+    await _configDataSource.setConfigLocale(locale);
+  }
+
   Future<ConfigEntity> getConfig() async {
     final configDBO = await _configDataSource.getConfig();
     return ConfigEntity.fromConfigDBO(configDBO);

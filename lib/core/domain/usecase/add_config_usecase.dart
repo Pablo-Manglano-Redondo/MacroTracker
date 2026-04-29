@@ -27,6 +27,10 @@ class AddConfigUsecase {
     await _configRepository.setConfigAppTheme(appTheme);
   }
 
+  Future<void> setConfigLocale(String? locale) async {
+    await _configRepository.setConfigLocale(locale);
+  }
+
   Future<void> setConfigUsesImperialUnits(bool usesImperialUnits) async {
     _configRepository.setConfigUsesImperialUnits(usesImperialUnits);
   }

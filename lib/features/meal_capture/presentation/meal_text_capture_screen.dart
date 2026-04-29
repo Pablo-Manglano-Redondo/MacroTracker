@@ -10,6 +10,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class MealTextCaptureScreen extends StatefulWidget {
   const MealTextCaptureScreen({super.key});
@@ -43,7 +44,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Comida por texto')),
+      appBar: AppBar(title: Text(S.of(context).aiTextCaptureTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -51,10 +52,9 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
             TextField(
               controller: _controller,
               maxLines: 4,
-              decoration: const InputDecoration(
-                hintText:
-                    'Ejemplo: 2 huevos, tostadas con mantequilla y café con leche',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: S.of(context).aiTextCaptureHint,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -63,12 +63,12 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
               child: FilledButton(
                 onPressed: _isLoading ? null : _createDraft,
                 child:
-                    Text(_isLoading ? 'Interpretando...' : 'Interpretar comida'),
+                    Text(_isLoading ? S.of(context).aiTextCaptureLoading : S.of(context).aiTextCaptureButton),
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Describe la comida de forma natural. El texto puede procesarse de forma remota para estimar ingredientes y macros, y siempre revisarás el borrador antes de guardarlo.',
+            Text(
+              S.of(context).aiTextCaptureDescription,
               textAlign: TextAlign.center,
             ),
           ],
@@ -128,9 +128,9 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
       await _createLocalDraft(input);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Interpretación remota no disponible. Se creó un borrador local con apoyo de memoria.',
+              S.current.aiTextCaptureError,
             ),
           ),
         );

@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/core/presentation/widgets/error_dialog.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
-import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:macrotracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/food_bloc.dart';
+import 'package:macrotracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/widgets/default_results_widget.dart';
-import 'package:macrotracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:macrotracker/features/add_meal/presentation/widgets/no_results_widget.dart';
 import 'package:macrotracker/features/add_meal/presentation/widgets/meal_item_card.dart';
-import 'package:macrotracker/features/add_meal/presentation/bloc/products_bloc.dart';
-import 'package:macrotracker/features/edit_meal/presentation/edit_meal_screen.dart';
+import 'package:macrotracker/features/add_meal/presentation/widgets/meal_search_bar.dart';
+import 'package:macrotracker/features/add_meal/presentation/widgets/no_results_widget.dart';
+import 'package:macrotracker/core/presentation/widgets/error_dialog.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
-import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
-import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
+
+class AddMealScreenArguments {
+  final DateTime day;
+  final AddMealType mealType;
+
+  AddMealScreenArguments(this.mealType, this.day);
+}
 
 class AddMealScreen extends StatefulWidget {
   const AddMealScreen({super.key});
@@ -29,42 +32,37 @@ class AddMealScreen extends StatefulWidget {
 
 class _AddMealScreenState extends State<AddMealScreen>
     with SingleTickerProviderStateMixin {
-  final ValueNotifier<String> _searchStringListener = ValueNotifier('');
-
-  late AddMealType _mealType;
-  late DateTime _day;
-
+  late TabController _tabController;
   late ProductsBloc _productsBloc;
   late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
 
-  late TabController _tabController;
+  late DateTime _day;
+  late AddMealType _mealType;
+
+  final ValueNotifier<String> _searchStringListener = ValueNotifier<String>("");
 
   @override
   void initState() {
+    _tabController = TabController(length: 3, vsync: this);
     _productsBloc = locator<ProductsBloc>();
     _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      // Update search results when tab changes
-      _onSearchSubmit(_searchStringListener.value);
-    });
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as AddMealScreenArguments;
-    _mealType = args.mealType;
+    final args = ModalRoute.of(context)!.settings.arguments as AddMealScreenArguments;
     _day = args.day;
+    _mealType = args.mealType;
     super.didChangeDependencies();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchStringListener.dispose();
     super.dispose();
   }
 
@@ -72,31 +70,13 @@ class _AddMealScreenState extends State<AddMealScreen>
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(_mealType.getTypeName(context)),
-          actions: [
-            IconButton(
-              onPressed: _openRecipeLibrary,
-              icon: const Icon(Icons.bookmarks_outlined),
-            ),
-            BlocBuilder<AddMealBloc, AddMealState>(
-              bloc: locator<AddMealBloc>()..add(InitializeAddMealEvent()),
-              builder: (BuildContext context, AddMealState state) {
-                if (state is AddMealLoadedState) {
-                  return IconButton(
-                    onPressed: () =>
-                        _onCustomAddButtonPressed(state.usesImperialUnits),
-                    icon: const Icon(Icons.add_circle_outline),
-                  );
-                }
-                return const SizedBox();
-              },
-            )
-          ],
+          title: Text(S.of(context).addLabel),
         ),
         body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: [
+              const SizedBox(height: 16.0),
               MealSearchBar(
                 searchStringListener: _searchStringListener,
                 onSearchSubmit: _onSearchSubmit,
@@ -110,25 +90,25 @@ class _AddMealScreenState extends State<AddMealScreen>
                     OutlinedButton.icon(
                       onPressed: _onBarcodeIconPressed,
                       icon: const Icon(Icons.qr_code_scanner_outlined),
-                      label: const Text('Barcode'),
+                      label: Text(S.of(context).addMealBarcode),
                     ),
                     const SizedBox(width: 8.0),
                     OutlinedButton.icon(
                       onPressed: _openTextCapture,
                       icon: const Icon(Icons.text_fields_outlined),
-                      label: const Text('Text'),
+                      label: Text(S.of(context).addMealText),
                     ),
                     const SizedBox(width: 8.0),
                     OutlinedButton.icon(
                       onPressed: _openPhotoCapture,
                       icon: const Icon(Icons.camera_alt_outlined),
-                      label: const Text('Photo'),
+                      label: Text(S.of(context).addMealPhoto),
                     ),
                     const SizedBox(width: 8.0),
                     OutlinedButton.icon(
                       onPressed: _openRecipeLibrary,
                       icon: const Icon(Icons.bookmarks_outlined),
-                      label: const Text('Saved'),
+                      label: Text(S.of(context).addMealSaved),
                     ),
                   ],
                 ),
@@ -157,7 +137,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                         bloc: _productsBloc,
                         builder: (context, state) {
                           if (state is ProductsInitial) {
-                            return const DefaultsResultsWidget();
+                            return DefaultsResultsWidget();
                           } else if (state is ProductsLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
@@ -202,7 +182,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                         bloc: _foodBloc,
                         builder: (context, state) {
                           if (state is FoodInitial) {
-                            return const DefaultsResultsWidget();
+                            return DefaultsResultsWidget();
                           } else if (state is FoodLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
@@ -307,71 +287,32 @@ class _AddMealScreenState extends State<AddMealScreen>
       case 2:
         _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
         break;
-      default:
-        break;
     }
   }
 
   void _onBarcodeIconPressed() {
     Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
-        arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()));
+        arguments: {"day": _day, "mealType": _mealType.getIntakeType()});
   }
 
   void _openTextCapture() {
-    Navigator.of(context).pushNamed(NavigationOptions.mealTextCaptureRoute,
-        arguments:
-            MealTextCaptureScreenArguments(_day, _mealType.getIntakeType()));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealTextCaptureRoute,
+      arguments: MealTextCaptureScreenArguments(_day, _mealType.getIntakeType()),
+    );
   }
 
   void _openPhotoCapture() {
-    Navigator.of(context).pushNamed(NavigationOptions.mealPhotoCaptureRoute,
-        arguments:
-            MealPhotoCaptureScreenArguments(_day, _mealType.getIntakeType()));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealPhotoCaptureRoute,
+      arguments: MealPhotoCaptureScreenArguments(_day, _mealType.getIntakeType()),
+    );
   }
 
   void _openRecipeLibrary() {
-    Navigator.of(context).pushNamed(NavigationOptions.recipeLibraryRoute,
-        arguments:
-            RecipeLibraryScreenArguments(_day, _mealType.getIntakeType()));
+    Navigator.of(context).pushNamed(
+      NavigationOptions.recipeLibraryRoute,
+      arguments: {"day": _day, "mealType": _mealType.getIntakeType()},
+    );
   }
-
-  void _onCustomAddButtonPressed(bool usesImperialUnits) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(S.of(context).createCustomDialogTitle),
-            content: Text(S.of(context).createCustomDialogContent),
-            actions: [
-              TextButton(
-                  onPressed: () => Navigator.of(context).pop(), // close dialog
-                  child: Text(S.of(context).dialogCancelLabel)),
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close dialog
-                    _openEditMealScreen(usesImperialUnits);
-                  },
-                  child: Text(S.of(context).buttonYesLabel)),
-            ],
-          );
-        });
-  }
-
-  void _openEditMealScreen(bool usesImperialUnits) {
-    // TODO
-    Navigator.of(context).pushNamed(NavigationOptions.editMealRoute,
-        arguments: EditMealScreenArguments(
-          _day,
-          MealEntity.empty(),
-          _mealType.getIntakeType(),
-          usesImperialUnits,
-        ));
-  }
-}
-
-class AddMealScreenArguments {
-  final AddMealType mealType;
-  final DateTime day;
-
-  AddMealScreenArguments(this.mealType, this.day);
 }

@@ -10,6 +10,7 @@ import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_categor
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
 import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class MacroSuggestionsCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
@@ -64,11 +65,11 @@ class MacroSuggestionsCard extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(_title,
+                    Text(_title(context),
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8.0),
                     Text(
-                      'Guarda algunas recetas y esta sección empezará a sugerirte según tu día de entrenamiento.',
+                      S.of(context).macroSuggestionsEmpty,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
@@ -101,13 +102,13 @@ class MacroSuggestionsCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(_title,
-                                style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 4.0),
-                            Text(
-                              _subtitle,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
+                    Text(_title(context),
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4.0),
+                    Text(
+                      _subtitle(context),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                           ],
                         ),
                       ),
@@ -154,53 +155,56 @@ class MacroSuggestionsCard extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${suggestion.recipe.name} añadida a ${_slotLabel(suggestion.recommendedIntakeType)}',
+            S.of(context).macroSuggestionsAddedTo(
+                  suggestion.recipe.name,
+                  _slotLabel(context, suggestion.recommendedIntakeType),
+                ),
           ),
         ),
       );
     }
   }
 
-  String get _title {
+  String _title(BuildContext context) {
     if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return 'Opciones para definición';
+      return S.of(context).macroSuggestionsTitleDef;
     }
     if (dailyFocus == DailyFocusEntity.lowerBody) {
-      return 'Opciones para pierna';
+      return S.of(context).macroSuggestionsTitleLeg;
     }
     if (dailyFocus == DailyFocusEntity.upperBody) {
-      return 'Opciones para torso';
+      return S.of(context).macroSuggestionsTitleTorso;
     }
     if (dailyFocus == DailyFocusEntity.cardio) {
-      return 'Opciones para cardio';
+      return S.of(context).macroSuggestionsTitleCardio;
     }
-    return 'Opciones para descanso';
+    return S.of(context).macroSuggestionsTitleRest;
   }
 
-  String get _subtitle {
+  String _subtitle(BuildContext context) {
     if (dailyFocus == DailyFocusEntity.lowerBody ||
         dailyFocus == DailyFocusEntity.upperBody) {
-      return 'Comidas recomendadas para rendir y recuperar mejor.';
+      return S.of(context).macroSuggestionsSubtitleGym;
     }
     if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return 'Opciones altas en proteína con calorías controladas.';
+      return S.of(context).macroSuggestionsSubtitleLoseWeight;
     }
     if (dailyFocus == DailyFocusEntity.rest) {
-      return 'Cierres limpios con proteína alta y sin exceso calórico.';
+      return S.of(context).macroSuggestionsSubtitleRest;
     }
-    return 'Comidas guardadas según lo que aún te falta hoy.';
+    return S.of(context).macroSuggestionsSubtitleDefault;
   }
 
-  String _slotLabel(IntakeTypeEntity intakeType) {
+  String _slotLabel(BuildContext context, IntakeTypeEntity intakeType) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'desayuno';
+        return S.of(context).breakfastLabel.toLowerCase();
       case IntakeTypeEntity.lunch:
-        return 'comida';
+        return S.of(context).lunchLabel.toLowerCase();
       case IntakeTypeEntity.dinner:
-        return 'cena';
+        return S.of(context).dinnerLabel.toLowerCase();
       case IntakeTypeEntity.snack:
-        return 'snack';
+        return S.of(context).snackLabel.toLowerCase();
     }
   }
 }
@@ -245,7 +249,7 @@ class _SuggestionTile extends StatelessWidget {
               TextButton.icon(
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text('Añadir'),
+                label: Text(S.of(context).addLabel),
               ),
             ],
           ),
@@ -259,7 +263,7 @@ class _SuggestionTile extends StatelessWidget {
               ),
               _MetaChip(
                 icon: _slotIcon(suggestion.recommendedIntakeType),
-                label: _slotText(suggestion.recommendedIntakeType),
+                label: _slotText(context, suggestion.recommendedIntakeType),
               ),
               _MetaChip(
                 icon: Icons.local_fire_department_outlined,
@@ -273,7 +277,7 @@ class _SuggestionTile extends StatelessWidget {
           ),
           const SizedBox(height: 4.0),
           Text(
-            '${_formatServings(suggestion.suggestedServings)} porciones | C ${suggestion.predictedCarbs.toStringAsFixed(1)} | F ${suggestion.predictedFat.toStringAsFixed(1)} | P ${suggestion.predictedProtein.toStringAsFixed(1)}',
+            '${S.of(context).macroSuggestionsServingsPortions(_formatServings(suggestion.suggestedServings))} | C ${suggestion.predictedCarbs.toStringAsFixed(1)} | F ${suggestion.predictedFat.toStringAsFixed(1)} | P ${suggestion.predictedProtein.toStringAsFixed(1)}',
           ),
           const SizedBox(height: 4.0),
           Text(
@@ -289,16 +293,16 @@ class _SuggestionTile extends StatelessWidget {
     return value.toStringAsFixed(value % 1 == 0 ? 0 : 2);
   }
 
-  String _slotText(IntakeTypeEntity intakeType) {
+  String _slotText(BuildContext context, IntakeTypeEntity intakeType) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'Desayuno';
+        return S.of(context).breakfastLabel;
       case IntakeTypeEntity.lunch:
-        return 'Comida';
+        return S.of(context).lunchLabel;
       case IntakeTypeEntity.dinner:
-        return 'Cena';
+        return S.of(context).dinnerLabel;
       case IntakeTypeEntity.snack:
-        return 'Snack';
+        return S.of(context).snackLabel;
     }
   }
 

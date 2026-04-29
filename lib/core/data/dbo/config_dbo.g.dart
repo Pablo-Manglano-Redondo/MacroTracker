@@ -23,11 +23,11 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       fields[3] as AppThemeDBO,
       usesImperialUnits: fields[4] as bool?,
       userKcalAdjustment: fields[5] as double?,
+      dailyFocus: fields[9] as String?,
     )
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
       ..userFatGoalPct = fields[8] as double?
-      ..dailyFocus = fields[9] as String?
       ..aiEstimatedCostTotalUsd = fields[10] as double?
       ..aiEstimatedCostTodayUsd = fields[11] as double?
       ..aiEstimatedCostMonthUsd = fields[12] as double?
@@ -113,8 +113,8 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
           (json['aiEstimatedCostTodayUsd'] as num?)?.toDouble()
       ..aiEstimatedCostMonthUsd =
           (json['aiEstimatedCostMonthUsd'] as num?)?.toDouble()
-      ..aiTextCallsTotal = json['aiTextCallsTotal'] as int?
-      ..aiPhotoCallsTotal = json['aiPhotoCallsTotal'] as int?
+      ..aiTextCallsTotal = (json['aiTextCallsTotal'] as num?)?.toInt()
+      ..aiPhotoCallsTotal = (json['aiPhotoCallsTotal'] as num?)?.toInt()
       ..aiCostTodayDate = json['aiCostTodayDate'] as String?
       ..aiCostMonthKey = json['aiCostMonthKey'] as String?
       ..trainingDayTemplate = json['trainingDayTemplate'] as String?;

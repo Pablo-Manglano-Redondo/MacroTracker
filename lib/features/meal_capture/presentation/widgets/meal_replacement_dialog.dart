@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 
@@ -39,7 +40,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Reemplazar ingrediente'),
+      title: Text(S.of(context).aiReplaceTitle),
       content: SizedBox(
         width: 520,
         child: Column(
@@ -49,10 +50,10 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
               controller: _searchController,
               autofocus: true,
               textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_outlined),
-                hintText: 'Buscar alimentos',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search_outlined),
+                hintText: S.of(context).aiReplaceHint,
+                border: const OutlineInputBorder(),
               ),
               onSubmitted: _search,
             ),
@@ -64,11 +65,11 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text(S.of(context).dialogCancelLabel),
         ),
         TextButton(
           onPressed: () => _search(_searchController.text),
-          child: const Text('Buscar'),
+          child: Text(S.of(context).searchLabel),
         ),
       ],
     );
@@ -92,11 +93,11 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
     }
 
     if (_results.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(12.0),
           child: Text(
-            'Busca un alimento para reemplazar este ingrediente.',
+            S.of(context).aiReplaceEmpty,
             textAlign: TextAlign.center,
           ),
         ),
@@ -131,7 +132,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
     if (normalized.length < 2) {
       setState(() {
         _results = const [];
-        _errorText = 'Escribe al menos 2 caracteres.';
+        _errorText = S.current.aiReplaceMinLength;
       });
       return;
     }
@@ -164,7 +165,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       setState(() {
         _results = merged.values.take(12).toList(growable: false);
         _isLoading = false;
-        _errorText = _results.isEmpty ? 'No se encontraron resultados.' : null;
+        _errorText = _results.isEmpty ? S.current.aiReplaceNoResults : null;
       });
     } catch (_) {
       if (!mounted) {
@@ -174,7 +175,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
       setState(() {
         _results = const [];
         _isLoading = false;
-        _errorText = 'No se pueden buscar alimentos ahora mismo.';
+        _errorText = S.current.aiReplaceError;
       });
     }
   }

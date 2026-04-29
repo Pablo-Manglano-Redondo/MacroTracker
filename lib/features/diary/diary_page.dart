@@ -274,8 +274,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _diaryBloc.updateHomePage();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Día copiado a hoy'),
+        SnackBar(
+          content: Text(S.of(context).diaryDayCopied),
         ),
       );
     }
@@ -363,7 +363,7 @@ class _DiaryWeeklyStrip extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Semana en curso',
+                  S.of(context).diaryCurrentWeek,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -375,19 +375,17 @@ class _DiaryWeeklyStrip extends StatelessWidget {
                   children: [
                     _WeeklyPill(
                       icon: Icons.track_changes_outlined,
-                      label:
-                          '${(weekly.goalAdherenceRate * 100).round()}% adherencia',
+                      label: S.of(context).diaryAdherencePill((weekly.goalAdherenceRate * 100).round()),
                       color: colorScheme.primary,
                     ),
                     _WeeklyPill(
                       icon: Icons.egg_alt_outlined,
-                      label:
-                          '${weekly.averageProtein.toStringAsFixed(0)} g proteína media',
+                      label: S.of(context).diaryProteinPill(weekly.averageProtein.toStringAsFixed(0)),
                       color: colorScheme.tertiary,
                     ),
                     _WeeklyPill(
                       icon: Icons.calendar_view_week_outlined,
-                      label: '${weekly.trackedDays}/7 días',
+                      label: S.of(context).diaryDaysPill(weekly.trackedDays),
                       color: colorScheme.secondary,
                     ),
                   ],
@@ -459,7 +457,7 @@ class _DiaryQuickNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final label = DateUtils.isSameDay(selectedDate, DateTime.now())
-        ? 'Hoy'
+        ? S.of(context).todayLabel
         : MaterialLocalizations.of(context).formatMediumDate(selectedDate);
 
     return Card(
@@ -470,7 +468,7 @@ class _DiaryQuickNavigationBar extends StatelessWidget {
             IconButton.filledTonal(
               onPressed: onPreviousDay,
               icon: const Icon(Icons.chevron_left_rounded),
-              tooltip: 'Día anterior',
+              tooltip: S.of(context).diaryPreviousDayTooltip,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -486,7 +484,7 @@ class _DiaryQuickNavigationBar extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Día seleccionado',
+                      S.of(context).diarySelectedDayLabel,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w700,
@@ -506,12 +504,12 @@ class _DiaryQuickNavigationBar extends StatelessWidget {
             const SizedBox(width: 8),
             TextButton(
               onPressed: isToday ? null : onToday,
-              child: const Text('Hoy'),
+              child: Text(S.of(context).todayLabel),
             ),
             IconButton.filledTonal(
               onPressed: onNextDay,
               icon: const Icon(Icons.chevron_right_rounded),
-              tooltip: 'Día siguiente',
+              tooltip: S.of(context).diaryNextDayTooltip,
             ),
           ],
         ),

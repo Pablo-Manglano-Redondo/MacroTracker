@@ -98,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     color: colorScheme.primaryContainer,
                   ),
                   child: Text(
-                    'Perfil deportivo',
+                    S.of(context).profileSportsProfile,
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: colorScheme.onPrimaryContainer,
                           fontWeight: FontWeight.w700,
@@ -116,7 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Tu perfil',
+                            S.of(context).profileYourProfile,
                             style: Theme.of(context)
                                 .textTheme
                                 .titleLarge
@@ -124,7 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Ajusta tus datos base para que calor\u00edas, macros y recomendaciones sean coherentes.',
+                            S.of(context).profileYourProfileSubtitle,
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
@@ -132,7 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Base de c\u00e1lculo para objetivos, seguimiento y sugerencias.',
+                            S.of(context).profileCalculationBase,
                             style:
                                 Theme.of(context).textTheme.labelMedium?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     _ProfileSummaryChip(
                       icon: Icons.flag_outlined,
-                      label: _goalChipLabel(user.goal),
+                      label: _goalChipLabel(context, user.goal),
                     ),
                     _ProfileSummaryChip(
                       icon: Icons.monitor_weight_outlined,
@@ -186,17 +186,16 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _CurrentTargetsCard(
-          goalLabel: _goalCardTitle(user.goal),
-          goalHeadline: _goalHeadline(user.goal),
-          macroHint: _focusHint(dailyFocus),
+          goalLabel: _goalCardTitle(context, user.goal),
+          goalHeadline: _goalHeadline(context, user.goal),
+          macroHint: _focusHint(context, dailyFocus),
           focusLabel: dailyFocus.label,
           targets: currentTargets,
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
-          title: 'Objetivo y estrategia',
-          subtitle:
-              'Lo que cambies aqu\u00ed impacta en calor\u00edas, macros y ajustes del d\u00eda.',
+          title: S.of(context).profileGoalAndStrategy,
+          subtitle: S.of(context).profileGoalAndStrategySubtitle,
           icon: Icons.tune_outlined,
           children: [
             _ProfileActionTile(
@@ -212,8 +211,8 @@ class _ProfilePageState extends State<ProfilePage> {
               onTap: () => _showSetPALCategoryDialog(context, user),
             ),
             _ProfileActionTile(
-              title: 'Progreso corporal',
-              subtitle: 'Tendencia de peso, media 7d y cintura',
+              title: S.of(context).profileBodyProgress,
+              subtitle: S.of(context).profileBodyProgressSubtitle,
               icon: Icons.show_chart_outlined,
               onTap: () {
                 Navigator.of(context)
@@ -224,8 +223,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
-          title: 'Datos corporales',
-          subtitle: 'Peso, altura, edad y sexo para que el c\u00e1lculo base siga fino.',
+          title: S.of(context).profileBodyData,
+          subtitle: S.of(context).profileBodyDataSubtitle,
           icon: Icons.straighten_outlined,
           children: [
             _ProfileActionTile(
@@ -253,7 +252,7 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
             _ProfileActionTile(
-              title: 'Sexo',
+              title: S.of(context).profileGenderLabel,
               subtitle: user.gender.getName(context),
               icon: user.gender.getIcon(),
               onTap: () {
@@ -381,49 +380,54 @@ class _ProfilePageState extends State<ProfilePage> {
     _profileBloc.updateUser(userEntity);
   }
 
-  String _goalChipLabel(UserWeightGoalEntity goal) {
+  String _goalChipLabel(BuildContext context, UserWeightGoalEntity goal) {
     switch (goal) {
       case UserWeightGoalEntity.loseWeight:
-        return 'Definici\u00f3n';
+        return S.of(context).profileGoalLose;
       case UserWeightGoalEntity.maintainWeight:
-        return 'Recomp.';
+        return S.of(context).profileGoalMaintain;
       case UserWeightGoalEntity.gainWeight:
-        return 'Volumen';
+        return S.of(context).profileGoalGain;
     }
   }
 
-  String _goalCardTitle(UserWeightGoalEntity goal) {
+  String _goalCardTitle(BuildContext context, UserWeightGoalEntity goal) {
+    String label;
     switch (goal) {
       case UserWeightGoalEntity.loseWeight:
-        return 'Fase actual: Definici\u00f3n';
+        label = S.of(context).profileGoalLose;
+        break;
       case UserWeightGoalEntity.maintainWeight:
-        return 'Fase actual: Recomp.';
+        label = S.of(context).profileGoalMaintain;
+        break;
       case UserWeightGoalEntity.gainWeight:
-        return 'Fase actual: Volumen';
+        label = S.of(context).profileGoalGain;
+        break;
+    }
+    return S.of(context).profileCurrentPhase(label);
+  }
+
+  String _goalHeadline(BuildContext context, UserWeightGoalEntity goal) {
+    switch (goal) {
+      case UserWeightGoalEntity.loseWeight:
+        return S.of(context).profileGoalLoseDesc;
+      case UserWeightGoalEntity.maintainWeight:
+        return S.of(context).profileGoalMaintainDesc;
+      case UserWeightGoalEntity.gainWeight:
+        return S.of(context).profileGoalGainDesc;
     }
   }
 
-  String _goalHeadline(UserWeightGoalEntity goal) {
-    switch (goal) {
-      case UserWeightGoalEntity.loseWeight:
-        return 'D\u00e9ficit corto y controlado para bajar grasa sin comprometer rendimiento ni masa muscular.';
-      case UserWeightGoalEntity.maintainWeight:
-        return 'Mant\u00e9n el peso estable mientras priorizas fuerza, rendimiento y adherencia.';
-      case UserWeightGoalEntity.gainWeight:
-        return 'Super\u00e1vit medido para empujar entreno, recuperaci\u00f3n y progresi\u00f3n.';
-    }
-  }
-
-  String _focusHint(DailyFocusEntity focus) {
+  String _focusHint(BuildContext context, DailyFocusEntity focus) {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return 'Hoy el reparto sube hidratos para sostener una sesi\u00f3n dura de pierna.';
+        return S.of(context).profileFocusLowerBody;
       case DailyFocusEntity.upperBody:
-        return 'Hoy el reparto mantiene buen combustible y recuperaci\u00f3n limpia para torso.';
+        return S.of(context).profileFocusUpperBody;
       case DailyFocusEntity.cardio:
-        return 'Hoy el reparto busca energ\u00eda suficiente sin meter hidrato de m\u00e1s.';
+        return S.of(context).profileFocusCardio;
       case DailyFocusEntity.rest:
-        return 'Hoy el reparto recorta hidrato y mantiene prote\u00edna alta para recuperar.';
+        return S.of(context).profileFocusRest;
     }
   }
 }
@@ -498,18 +502,18 @@ class _ProfilePhotoMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return PopupMenuButton<_ProfilePhotoAction>(
-      tooltip: 'Opciones de foto',
+      tooltip: S.of(context).profilePhotoOptions,
       onSelected: onSelected,
       itemBuilder: (context) {
         return [
-          const PopupMenuItem(
+          PopupMenuItem(
             value: _ProfilePhotoAction.change,
-            child: Text('Cambiar foto'),
+            child: Text(S.of(context).profileChangePhoto),
           ),
           if (hasPhoto)
-            const PopupMenuItem(
+            PopupMenuItem(
               value: _ProfilePhotoAction.remove,
-              child: Text('Eliminar foto'),
+              child: Text(S.of(context).profileRemovePhoto),
             ),
         ];
       },
@@ -708,7 +712,7 @@ class _CurrentTargetsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _MacroMetricTile(
-                    label: 'Proteína',
+                    label: S.of(context).proteinLabel,
                     value: '${targets.proteinGoal.round()} g',
                     accent: colorScheme.tertiary,
                   ),
@@ -720,7 +724,7 @@ class _CurrentTargetsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _MacroMetricTile(
-                    label: 'Carbohidratos',
+                    label: S.of(context).carbsLabel,
                     value: '${targets.carbsGoal.round()} g',
                     accent: colorScheme.secondary,
                   ),
@@ -728,7 +732,7 @@ class _CurrentTargetsCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: _MacroMetricTile(
-                    label: 'Grasas',
+                    label: S.of(context).fatLabel,
                     value: '${targets.fatGoal.round()} g',
                     accent: colorScheme.error,
                   ),
@@ -770,7 +774,7 @@ class _CurrentTargetsCard extends StatelessWidget {
                 Expanded(
                   child: _FooterBadge(
                     icon: Icons.flag_outlined,
-                    label: goalLabel.replaceFirst('Fase actual: ', ''),
+                    label: goalLabel.replaceFirst(S.of(context).profileCurrentPhase('').split(':')[0], '').replaceFirst(': ', ''),
                   ),
                 ),
                 const SizedBox(width: 10),

@@ -42,33 +42,35 @@ Future<void> main() async {
   final hasAcceptedAnonymousData =
       await configRepo.getConfigHasAcceptedAnonymousData();
   final savedAppTheme = await configRepo.getConfigAppTheme();
+  final savedLocale = await configRepo.getConfigLocale();
+  final locale = savedLocale != null ? Locale(savedLocale) : null;
   final log = Logger('main');
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it
   if (kReleaseMode && hasAcceptedAnonymousData) {
     log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(isUserInitialized, savedAppTheme);
+    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, locale);
   } else {
     log.info('Starting App ...');
-    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme);
+    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
   }
 }
 
 void _runAppWithSentryReporting(
-    bool isUserInitialized, AppThemeEntity savedAppTheme) async {
+    bool isUserInitialized, AppThemeEntity savedAppTheme, Locale? locale) async {
   await SentryFlutter.init((options) {
     options.dsn = Env.sentryDns;
     options.tracesSampleRate = 1.0;
   },
       appRunner: () =>
-          runAppWithChangeNotifiers(isUserInitialized, savedAppTheme));
+          runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale));
 }
 
 void runAppWithChangeNotifiers(
-        bool userInitialized, AppThemeEntity savedAppTheme) =>
+        bool userInitialized, AppThemeEntity savedAppTheme, Locale? locale) =>
     runApp(ChangeNotifierProvider(
-        create: (_) => ThemeModeProvider(appTheme: savedAppTheme),
+        create: (_) => ThemeModeProvider(appTheme: savedAppTheme, locale: locale),
         child: MacroTrackerApp(userInitialized: userInitialized)));
 
 class MacroTrackerApp extends StatelessWidget {
@@ -84,6 +86,7 @@ class MacroTrackerApp extends StatelessWidget {
       theme: _buildTheme(lightColorScheme),
       darkTheme: _buildTheme(darkColorScheme),
       themeMode: Provider.of<ThemeModeProvider>(context).themeMode,
+      locale: Provider.of<ThemeModeProvider>(context).locale,
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,

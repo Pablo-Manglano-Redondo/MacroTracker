@@ -24,6 +24,7 @@ class SettingsLoadedState extends SettingsState {
   final double aiEstimatedCostMonthUsd;
   final int aiTextCallsTotal;
   final int aiPhotoCallsTotal;
+  final String? currentLocale;
 
   const SettingsLoadedState(this.versionNumber, this.sendAnonymousData,
       this.appTheme, this.usesImperialUnits,
@@ -31,7 +32,8 @@ class SettingsLoadedState extends SettingsState {
       this.aiEstimatedCostTodayUsd = 0,
       this.aiEstimatedCostMonthUsd = 0,
       this.aiTextCallsTotal = 0,
-      this.aiPhotoCallsTotal = 0});
+      this.aiPhotoCallsTotal = 0,
+      this.currentLocale});
 
   @override
   List<Object?> get props => [
@@ -43,6 +45,7 @@ class SettingsLoadedState extends SettingsState {
         aiEstimatedCostTodayUsd,
         aiEstimatedCostMonthUsd,
         aiTextCallsTotal,
-        aiPhotoCallsTotal
+        aiPhotoCallsTotal,
+        currentLocale,
       ];
 }

@@ -45,12 +45,15 @@ class ConfigDBO extends HiveObject {
   String? aiCostMonthKey;
   @HiveField(17)
   String? trainingDayTemplate;
+  @HiveField(18)
+  String? selectedLocale;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
       {this.usesImperialUnits = false,
       this.userKcalAdjustment,
-      this.dailyFocus = 'upperBody'});
+      this.dailyFocus = 'upperBody',
+      this.selectedLocale});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);
@@ -62,7 +65,8 @@ class ConfigDBO extends HiveObject {
       AppThemeDBO.fromAppThemeEntity(entity.appTheme),
       usesImperialUnits: entity.usesImperialUnits,
       userKcalAdjustment: entity.userKcalAdjustment,
-      dailyFocus: entity.dailyFocus.storageValue)
+      dailyFocus: entity.dailyFocus.storageValue,
+      selectedLocale: entity.selectedLocale)
     ..userCarbGoalPct = entity.userCarbGoalPct
     ..userProteinGoalPct = entity.userProteinGoalPct
     ..userFatGoalPct = entity.userFatGoalPct

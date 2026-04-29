@@ -375,7 +375,7 @@ class _DaySummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Resumen del día',
+                    S.of(context).diarySummaryTitle,
                     style: Theme.of(context)
                         .textTheme
                         .titleMedium
@@ -390,7 +390,7 @@ class _DaySummaryCard extends StatelessWidget {
                     color: trackedDay.getRatingDayTextBackgroundColor(context),
                   ),
                   child: Text(
-                    _statusLabel(),
+                    _statusLabel(context),
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: trackedDay.getRatingDayTextColor(context),
                           fontWeight: FontWeight.w700,
@@ -406,7 +406,7 @@ class _DaySummaryCard extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: onCopyDayToToday,
                   icon: const Icon(Icons.content_copy_outlined, size: 18),
-                  label: const Text('Copiar día a hoy'),
+                  label: Text(S.of(context).diaryCopyDayToToday),
                 ),
               ),
             ],
@@ -418,10 +418,10 @@ class _DaySummaryCard extends StatelessWidget {
                     label: 'Kcal',
                     value: '$kcalTracked/$kcalGoal',
                     helper: kcalDelta == 0
-                        ? 'En objetivo'
+                        ? S.of(context).diaryInGoal
                         : kcalDelta > 0
-                            ? '+$kcalDelta kcal'
-                            : '${kcalDelta.abs()} kcal restantes',
+                            ? S.of(context).diaryKcalOver(kcalDelta)
+                            : S.of(context).diaryKcalRemaining(kcalDelta.abs()),
                     accent: colorScheme.primary,
                   ),
                 ),
@@ -431,8 +431,8 @@ class _DaySummaryCard extends StatelessWidget {
                     label: 'Proteína',
                     value: '$proteinTracked/$proteinGoal g',
                     helper: proteinGoal > 0 && proteinTracked >= proteinGoal
-                        ? 'Objetivo cumplido'
-                        : '${(proteinGoal - proteinTracked).clamp(0, 9999)} g restantes',
+                        ? S.of(context).diaryGoalReached
+                        : S.of(context).diaryGramsRemaining((proteinGoal - proteinTracked).clamp(0, 9999)),
                     accent: colorScheme.tertiary,
                   ),
                 ),
@@ -440,7 +440,7 @@ class _DaySummaryCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              _macroTrackedDisplayString(),
+              _macroTrackedDisplayString(context),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -452,11 +452,11 @@ class _DaySummaryCard extends StatelessWidget {
               children: [
                 _Pill(
                   icon: Icons.restaurant_outlined,
-                  label: '$mealCount comidas',
+                  label: S.of(context).diaryMealsPill(mealCount),
                 ),
                 _Pill(
                   icon: Icons.fitness_center_outlined,
-                  label: '$activityCount actividades',
+                  label: S.of(context).diaryActivitiesPill(activityCount),
                 ),
               ],
             ),
@@ -466,14 +466,14 @@ class _DaySummaryCard extends StatelessWidget {
     );
   }
 
-  String _statusLabel() {
+  String _statusLabel(BuildContext context) {
     final difference = trackedDay.calorieGoal - trackedDay.caloriesTracked;
-    if (difference.abs() <= 150) return 'En rango';
-    if (difference > 150) return 'Por debajo';
-    return 'Por encima';
+    if (difference.abs() <= 150) return S.of(context).diaryStatusInRange;
+    if (difference > 150) return S.of(context).diaryStatusBelow;
+    return S.of(context).diaryStatusAbove;
   }
 
-  String _macroTrackedDisplayString() {
+  String _macroTrackedDisplayString(BuildContext context) {
     final carbsTracked = trackedDay.carbsTracked?.floor().toString() ?? '?';
     final fatTracked = trackedDay.fatTracked?.floor().toString() ?? '?';
     final proteinTracked = trackedDay.proteinTracked?.floor().toString() ?? '?';
@@ -481,7 +481,7 @@ class _DaySummaryCard extends StatelessWidget {
     final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
     final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
 
-    return 'Carbohidratos $carbsTracked/$carbsGoal g, grasas $fatTracked/$fatGoal g, proteína $proteinTracked/$proteinGoal g';
+    return S.of(context).diaryMacrosSummary(carbsTracked, carbsGoal, fatTracked, fatGoal, proteinTracked, proteinGoal);
   }
 }
 
@@ -577,7 +577,7 @@ class _DiaryExpandableSection extends StatelessWidget {
                 ),
           ),
           subtitle: Text(
-            count == 0 ? 'Vacío' : '$count elementos',
+            count == 0 ? S.of(context).diaryEmptySection : S.of(context).diaryElementsSection(count),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
