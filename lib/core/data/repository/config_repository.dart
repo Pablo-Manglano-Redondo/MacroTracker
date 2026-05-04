@@ -85,6 +85,10 @@ class ConfigRepository {
         .setConfigTrainingDayTemplate(trainingDayTemplate.storageValue);
   }
 
+  Future<void> setHealthConnectAutoSyncEnabled(bool enabled) async {
+    await _configDataSource.setHealthConnectAutoSyncEnabled(enabled);
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

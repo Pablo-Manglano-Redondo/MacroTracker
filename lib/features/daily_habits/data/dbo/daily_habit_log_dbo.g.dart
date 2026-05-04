@@ -25,13 +25,15 @@ class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
       sleepHours: fields[5] as double,
       steps: fields[6] as int,
       energyLevel: fields[7] as int,
+      sleepSyncedFromHealthConnect: fields[8] as bool? ?? false,
+      stepsSyncedFromHealthConnect: fields[9] as bool? ?? false,
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyHabitLogDBO obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.day)
       ..writeByte(1)
@@ -47,7 +49,11 @@ class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
       ..writeByte(6)
       ..write(obj.steps)
       ..writeByte(7)
-      ..write(obj.energyLevel);
+      ..write(obj.energyLevel)
+      ..writeByte(8)
+      ..write(obj.sleepSyncedFromHealthConnect)
+      ..writeByte(9)
+      ..write(obj.stepsSyncedFromHealthConnect);
   }
 
   @override
@@ -75,6 +81,10 @@ DailyHabitLogDBO _$DailyHabitLogDBOFromJson(Map<String, dynamic> json) =>
       sleepHours: (json['sleepHours'] as num?)?.toDouble() ?? 0,
       steps: (json['steps'] as num?)?.toInt() ?? 0,
       energyLevel: (json['energyLevel'] as num?)?.toInt() ?? 0,
+      sleepSyncedFromHealthConnect:
+          json['sleepSyncedFromHealthConnect'] as bool? ?? false,
+      stepsSyncedFromHealthConnect:
+          json['stepsSyncedFromHealthConnect'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$DailyHabitLogDBOToJson(DailyHabitLogDBO instance) =>
@@ -87,4 +97,6 @@ Map<String, dynamic> _$DailyHabitLogDBOToJson(DailyHabitLogDBO instance) =>
       'sleepHours': instance.sleepHours,
       'steps': instance.steps,
       'energyLevel': instance.energyLevel,
+      'sleepSyncedFromHealthConnect': instance.sleepSyncedFromHealthConnect,
+      'stepsSyncedFromHealthConnect': instance.stepsSyncedFromHealthConnect,
     };

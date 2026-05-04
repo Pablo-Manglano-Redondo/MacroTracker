@@ -10,6 +10,7 @@ import 'package:macrotracker/core/utils/theme_mode_provider.dart';
 import 'package:macrotracker/core/utils/url_const.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -81,7 +82,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ListTile(
                   leading: const Icon(Icons.language_outlined),
                   title: Text(S.of(context).settingsLanguageLabel),
-                  onTap: () => _showLanguageDialog(context, state.currentLocale),
+                  onTap: () =>
+                      _showLanguageDialog(context, state.currentLocale),
                 ),
                 ListTile(
                   leading: const Icon(Icons.import_export),
@@ -103,6 +105,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: Text(S.of(context).settingsPrivacySettings),
                   onTap: () =>
                       _showPrivacyDialog(context, state.sendAnonymousData),
+                ),
+                SwitchListTile(
+                  secondary: const Icon(Icons.health_and_safety_outlined),
+                  title: Text(S.of(context).healthConnectAutoSyncTitle),
+                  subtitle: Text(S.of(context).healthConnectAutoSyncSubtitle),
+                  value: state.healthConnectAutoSyncEnabled,
+                  onChanged: (value) async {
+                    await _settingsBloc.setHealthConnectAutoSyncEnabled(value);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            value
+                                ? S
+                                    .of(context)
+                                    .healthConnectAutoSyncEnabledMessage
+                                : S
+                                    .of(context)
+                                    .healthConnectAutoSyncDisabledMessage,
+                          ),
+                        ),
+                      );
+                    }
+                    _settingsBloc.add(LoadSettingsEvent());
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.sync_outlined),
+                  title: Text(S.of(context).healthConnectSyncNowTitle),
+                  subtitle: FutureBuilder<HealthConnectSyncStatusEntity>(
+                    future: _settingsBloc.getHealthConnectStatus(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return Text(S.of(context).healthConnectStatusChecking);
+                      }
+                      return Text(
+                          _buildHealthConnectStatusText(snapshot.data!));
+                    },
+                  ),
+                  onTap: () => _syncHealthConnectNow(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.paid_outlined),
@@ -282,7 +327,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     RadioListTile<String?>(
-                      title: Text(S.of(context).settingsLanguageSystemDefaultLabel),
+                      title: Text(
+                          S.of(context).settingsLanguageSystemDefaultLabel),
                       value: null,
                       groupValue: selectedLocale,
                       onChanged: (value) {
@@ -321,7 +367,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.add(LoadSettingsEvent());
                     if (context.mounted) {
                       Provider.of<ThemeModeProvider>(context, listen: false)
-                          .updateLocale(selectedLocale != null ? Locale(selectedLocale!) : null);
+                          .updateLocale(selectedLocale != null
+                              ? Locale(selectedLocale!)
+                              : null);
                     }
                     Navigator.of(context).pop();
                   },
@@ -472,10 +520,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-                S.of(context).settingsAiCostTotal(currency.format(state.aiEstimatedCostTotalUsd))),
-            Text(S.of(context).settingsAiCostToday(currency.format(state.aiEstimatedCostTodayUsd))),
-            Text(S.of(context).settingsAiCostMonth(currency.format(state.aiEstimatedCostMonthUsd))),
+            Text(S.of(context).settingsAiCostTotal(
+                currency.format(state.aiEstimatedCostTotalUsd))),
+            Text(S.of(context).settingsAiCostToday(
+                currency.format(state.aiEstimatedCostTodayUsd))),
+            Text(S.of(context).settingsAiCostMonth(
+                currency.format(state.aiEstimatedCostMonthUsd))),
             const SizedBox(height: 10),
             Text(S.of(context).settingsAiCallsTotal(totalCalls)),
             Text(S.of(context).settingsAiCallsText(state.aiTextCallsTotal)),
@@ -527,5 +577,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
       }
     }
+  }
+
+  String _buildHealthConnectStatusText(HealthConnectSyncStatusEntity status) {
+    if (!status.isAvailable) {
+      return S.of(context).healthConnectStatusUnavailable;
+    }
+    if (!status.hasHealthPermissions) {
+      return S.of(context).healthConnectStatusPermissionsRequired;
+    }
+    if (!status.hasActivityRecognitionPermission) {
+      return S.of(context).healthConnectStatusActivityPermissionRequired;
+    }
+    if (!status.isAutoSyncEnabled) {
+      return S.of(context).healthConnectStatusAutoSyncDisabled;
+    }
+    return S.of(context).healthConnectStatusReady;
+  }
+
+  Future<void> _syncHealthConnectNow(BuildContext context) async {
+    final didUpdate = await _settingsBloc.syncHealthConnectNow();
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          didUpdate
+              ? S.of(context).healthConnectSyncSuccess
+              : S.of(context).healthConnectSyncNoChanges,
+        ),
+      ),
+    );
+    setState(() {});
   }
 }

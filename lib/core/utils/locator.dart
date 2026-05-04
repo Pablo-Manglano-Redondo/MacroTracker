@@ -130,8 +130,8 @@ Future<void> initLocator() async {
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(() => SettingsBloc(
-      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
+      locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -226,7 +226,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<UpdateDailyHabitLogUsecase>(
       () => UpdateDailyHabitLogUsecase(locator()));
   locator.registerLazySingleton<SyncSleepFromHealthConnectUsecase>(
-      () => SyncSleepFromHealthConnectUsecase(locator(), locator()));
+      () => SyncSleepFromHealthConnectUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(() => ExportDataUsecase(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => ImportDataUsecase(

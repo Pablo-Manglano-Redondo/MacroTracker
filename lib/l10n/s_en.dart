@@ -1797,6 +1797,60 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsResetLabel => 'Reset';
 
   @override
+  String get healthConnectAutoSyncTitle => 'Health Connect auto-sync';
+
+  @override
+  String get healthConnectAutoSyncSubtitle =>
+      'Sync sleep and steps automatically on app open.';
+
+  @override
+  String get healthConnectSyncNowTitle => 'Sync Health Connect now';
+
+  @override
+  String get healthConnectStatusChecking => 'Checking Health Connect status...';
+
+  @override
+  String get healthConnectStatusUnavailable =>
+      'Health Connect is not available on this device.';
+
+  @override
+  String get healthConnectStatusPermissionsRequired =>
+      'Health permissions are required to read sleep and steps.';
+
+  @override
+  String get healthConnectStatusActivityPermissionRequired =>
+      'Activity Recognition permission is required for steps.';
+
+  @override
+  String get healthConnectStatusAutoSyncDisabled =>
+      'Connected. Auto-sync is currently disabled.';
+
+  @override
+  String get healthConnectStatusReady =>
+      'Connected. Sleep and steps can sync automatically.';
+
+  @override
+  String get healthConnectAutoSyncEnabledMessage =>
+      'Health Connect auto-sync enabled.';
+
+  @override
+  String get healthConnectAutoSyncDisabledMessage =>
+      'Health Connect auto-sync disabled.';
+
+  @override
+  String get healthConnectSyncSuccess => 'Health Connect data synced.';
+
+  @override
+  String get healthConnectSyncNoChanges =>
+      'No new Health Connect data was imported.';
+
+  @override
+  String get habitSourceHealthConnect => 'Health Connect';
+
+  @override
+  String get habitSourceManual => 'Manual';
+
+  @override
   String get homeWeeklyInsightsSubtitle =>
       'Check averages, adherence, protein and top meals';
 

@@ -25,6 +25,7 @@ class SettingsLoadedState extends SettingsState {
   final int aiTextCallsTotal;
   final int aiPhotoCallsTotal;
   final String? currentLocale;
+  final bool healthConnectAutoSyncEnabled;
 
   const SettingsLoadedState(this.versionNumber, this.sendAnonymousData,
       this.appTheme, this.usesImperialUnits,
@@ -33,7 +34,8 @@ class SettingsLoadedState extends SettingsState {
       this.aiEstimatedCostMonthUsd = 0,
       this.aiTextCallsTotal = 0,
       this.aiPhotoCallsTotal = 0,
-      this.currentLocale});
+      this.currentLocale,
+      this.healthConnectAutoSyncEnabled = true});
 
   @override
   List<Object?> get props => [
@@ -47,5 +49,6 @@ class SettingsLoadedState extends SettingsState {
         aiTextCallsTotal,
         aiPhotoCallsTotal,
         currentLocale,
+        healthConnectAutoSyncEnabled,
       ];
 }

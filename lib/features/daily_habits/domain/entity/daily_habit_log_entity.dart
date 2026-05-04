@@ -10,6 +10,8 @@ class DailyHabitLogEntity extends Equatable {
   final double sleepHours;
   final int steps;
   final int energyLevel;
+  final bool sleepSyncedFromHealthConnect;
+  final bool stepsSyncedFromHealthConnect;
 
   const DailyHabitLogEntity({
     required this.day,
@@ -20,6 +22,8 @@ class DailyHabitLogEntity extends Equatable {
     this.sleepHours = 0,
     this.steps = 0,
     this.energyLevel = 0,
+    this.sleepSyncedFromHealthConnect = false,
+    this.stepsSyncedFromHealthConnect = false,
   });
 
   factory DailyHabitLogEntity.empty(DateTime day) {
@@ -38,6 +42,8 @@ class DailyHabitLogEntity extends Equatable {
       sleepHours: dbo.sleepHours,
       steps: dbo.steps,
       energyLevel: dbo.energyLevel,
+      sleepSyncedFromHealthConnect: dbo.sleepSyncedFromHealthConnect,
+      stepsSyncedFromHealthConnect: dbo.stepsSyncedFromHealthConnect,
     );
   }
 
@@ -50,6 +56,8 @@ class DailyHabitLogEntity extends Equatable {
     double? sleepHours,
     int? steps,
     int? energyLevel,
+    bool? sleepSyncedFromHealthConnect,
+    bool? stepsSyncedFromHealthConnect,
   }) {
     return DailyHabitLogEntity(
       day: day ?? this.day,
@@ -60,6 +68,10 @@ class DailyHabitLogEntity extends Equatable {
       sleepHours: sleepHours ?? this.sleepHours,
       steps: steps ?? this.steps,
       energyLevel: energyLevel ?? this.energyLevel,
+      sleepSyncedFromHealthConnect:
+          sleepSyncedFromHealthConnect ?? this.sleepSyncedFromHealthConnect,
+      stepsSyncedFromHealthConnect:
+          stepsSyncedFromHealthConnect ?? this.stepsSyncedFromHealthConnect,
     );
   }
 
@@ -126,5 +138,7 @@ class DailyHabitLogEntity extends Equatable {
         sleepHours,
         steps,
         energyLevel,
+        sleepSyncedFromHealthConnect,
+        stepsSyncedFromHealthConnect,
       ];
 }

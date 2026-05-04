@@ -3435,6 +3435,96 @@ abstract class AppLocalizations {
   /// **'Reset'**
   String get settingsResetLabel;
 
+  /// No description provided for @healthConnectAutoSyncTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect auto-sync'**
+  String get healthConnectAutoSyncTitle;
+
+  /// No description provided for @healthConnectAutoSyncSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync sleep and steps automatically on app open.'**
+  String get healthConnectAutoSyncSubtitle;
+
+  /// No description provided for @healthConnectSyncNowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Health Connect now'**
+  String get healthConnectSyncNowTitle;
+
+  /// No description provided for @healthConnectStatusChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking Health Connect status...'**
+  String get healthConnectStatusChecking;
+
+  /// No description provided for @healthConnectStatusUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect is not available on this device.'**
+  String get healthConnectStatusUnavailable;
+
+  /// No description provided for @healthConnectStatusPermissionsRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Health permissions are required to read sleep and steps.'**
+  String get healthConnectStatusPermissionsRequired;
+
+  /// No description provided for @healthConnectStatusActivityPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity Recognition permission is required for steps.'**
+  String get healthConnectStatusActivityPermissionRequired;
+
+  /// No description provided for @healthConnectStatusAutoSyncDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected. Auto-sync is currently disabled.'**
+  String get healthConnectStatusAutoSyncDisabled;
+
+  /// No description provided for @healthConnectStatusReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected. Sleep and steps can sync automatically.'**
+  String get healthConnectStatusReady;
+
+  /// No description provided for @healthConnectAutoSyncEnabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect auto-sync enabled.'**
+  String get healthConnectAutoSyncEnabledMessage;
+
+  /// No description provided for @healthConnectAutoSyncDisabledMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect auto-sync disabled.'**
+  String get healthConnectAutoSyncDisabledMessage;
+
+  /// No description provided for @healthConnectSyncSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect data synced.'**
+  String get healthConnectSyncSuccess;
+
+  /// No description provided for @healthConnectSyncNoChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'No new Health Connect data was imported.'**
+  String get healthConnectSyncNoChanges;
+
+  /// No description provided for @habitSourceHealthConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect'**
+  String get habitSourceHealthConnect;
+
+  /// No description provided for @habitSourceManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual'**
+  String get habitSourceManual;
+
   /// No description provided for @homeWeeklyInsightsSubtitle.
   ///
   /// In en, this message translates to:

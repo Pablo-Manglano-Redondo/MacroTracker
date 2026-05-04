@@ -276,7 +276,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _isSyncingSleep = true;
     try {
       final didUpdate =
-          await locator<SyncSleepFromHealthConnectUsecase>().syncToday();
+          await locator<SyncSleepFromHealthConnectUsecase>().syncToday(
+        requestPermissionsIfNeeded: true,
+      );
       if (didUpdate && mounted) {
         setState(() {
           _habitRefreshSeed++;

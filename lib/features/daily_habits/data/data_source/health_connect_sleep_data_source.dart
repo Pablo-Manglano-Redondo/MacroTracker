@@ -2,9 +2,13 @@ import 'dart:io';
 
 import 'package:health/health.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_sleep_session_entity.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HealthConnectSleepDataSource {
-  static const _sleepTypes = [HealthDataType.SLEEP_SESSION];
+  static const _readTypes = [
+    HealthDataType.SLEEP_SESSION,
+    HealthDataType.STEPS,
+  ];
   static const _permissions = [HealthDataAccess.READ];
 
   final Health _health;
@@ -22,7 +26,7 @@ class HealthConnectSleepDataSource {
 
   Future<bool> hasReadPermission() async {
     final hasPermissions = await _health.hasPermissions(
-      _sleepTypes,
+      _readTypes,
       permissions: _permissions,
     );
     return hasPermissions ?? false;
@@ -30,9 +34,24 @@ class HealthConnectSleepDataSource {
 
   Future<bool> requestReadPermission() {
     return _health.requestAuthorization(
-      _sleepTypes,
+      _readTypes,
       permissions: _permissions,
     );
+  }
+
+  Future<bool> hasActivityRecognitionPermission() async {
+    if (!Platform.isAndroid) {
+      return false;
+    }
+    return Permission.activityRecognition.status.isGranted;
+  }
+
+  Future<bool> requestActivityRecognitionPermission() async {
+    if (!Platform.isAndroid) {
+      return false;
+    }
+    final status = await Permission.activityRecognition.request();
+    return status.isGranted;
   }
 
   Future<List<HealthSleepSessionEntity>> readSleepSessions(
@@ -42,7 +61,7 @@ class HealthConnectSleepDataSource {
     final points = await _health.getHealthDataFromTypes(
       startTime: startTime,
       endTime: endTime,
-      types: _sleepTypes,
+      types: const [HealthDataType.SLEEP_SESSION],
     );
     final uniquePoints = _health.removeDuplicates(points);
     return uniquePoints
@@ -54,5 +73,13 @@ class HealthConnectSleepDataSource {
           ),
         )
         .toList(growable: false);
+  }
+
+  Future<int> readStepCount(
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
+    final stepCount = await _health.getTotalStepsInInterval(startTime, endTime);
+    return stepCount == null || stepCount < 0 ? 0 : stepCount;
   }
 }

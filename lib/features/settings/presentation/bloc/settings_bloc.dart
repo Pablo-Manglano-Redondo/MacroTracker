@@ -10,6 +10,8 @@ import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
+import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 
 part 'settings_event.dart';
 
@@ -24,6 +26,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
   final GetUserUsecase _getUserUsecase;
+  final SyncSleepFromHealthConnectUsecase _syncSleepFromHealthConnectUsecase;
 
   SettingsBloc(
       this._getConfigUsecase,
@@ -31,7 +34,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       this._addTrackedDayUsecase,
       this._getKcalGoalUsecase,
       this._getMacroGoalUsecase,
-      this._getUserUsecase)
+      this._getUserUsecase,
+      this._syncSleepFromHealthConnectUsecase)
       : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -50,7 +54,9 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           aiEstimatedCostMonthUsd: userConfig.aiEstimatedCostMonthUsd,
           aiTextCallsTotal: userConfig.aiTextCallsTotal,
           aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal,
-          currentLocale: userConfig.selectedLocale));
+          currentLocale: userConfig.selectedLocale,
+          healthConnectAutoSyncEnabled:
+              userConfig.healthConnectAutoSyncEnabled));
     });
   }
 
@@ -103,6 +109,21 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> resetAiCostTracking() async {
     await _addConfigUsecase.resetAiCostTracking();
+  }
+
+  Future<void> setHealthConnectAutoSyncEnabled(bool enabled) async {
+    await _addConfigUsecase.setHealthConnectAutoSyncEnabled(enabled);
+  }
+
+  Future<HealthConnectSyncStatusEntity> getHealthConnectStatus() async {
+    return _syncSleepFromHealthConnectUsecase.getStatus();
+  }
+
+  Future<bool> syncHealthConnectNow() async {
+    return _syncSleepFromHealthConnectUsecase.syncToday(
+      requestPermissionsIfNeeded: true,
+      ignoreAutoSyncSetting: true,
+    );
   }
 
   void updateTrackedDay(DateTime day) async {

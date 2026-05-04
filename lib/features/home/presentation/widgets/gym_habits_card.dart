@@ -183,6 +183,11 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               '${log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1)} h',
                           target:
                               'Objetivo ${sleepGoalHours.toStringAsFixed(sleepGoalHours % 1 == 0 ? 0 : 1)} h',
+                          sourceLabel: log.sleepHours > 0
+                              ? (log.sleepSyncedFromHealthConnect
+                                  ? S.of(context).habitSourceHealthConnect
+                                  : S.of(context).habitSourceManual)
+                              : null,
                           onDecrease: () => _adjustSleep(-0.5),
                           onIncrease: () => _adjustSleep(0.5),
                           accentColor: _goalTone(
@@ -195,6 +200,11 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           label: 'Pasos',
                           value: _formatSteps(log.steps),
                           target: 'Objetivo ${_formatSteps(stepGoal)}',
+                          sourceLabel: log.steps > 0
+                              ? (log.stepsSyncedFromHealthConnect
+                                  ? S.of(context).habitSourceHealthConnect
+                                  : S.of(context).habitSourceManual)
+                              : null,
                           onDecrease: () => _adjustSteps(-1000),
                           onIncrease: () => _adjustSteps(1000),
                           accentColor:
@@ -445,6 +455,7 @@ class _MetricAdjuster extends StatelessWidget {
   final String label;
   final String value;
   final String target;
+  final String? sourceLabel;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
   final Color accentColor;
@@ -453,6 +464,7 @@ class _MetricAdjuster extends StatelessWidget {
     required this.label,
     required this.value,
     required this.target,
+    this.sourceLabel,
     required this.onDecrease,
     required this.onIncrease,
     required this.accentColor,
@@ -482,6 +494,16 @@ class _MetricAdjuster extends StatelessWidget {
           Text(value, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 2),
           Text(target, style: Theme.of(context).textTheme.bodySmall),
+          if (sourceLabel != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              sourceLabel!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: accentColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [

@@ -47,13 +47,16 @@ class ConfigDBO extends HiveObject {
   String? trainingDayTemplate;
   @HiveField(18)
   String? selectedLocale;
+  @HiveField(19)
+  bool? healthConnectAutoSyncEnabled;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
       {this.usesImperialUnits = false,
       this.userKcalAdjustment,
       this.dailyFocus = 'upperBody',
-      this.selectedLocale});
+      this.selectedLocale,
+      this.healthConnectAutoSyncEnabled = true});
 
   factory ConfigDBO.empty() =>
       ConfigDBO(false, false, false, AppThemeDBO.system);
@@ -77,7 +80,8 @@ class ConfigDBO extends HiveObject {
     ..aiPhotoCallsTotal = entity.aiPhotoCallsTotal
     ..aiCostTodayDate = entity.aiCostTodayDate
     ..aiCostMonthKey = entity.aiCostMonthKey
-    ..trainingDayTemplate = entity.trainingDayTemplate.storageValue;
+    ..trainingDayTemplate = entity.trainingDayTemplate.storageValue
+    ..healthConnectAutoSyncEnabled = entity.healthConnectAutoSyncEnabled;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

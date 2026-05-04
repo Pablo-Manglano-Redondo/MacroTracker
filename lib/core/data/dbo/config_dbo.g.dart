@@ -24,6 +24,8 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       usesImperialUnits: fields[4] as bool?,
       userKcalAdjustment: fields[5] as double?,
       dailyFocus: fields[9] as String?,
+      selectedLocale: fields[18] as String?,
+      healthConnectAutoSyncEnabled: fields[19] as bool? ?? true,
     )
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
@@ -41,7 +43,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(18)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -77,7 +79,11 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(16)
       ..write(obj.aiCostMonthKey)
       ..writeByte(17)
-      ..write(obj.trainingDayTemplate);
+      ..write(obj.trainingDayTemplate)
+      ..writeByte(18)
+      ..write(obj.selectedLocale)
+      ..writeByte(19)
+      ..write(obj.healthConnectAutoSyncEnabled);
   }
 
   @override
@@ -103,6 +109,9 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       usesImperialUnits: json['usesImperialUnits'] as bool? ?? false,
       userKcalAdjustment: (json['userKcalAdjustment'] as num?)?.toDouble(),
       dailyFocus: json['dailyFocus'] as String? ?? 'upperBody',
+      selectedLocale: json['selectedLocale'] as String?,
+      healthConnectAutoSyncEnabled:
+          json['healthConnectAutoSyncEnabled'] as bool? ?? true,
     )
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
@@ -138,6 +147,8 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'aiCostTodayDate': instance.aiCostTodayDate,
       'aiCostMonthKey': instance.aiCostMonthKey,
       'trainingDayTemplate': instance.trainingDayTemplate,
+      'selectedLocale': instance.selectedLocale,
+      'healthConnectAutoSyncEnabled': instance.healthConnectAutoSyncEnabled,
     };
 
 const _$AppThemeDBOEnumMap = {

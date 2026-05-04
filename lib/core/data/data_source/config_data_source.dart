@@ -116,6 +116,13 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setHealthConnectAutoSyncEnabled(bool enabled) async {
+    _log.fine('Updating config healthConnectAutoSyncEnabled to $enabled');
+    final config = _configBox.get(_configKey);
+    config?.healthConnectAutoSyncEnabled = enabled;
+    await config?.save();
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

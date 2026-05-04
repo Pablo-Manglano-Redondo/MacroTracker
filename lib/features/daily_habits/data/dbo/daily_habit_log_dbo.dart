@@ -31,6 +31,12 @@ class DailyHabitLogDBO extends HiveObject {
   @HiveField(7)
   int energyLevel;
 
+  @HiveField(8)
+  bool sleepSyncedFromHealthConnect;
+
+  @HiveField(9)
+  bool stepsSyncedFromHealthConnect;
+
   DailyHabitLogDBO({
     required this.day,
     this.creatineTaken = false,
@@ -40,6 +46,8 @@ class DailyHabitLogDBO extends HiveObject {
     this.sleepHours = 0,
     this.steps = 0,
     this.energyLevel = 0,
+    this.sleepSyncedFromHealthConnect = false,
+    this.stepsSyncedFromHealthConnect = false,
   });
 
   factory DailyHabitLogDBO.fromEntity(DailyHabitLogEntity entity) {
@@ -52,6 +60,8 @@ class DailyHabitLogDBO extends HiveObject {
       sleepHours: entity.sleepHours,
       steps: entity.steps,
       energyLevel: entity.energyLevel,
+      sleepSyncedFromHealthConnect: entity.sleepSyncedFromHealthConnect,
+      stepsSyncedFromHealthConnect: entity.stepsSyncedFromHealthConnect,
     );
   }
 

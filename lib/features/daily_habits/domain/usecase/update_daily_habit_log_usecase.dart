@@ -15,6 +15,8 @@ class UpdateDailyHabitLogUsecase {
     double? sleepHours,
     int? steps,
     int? energyLevel,
+    bool? sleepSyncedFromHealthConnect,
+    bool? stepsSyncedFromHealthConnect,
   }) async {
     final normalizedDay = DateTime(day.year, day.month, day.day);
     final existing = await _dailyHabitLogRepository.getLog(normalizedDay) ??
@@ -28,6 +30,8 @@ class UpdateDailyHabitLogUsecase {
       sleepHours: sleepHours?.clamp(0.0, 16.0).toDouble(),
       steps: steps?.clamp(0, 50000),
       energyLevel: energyLevel?.clamp(0, 5),
+      sleepSyncedFromHealthConnect: sleepSyncedFromHealthConnect,
+      stepsSyncedFromHealthConnect: stepsSyncedFromHealthConnect,
     );
     await _dailyHabitLogRepository.saveLog(updated);
     return updated;
@@ -48,7 +52,11 @@ class UpdateDailyHabitLogUsecase {
   }) async {
     final current = await saveForDay(day: day);
     final nextSleep = (current.sleepHours + deltaHours).clamp(0.0, 16.0);
-    return saveForDay(day: day, sleepHours: nextSleep.toDouble());
+    return saveForDay(
+      day: day,
+      sleepHours: nextSleep.toDouble(),
+      sleepSyncedFromHealthConnect: false,
+    );
   }
 
   Future<DailyHabitLogEntity> adjustSteps({
@@ -57,6 +65,10 @@ class UpdateDailyHabitLogUsecase {
   }) async {
     final current = await saveForDay(day: day);
     final nextSteps = (current.steps + deltaSteps).clamp(0, 50000);
-    return saveForDay(day: day, steps: nextSteps);
+    return saveForDay(
+      day: day,
+      steps: nextSteps,
+      stepsSyncedFromHealthConnect: false,
+    );
   }
 }

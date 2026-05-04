@@ -506,6 +506,40 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mantener peso"),
         "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
         "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
+        "habitSourceHealthConnect":
+            MessageLookupByLibrary.simpleMessage("Health Connect"),
+        "habitSourceManual": MessageLookupByLibrary.simpleMessage("Manual"),
+        "healthConnectAutoSyncDisabledMessage":
+            MessageLookupByLibrary.simpleMessage(
+                "Auto-sync de Health Connect desactivado."),
+        "healthConnectAutoSyncEnabledMessage":
+            MessageLookupByLibrary.simpleMessage(
+                "Auto-sync de Health Connect activado."),
+        "healthConnectAutoSyncSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Sincroniza sueño y pasos automáticamente al abrir la app."),
+        "healthConnectAutoSyncTitle":
+            MessageLookupByLibrary.simpleMessage("Auto-sync de Health Connect"),
+        "healthConnectStatusActivityPermissionRequired":
+            MessageLookupByLibrary.simpleMessage(
+                "Se necesita el permiso de reconocimiento de actividad para los pasos."),
+        "healthConnectStatusAutoSyncDisabled":
+            MessageLookupByLibrary.simpleMessage(
+                "Conectado. El auto-sync está desactivado."),
+        "healthConnectStatusChecking": MessageLookupByLibrary.simpleMessage(
+            "Comprobando el estado de Health Connect..."),
+        "healthConnectStatusPermissionsRequired":
+            MessageLookupByLibrary.simpleMessage(
+                "Se necesitan permisos de salud para leer sueño y pasos."),
+        "healthConnectStatusReady": MessageLookupByLibrary.simpleMessage(
+            "Conectado. Sueño y pasos pueden sincronizarse automáticamente."),
+        "healthConnectStatusUnavailable": MessageLookupByLibrary.simpleMessage(
+            "Health Connect no está disponible en este dispositivo."),
+        "healthConnectSyncNoChanges": MessageLookupByLibrary.simpleMessage(
+            "No se importaron datos nuevos de Health Connect."),
+        "healthConnectSyncNowTitle": MessageLookupByLibrary.simpleMessage(
+            "Sincronizar Health Connect ahora"),
+        "healthConnectSyncSuccess": MessageLookupByLibrary.simpleMessage(
+            "Datos de Health Connect sincronizados."),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Altura"),
         "historyLabel": MessageLookupByLibrary.simpleMessage("Historial"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Inicio"),

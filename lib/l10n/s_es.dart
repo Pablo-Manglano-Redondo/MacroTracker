@@ -1806,6 +1806,62 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsResetLabel => 'Reiniciar';
 
   @override
+  String get healthConnectAutoSyncTitle => 'Auto-sync de Health Connect';
+
+  @override
+  String get healthConnectAutoSyncSubtitle =>
+      'Sincroniza sueño y pasos automáticamente al abrir la app.';
+
+  @override
+  String get healthConnectSyncNowTitle => 'Sincronizar Health Connect ahora';
+
+  @override
+  String get healthConnectStatusChecking =>
+      'Comprobando el estado de Health Connect...';
+
+  @override
+  String get healthConnectStatusUnavailable =>
+      'Health Connect no está disponible en este dispositivo.';
+
+  @override
+  String get healthConnectStatusPermissionsRequired =>
+      'Se necesitan permisos de salud para leer sueño y pasos.';
+
+  @override
+  String get healthConnectStatusActivityPermissionRequired =>
+      'Se necesita el permiso de reconocimiento de actividad para los pasos.';
+
+  @override
+  String get healthConnectStatusAutoSyncDisabled =>
+      'Conectado. El auto-sync está desactivado.';
+
+  @override
+  String get healthConnectStatusReady =>
+      'Conectado. Sueño y pasos pueden sincronizarse automáticamente.';
+
+  @override
+  String get healthConnectAutoSyncEnabledMessage =>
+      'Auto-sync de Health Connect activado.';
+
+  @override
+  String get healthConnectAutoSyncDisabledMessage =>
+      'Auto-sync de Health Connect desactivado.';
+
+  @override
+  String get healthConnectSyncSuccess =>
+      'Datos de Health Connect sincronizados.';
+
+  @override
+  String get healthConnectSyncNoChanges =>
+      'No se importaron datos nuevos de Health Connect.';
+
+  @override
+  String get habitSourceHealthConnect => 'Health Connect';
+
+  @override
+  String get habitSourceManual => 'Manual';
+
+  @override
   String get homeWeeklyInsightsSubtitle =>
       'Revisa promedios, adherencia, proteína y comidas top';
 

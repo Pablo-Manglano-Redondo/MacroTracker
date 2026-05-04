@@ -53,6 +53,10 @@ class AddConfigUsecase {
     await _configRepository.setTrainingDayTemplate(trainingDayTemplate);
   }
 
+  Future<void> setHealthConnectAutoSyncEnabled(bool enabled) async {
+    await _configRepository.setHealthConnectAutoSyncEnabled(enabled);
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

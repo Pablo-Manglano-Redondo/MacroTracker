@@ -5611,6 +5611,156 @@ class S {
     );
   }
 
+  /// `Health Connect auto-sync`
+  String get healthConnectAutoSyncTitle {
+    return Intl.message(
+      'Health Connect auto-sync',
+      name: 'healthConnectAutoSyncTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sync sleep and steps automatically on app open.`
+  String get healthConnectAutoSyncSubtitle {
+    return Intl.message(
+      'Sync sleep and steps automatically on app open.',
+      name: 'healthConnectAutoSyncSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sync Health Connect now`
+  String get healthConnectSyncNowTitle {
+    return Intl.message(
+      'Sync Health Connect now',
+      name: 'healthConnectSyncNowTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Checking Health Connect status...`
+  String get healthConnectStatusChecking {
+    return Intl.message(
+      'Checking Health Connect status...',
+      name: 'healthConnectStatusChecking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect is not available on this device.`
+  String get healthConnectStatusUnavailable {
+    return Intl.message(
+      'Health Connect is not available on this device.',
+      name: 'healthConnectStatusUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health permissions are required to read sleep and steps.`
+  String get healthConnectStatusPermissionsRequired {
+    return Intl.message(
+      'Health permissions are required to read sleep and steps.',
+      name: 'healthConnectStatusPermissionsRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activity Recognition permission is required for steps.`
+  String get healthConnectStatusActivityPermissionRequired {
+    return Intl.message(
+      'Activity Recognition permission is required for steps.',
+      name: 'healthConnectStatusActivityPermissionRequired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected. Auto-sync is currently disabled.`
+  String get healthConnectStatusAutoSyncDisabled {
+    return Intl.message(
+      'Connected. Auto-sync is currently disabled.',
+      name: 'healthConnectStatusAutoSyncDisabled',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected. Sleep and steps can sync automatically.`
+  String get healthConnectStatusReady {
+    return Intl.message(
+      'Connected. Sleep and steps can sync automatically.',
+      name: 'healthConnectStatusReady',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect auto-sync enabled.`
+  String get healthConnectAutoSyncEnabledMessage {
+    return Intl.message(
+      'Health Connect auto-sync enabled.',
+      name: 'healthConnectAutoSyncEnabledMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect auto-sync disabled.`
+  String get healthConnectAutoSyncDisabledMessage {
+    return Intl.message(
+      'Health Connect auto-sync disabled.',
+      name: 'healthConnectAutoSyncDisabledMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect data synced.`
+  String get healthConnectSyncSuccess {
+    return Intl.message(
+      'Health Connect data synced.',
+      name: 'healthConnectSyncSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No new Health Connect data was imported.`
+  String get healthConnectSyncNoChanges {
+    return Intl.message(
+      'No new Health Connect data was imported.',
+      name: 'healthConnectSyncNoChanges',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect`
+  String get habitSourceHealthConnect {
+    return Intl.message(
+      'Health Connect',
+      name: 'habitSourceHealthConnect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual`
+  String get habitSourceManual {
+    return Intl.message(
+      'Manual',
+      name: 'habitSourceManual',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Check averages, adherence, protein and top meals`
   String get homeWeeklyInsightsSubtitle {
     return Intl.message(
