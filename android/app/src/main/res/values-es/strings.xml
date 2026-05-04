@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_macrotracker_summary_name">Resumen MacroTracker</string>
+    <string name="widget_kcal_remaining_label">Restantes</string>
+    <string name="widget_carbs_label">Carbos</string>
+    <string name="widget_fats_label">Grasas</string>
+    <string name="widget_protein_label">Proteína</string>
+    <string name="widget_water_label">Agua</string>
+</resources>

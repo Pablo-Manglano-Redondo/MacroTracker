@@ -59,6 +59,7 @@ import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
 import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
@@ -208,8 +209,11 @@ Future<void> initLocator() async {
       () => GetPhysicalActivityUsecase(locator()));
   locator.registerLazySingleton<GetTrackedDayUsecase>(
       () => GetTrackedDayUsecase(locator()));
+  locator.registerLazySingleton<UpdateHomeWidgetUsecase>(() =>
+      UpdateHomeWidgetUsecase(
+          locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(
-      () => AddTrackedDayUsecase(locator()));
+      () => AddTrackedDayUsecase(locator(), locator()));
   locator.registerLazySingleton(
       () => GetKcalGoalUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
@@ -224,7 +228,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<GetDailyHabitLogUsecase>(
       () => GetDailyHabitLogUsecase(locator()));
   locator.registerLazySingleton<UpdateDailyHabitLogUsecase>(
-      () => UpdateDailyHabitLogUsecase(locator()));
+      () => UpdateDailyHabitLogUsecase(locator(), locator()));
   locator.registerLazySingleton<SyncSleepFromHealthConnectUsecase>(
       () => SyncSleepFromHealthConnectUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton(() => ExportDataUsecase(
@@ -232,7 +236,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => ImportDataUsecase(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
-      () => GenerateMacroSuggestionsUsecase(locator()));
+      () => GenerateMacroSuggestionsUsecase(locator(), locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(
       () => BuildWeeklyInsightsUsecase(
             locator(),

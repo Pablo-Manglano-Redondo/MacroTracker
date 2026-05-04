@@ -1,10 +1,15 @@
 import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
+import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 
 class UpdateDailyHabitLogUsecase {
   final DailyHabitLogRepository _dailyHabitLogRepository;
+  final UpdateHomeWidgetUsecase _updateHomeWidgetUsecase;
 
-  UpdateDailyHabitLogUsecase(this._dailyHabitLogRepository);
+  UpdateDailyHabitLogUsecase(
+    this._dailyHabitLogRepository,
+    this._updateHomeWidgetUsecase,
+  );
 
   Future<DailyHabitLogEntity> saveForDay({
     required DateTime day,
@@ -34,6 +39,7 @@ class UpdateDailyHabitLogUsecase {
       stepsSyncedFromHealthConnect: stepsSyncedFromHealthConnect,
     );
     await _dailyHabitLogRepository.saveLog(updated);
+    await _refreshWidgetIfToday(normalizedDay);
     return updated;
   }
 
@@ -70,5 +76,14 @@ class UpdateDailyHabitLogUsecase {
       steps: nextSteps,
       stepsSyncedFromHealthConnect: false,
     );
+  }
+
+  Future<void> _refreshWidgetIfToday(DateTime day) async {
+    final now = DateTime.now();
+    if (day.year != now.year || day.month != now.month || day.day != now.day) {
+      return;
+    }
+
+    await _updateHomeWidgetUsecase.refreshToday();
   }
 }

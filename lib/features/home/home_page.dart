@@ -14,6 +14,7 @@ import 'package:macrotracker/features/home/presentation/widgets/body_progress_ca
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:macrotracker/features/home/presentation/widgets/adherence_nudges_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.dart';
+import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
@@ -39,6 +40,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
     super.initState();
+    _refreshHomeWidgetSummary();
     _syncSleepFromHealthConnect();
   }
 
@@ -92,6 +94,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       log.info('App resumed');
       _refreshPageOnDayChange();
+      _refreshHomeWidgetSummary();
       _syncSleepFromHealthConnect();
     }
     super.didChangeAppLifecycleState(state);
@@ -193,13 +196,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 const NutritionKpiCard(
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
-                  child: Text(
-                    S.of(context).homePerformanceSummary,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Wrap(
@@ -292,6 +289,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     } finally {
       _isSyncingSleep = false;
+    }
+  }
+
+  Future<void> _refreshHomeWidgetSummary() async {
+    try {
+      await locator<UpdateHomeWidgetUsecase>().refreshToday();
+    } catch (error, stackTrace) {
+      log.warning(
+        'Home widget refresh failed',
+        error,
+        stackTrace,
+      );
     }
   }
 
