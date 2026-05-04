@@ -158,8 +158,9 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
           },
           builder: (context, candidateData, rejectedData) {
             return SizedBox(
-              height: sectionHeight,
+              height: sectionHeight + 24,
               child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.intakeList.length + 1,
                 // List length + placeholder card
@@ -198,7 +199,7 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                       ),
                       childWhenDragging: Row(
                         children: [
-                          SizedBox(width: firstListElement ? 16 : 0),
+                          SizedBox(width: firstListElement ? 16 : 8),
                           SizedBox(
                             width: widget.compact ? 104 : 120,
                             height: sectionHeight,

@@ -33,30 +33,52 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+        padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
         child: Column(
           children: [
             TableCalendar(
               headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
-                leftChevronIcon:
-                    Icon(Icons.chevron_left, color: colorScheme.primary),
-                rightChevronIcon:
-                    Icon(Icons.chevron_right, color: colorScheme.primary),
+                headerPadding: const EdgeInsets.only(bottom: 8),
+                leftChevronIcon: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.chevron_left,
+                      color: colorScheme.primary, size: 18),
+                ),
+                rightChevronIcon: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.chevron_right,
+                      color: colorScheme.primary, size: 18),
+                ),
                 titleTextStyle:
                     Theme.of(context).textTheme.titleMedium!.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
               ),
               daysOfWeekStyle: DaysOfWeekStyle(
-                weekdayStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
+                weekdayStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
                       color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
-                weekendStyle: Theme.of(context).textTheme.labelMedium!.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                weekendStyle: Theme.of(context).textTheme.labelSmall!.copyWith(
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
               ),
+              daysOfWeekHeight: 28,
+              rowHeight: 46,
               focusedDay: widget.focusedDate,
               firstDay:
                   widget.currentDate.subtract(widget.calendarDurationDays),
@@ -68,23 +90,9 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
               onPageChanged: (focusedDay) {
                 widget.onPageChanged?.call(focusedDay);
               },
-              calendarStyle: CalendarStyle(
-                outsideTextStyle: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: colorScheme.onSurfaceVariant) ??
-                    const TextStyle(),
-                defaultTextStyle:
-                    Theme.of(context).textTheme.bodyMedium ?? const TextStyle(),
-                todayTextStyle:
-                    Theme.of(context).textTheme.bodyMedium ?? const TextStyle(),
-                selectedTextStyle: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: colorScheme.onPrimary) ??
-                    const TextStyle(),
-                todayDecoration: const BoxDecoration(),
-                selectedDecoration: const BoxDecoration(),
+              calendarStyle: const CalendarStyle(
+                todayDecoration: BoxDecoration(),
+                selectedDecoration: BoxDecoration(),
                 markersMaxCount: 0,
               ),
               selectedDayPredicate: (day) =>
@@ -100,23 +108,17 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
                     _buildDayCell(context, day, isOutside: true),
               ),
             ),
+            const SizedBox(height: 8),
+            const Divider(height: 1, thickness: 0.5),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _LegendChip(
-                  color: colorScheme.primary,
-                  label: 'Kcal en rango',
-                ),
-                _LegendChip(
-                  color: colorScheme.error,
-                  label: 'Kcal desviadas',
-                ),
-                _LegendChip(
-                  color: colorScheme.tertiary,
-                  label: 'Proteína cumplida',
-                ),
+                _LegendItem(color: colorScheme.primary, label: 'En rango'),
+                const SizedBox(width: 16),
+                _LegendItem(color: colorScheme.error, label: 'Desviadas'),
+                const SizedBox(width: 16),
+                _LegendItem(color: colorScheme.tertiary, label: 'Proteína'),
               ],
             ),
           ],
@@ -134,38 +136,47 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final trackedDay = widget.trackedDaysMap[day.toParsedDay()];
-    final backgroundColor = isSelected
-        ? colorScheme.primary
-        : trackedDay == null
-            ? Colors.transparent
-            : trackedDay.getCalendarDayRatingColor(context).withValues(
-                  alpha: 0.10 + (trackedDay.calorieAdherenceScore * 0.10),
-                );
-    final borderColor = isSelected
-        ? colorScheme.primary
-        : isToday
-            ? colorScheme.primary
-            : trackedDay == null
-                ? colorScheme.outlineVariant.withValues(alpha: 0.10)
-                : trackedDay.getCalendarDayRatingColor(context).withValues(
-                      alpha: 0.30,
-                    );
-    final textColor = isSelected
-        ? colorScheme.onPrimary
-        : isOutside
-            ? colorScheme.onSurfaceVariant.withValues(alpha: 0.55)
-            : colorScheme.onSurface;
 
-    return Padding(
-      padding: const EdgeInsets.all(3),
+    Color? bgColor;
+    Color textColor;
+    FontWeight fontWeight;
+
+    if (isSelected) {
+      bgColor = colorScheme.primary;
+      textColor = colorScheme.onPrimary;
+      fontWeight = FontWeight.w700;
+    } else if (isToday) {
+      bgColor = colorScheme.primary.withValues(alpha: 0.12);
+      textColor = colorScheme.primary;
+      fontWeight = FontWeight.w700;
+    } else if (isOutside) {
+      bgColor = null;
+      textColor = colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
+      fontWeight = FontWeight.w400;
+    } else if (trackedDay != null) {
+      bgColor =
+          trackedDay.getCalendarDayRatingColor(context).withValues(alpha: 0.08);
+      textColor = colorScheme.onSurface;
+      fontWeight = FontWeight.w500;
+    } else {
+      bgColor = null;
+      textColor = colorScheme.onSurface;
+      fontWeight = FontWeight.w400;
+    }
+
+    return Center(
       child: Container(
+        width: 36,
+        height: 36,
         decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: borderColor,
-            width: isToday || isSelected ? 1.6 : 1,
-          ),
+          color: bgColor,
+          borderRadius: BorderRadius.circular(10),
+          border: isToday && !isSelected
+              ? Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.4),
+                  width: 1.5,
+                )
+              : null,
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -174,33 +185,35 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
               '${day.day}',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: textColor,
-                    fontWeight: isSelected || isToday
-                        ? FontWeight.w700
-                        : FontWeight.w500,
+                    fontWeight: fontWeight,
                   ),
             ),
             if (trackedDay != null)
               Positioned(
-                bottom: 5,
+                bottom: 4,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 6,
-                      height: 6,
+                      width: 5,
+                      height: 5,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: trackedDay.getCalendarDayRatingColor(context),
+                        color: isSelected
+                            ? colorScheme.onPrimary.withValues(alpha: 0.85)
+                            : trackedDay.getCalendarDayRatingColor(context),
                       ),
                     ),
                     if (trackedDay.isProteinOnTarget) ...[
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Container(
-                        width: 6,
-                        height: 6,
+                        width: 5,
+                        height: 5,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: colorScheme.tertiary,
+                          color: isSelected
+                              ? colorScheme.onPrimary.withValues(alpha: 0.85)
+                              : colorScheme.tertiary,
                         ),
                       ),
                     ],
@@ -214,46 +227,37 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
   }
 }
 
-class _LegendChip extends StatelessWidget {
+class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
 
-  const _LegendChip({
+  const _LegendItem({
     required this.color,
     required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: color.withValues(alpha: 0.10),
-        border: Border.all(
-          color: color.withValues(alpha: 0.18),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
         ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ],
-      ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+        ),
+      ],
     );
   }
 }

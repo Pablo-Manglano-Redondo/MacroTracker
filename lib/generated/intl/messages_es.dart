@@ -45,7 +45,7 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m10(date) => "Último registro ${date}";
 
   static String m11(pctCarbs, pctFats, pctProteins) =>
-      "${pctCarbs}% carbos, ${pctFats}% grasas, ${pctProteins}% proteínas";
+      "${pctCarbs}% Carbos, ${pctFats}% Grasas, ${pctProteins}% Proteínas";
 
   static String m12(count) => "${count} actividades";
 
@@ -63,11 +63,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m19(carbsTracked, carbsGoal, fatTracked, fatGoal,
           proteinTracked, proteinGoal) =>
-      "Carbohidratos ${carbsTracked}/${carbsGoal} g, grasas ${fatTracked}/${fatGoal} g, proteína ${proteinTracked}/${proteinGoal} g";
+      "Carbos ${carbsTracked}/${carbsGoal}g, grasas ${fatTracked}/${fatGoal}g, proteína ${proteinTracked}/${proteinGoal}g";
 
   static String m20(count) => "${count} comidas";
 
-  static String m21(amount) => "${amount}g proteína media";
+  static String m21(amount) => "${amount}g proteína";
 
   static String m22(recipe, slot) => "${recipe} añadida a ${slot}";
 

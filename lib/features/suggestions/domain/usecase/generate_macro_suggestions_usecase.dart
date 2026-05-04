@@ -5,13 +5,20 @@ import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
 import 'package:macrotracker/features/suggestions/domain/entity/macro_suggestion_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class GenerateMacroSuggestionsUsecase {
   final GetRecipeLibraryUsecase _getRecipeLibraryUsecase;
+  final GetFrequentIntakePresetsUsecase _getFrequentIntakePresetsUsecase;
 
-  GenerateMacroSuggestionsUsecase(this._getRecipeLibraryUsecase);
+  GenerateMacroSuggestionsUsecase(
+    this._getRecipeLibraryUsecase,
+    this._getFrequentIntakePresetsUsecase,
+  );
 
   Future<List<MacroSuggestionEntity>> generate({
     required DailyFocusEntity dailyFocus,
@@ -27,9 +34,34 @@ class GenerateMacroSuggestionsUsecase {
     }
 
     final recipes = await _getRecipeLibraryUsecase.getAllRecipes();
+    final frequentPresets = await _getFrequentIntakePresetsUsecase.getTopPresets();
+    
+    // Convert frequent presets to "virtual" recipes so we can use the same scoring logic
+    final frequentAsRecipes = frequentPresets.map((preset) => RecipeEntity(
+      id: 'frequent|${preset.key}',
+      name: preset.title,
+      notes: null,
+      defaultServings: 1.0,
+      yieldQuantity: 1.0,
+      yieldUnit: 'serving',
+      favorite: false,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      ingredients: [
+        RecipeIngredientEntity(
+          id: 'preset_root',
+          mealSnapshot: preset.meal,
+          amount: preset.amount,
+          unit: preset.unit,
+          position: 0,
+        ),
+      ],
+    ));
+
+    final allCandidates = [...recipes, ...frequentAsRecipes];
     final suggestions = <MacroSuggestionEntity>[];
 
-    for (final recipe in recipes) {
+    for (final recipe in allCandidates) {
       final category = QuickRecipeCategoryEntityX.inferFromRecipe(recipe);
       final recommendedIntakeType =
           QuickRecipeCategoryEntityX.inferIntakeType(recipe, category);

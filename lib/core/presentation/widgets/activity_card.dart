@@ -28,7 +28,7 @@ class ActivityCard extends StatelessWidget {
     return Row(
       children: [
         SizedBox(
-          width: firstListElement ? 16 : 0, // Add leading padding
+          width: firstListElement ? 16 : 8, // Add leading padding
         ),
         SizedBox(
           width: cardWidth,

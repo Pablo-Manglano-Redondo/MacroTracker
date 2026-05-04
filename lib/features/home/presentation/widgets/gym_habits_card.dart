@@ -27,6 +27,7 @@ class GymHabitsCard extends StatefulWidget {
 
 class _GymHabitsCardState extends State<GymHabitsCard> {
   int _refreshSeed = 0;
+  DailyHabitLogEntity? _cachedLog;
 
   @override
   Widget build(BuildContext context) {
@@ -43,16 +44,20 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
           child: FutureBuilder<DailyHabitLogEntity>(
             future: _loadLog(_refreshSeed + widget.refreshSeed),
             builder: (context, snapshot) {
-              if (!snapshot.hasData &&
-                  snapshot.connectionState != ConnectionState.done) {
+              // Use cached data to avoid height change during refresh
+              final log = snapshot.data ?? _cachedLog ?? DailyHabitLogEntity.empty(DateTime.now());
+              if (snapshot.hasData && snapshot.data != null) {
+                _cachedLog = snapshot.data;
+              }
+
+              // Only show spinner on first load (no cached data yet)
+              if (_cachedLog == null && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 168,
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
 
-              final log =
-                  snapshot.data ?? DailyHabitLogEntity.empty(DateTime.now());
               final completedCount = log.completedCount(
                 hydrationGoalLiters: hydrationGoalLiters,
                 sleepGoalHours: sleepGoalHours,
@@ -72,58 +77,70 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                   Row(
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Suplementos y hábitos',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '$completedCount/7 completados hoy',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                        child: Text(
+                          'Suplementos y hábitos',
+                          style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
-                      _HabitStatusPill(
-                        label: readinessTone.label,
-                        icon: readinessTone.icon,
-                        foreground: readinessTone.foreground(context),
-                        background: readinessTone.background(context),
-                      ),
-                      const SizedBox(width: 8),
                       Text(
-                        _focusLabel(widget.dailyFocus),
-                        style: Theme.of(context).textTheme.labelMedium,
+                        '$completedCount/7 hoy',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _HabitStatusPill(
+                          label: readinessTone.label,
+                          icon: readinessTone.icon,
+                          foreground: readinessTone.foreground(context),
+                          background: readinessTone.background(context),
+                        ),
+                        const SizedBox(width: 8),
+                        _HabitStatusPill(
+                          label: _focusLabel(widget.dailyFocus),
+                          icon: _focusIcon(widget.dailyFocus),
+                          foreground: Theme.of(context).colorScheme.tertiary,
+                          background: Theme.of(context)
+                              .colorScheme
+                              .tertiary
+                              .withValues(alpha: 0.12),
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _HabitChip(
-                        label: 'Creatine',
-                        icon: Icons.bolt_outlined,
-                        selected: log.creatineTaken,
-                        onSelected: (value) => _setHabit(creatineTaken: value),
-                      ),
-                      _HabitChip(
-                        label: 'Whey',
-                        icon: Icons.fitness_center_outlined,
-                        selected: log.wheyTaken,
-                        onSelected: (value) => _setHabit(wheyTaken: value),
-                      ),
-                      _HabitChip(
-                        label: 'Caffeine',
-                        icon: Icons.coffee_outlined,
-                        selected: log.caffeineTaken,
-                        onSelected: (value) => _setHabit(caffeineTaken: value),
-                      ),
-                    ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _HabitChip(
+                          label: 'Creat.',
+                          icon: Icons.bolt_outlined,
+                          selected: log.creatineTaken,
+                          onSelected: (value) => _setHabit(creatineTaken: value),
+                        ),
+                        _HabitChip(
+                          label: 'Prot.',
+                          icon: Icons.fitness_center_outlined,
+                          selected: log.wheyTaken,
+                          onSelected: (value) => _setHabit(wheyTaken: value),
+                        ),
+                        _HabitChip(
+                          label: 'Caf.',
+                          icon: Icons.coffee_outlined,
+                          selected: log.caffeineTaken,
+                          onSelected: (value) => _setHabit(caffeineTaken: value),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -219,17 +236,36 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Row(
                     children: List.generate(
                       5,
-                      (index) => ChoiceChip(
-                        label: Text('${index + 1}'),
-                        selected: log.energyLevel == index + 1,
-                        selectedColor: _energyTone(index + 1, context)
-                            .withValues(alpha: 0.18),
-                        onSelected: (_) => _setEnergy(index + 1),
+                      (index) => Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: index < 4 ? 8 : 0,
+                          ),
+                          child: ChoiceChip(
+                            showCheckmark: false,
+                            label: SizedBox(
+                              width: double.infinity,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (log.energyLevel == index + 1) ...[
+                                    const Icon(Icons.check, size: 16),
+                                    const SizedBox(width: 4),
+                                  ],
+                                  Text('${index + 1}'),
+                                ],
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            selected: log.energyLevel == index + 1,
+                            selectedColor: _energyTone(index + 1, context)
+                                .withValues(alpha: 0.18),
+                            onSelected: (_) => _setEnergy(index + 1),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -362,6 +398,19 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     }
   }
 
+  IconData _focusIcon(DailyFocusEntity focus) {
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return Icons.directions_walk_outlined;
+      case DailyFocusEntity.upperBody:
+        return Icons.fitness_center_outlined;
+      case DailyFocusEntity.cardio:
+        return Icons.directions_run_outlined;
+      case DailyFocusEntity.rest:
+        return Icons.hotel_outlined;
+    }
+  }
+
   String _hydrationHint(DailyFocusEntity focus, double hydrationGoalLiters) {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
@@ -371,7 +420,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       case DailyFocusEntity.cardio:
         return 'En cardio prioriza líquidos: objetivo ${_formatWater(hydrationGoalLiters)}.';
       case DailyFocusEntity.rest:
-        return 'En descanso mantén hidratación estable: objetivo ${_formatWater(hydrationGoalLiters)}.';
+        return 'En descanso mantén la hidratación: objetivo ${_formatWater(hydrationGoalLiters)}.';
     }
   }
 

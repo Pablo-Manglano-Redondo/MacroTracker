@@ -106,9 +106,12 @@ class SyncSleepFromHealthConnectUsecase {
       final currentLog = await _dailyHabitLogRepository.getLog(normalizedDay) ??
           DailyHabitLogEntity.empty(normalizedDay);
 
+      final forceSync = ignoreAutoSyncSetting;
       final sleepChanged = syncedSleepHours != null &&
-          (currentLog.sleepHours - syncedSleepHours).abs() >= 0.01;
-      final stepsChanged = currentLog.steps != syncedSteps;
+          ((currentLog.sleepHours - syncedSleepHours).abs() >= 0.01 ||
+              (forceSync && currentLog.sleepSyncedFromHealthConnect != true));
+      final stepsChanged = currentLog.steps != syncedSteps ||
+          (forceSync && currentLog.stepsSyncedFromHealthConnect != true);
 
       if (!sleepChanged && !stepsChanged) {
         return false;

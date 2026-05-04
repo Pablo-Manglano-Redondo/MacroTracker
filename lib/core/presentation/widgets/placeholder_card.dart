@@ -23,7 +23,7 @@ class PlaceholderCard extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: firstListElement ? 16 : 0, // Add leading padding
+            width: firstListElement ? 16 : 8, // Add leading padding
           ),
           SizedBox(
             width: cardSize,
@@ -44,6 +44,7 @@ class PlaceholderCard extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 16),
         ],
       ),
     );

@@ -138,14 +138,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.health_and_safety_outlined),
-                  title: Text(S.of(context).healthConnectGrantPermissionsTitle),
-                  subtitle: Text(
-                    S.of(context).healthConnectGrantPermissionsSubtitle,
-                  ),
-                  onTap: () => _requestHealthConnectPermissions(context),
-                ),
-                ListTile(
                   leading: const Icon(Icons.sync_outlined),
                   title: Text(S.of(context).healthConnectSyncNowTitle),
                   subtitle: FutureBuilder<HealthConnectSyncStatusEntity>(

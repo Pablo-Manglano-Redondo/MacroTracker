@@ -143,7 +143,7 @@ class DashboardWidget extends StatelessWidget {
                 _SummaryChip(
                   icon: Icons.local_fire_department_outlined,
                   value: totalKcalBurned.toInt().toString(),
-                  label: 'kcal quemadas',
+                  label: 'cals',
                   compact: isCompact,
                   color: bodyColor,
                   background: subtleSurface,
@@ -151,7 +151,7 @@ class DashboardWidget extends StatelessWidget {
                 _SummaryChip(
                   icon: Icons.fitness_center_outlined,
                   value: sessionsLogged.toString(),
-                  label: 'sesiones',
+                  label: 'sesión',
                   compact: isCompact,
                   color: bodyColor,
                   background: subtleSurface,

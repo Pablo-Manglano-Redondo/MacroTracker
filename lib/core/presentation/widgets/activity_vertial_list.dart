@@ -72,8 +72,9 @@ class ActivityVerticalList extends StatelessWidget {
             ),
           ),
         SizedBox(
-          height: sectionHeight,
+          height: sectionHeight + 24,
           child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 12),
             scrollDirection: Axis.horizontal,
             itemCount:
                 userActivityList.length + 1, // List length + placeholder card

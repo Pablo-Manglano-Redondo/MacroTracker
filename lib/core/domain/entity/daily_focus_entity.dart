@@ -28,7 +28,7 @@ extension DailyFocusEntityX on DailyFocusEntity {
       case DailyFocusEntity.cardio:
         return 'Cardio';
       case DailyFocusEntity.rest:
-        return 'Descanso';
+        return 'Desc.';
     }
   }
 

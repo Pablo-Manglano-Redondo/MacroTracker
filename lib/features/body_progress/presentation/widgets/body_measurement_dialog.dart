@@ -43,6 +43,10 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
               ? UnitCalc.cmToInches(widget.initialMeasurement!.waistCm!)
               : widget.initialMeasurement!.waistCm!),
     );
+
+    // Add listeners to rebuild UI and enable/disable save button when typing
+    _weightController.addListener(() => setState(() {}));
+    _waistController.addListener(() => setState(() {}));
   }
 
   @override

@@ -174,10 +174,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       icon: Icons.height_outlined,
                       label: heightLabel,
                     ),
-                    _ProfileSummaryChip(
-                      icon: Icons.directions_walk_outlined,
-                      label: user.pal.getName(context),
-                    ),
                   ],
                 ),
               ],

@@ -99,47 +99,71 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
+                  Row(
                     children: [
-                      _BodyMetricPill(
-                        label: S.of(context).weightLabel,
-                        value: _formatWeight(context, summary.latestWeightKg),
-                        accentColor: tone.foreground(context),
+                      Expanded(
+                        child: _BodyMetricPill(
+                          label: S.of(context).weightLabel,
+                          value: _formatWeight(context, summary.latestWeightKg),
+                          accentColor: tone.foreground(context),
+                        ),
                       ),
-                      _BodyMetricPill(
-                        label: S.of(context).bodyProgress7dAverage,
-                        value: _formatWeight(context, summary.rollingWeightAverageKg),
-                        accentColor: Theme.of(context).colorScheme.primary,
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _BodyMetricPill(
+                          label: S.of(context).bodyProgress7dAverage,
+                          value: _formatWeight(context, summary.rollingWeightAverageKg),
+                          accentColor: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      _BodyMetricPill(
-                        label: S.of(context).bodyProgressDelta,
-                        value: _formatWeight(context, summary.weeklyWeightDeltaKg,
-                            signed: true),
-                        accentColor: tone.foreground(context),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _BodyMetricPill(
+                          label: S.of(context).bodyProgressDelta,
+                          value: _formatWeight(context, summary.weeklyWeightDeltaKg,
+                              signed: true),
+                          accentColor: tone.foreground(context),
+                        ),
                       ),
-                      _BodyMetricPill(
-                        label: S.of(context).bodyProgressWaist,
-                        value: _formatWaist(context, summary.latestWaistCm),
-                        accentColor: tone.foreground(context),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _BodyMetricPill(
+                          label: S.of(context).bodyProgressWaist,
+                          value: _formatWaist(context, summary.latestWaistCm),
+                          accentColor: tone.foreground(context),
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 14),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      FilledButton.icon(
-                        onPressed: _showTodayDialog,
-                        icon: const Icon(Icons.add),
-                        label: Text(S.of(context).logTodayLabel),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _showTodayDialog,
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          icon: const Icon(Icons.add),
+                          label: Text(S.of(context).logTodayLabel),
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      OutlinedButton.icon(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(NavigationOptions.bodyProgressRoute),
-                        icon: const Icon(Icons.show_chart),
-                        label: Text(S.of(context).historyLabel),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(NavigationOptions.bodyProgressRoute),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                          icon: const Icon(Icons.show_chart),
+                          label: Text(S.of(context).historyLabel),
+                        ),
                       ),
                     ],
                   ),
@@ -247,7 +271,7 @@ class _BodyMetricPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 120),
+
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),

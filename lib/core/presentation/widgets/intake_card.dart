@@ -40,7 +40,7 @@ class IntakeCard extends StatelessWidget {
 
     return Row(
       children: [
-        SizedBox(width: firstListElement ? 16 : 0),
+        SizedBox(width: firstListElement ? 16 : 8),
         SizedBox(
           width: cardSize,
           height: cardSize,
@@ -74,7 +74,8 @@ class IntakeCard extends StatelessWidget {
                         )
                       : Center(
                           child: Icon(Icons.restaurant_outlined,
-                              color: Theme.of(context).colorScheme.secondary)),
+                              size: 42,
+                              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15))),
                   Container(
                     // Add color shade
                     decoration: BoxDecoration(
