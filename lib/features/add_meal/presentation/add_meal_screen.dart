@@ -14,6 +14,8 @@ import 'package:macrotracker/features/add_meal/presentation/widgets/no_results_w
 import 'package:macrotracker/core/presentation/widgets/error_dialog.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
+import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
+import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class AddMealScreenArguments {
@@ -291,8 +293,10 @@ class _AddMealScreenState extends State<AddMealScreen>
   }
 
   void _onBarcodeIconPressed() {
-    Navigator.of(context).pushNamed(NavigationOptions.scannerRoute,
-        arguments: {"day": _day, "mealType": _mealType.getIntakeType()});
+    Navigator.of(context).pushNamed(
+      NavigationOptions.scannerRoute,
+      arguments: ScannerScreenArguments(_day, _mealType.getIntakeType()),
+    );
   }
 
   void _openTextCapture() {
@@ -312,7 +316,7 @@ class _AddMealScreenState extends State<AddMealScreen>
   void _openRecipeLibrary() {
     Navigator.of(context).pushNamed(
       NavigationOptions.recipeLibraryRoute,
-      arguments: {"day": _day, "mealType": _mealType.getIntakeType()},
+      arguments: RecipeLibraryScreenArguments(_day, _mealType.getIntakeType()),
     );
   }
 }

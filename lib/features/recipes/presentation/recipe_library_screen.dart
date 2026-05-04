@@ -26,10 +26,18 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
   @override
   void didChangeDependencies() {
-    final args = ModalRoute.of(context)?.settings.arguments
-        as RecipeLibraryScreenArguments?;
-    _day = args?.day ?? DateTime.now();
-    _intakeTypeEntity = args?.intakeTypeEntity ?? IntakeTypeEntity.breakfast;
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
+    if (routeArgs is RecipeLibraryScreenArguments) {
+      _day = routeArgs.day;
+      _intakeTypeEntity = routeArgs.intakeTypeEntity;
+    } else if (routeArgs is Map) {
+      _day = routeArgs['day'] as DateTime? ?? DateTime.now();
+      _intakeTypeEntity =
+          routeArgs['mealType'] as IntakeTypeEntity? ?? IntakeTypeEntity.breakfast;
+    } else {
+      _day = DateTime.now();
+      _intakeTypeEntity = IntakeTypeEntity.breakfast;
+    }
     super.didChangeDependencies();
   }
 

@@ -34,10 +34,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
   @override
   void didChangeDependencies() {
-    final args =
-        ModalRoute.of(context)?.settings.arguments as ScannerScreenArguments;
-    _intakeTypeEntity = args.intakeTypeEntity;
-    _day = args.day;
+    final routeArgs = ModalRoute.of(context)?.settings.arguments;
+    if (routeArgs is ScannerScreenArguments) {
+      _intakeTypeEntity = routeArgs.intakeTypeEntity;
+      _day = routeArgs.day;
+    } else if (routeArgs is Map) {
+      _intakeTypeEntity =
+          routeArgs['mealType'] as IntakeTypeEntity? ?? IntakeTypeEntity.breakfast;
+      _day = routeArgs['day'] as DateTime? ?? DateTime.now();
+    } else {
+      _intakeTypeEntity = IntakeTypeEntity.breakfast;
+      _day = DateTime.now();
+    }
     super.didChangeDependencies();
   }
 
