@@ -17,7 +17,6 @@ import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
-import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 
@@ -168,18 +167,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       snackIntakeList.length,
                   sessionsLogged: userActivities.length,
                 ),
-                MacroSuggestionsCard(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                  dailyFocus: dailyFocus,
-                  nutritionPhase: nutritionPhase,
-                  remainingKcal: _positiveRemaining(totalKcalLeft),
-                  remainingCarbs:
-                      _positiveRemaining(totalCarbsGoal - totalCarbsIntake),
-                  remainingFat:
-                      _positiveRemaining(totalFatsGoal - totalFatsIntake),
-                  remainingProtein: _positiveRemaining(
-                      totalProteinsGoal - totalProteinsIntake),
-                ),
                 QuickGymMealsCard(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                   dailyFocus: dailyFocus,
@@ -302,13 +289,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         stackTrace,
       );
     }
-  }
-
-  double _positiveRemaining(double value) {
-    if (value <= 0) {
-      return 0;
-    }
-    return value;
   }
 }
 
