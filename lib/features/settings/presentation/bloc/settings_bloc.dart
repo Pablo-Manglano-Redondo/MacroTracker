@@ -119,6 +119,10 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _syncSleepFromHealthConnectUsecase.getStatus();
   }
 
+  Future<HealthConnectSyncStatusEntity> requestHealthConnectPermissions() async {
+    return _syncSleepFromHealthConnectUsecase.requestPermissions();
+  }
+
   Future<bool> syncHealthConnectNow() async {
     return _syncSleepFromHealthConnectUsecase.syncToday(
       requestPermissionsIfNeeded: true,

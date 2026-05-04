@@ -1816,6 +1816,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get healthConnectSyncNowTitle => 'Sincronizar Health Connect ahora';
 
   @override
+  String get healthConnectGrantPermissionsTitle =>
+      'Conceder permisos de Health Connect';
+
+  @override
+  String get healthConnectGrantPermissionsSubtitle =>
+      'Abre el flujo de permisos para sueño y pasos.';
+
+  @override
   String get healthConnectStatusChecking =>
       'Comprobando el estado de Health Connect...';
 
@@ -1846,6 +1854,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get healthConnectAutoSyncDisabledMessage =>
       'Auto-sync de Health Connect desactivado.';
+
+  @override
+  String get healthConnectPermissionsUpdated =>
+      'Permisos de Health Connect actualizados.';
+
+  @override
+  String get healthConnectPermissionsMissing =>
+      'Siguen faltando permisos de Health Connect.';
 
   @override
   String get healthConnectSyncSuccess =>

@@ -3453,6 +3453,18 @@ abstract class AppLocalizations {
   /// **'Sync Health Connect now'**
   String get healthConnectSyncNowTitle;
 
+  /// No description provided for @healthConnectGrantPermissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant Health Connect permissions'**
+  String get healthConnectGrantPermissionsTitle;
+
+  /// No description provided for @healthConnectGrantPermissionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the permission flow for sleep and steps.'**
+  String get healthConnectGrantPermissionsSubtitle;
+
   /// No description provided for @healthConnectStatusChecking.
   ///
   /// In en, this message translates to:
@@ -3500,6 +3512,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Health Connect auto-sync disabled.'**
   String get healthConnectAutoSyncDisabledMessage;
+
+  /// No description provided for @healthConnectPermissionsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect permissions updated.'**
+  String get healthConnectPermissionsUpdated;
+
+  /// No description provided for @healthConnectPermissionsMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Connect permissions are still missing.'**
+  String get healthConnectPermissionsMissing;
 
   /// No description provided for @healthConnectSyncSuccess.
   ///

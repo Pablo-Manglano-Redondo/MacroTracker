@@ -519,6 +519,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "Sincroniza sueño y pasos automáticamente al abrir la app."),
         "healthConnectAutoSyncTitle":
             MessageLookupByLibrary.simpleMessage("Auto-sync de Health Connect"),
+        "healthConnectGrantPermissionsSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Abre el flujo de permisos para sueño y pasos."),
+        "healthConnectGrantPermissionsTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Conceder permisos de Health Connect"),
+        "healthConnectPermissionsMissing": MessageLookupByLibrary.simpleMessage(
+            "Siguen faltando permisos de Health Connect."),
+        "healthConnectPermissionsUpdated": MessageLookupByLibrary.simpleMessage(
+            "Permisos de Health Connect actualizados."),
         "healthConnectStatusActivityPermissionRequired":
             MessageLookupByLibrary.simpleMessage(
                 "Se necesita el permiso de reconocimiento de actividad para los pasos."),

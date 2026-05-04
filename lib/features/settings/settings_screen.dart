@@ -35,6 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late HomeBloc _homeBloc;
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
+  Future<HealthConnectSyncStatusEntity>? _healthConnectStatusFuture;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _homeBloc = locator<HomeBloc>();
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
+    _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
     super.initState();
   }
 
@@ -131,15 +133,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.add(LoadSettingsEvent());
                     if (mounted) {
                       setState(() {});
+                      _refreshHealthConnectStatus();
                     }
                   },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.health_and_safety_outlined),
+                  title: Text(S.of(context).healthConnectGrantPermissionsTitle),
+                  subtitle: Text(
+                    S.of(context).healthConnectGrantPermissionsSubtitle,
+                  ),
+                  onTap: () => _requestHealthConnectPermissions(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.sync_outlined),
                   title: Text(S.of(context).healthConnectSyncNowTitle),
                   subtitle: FutureBuilder<HealthConnectSyncStatusEntity>(
-                    future: _settingsBloc.getHealthConnectStatus(),
+                    future: _healthConnectStatusFuture,
                     builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Text(
+                          S.of(context).healthConnectStatusUnavailable,
+                        );
+                      }
                       if (!snapshot.hasData) {
                         return Text(S.of(context).healthConnectStatusChecking);
                       }
@@ -600,12 +616,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!context.mounted) {
       return;
     }
+    _refreshHealthConnectStatus();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           didUpdate
               ? S.of(context).healthConnectSyncSuccess
               : S.of(context).healthConnectSyncNoChanges,
+        ),
+      ),
+    );
+    setState(() {});
+  }
+
+  void _refreshHealthConnectStatus() {
+    _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
+  }
+
+  Future<void> _requestHealthConnectPermissions(BuildContext context) async {
+    final status = await _settingsBloc.requestHealthConnectPermissions();
+    if (!context.mounted) {
+      return;
+    }
+    _refreshHealthConnectStatus();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          status.canSync
+              ? S.of(context).healthConnectPermissionsUpdated
+              : S.of(context).healthConnectPermissionsMissing,
         ),
       ),
     );

@@ -5641,6 +5641,26 @@ class S {
     );
   }
 
+  /// `Grant Health Connect permissions`
+  String get healthConnectGrantPermissionsTitle {
+    return Intl.message(
+      'Grant Health Connect permissions',
+      name: 'healthConnectGrantPermissionsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open the permission flow for sleep and steps.`
+  String get healthConnectGrantPermissionsSubtitle {
+    return Intl.message(
+      'Open the permission flow for sleep and steps.',
+      name: 'healthConnectGrantPermissionsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Checking Health Connect status...`
   String get healthConnectStatusChecking {
     return Intl.message(
@@ -5716,6 +5736,26 @@ class S {
     return Intl.message(
       'Health Connect auto-sync disabled.',
       name: 'healthConnectAutoSyncDisabledMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect permissions updated.`
+  String get healthConnectPermissionsUpdated {
+    return Intl.message(
+      'Health Connect permissions updated.',
+      name: 'healthConnectPermissionsUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Health Connect permissions are still missing.`
+  String get healthConnectPermissionsMissing {
+    return Intl.message(
+      'Health Connect permissions are still missing.',
+      name: 'healthConnectPermissionsMissing',
       desc: '',
       args: [],
     );

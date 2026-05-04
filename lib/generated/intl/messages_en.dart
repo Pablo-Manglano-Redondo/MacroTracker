@@ -509,6 +509,16 @@ class MessageLookup extends MessageLookupByLibrary {
             "Sync sleep and steps automatically on app open."),
         "healthConnectAutoSyncTitle":
             MessageLookupByLibrary.simpleMessage("Health Connect auto-sync"),
+        "healthConnectGrantPermissionsSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Open the permission flow for sleep and steps."),
+        "healthConnectGrantPermissionsTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Grant Health Connect permissions"),
+        "healthConnectPermissionsMissing": MessageLookupByLibrary.simpleMessage(
+            "Health Connect permissions are still missing."),
+        "healthConnectPermissionsUpdated": MessageLookupByLibrary.simpleMessage(
+            "Health Connect permissions updated."),
         "healthConnectStatusActivityPermissionRequired":
             MessageLookupByLibrary.simpleMessage(
                 "Activity Recognition permission is required for steps."),

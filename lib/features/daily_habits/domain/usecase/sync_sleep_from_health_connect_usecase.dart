@@ -40,97 +40,134 @@ class SyncSleepFromHealthConnectUsecase {
     bool requestPermissionsIfNeeded = true,
     bool ignoreAutoSyncSetting = false,
   }) async {
-    if (!Platform.isAndroid) {
+    try {
+      if (!Platform.isAndroid) {
+        return false;
+      }
+
+      final config = await _configRepository.getConfig();
+      if (!ignoreAutoSyncSetting && !config.healthConnectAutoSyncEnabled) {
+        _log.fine('Health Connect auto sync disabled by user');
+        return false;
+      }
+
+      final normalizedDay = DateTime(day.year, day.month, day.day);
+      final dayEnd = normalizedDay.add(const Duration(days: 1));
+
+      await _healthConnectSleepDataSource.configure();
+
+      if (!await _healthConnectSleepDataSource.isAvailable()) {
+        _log.fine('Health Connect is not available on this device');
+        return false;
+      }
+
+      var hasPermission =
+          await _healthConnectSleepDataSource.hasReadPermission();
+      if (!hasPermission &&
+          requestPermissionsIfNeeded &&
+          !_authorizationRequestedThisLaunch) {
+        _authorizationRequestedThisLaunch = true;
+        hasPermission =
+            await _healthConnectSleepDataSource.requestReadPermission();
+      }
+
+      if (!hasPermission) {
+        _log.fine('Health Connect read permissions not granted');
+        return false;
+      }
+
+      var hasActivityRecognition = await _healthConnectSleepDataSource
+          .hasActivityRecognitionPermission();
+      if (!hasActivityRecognition &&
+          requestPermissionsIfNeeded &&
+          !_activityPermissionRequestedThisLaunch) {
+        _activityPermissionRequestedThisLaunch = true;
+        hasActivityRecognition = await _healthConnectSleepDataSource
+            .requestActivityRecognitionPermission();
+      }
+
+      if (!hasActivityRecognition) {
+        _log.fine('Activity recognition permission not granted');
+        return false;
+      }
+
+      final sessions = await _healthConnectSleepDataSource.readSleepSessions(
+        normalizedDay.subtract(const Duration(days: 1)),
+        dayEnd,
+      );
+      final selectedSession = _selectSessionForDay(normalizedDay, sessions);
+      final syncedSleepHours = selectedSession == null
+          ? null
+          : _roundHours(selectedSession.duration);
+      final syncedSteps = await _healthConnectSleepDataSource.readStepCount(
+        normalizedDay,
+        dayEnd,
+      );
+      final currentLog = await _dailyHabitLogRepository.getLog(normalizedDay) ??
+          DailyHabitLogEntity.empty(normalizedDay);
+
+      final sleepChanged = syncedSleepHours != null &&
+          (currentLog.sleepHours - syncedSleepHours).abs() >= 0.01;
+      final stepsChanged = currentLog.steps != syncedSteps;
+
+      if (!sleepChanged && !stepsChanged) {
+        return false;
+      }
+
+      await _dailyHabitLogRepository.saveLog(
+        currentLog.copyWith(
+          day: normalizedDay,
+          sleepHours: sleepChanged ? syncedSleepHours : null,
+          steps: stepsChanged ? syncedSteps : null,
+          sleepSyncedFromHealthConnect: sleepChanged ? true : null,
+          stepsSyncedFromHealthConnect: stepsChanged ? true : null,
+        ),
+      );
+      _log.info(
+        'Synced Health Connect daily habits for $normalizedDay: '
+        'sleep=${sleepChanged ? syncedSleepHours : currentLog.sleepHours}, '
+        'steps=${stepsChanged ? syncedSteps : currentLog.steps}',
+      );
+      return true;
+    } catch (error, stackTrace) {
+      _log.warning('Health Connect sync failed', error, stackTrace);
       return false;
     }
-
-    final config = await _configRepository.getConfig();
-    if (!ignoreAutoSyncSetting && !config.healthConnectAutoSyncEnabled) {
-      _log.fine('Health Connect auto sync disabled by user');
-      return false;
-    }
-
-    final normalizedDay = DateTime(day.year, day.month, day.day);
-    final dayEnd = normalizedDay.add(const Duration(days: 1));
-
-    await _healthConnectSleepDataSource.configure();
-
-    if (!await _healthConnectSleepDataSource.isAvailable()) {
-      _log.fine('Health Connect is not available on this device');
-      return false;
-    }
-
-    var hasPermission = await _healthConnectSleepDataSource.hasReadPermission();
-    if (!hasPermission &&
-        requestPermissionsIfNeeded &&
-        !_authorizationRequestedThisLaunch) {
-      _authorizationRequestedThisLaunch = true;
-      hasPermission =
-          await _healthConnectSleepDataSource.requestReadPermission();
-    }
-
-    if (!hasPermission) {
-      _log.fine('Health Connect read permissions not granted');
-      return false;
-    }
-
-    var hasActivityRecognition =
-        await _healthConnectSleepDataSource.hasActivityRecognitionPermission();
-    if (!hasActivityRecognition &&
-        requestPermissionsIfNeeded &&
-        !_activityPermissionRequestedThisLaunch) {
-      _activityPermissionRequestedThisLaunch = true;
-      hasActivityRecognition = await _healthConnectSleepDataSource
-          .requestActivityRecognitionPermission();
-    }
-
-    if (!hasActivityRecognition) {
-      _log.fine('Activity recognition permission not granted');
-      return false;
-    }
-
-    final sessions = await _healthConnectSleepDataSource.readSleepSessions(
-      normalizedDay.subtract(const Duration(days: 1)),
-      dayEnd,
-    );
-    final selectedSession = _selectSessionForDay(normalizedDay, sessions);
-    final syncedSleepHours =
-        selectedSession == null ? null : _roundHours(selectedSession.duration);
-    final syncedSteps = await _healthConnectSleepDataSource.readStepCount(
-      normalizedDay,
-      dayEnd,
-    );
-    final currentLog = await _dailyHabitLogRepository.getLog(normalizedDay) ??
-        DailyHabitLogEntity.empty(normalizedDay);
-
-    final sleepChanged = syncedSleepHours != null &&
-        (currentLog.sleepHours - syncedSleepHours).abs() >= 0.01;
-    final stepsChanged = currentLog.steps != syncedSteps;
-
-    if (!sleepChanged && !stepsChanged) {
-      return false;
-    }
-
-    await _dailyHabitLogRepository.saveLog(
-      currentLog.copyWith(
-        day: normalizedDay,
-        sleepHours: sleepChanged ? syncedSleepHours : null,
-        steps: stepsChanged ? syncedSteps : null,
-        sleepSyncedFromHealthConnect: sleepChanged ? true : null,
-        stepsSyncedFromHealthConnect: stepsChanged ? true : null,
-      ),
-    );
-    _log.info(
-      'Synced Health Connect daily habits for $normalizedDay: '
-      'sleep=${sleepChanged ? syncedSleepHours : currentLog.sleepHours}, '
-      'steps=${stepsChanged ? syncedSteps : currentLog.steps}',
-    );
-    return true;
   }
 
   Future<HealthConnectSyncStatusEntity> getStatus() async {
     final config = await _configRepository.getConfig();
-    if (!Platform.isAndroid) {
+    try {
+      if (!Platform.isAndroid) {
+        return HealthConnectSyncStatusEntity(
+          isAvailable: false,
+          hasHealthPermissions: false,
+          hasActivityRecognitionPermission: false,
+          isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+        );
+      }
+
+      await _healthConnectSleepDataSource.configure();
+      final isAvailable = await _healthConnectSleepDataSource.isAvailable();
+      if (!isAvailable) {
+        return HealthConnectSyncStatusEntity(
+          isAvailable: false,
+          hasHealthPermissions: false,
+          hasActivityRecognitionPermission: false,
+          isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+        );
+      }
+
+      return HealthConnectSyncStatusEntity(
+        isAvailable: true,
+        hasHealthPermissions:
+            await _healthConnectSleepDataSource.hasReadPermission(),
+        hasActivityRecognitionPermission: await _healthConnectSleepDataSource
+            .hasActivityRecognitionPermission(),
+        isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+      );
+    } catch (error, stackTrace) {
+      _log.warning('Health Connect status check failed', error, stackTrace);
       return HealthConnectSyncStatusEntity(
         isAvailable: false,
         hasHealthPermissions: false,
@@ -138,30 +175,64 @@ class SyncSleepFromHealthConnectUsecase {
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
     }
-
-    await _healthConnectSleepDataSource.configure();
-    final isAvailable = await _healthConnectSleepDataSource.isAvailable();
-    if (!isAvailable) {
-      return HealthConnectSyncStatusEntity(
-        isAvailable: false,
-        hasHealthPermissions: false,
-        hasActivityRecognitionPermission: false,
-        isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
-      );
-    }
-
-    return HealthConnectSyncStatusEntity(
-      isAvailable: true,
-      hasHealthPermissions:
-          await _healthConnectSleepDataSource.hasReadPermission(),
-      hasActivityRecognitionPermission: await _healthConnectSleepDataSource
-          .hasActivityRecognitionPermission(),
-      isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
-    );
   }
 
   Future<void> setAutoSyncEnabled(bool enabled) async {
     await _configRepository.setHealthConnectAutoSyncEnabled(enabled);
+  }
+
+  Future<HealthConnectSyncStatusEntity> requestPermissions() async {
+    final config = await _configRepository.getConfig();
+    try {
+      if (!Platform.isAndroid) {
+        return HealthConnectSyncStatusEntity(
+          isAvailable: false,
+          hasHealthPermissions: false,
+          hasActivityRecognitionPermission: false,
+          isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+        );
+      }
+
+      await _healthConnectSleepDataSource.configure();
+      final isAvailable = await _healthConnectSleepDataSource.isAvailable();
+      if (!isAvailable) {
+        return HealthConnectSyncStatusEntity(
+          isAvailable: false,
+          hasHealthPermissions: false,
+          hasActivityRecognitionPermission: false,
+          isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+        );
+      }
+
+      var hasActivityRecognition = await _healthConnectSleepDataSource
+          .hasActivityRecognitionPermission();
+      if (!hasActivityRecognition) {
+        hasActivityRecognition = await _healthConnectSleepDataSource
+            .requestActivityRecognitionPermission();
+      }
+
+      var hasHealthPermissions =
+          await _healthConnectSleepDataSource.hasReadPermission();
+      if (!hasHealthPermissions) {
+        hasHealthPermissions =
+            await _healthConnectSleepDataSource.requestReadPermission();
+      }
+
+      return HealthConnectSyncStatusEntity(
+        isAvailable: true,
+        hasHealthPermissions: hasHealthPermissions,
+        hasActivityRecognitionPermission: hasActivityRecognition,
+        isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+      );
+    } catch (error, stackTrace) {
+      _log.warning('Health Connect permission flow failed', error, stackTrace);
+      return HealthConnectSyncStatusEntity(
+        isAvailable: false,
+        hasHealthPermissions: false,
+        hasActivityRecognitionPermission: false,
+        isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
+      );
+    }
   }
 
   HealthSleepSessionEntity? _selectSessionForDay(
