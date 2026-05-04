@@ -6,9 +6,12 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/recipes/domain/entity/frequent_intake_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
 
@@ -66,68 +69,55 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                return FutureBuilder<List<FrequentIntakePresetEntity>>(
+                  future: locator<GetFrequentIntakePresetsUsecase>()
+                      .getTopPresets(limit: 12),
+                  builder: (context, frequentSnapshot) {
+                    if (frequentSnapshot.connectionState !=
+                        ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                final recipes =
-                    _filterRecipes(snapshot.data ?? const <RecipeEntity>[]);
-                if (recipes.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text(
-                        S.of(context).recipeLibraryEmpty,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
-                }
+                    final recipes =
+                        _filterRecipes(snapshot.data ?? const <RecipeEntity>[]);
+                    final frequentPresets = _filterFrequentPresets(
+                      frequentSnapshot.data ??
+                          const <FrequentIntakePresetEntity>[],
+                    );
 
-                return ListView.separated(
-                  itemCount: recipes.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final recipe = recipes[index];
-                    final category =
-                        QuickRecipeCategoryEntityX.inferFromRecipe(recipe);
-                    return ListTile(
-                      title: Text(recipe.name),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${S.of(context).recipeLibraryIngredientsCount(recipe.ingredients.length)} | ${S.of(context).recipeLibraryServingsCount(recipe.defaultServings % 1 == 0 ? recipe.defaultServings.toInt() : recipe.defaultServings)}',
+                    if (recipes.isEmpty && frequentPresets.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Text(
+                            S.of(context).recipeLibraryEmpty,
+                            textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 6),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _RecipeMetaChip(
-                                icon: category.icon,
-                                label: category.label,
-                              ),
-                              if (recipe.favorite)
-                                _RecipeMetaChip(
-                                  icon: Icons.favorite,
-                                  label: S.of(context).recipeLibraryFavorite,
-                                ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        onPressed: () => _toggleFavorite(recipe),
-                        icon: Icon(
-                          recipe.favorite
-                              ? Icons.favorite
-                              : Icons.favorite_border_outlined,
-                          color: recipe.favorite ? Colors.redAccent : null,
                         ),
-                        tooltip: recipe.favorite
-                            ? S.of(context).recipeLibraryRemoveFavorite
-                            : S.of(context).recipeLibraryMarkFavorite,
-                      ),
-                      onTap: () => _showAddRecipeDialog(recipe),
+                      );
+                    }
+
+                    return ListView(
+                      children: [
+                        if (_searchController.text.trim().isEmpty)
+                          const _LibraryIntroCard(),
+                        if (recipes.isNotEmpty) ...[
+                          _LibrarySectionHeader(
+                            title: 'Recetas guardadas',
+                            subtitle:
+                                'Las guardas manualmente para reutilizarlas.',
+                          ),
+                          ...recipes.map(_buildRecipeTile),
+                        ],
+                        if (frequentPresets.isNotEmpty) ...[
+                          _LibrarySectionHeader(
+                            title: 'Mas repetidas',
+                            subtitle:
+                                'La app detecta las que repites y te las deja a mano.',
+                          ),
+                          ...frequentPresets.map(_buildFrequentTile),
+                        ],
+                      ],
                     );
                   },
                 );
@@ -148,6 +138,79 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     return recipes
         .where((recipe) => recipe.name.toLowerCase().contains(query))
         .toList();
+  }
+
+  List<FrequentIntakePresetEntity> _filterFrequentPresets(
+    List<FrequentIntakePresetEntity> presets,
+  ) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) {
+      return presets;
+    }
+
+    return presets
+        .where((preset) => preset.title.toLowerCase().contains(query))
+        .toList();
+  }
+
+  Widget _buildRecipeTile(RecipeEntity recipe) {
+    final category = QuickRecipeCategoryEntityX.inferFromRecipe(recipe);
+    return ListTile(
+      title: Text(recipe.name),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${S.of(context).recipeLibraryIngredientsCount(recipe.ingredients.length)} | ${S.of(context).recipeLibraryServingsCount(recipe.defaultServings % 1 == 0 ? recipe.defaultServings.toInt() : recipe.defaultServings)}',
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _RecipeMetaChip(
+                icon: category.icon,
+                label: category.label,
+              ),
+              if (recipe.favorite)
+                _RecipeMetaChip(
+                  icon: Icons.favorite,
+                  label: S.of(context).recipeLibraryFavorite,
+                ),
+            ],
+          ),
+        ],
+      ),
+      trailing: IconButton(
+        onPressed: () => _toggleFavorite(recipe),
+        icon: Icon(
+          recipe.favorite
+              ? Icons.favorite
+              : Icons.favorite_border_outlined,
+          color: recipe.favorite ? Colors.redAccent : null,
+        ),
+        tooltip: recipe.favorite
+            ? S.of(context).recipeLibraryRemoveFavorite
+            : S.of(context).recipeLibraryMarkFavorite,
+      ),
+      onTap: () => _showAddRecipeDialog(recipe),
+    );
+  }
+
+  Widget _buildFrequentTile(FrequentIntakePresetEntity preset) {
+    final amountText = preset.amount.toStringAsFixed(
+      preset.amount % 1 == 0 ? 0 : 1,
+    );
+    return ListTile(
+      title: Text(preset.title),
+      subtitle: Text(
+        '$amountText ${preset.unit} | ${preset.uses} usos',
+      ),
+      leading: const Icon(Icons.history_outlined),
+      trailing: const Icon(Icons.add_circle_outline),
+      onTap: () => _logFrequentPreset(preset),
+    );
   }
 
   Future<void> _showAddRecipeDialog(RecipeEntity recipe) async {
@@ -208,6 +271,22 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
       setState(() {});
     }
   }
+
+  Future<void> _logFrequentPreset(FrequentIntakePresetEntity preset) async {
+    await locator<LogFrequentIntakePresetUsecase>()
+        .logPreset(preset, day: _day);
+    locator<HomeBloc>().add(const LoadItemsEvent());
+    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).recipeLibraryAddedSnackbar(preset.title))),
+      );
+      Navigator.of(context)
+          .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
+    }
+  }
 }
 
 class RecipeLibraryScreenArguments {
@@ -243,6 +322,64 @@ class _RecipeMetaChip extends StatelessWidget {
           Icon(icon, size: 12),
           const SizedBox(width: 4),
           Text(label, style: Theme.of(context).textTheme.labelSmall),
+        ],
+      ),
+    );
+  }
+}
+
+class _LibraryIntroCard extends StatelessWidget {
+  const _LibraryIntroCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        ),
+        child: Text(
+          'Aqui tienes todo junto: recetas que guardas a mano y comidas que repites mucho.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      ),
+    );
+  }
+}
+
+class _LibrarySectionHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+
+  const _LibrarySectionHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
         ],
       ),
     );

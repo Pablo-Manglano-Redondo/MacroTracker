@@ -7,12 +7,9 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:macrotracker/features/recipes/domain/entity/frequent_intake_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_preset_entity.dart';
-import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
-import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
 
@@ -103,7 +100,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Comidas rápidas de gimnasio',
+                          'Comidas rapidas de gimnasio',
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -111,7 +108,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tus favoritas primero. Un toque registra una ración en la mejor franja.',
+                          'Tus recetas favoritas primero. Un toque registra una racion en la mejor franja.',
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -142,10 +139,12 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                 child: SegmentedButton<_QuickGymMealsFilter>(
                   showSelectedIcon: false,
                   segments: _QuickGymMealsFilter.values
-                      .map((filter) => ButtonSegment<_QuickGymMealsFilter>(
-                            value: filter,
-                            label: Text(_labelForFilter(filter)),
-                          ))
+                      .map(
+                        (filter) => ButtonSegment<_QuickGymMealsFilter>(
+                          value: filter,
+                          label: Text(_labelForFilter(filter)),
+                        ),
+                      )
                       .toList(),
                   selected: {_selectedFilter},
                   onSelectionChanged: (selection) {
@@ -162,7 +161,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   limit: 3,
                 ),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
+                  if (!snapshot.hasData &&
+                      snapshot.connectionState != ConnectionState.done) {
                     return const SizedBox(
                       height: 108,
                       child: Center(child: CircularProgressIndicator()),
@@ -182,8 +182,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       ),
                       child: Text(
                         _selectedFilter == _QuickGymMealsFilter.all
-                            ? 'Guarda comidas como recetas y marca tus repetidas como favoritas.'
-                            : 'Aún no hay comidas rápidas en este carril. Añade una receta con pre, post, shake o cut en el nombre.',
+                            ? 'Guarda comidas como recetas para tenerlas siempre a mano.'
+                            : 'Aun no hay recetas rapidas en este carril. Anade una con pre, post, shake o cut en el nombre.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     );
@@ -191,62 +191,16 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
 
                   return Column(
                     children: presets
-                        .map((preset) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10.0),
-                              child: _QuickRecipeTile(
-                                preset: preset,
-                                onAddPressed: () => _logPreset(context, preset),
-                              ),
-                            ))
+                        .map(
+                          (preset) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: _QuickRecipeTile(
+                              preset: preset,
+                              onAddPressed: () => _logPreset(context, preset),
+                            ),
+                          ),
+                        )
                         .toList(growable: false),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-              FutureBuilder<List<FrequentIntakePresetEntity>>(
-                future: locator<GetFrequentIntakePresetsUsecase>()
-                    .getTopPresets(limit: 10),
-                builder: (context, snapshot) {
-                  final presets =
-                      snapshot.data ?? const <FrequentIntakePresetEntity>[];
-                  if (presets.isEmpty) return const SizedBox.shrink();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Comidas frecuentes',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Acceso rápido a tus raciones guardadas.',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 10),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: presets
-                            .map(
-                              (preset) => ActionChip(
-                                avatar: const Icon(
-                                  Icons.flash_on_outlined,
-                                  size: 16,
-                                ),
-                                label: Text(
-                                  '${preset.title} (${preset.amount.toStringAsFixed(preset.amount % 1 == 0 ? 0 : 1)} ${preset.unit})',
-                                ),
-                                onPressed: () =>
-                                    _logFrequentPreset(context, preset),
-                              ),
-                            )
-                            .toList(growable: false),
-                      ),
-                    ],
                   );
                 },
               ),
@@ -255,26 +209,6 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
         ),
       ),
     );
-  }
-
-  Future<void> _logFrequentPreset(
-    BuildContext context,
-    FrequentIntakePresetEntity preset,
-  ) async {
-    await locator<LogFrequentIntakePresetUsecase>().logPreset(preset);
-    locator<HomeBloc>().add(const LoadItemsEvent());
-    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${preset.title} añadida (${preset.amount.toStringAsFixed(1)} ${preset.unit})',
-          ),
-        ),
-      );
-    }
   }
 
   Future<void> _logPreset(
@@ -295,7 +229,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${preset.recipe.name} añadida a ${_slotLabel(preset.defaultIntakeType)}',
+            '${preset.recipe.name} anadida a ${_slotLabel(preset.defaultIntakeType)}',
           ),
         ),
       );
@@ -346,7 +280,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       case _QuickGymMealsFilter.shake:
         return 'Batido';
       case _QuickGymMealsFilter.leanMeal:
-        return 'Magra';
+        return 'Lean';
     }
   }
 
@@ -409,7 +343,7 @@ class _QuickRecipeTile extends StatelessWidget {
               IconButton.filledTonal(
                 onPressed: onAddPressed,
                 icon: const Icon(Icons.add),
-                tooltip: 'Registrar una ración',
+                tooltip: 'Registrar una racion',
               ),
             ],
           ),

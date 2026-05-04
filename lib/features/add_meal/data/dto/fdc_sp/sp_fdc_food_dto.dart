@@ -27,6 +27,8 @@ class SpFdcFoodDTO {
     switch (supportedLanguage) {
       case SupportedLanguage.en:
         return descriptionEn;
+      case SupportedLanguage.es:
+        return descriptionEn;
       case SupportedLanguage.de:
         return descriptionDe;
     }

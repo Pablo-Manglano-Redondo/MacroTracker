@@ -1,5 +1,6 @@
 enum SupportedLanguage {
   en,
+  es,
   de;
 
   factory SupportedLanguage.fromCode(String localeCode) {
@@ -7,6 +8,8 @@ enum SupportedLanguage {
     switch (languageCode) {
       case 'en':
         return SupportedLanguage.en;
+      case 'es':
+        return SupportedLanguage.es;
       case 'de':
         return SupportedLanguage.de;
       default:

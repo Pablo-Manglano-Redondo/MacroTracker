@@ -24,9 +24,10 @@ class SPConst {
     switch (language) {
       case SupportedLanguage.en:
         return fdcFoodDescriptionEn;
+      case SupportedLanguage.es:
+        return fdcFoodDescriptionEn;
       case SupportedLanguage.de:
         return fdcFoodDescriptionDe;
-      }
+    }
   }
-
 }
