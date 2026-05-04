@@ -18,6 +18,7 @@ import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_ca
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,12 +31,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final log = Logger('HomePage');
 
   late HomeBloc _homeBloc;
+  int _habitRefreshSeed = 0;
+  bool _isSyncingSleep = false;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
     super.initState();
+    _syncSleepFromHealthConnect();
   }
 
   @override
@@ -88,6 +92,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       log.info('App resumed');
       _refreshPageOnDayChange();
+      _syncSleepFromHealthConnect();
     }
     super.didChangeAppLifecycleState(state);
   }
@@ -214,6 +219,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           padding: EdgeInsets.zero,
                           dailyFocus: dailyFocus,
                           usesImperialUnits: usesImperialUnits,
+                          refreshSeed: _habitRefreshSeed,
                         ),
                       ),
                       SizedBox(
@@ -259,6 +265,31 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _refreshPageOnDayChange() {
     if (!DateUtils.isSameDay(_homeBloc.currentDay, DateTime.now())) {
       _homeBloc.add(const LoadItemsEvent());
+    }
+  }
+
+  Future<void> _syncSleepFromHealthConnect() async {
+    if (_isSyncingSleep) {
+      return;
+    }
+
+    _isSyncingSleep = true;
+    try {
+      final didUpdate =
+          await locator<SyncSleepFromHealthConnectUsecase>().syncToday();
+      if (didUpdate && mounted) {
+        setState(() {
+          _habitRefreshSeed++;
+        });
+      }
+    } catch (error, stackTrace) {
+      log.warning(
+        'Sleep sync from Health Connect failed',
+        error,
+        stackTrace,
+      );
+    } finally {
+      _isSyncingSleep = false;
     }
   }
 

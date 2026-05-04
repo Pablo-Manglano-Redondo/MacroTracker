@@ -117,3 +117,55 @@ Deno.test("normalizeDraftResponse clamps invalid item numbers and defaults photo
     throw new Error("Invalid nutrient values were not clamped");
   }
 });
+
+Deno.test("normalizeDraftResponse uses model-aware Gemini pricing", () => {
+  const request: MealInterpretationRequest = {
+    mode: "photo",
+    imageBase64: "base64",
+    locale: "en-US",
+    unitSystem: "metric",
+  };
+  const response: MealInterpretationResponse = {
+    title: "Meal",
+    summary: "Summary",
+    confidenceBand: "medium",
+    totals: {
+      kcal: 100,
+      carbs: 10,
+      fat: 5,
+      protein: 8,
+    },
+    items: [],
+  };
+
+  const flashLiteDraft = normalizeDraftResponse(
+    response,
+    request,
+    "gemini-2.5-flash-lite",
+    {
+      promptTokenCount: 100000,
+      candidatesTokenCount: 50000,
+    },
+  );
+  const flashDraft = normalizeDraftResponse(
+    response,
+    request,
+    "gemini-2.5-flash",
+    {
+      promptTokenCount: 100000,
+      candidatesTokenCount: 50000,
+    },
+  );
+
+  if (flashLiteDraft.processing.estimatedCostUsd !== 0.03) {
+    throw new Error(
+      `Unexpected Flash-Lite cost: ${flashLiteDraft.processing.estimatedCostUsd}`,
+    );
+  }
+
+  if (flashDraft.processing.estimatedCostUsd !== 0.155) {
+    throw new Error(
+      `Unexpected Flash cost: ${flashDraft.processing.estimatedCostUsd}`,
+    );
+  }
+});

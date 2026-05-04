@@ -249,7 +249,7 @@ export function normalizeDraftResponse(
   usageMetadata?: any,
 ) {
   const usage = normalizeUsageMetadata(usageMetadata);
-  const estimatedCostUsd = estimateGeminiCostUsd(usage);
+  const estimatedCostUsd = estimateGeminiCostUsd(model, usage);
 
   const items = data.items.map((item, index) => ({
     id: item.id || `item_${index + 1}`,
@@ -323,24 +323,78 @@ function toNonNegativeInt(value: unknown, fallback = 0): number {
 }
 
 function estimateGeminiCostUsd(
+  model: string,
   usage: { promptTokenCount: number; candidatesTokenCount: number },
 ): number {
-  const inputPer1M = Number(
-    Deno.env.get("GEMINI_INPUT_TOKEN_USD_PER_1M") ?? "0.075",
-  );
-  const outputPer1M = Number(
-    Deno.env.get("GEMINI_OUTPUT_TOKEN_USD_PER_1M") ?? "0.30",
-  );
-  const safeInputPer1M = Number.isFinite(inputPer1M) && inputPer1M >= 0
-    ? inputPer1M
-    : 0;
-  const safeOutputPer1M = Number.isFinite(outputPer1M) && outputPer1M >= 0
-    ? outputPer1M
-    : 0;
+  const pricing = resolveGeminiPricing(model);
 
-  const inputCost = (usage.promptTokenCount / 1_000_000) * safeInputPer1M;
-  const outputCost = (usage.candidatesTokenCount / 1_000_000) * safeOutputPer1M;
+  const inputCost = (usage.promptTokenCount / 1_000_000) * pricing.inputPer1M;
+  const outputCost = (usage.candidatesTokenCount / 1_000_000) *
+    pricing.outputPer1M;
   return round6(inputCost + outputCost);
+}
+
+function resolveGeminiPricing(model: string): {
+  inputPer1M: number;
+  outputPer1M: number;
+} {
+  const normalizedModel = model.trim().toLowerCase();
+
+  if (normalizedModel.startsWith("gemini-2.5-flash-lite")) {
+    return {
+      inputPer1M: readNonNegativeEnvNumber(
+        "GEMINI_25_FLASH_LITE_INPUT_TOKEN_USD_PER_1M",
+        0.10,
+      ),
+      outputPer1M: readNonNegativeEnvNumber(
+        "GEMINI_25_FLASH_LITE_OUTPUT_TOKEN_USD_PER_1M",
+        0.40,
+      ),
+    };
+  }
+
+  if (
+    normalizedModel.startsWith("gemini-2.5-flash") &&
+    !normalizedModel.startsWith("gemini-2.5-flash-image") &&
+    !normalizedModel.includes("tts") &&
+    !normalizedModel.includes("native-audio")
+  ) {
+    return {
+      inputPer1M: readNonNegativeEnvNumber(
+        "GEMINI_25_FLASH_INPUT_TOKEN_USD_PER_1M",
+        0.30,
+      ),
+      outputPer1M: readNonNegativeEnvNumber(
+        "GEMINI_25_FLASH_OUTPUT_TOKEN_USD_PER_1M",
+        2.50,
+      ),
+    };
+  }
+
+  return {
+    inputPer1M: readNonNegativeEnvNumber(
+      "GEMINI_INPUT_TOKEN_USD_PER_1M",
+      0.10,
+    ),
+    outputPer1M: readNonNegativeEnvNumber(
+      "GEMINI_OUTPUT_TOKEN_USD_PER_1M",
+      0.40,
+    ),
+  };
+}
+
+function readNonNegativeEnvNumber(key: string, fallback: number): number {
+  let raw: string | undefined;
+  try {
+    raw = Deno.env.get(key);
+  } catch {
+    return fallback;
+  }
+  const parsed = raw == null ? fallback : Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+  return parsed;
 }
 
 function round6(value: number): number {

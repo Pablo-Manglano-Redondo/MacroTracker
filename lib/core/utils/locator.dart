@@ -50,8 +50,10 @@ import 'package:macrotracker/features/body_progress/data/repository/body_measure
 import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
 import 'package:macrotracker/features/body_progress/domain/usecase/save_body_measurement_usecase.dart';
 import 'package:macrotracker/features/daily_habits/data/data_source/daily_habit_log_data_source.dart';
+import 'package:macrotracker/features/daily_habits/data/data_source/health_connect_sleep_data_source.dart';
 import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -126,14 +128,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator()));
+  locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
@@ -229,6 +225,8 @@ Future<void> initLocator() async {
       () => GetDailyHabitLogUsecase(locator()));
   locator.registerLazySingleton<UpdateDailyHabitLogUsecase>(
       () => UpdateDailyHabitLogUsecase(locator()));
+  locator.registerLazySingleton<SyncSleepFromHealthConnectUsecase>(
+      () => SyncSleepFromHealthConnectUsecase(locator(), locator()));
   locator.registerLazySingleton(() => ExportDataUsecase(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => ImportDataUsecase(
@@ -295,6 +293,8 @@ Future<void> initLocator() async {
       () => BodyMeasurementDataSource(hiveDBProvider.bodyMeasurementBox));
   locator.registerLazySingleton(
       () => DailyHabitLogDataSource(hiveDBProvider.dailyHabitLogBox));
+  locator.registerLazySingleton<HealthConnectSleepDataSource>(
+      () => HealthConnectSleepDataSource());
 
   await _initializeConfig(locator());
 }

@@ -11,12 +11,14 @@ class GymHabitsCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
   final DailyFocusEntity dailyFocus;
   final bool usesImperialUnits;
+  final int refreshSeed;
 
   const GymHabitsCard({
     super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0),
     required this.dailyFocus,
     required this.usesImperialUnits,
+    this.refreshSeed = 0,
   });
 
   @override
@@ -39,9 +41,10 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<DailyHabitLogEntity>(
-            future: _loadLog(_refreshSeed),
+            future: _loadLog(_refreshSeed + widget.refreshSeed),
             builder: (context, snapshot) {
-              if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
+              if (!snapshot.hasData &&
+                  snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 168,
                   child: Center(child: CircularProgressIndicator()),
@@ -229,7 +232,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     );
   }
 
-  Future<DailyHabitLogEntity> _loadLog(int refreshSeed) {
+  Future<DailyHabitLogEntity> _loadLog(int _) {
     return locator<GetDailyHabitLogUsecase>().getToday();
   }
 

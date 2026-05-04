@@ -66,6 +66,10 @@ Then replace the placeholder values with real secrets:
 - `GEMINI_API_KEY`
 - optional `GEMINI_MEAL_TEXT_MODEL`
 - optional `GEMINI_MEAL_PHOTO_MODEL`
+- optional `GEMINI_25_FLASH_LITE_INPUT_TOKEN_USD_PER_1M`
+- optional `GEMINI_25_FLASH_LITE_OUTPUT_TOKEN_USD_PER_1M`
+- optional `GEMINI_25_FLASH_INPUT_TOKEN_USD_PER_1M`
+- optional `GEMINI_25_FLASH_OUTPUT_TOKEN_USD_PER_1M`
 
 ## Deploy
 
@@ -108,6 +112,11 @@ $env:SUPABASE_ACCESS_TOKEN="your-access-token"
 
 ## Cost Notes
 
-Defaults are set to `gemini-2.5-flash-lite` to optimize for low cost first.
+The backend estimates cost using the actual model returned in each request.
 
-If photo quality is not good enough, upgrade only the photo model first and keep text on Flash-Lite.
+Current default model split in code:
+
+- text: `gemini-2.5-flash-lite`
+- photo: `gemini-2.5-flash`
+
+If you want lower cost, explicitly set `GEMINI_MEAL_PHOTO_MODEL=gemini-2.5-flash-lite`.
