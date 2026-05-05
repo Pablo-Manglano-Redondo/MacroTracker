@@ -3,10 +3,10 @@ import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 
 void main() {
   group('UserWeightGoalEntity gym phase helpers', () {
-    test('maps labels to cut maintain and bulk', () {
-      expect(UserWeightGoalEntity.loseWeight.gymPhaseLabel, 'Cut');
-      expect(UserWeightGoalEntity.maintainWeight.gymPhaseLabel, 'Maintain');
-      expect(UserWeightGoalEntity.gainWeight.gymPhaseLabel, 'Bulk');
+    test('maps labels to current gym phases', () {
+      expect(UserWeightGoalEntity.loseWeight.gymPhaseLabel, 'Definición');
+      expect(UserWeightGoalEntity.maintainWeight.gymPhaseLabel, 'Recomp.');
+      expect(UserWeightGoalEntity.gainWeight.gymPhaseLabel, 'Volumen');
     });
 
     test('adjusts macros for each phase', () {

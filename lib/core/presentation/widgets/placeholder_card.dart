@@ -25,22 +25,35 @@ class PlaceholderCard extends StatelessWidget {
           SizedBox(
             width: firstListElement ? 16 : 8, // Add leading padding
           ),
-          SizedBox(
+          Container(
             width: cardSize,
             height: cardSize,
-            child: Card(
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(borderRadius),
+              color: Theme.of(context).colorScheme.brightness == Brightness.dark
+                  ? Theme.of(context).colorScheme.surfaceContainerHigh
+                  : Theme.of(context).colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: Theme.of(context).colorScheme.brightness == Brightness.dark ? 0.2 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.25),
               ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
               child: InkWell(
                 onTap: onTap,
                 child: Icon(Icons.add,
                     size: compact ? 28 : 36,
                     color: Theme.of(context)
                         .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.5)),
+                        .primary
+                        .withValues(alpha: 0.6)),
               ),
             ),
           ),

@@ -55,7 +55,8 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   @override
   void didChangeDependencies() {
-    final args = ModalRoute.of(context)!.settings.arguments as AddMealScreenArguments;
+    final args =
+        ModalRoute.of(context)!.settings.arguments as AddMealScreenArguments;
     _day = args.day;
     _mealType = args.mealType;
     super.didChangeDependencies();
@@ -70,9 +71,10 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   @override
   Widget build(BuildContext context) {
+    final localizations = S.of(context);
     return Scaffold(
         appBar: AppBar(
-          title: Text(S.of(context).addLabel),
+          title: Text(localizations.addLabel),
         ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -83,6 +85,37 @@ class _AddMealScreenState extends State<AddMealScreen>
                 searchStringListener: _searchStringListener,
                 onSearchSubmit: _onSearchSubmit,
                 onBarcodePressed: _onBarcodeIconPressed,
+              ),
+              const SizedBox(height: 8.0),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.35),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      localizations.addMealQuickActionsTitle,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      localizations.addMealQuickActionsSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 8.0),
               SingleChildScrollView(
@@ -118,12 +151,28 @@ class _AddMealScreenState extends State<AddMealScreen>
               const SizedBox(height: 16.0),
               TabBar(
                   tabs: [
-                    Tab(text: S.of(context).searchProductsPage),
-                    Tab(text: S.of(context).searchFoodPage),
-                    Tab(text: S.of(context).recentlyAddedLabel)
+                    Tab(text: localizations.addMealTabPackaged),
+                    Tab(text: localizations.addMealTabGeneric),
+                    Tab(text: localizations.addMealTabRecent)
                   ],
                   controller: _tabController,
                   indicatorSize: TabBarIndicatorSize.tab),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: AnimatedBuilder(
+                  animation: _tabController,
+                  builder: (context, _) {
+                    return Text(
+                      _tabHelperText(localizations),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    );
+                  },
+                ),
+              ),
               const SizedBox(height: 16),
               Expanded(
                 child: TabBarView(controller: _tabController, children: [
@@ -132,14 +181,17 @@ class _AddMealScreenState extends State<AddMealScreen>
                       Container(
                           padding: const EdgeInsets.only(left: 8.0),
                           alignment: Alignment.centerLeft,
-                          child: Text(S.of(context).searchResultsLabel,
+                          child: Text(
+                              localizations.addMealSectionPackagedResults,
                               style:
                                   Theme.of(context).textTheme.headlineSmall)),
                       BlocBuilder<ProductsBloc, ProductsState>(
                         bloc: _productsBloc,
                         builder: (context, state) {
                           if (state is ProductsInitial) {
-                            return DefaultsResultsWidget();
+                            return DefaultsResultsWidget.message(
+                              localizations.addMealSearchPromptPackaged,
+                            );
                           } else if (state is ProductsLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
@@ -159,10 +211,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                                                 state.usesImperialUnits,
                                           );
                                         }))
-                                : const NoResultsWidget();
+                                : NoResultsWidget.message(
+                                    localizations.noResultsFound,
+                                  );
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(
-                              errorText: S.of(context).errorFetchingProductData,
+                              errorText: localizations.errorFetchingProductData,
                               onRefreshPressed: _onProductsRefreshButtonPressed,
                             );
                           } else {
@@ -177,14 +231,17 @@ class _AddMealScreenState extends State<AddMealScreen>
                       Container(
                           padding: const EdgeInsets.only(left: 8.0),
                           alignment: Alignment.centerLeft,
-                          child: Text(S.of(context).searchResultsLabel,
+                          child: Text(
+                              localizations.addMealSectionGenericResults,
                               style:
                                   Theme.of(context).textTheme.headlineSmall)),
                       BlocBuilder<FoodBloc, FoodState>(
                         bloc: _foodBloc,
                         builder: (context, state) {
                           if (state is FoodInitial) {
-                            return DefaultsResultsWidget();
+                            return DefaultsResultsWidget.message(
+                              localizations.addMealSearchPromptGeneric,
+                            );
                           } else if (state is FoodLoadingState) {
                             return const Padding(
                               padding: EdgeInsets.only(top: 32),
@@ -204,10 +261,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                                                 state.usesImperialUnits,
                                           );
                                         }))
-                                : const NoResultsWidget();
+                                : NoResultsWidget.message(
+                                    localizations.noResultsFound,
+                                  );
                           } else if (state is FoodFailedState) {
                             return ErrorDialog(
-                              errorText: S.of(context).errorFetchingProductData,
+                              errorText: localizations.errorFetchingProductData,
                               onRefreshPressed: _onFoodRefreshButtonPressed,
                             );
                           } else {
@@ -219,6 +278,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                   ),
                   Column(
                     children: [
+                      Container(
+                          padding: const EdgeInsets.only(left: 8.0, bottom: 8),
+                          alignment: Alignment.centerLeft,
+                          child: Text(localizations.addMealSectionRecentResults,
+                              style:
+                                  Theme.of(context).textTheme.headlineSmall)),
                       BlocBuilder<RecentMealBloc, RecentMealState>(
                           bloc: _recentMealBloc,
                           builder: (context, state) {
@@ -246,11 +311,12 @@ class _AddMealScreenState extends State<AddMealScreen>
                                                   state.usesImperialUnits,
                                             );
                                           }))
-                                  : const NoResultsWidget();
+                                  : NoResultsWidget.message(
+                                      localizations.addMealRecentEmpty,
+                                    );
                             } else if (state is RecentMealFailedState) {
                               return ErrorDialog(
-                                errorText:
-                                    S.of(context).noMealsRecentlyAddedLabel,
+                                errorText: localizations.addMealRecentEmpty,
                                 onRefreshPressed:
                                     _onRecentMealsRefreshButtonPressed,
                               );
@@ -264,6 +330,19 @@ class _AddMealScreenState extends State<AddMealScreen>
             ],
           ),
         ));
+  }
+
+  String _tabHelperText(S localizations) {
+    switch (_tabController.index) {
+      case 0:
+        return localizations.addMealTabPackagedHelper;
+      case 1:
+        return localizations.addMealTabGenericHelper;
+      case 2:
+        return localizations.addMealTabRecentHelper;
+      default:
+        return localizations.addMealTabPackagedHelper;
+    }
   }
 
   void _onProductsRefreshButtonPressed() {
@@ -302,14 +381,16 @@ class _AddMealScreenState extends State<AddMealScreen>
   void _openTextCapture() {
     Navigator.of(context).pushNamed(
       NavigationOptions.mealTextCaptureRoute,
-      arguments: MealTextCaptureScreenArguments(_day, _mealType.getIntakeType()),
+      arguments:
+          MealTextCaptureScreenArguments(_day, _mealType.getIntakeType()),
     );
   }
 
   void _openPhotoCapture() {
     Navigator.of(context).pushNamed(
       NavigationOptions.mealPhotoCaptureRoute,
-      arguments: MealPhotoCaptureScreenArguments(_day, _mealType.getIntakeType()),
+      arguments:
+          MealPhotoCaptureScreenArguments(_day, _mealType.getIntakeType()),
     );
   }
 

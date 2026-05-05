@@ -88,86 +88,7 @@ class MealInterpretationPersonalizationUsecase {
     required IntakeTypeEntity intakeType,
     MealInterpretationPersonalizationContext? context,
   }) async {
-    final resolvedContext = context ??
-        await buildContext(
-          intakeType: intakeType,
-          freeText: _draftSearchText(draft),
-        );
-
-    var personalizedCount = 0;
-    final updatedItems = draft.items.map((item) {
-      if (item.removed) {
-        return item;
-      }
-
-      final match = _findBestCandidate(
-        item.label,
-        resolvedContext.candidates,
-        intakeType: intakeType,
-      );
-      if (match == null) {
-        return item;
-      }
-
-      final shouldApply = item.confidenceBand == ConfidenceBandEntity.low
-          ? match.score >= 0.48
-          : match.score >= 0.72;
-      if (!shouldApply) {
-        return item;
-      }
-
-      personalizedCount++;
-      final shouldUseStoredPortion =
-          match.candidate.preferStoredPortion || item.amount <= 0;
-      final targetAmount =
-          shouldUseStoredPortion ? match.candidate.defaultAmount : item.amount;
-      final targetUnit =
-          shouldUseStoredPortion ? match.candidate.defaultUnit : item.unit;
-      final nutrition = MealPortionCalculator.calculate(
-        match.candidate.meal,
-        targetAmount,
-        targetUnit,
-      );
-
-      return item.copyWith(
-        label: match.score >= 0.8 ? match.candidate.title : item.label,
-        matchedMealSnapshot: match.candidate.meal,
-        amount: targetAmount,
-        unit: targetUnit,
-        kcal: nutrition.kcal,
-        carbs: nutrition.carbs,
-        fat: nutrition.fat,
-        protein: nutrition.protein,
-        confidenceBand: match.score >= 0.82
-            ? ConfidenceBandEntity.high
-            : ConfidenceBandEntity.medium,
-      );
-    }).toList(growable: false);
-
-    if (personalizedCount == 0) {
-      return draft;
-    }
-
-    final activeItems = updatedItems.where((item) => !item.removed).toList();
-    final note =
-        'Ajustado con memoria local para $personalizedCount ingrediente${personalizedCount == 1 ? '' : 's'}.';
-    final summary = draft.summary?.trim().isNotEmpty == true
-        ? '${draft.summary}\n$note'
-        : note;
-
-    return draft.copyWith(
-      items: updatedItems,
-      summary: summary,
-      totalKcal: activeItems.fold<double>(0, (sum, item) => sum + item.kcal),
-      totalCarbs:
-          activeItems.fold<double>(0, (sum, item) => sum + item.carbs),
-      totalFat: activeItems.fold<double>(0, (sum, item) => sum + item.fat),
-      totalProtein:
-          activeItems.fold<double>(0, (sum, item) => sum + item.protein),
-      confidenceBand: personalizedCount >= 2
-          ? ConfidenceBandEntity.high
-          : ConfidenceBandEntity.medium,
-    );
+    return draft;
   }
 
   Future<List<MealInterpretationSuggestion>> suggestMealsForDraft({
@@ -225,6 +146,40 @@ class MealInterpretationPersonalizationUsecase {
     String? inputText,
     String? localImagePath,
   }) async {
+    return InterpretationDraftEntity(
+      id: IdGenerator.getUniqueID(),
+      sourceType: sourceType,
+      inputText: inputText,
+      localImagePath: localImagePath,
+      title: title,
+      summary:
+          'Interpretación remota no disponible. Revisa el borrador y usa tus sugerencias guardadas como referencia.',
+      totalKcal: 0,
+      totalCarbs: 0,
+      totalFat: 0,
+      totalProtein: 0,
+      confidenceBand: ConfidenceBandEntity.low,
+      status: DraftStatusEntity.ready,
+      createdAt: DateTime.now(),
+      expiresAt: DateTime.now().add(const Duration(days: 1)),
+      items: [
+        InterpretationDraftItemEntity(
+          id: IdGenerator.getUniqueID(),
+          label: title,
+          matchedMealSnapshot: null,
+          amount: 1,
+          unit: 'serving',
+          kcal: 0,
+          carbs: 0,
+          fat: 0,
+          protein: 0,
+          confidenceBand: ConfidenceBandEntity.low,
+          editable: true,
+          removed: false,
+        ),
+      ],
+    );
+
     final context = await buildContext(
       intakeType: intakeType,
       freeText: inputText ?? title,

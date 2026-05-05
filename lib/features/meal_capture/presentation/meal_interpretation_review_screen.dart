@@ -161,7 +161,6 @@ class _MealInterpretationReviewScreenState
           const SizedBox(height: 16),
           _MealSuggestionsCard(
             suggestions: _mealSuggestions,
-            onApply: _applyMealSuggestion,
           ),
         ],
         const SizedBox(height: 16),
@@ -234,6 +233,8 @@ class _MealInterpretationReviewScreenState
                   savedCorrectionLabel: savedLabel,
                   onEditPressed:
                       item.editable ? () => _showAmountEditor(item) : null,
+                  onEditMacrosPressed:
+                      item.editable ? () => _showMacroEditor(item) : null,
                   onReplacePressed:
                       item.editable ? () => _showReplaceDialog(item) : null,
                   onUnitSelected: item.editable
@@ -457,6 +458,124 @@ class _MealInterpretationReviewScreenState
     );
     await _saveCorrection(updatedItem);
     await _replaceItem(updatedItem);
+  }
+
+  Future<void> _showMacroEditor(InterpretationDraftItemEntity item) async {
+    final kcalController = TextEditingController(
+      text: item.kcal.toStringAsFixed(0),
+    );
+    final carbsController = TextEditingController(
+      text: item.carbs.toStringAsFixed(1),
+    );
+    final fatController = TextEditingController(
+      text: item.fat.toStringAsFixed(1),
+    );
+    final proteinController = TextEditingController(
+      text: item.protein.toStringAsFixed(1),
+    );
+
+    final updated = await showDialog<InterpretationDraftItemEntity>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(S.of(context).aiEditMacrosTitle),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: kcalController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'kcal',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: carbsController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: S.of(context).carbohydrateLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: fatController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: S.of(context).fatLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: proteinController,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: S.of(context).proteinLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(S.of(context).dialogCancelLabel),
+          ),
+          TextButton(
+            onPressed: () {
+              final kcal =
+                  double.tryParse(kcalController.text.replaceAll(',', '.'));
+              final carbs =
+                  double.tryParse(carbsController.text.replaceAll(',', '.'));
+              final fat =
+                  double.tryParse(fatController.text.replaceAll(',', '.'));
+              final protein =
+                  double.tryParse(proteinController.text.replaceAll(',', '.'));
+              if (kcal == null ||
+                  carbs == null ||
+                  fat == null ||
+                  protein == null ||
+                  kcal < 0 ||
+                  carbs < 0 ||
+                  fat < 0 ||
+                  protein < 0) {
+                return;
+              }
+
+              Navigator.of(context).pop(
+                item.copyWith(
+                  kcal: kcal,
+                  carbs: carbs,
+                  fat: fat,
+                  protein: protein,
+                ),
+              );
+            },
+            child: Text(S.of(context).buttonSaveLabel),
+          ),
+        ],
+      ),
+    );
+
+    kcalController.dispose();
+    carbsController.dispose();
+    fatController.dispose();
+    proteinController.dispose();
+
+    if (updated == null) {
+      return;
+    }
+
+    await _saveCorrection(updated);
+    await _replaceItem(updated);
   }
 
   Future<void> _showAddIngredientFlow() async {
@@ -707,55 +826,6 @@ class _MealInterpretationReviewScreenState
       MealInterpretationPersonalizationUsecase.aiMemoryBoxName,
     );
     await box.put(key, correction.toMap());
-  }
-
-  Future<void> _applyMealSuggestion(
-      MealInterpretationSuggestion suggestion) async {
-    if (_draft == null) {
-      return;
-    }
-
-    final nutrition = MealPortionCalculator.calculate(
-      suggestion.meal,
-      suggestion.defaultAmount,
-      suggestion.defaultUnit,
-    );
-    final item = InterpretationDraftItemEntity(
-      id: IdGenerator.getUniqueID(),
-      label: suggestion.title,
-      matchedMealSnapshot: suggestion.meal,
-      amount: suggestion.defaultAmount,
-      unit: suggestion.defaultUnit,
-      kcal: nutrition.kcal,
-      carbs: nutrition.carbs,
-      fat: nutrition.fat,
-      protein: nutrition.protein,
-      confidenceBand: ConfidenceBandEntity.high,
-      editable: true,
-      removed: false,
-    );
-    final updatedDraft = _draft!.copyWith(
-      title: suggestion.title,
-      summary: S.current.aiReplacedBySummary(suggestion.sourceLabel.toLowerCase()),
-      totalKcal: nutrition.kcal,
-      totalCarbs: nutrition.carbs,
-      totalFat: nutrition.fat,
-      totalProtein: nutrition.protein,
-      confidenceBand: ConfidenceBandEntity.high,
-      items: [item],
-    );
-
-    await _saveCorrection(item);
-    await _persistUpdatedDraft(updatedDraft);
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _mealSuggestions = const [];
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(S.of(context).aiSuggestionApplied(suggestion.title))),
-    );
   }
 
   Future<void> _showSaveRecipeDialog() async {
@@ -1143,10 +1213,8 @@ class _DraftHeroCard extends StatelessWidget {
 
 class _MealSuggestionsCard extends StatelessWidget {
   final List<MealInterpretationSuggestion> suggestions;
-  final ValueChanged<MealInterpretationSuggestion> onApply;
   const _MealSuggestionsCard({
     required this.suggestions,
-    required this.onApply,
   });
   @override
   Widget build(BuildContext context) {
@@ -1185,7 +1253,7 @@ class _MealSuggestionsCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              S.of(context).aiMatchesHint,
+              S.of(context).aiMatchesReferenceHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -1200,81 +1268,72 @@ class _MealSuggestionsCard extends StatelessWidget {
                 );
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(16),
-                    onTap: () => onApply(suggestion),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: colorScheme.surfaceContainerHighest,
-                        border: Border.all(color: colorScheme.outlineVariant),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: colorScheme.primary.withValues(alpha: 0.14),
-                            ),
-                            alignment: Alignment.center,
-                            child: Icon(
-                              Icons.auto_fix_high_outlined,
-                              color: colorScheme.primary,
-                            ),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: colorScheme.surfaceContainerHighest,
+                      border: Border.all(color: colorScheme.outlineVariant),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(14),
+                            color: colorScheme.primary.withValues(alpha: 0.14),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  suggestion.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${suggestion.sourceLabel} \u00b7 ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    _InlineInfoChip(
-                                      icon: Icons.local_fire_department_outlined,
-                                      label:
-                                          '${suggestionNutrition.kcal.toStringAsFixed(0)} kcal',
+                          alignment: Alignment.center,
+                          child: Icon(
+                            Icons.auto_fix_high_outlined,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                suggestion.title,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${suggestion.sourceLabel} \u00b7 ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
                                     ),
-                                    _InlineInfoChip(
-                                      icon: Icons.auto_awesome_outlined,
-                                      label: _suggestionMatchLabel(
-                                        suggestion.score,
-                                      ),
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _InlineInfoChip(
+                                    icon: Icons.local_fire_department_outlined,
+                                    label:
+                                        '${suggestionNutrition.kcal.toStringAsFixed(0)} kcal',
+                                  ),
+                                  _InlineInfoChip(
+                                    icon: Icons.auto_awesome_outlined,
+                                    label: _suggestionMatchLabel(
+                                      suggestion.score,
                                     ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          FilledButton.tonal(
-                            onPressed: () => onApply(suggestion),
-                            child: Text(S.of(context).aiButtonUse),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -1439,6 +1498,7 @@ class _DraftItemCard extends StatelessWidget {
   final List<String> unitPresets;
   final String? savedCorrectionLabel;
   final VoidCallback? onEditPressed;
+  final VoidCallback? onEditMacrosPressed;
   final VoidCallback? onReplacePressed;
   final ValueChanged<String>? onUnitSelected;
   final ValueChanged<double>? onPresetSelected;
@@ -1449,6 +1509,7 @@ class _DraftItemCard extends StatelessWidget {
     required this.unitPresets,
     required this.savedCorrectionLabel,
     required this.onEditPressed,
+    required this.onEditMacrosPressed,
     required this.onReplacePressed,
     required this.onUnitSelected,
     required this.onPresetSelected,
@@ -1637,6 +1698,11 @@ class _DraftItemCard extends StatelessWidget {
                   onPressed: item.removed ? null : onEditPressed,
                   icon: const Icon(Icons.edit_outlined),
                   label: Text(S.of(context).aiAmountLabel),
+                ),
+                OutlinedButton.icon(
+                  onPressed: item.removed ? null : onEditMacrosPressed,
+                  icon: const Icon(Icons.tune_outlined),
+                  label: Text(S.of(context).aiEditMacrosLabel),
                 ),
                 OutlinedButton.icon(
                   onPressed: item.removed ? null : onReplacePressed,

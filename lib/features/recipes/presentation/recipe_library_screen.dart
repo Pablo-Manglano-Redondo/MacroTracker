@@ -35,8 +35,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
       _intakeTypeEntity = routeArgs.intakeTypeEntity;
     } else if (routeArgs is Map) {
       _day = routeArgs['day'] as DateTime? ?? DateTime.now();
-      _intakeTypeEntity =
-          routeArgs['mealType'] as IntakeTypeEntity? ?? IntakeTypeEntity.breakfast;
+      _intakeTypeEntity = routeArgs['mealType'] as IntakeTypeEntity? ??
+          IntakeTypeEntity.breakfast;
     } else {
       _day = DateTime.now();
       _intakeTypeEntity = IntakeTypeEntity.breakfast;
@@ -103,17 +103,15 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                           const _LibraryIntroCard(),
                         if (recipes.isNotEmpty) ...[
                           _LibrarySectionHeader(
-                            title: 'Recetas guardadas',
-                            subtitle:
-                                'Las guardas manualmente para reutilizarlas.',
+                            title: _manualSectionTitle(context),
+                            subtitle: _manualSectionSubtitle(context),
                           ),
                           ...recipes.map(_buildRecipeTile),
                         ],
                         if (frequentPresets.isNotEmpty) ...[
                           _LibrarySectionHeader(
-                            title: 'Mas repetidas',
-                            subtitle:
-                                'La app detecta las que repites y te las deja a mano.',
+                            title: _frequentSectionTitle(context),
+                            subtitle: _frequentSectionSubtitle(context),
                           ),
                           ...frequentPresets.map(_buildFrequentTile),
                         ],
@@ -171,7 +169,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             children: [
               _RecipeMetaChip(
                 icon: category.icon,
-                label: category.label,
+                label: _categoryLabel(category),
               ),
               if (recipe.favorite)
                 _RecipeMetaChip(
@@ -185,9 +183,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
       trailing: IconButton(
         onPressed: () => _toggleFavorite(recipe),
         icon: Icon(
-          recipe.favorite
-              ? Icons.favorite
-              : Icons.favorite_border_outlined,
+          recipe.favorite ? Icons.favorite : Icons.favorite_border_outlined,
           color: recipe.favorite ? Colors.redAccent : null,
         ),
         tooltip: recipe.favorite
@@ -205,7 +201,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     return ListTile(
       title: Text(preset.title),
       subtitle: Text(
-        '$amountText ${preset.unit} | ${preset.uses} usos',
+        '$amountText ${preset.unit} | ${_frequentUses(context, preset.uses)}',
       ),
       leading: const Icon(Icons.history_outlined),
       trailing: const Icon(Icons.add_circle_outline),
@@ -257,7 +253,9 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name))),
+        SnackBar(
+            content:
+                Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name))),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
@@ -281,12 +279,48 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).recipeLibraryAddedSnackbar(preset.title))),
+        SnackBar(
+            content:
+                Text(S.of(context).recipeLibraryAddedSnackbar(preset.title))),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
     }
   }
+
+  String _categoryLabel(QuickRecipeCategoryEntity category) {
+    switch (category) {
+      case QuickRecipeCategoryEntity.preWorkout:
+        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
+      case QuickRecipeCategoryEntity.postWorkout:
+        return _isEs(context) ? 'Postentreno' : 'Post-workout';
+      case QuickRecipeCategoryEntity.shake:
+        return _isEs(context) ? 'Batido' : 'Shake';
+      case QuickRecipeCategoryEntity.leanMeal:
+        return _isEs(context) ? 'Ligera' : 'Light meal';
+    }
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
+  }
+
+  String _manualSectionTitle(BuildContext context) =>
+      _isEs(context) ? 'Recetas guardadas' : 'Saved recipes';
+
+  String _manualSectionSubtitle(BuildContext context) => _isEs(context)
+      ? 'Las guardas a propósito para reutilizarlas cuando quieras.'
+      : 'You save these on purpose to reuse them whenever you want.';
+
+  String _frequentSectionTitle(BuildContext context) =>
+      _isEs(context) ? 'Sugeridas por repetición' : 'Repeated suggestions';
+
+  String _frequentSectionSubtitle(BuildContext context) => _isEs(context)
+      ? 'Se detectan desde tu historial para repetirlas más rápido.'
+      : 'Detected from your history so you can repeat them faster.';
+
+  String _frequentUses(BuildContext context, int count) =>
+      _isEs(context) ? '$count usos' : '$count times';
 }
 
 class RecipeLibraryScreenArguments {
@@ -343,11 +377,17 @@ class _LibraryIntroCard extends StatelessWidget {
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         ),
         child: Text(
-          'Aqui tienes todo junto: recetas que guardas a mano y comidas que repites mucho.',
+          _isEs(context)
+              ? 'Una sola librería, dos fuentes: recetas que guardas a mano y comidas repetidas detectadas automáticamente.'
+              : 'One library, two sources: meals you save manually and repeated meals detected automatically.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
     );
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
   }
 }
 

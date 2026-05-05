@@ -2,6 +2,7 @@ import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class DashboardWidget extends StatelessWidget {
   final EdgeInsetsGeometry padding;
@@ -45,6 +46,7 @@ class DashboardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = S.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
     final width = MediaQuery.sizeOf(context).width;
@@ -106,7 +108,7 @@ class DashboardWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Nutrición de gimnasio',
+                        _dashboardTitle(context),
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   color: bodyColor,
@@ -116,7 +118,7 @@ class DashboardWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Alimentación, recuperación y adherencia del día en un solo bloque.',
+                        _dashboardSubtitle(context),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: mutedColor,
                               height: 1.3,
@@ -134,24 +136,21 @@ class DashboardWidget extends StatelessWidget {
               children: [
                 _SummaryChip(
                   icon: Icons.restaurant_outlined,
-                  value: mealsLogged.toString(),
-                  label: 'comidas',
+                  label: _mealsChip(context, mealsLogged),
                   compact: isCompact,
                   color: bodyColor,
                   background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.local_fire_department_outlined,
-                  value: totalKcalBurned.toInt().toString(),
-                  label: 'cals',
+                  label: _burnedChip(context, totalKcalBurned.toInt()),
                   compact: isCompact,
                   color: bodyColor,
                   background: subtleSurface,
                 ),
                 _SummaryChip(
                   icon: Icons.fitness_center_outlined,
-                  value: sessionsLogged.toString(),
-                  label: 'sesión',
+                  label: _sessionsChip(context, sessionsLogged),
                   compact: isCompact,
                   color: bodyColor,
                   background: subtleSurface,
@@ -161,7 +160,7 @@ class DashboardWidget extends StatelessWidget {
             if (mealsLogged == 0 && sessionsLogged == 0) ...[
               const SizedBox(height: 10),
               Text(
-                'Empieza el día registrando una comida o una sesión para activar recomendaciones más precisas.',
+                _emptyCopy(context),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: mutedColor,
                     ),
@@ -169,7 +168,7 @@ class DashboardWidget extends StatelessWidget {
             ],
             const SizedBox(height: 18),
             _SelectorBlock<UserWeightGoalEntity>(
-              caption: 'Objetivo',
+              caption: _goalLabel(context),
               colorScheme: colorScheme,
               compact: isCompact,
               selected: {nutritionPhase},
@@ -177,7 +176,7 @@ class DashboardWidget extends StatelessWidget {
                   .map((phase) => ButtonSegment<UserWeightGoalEntity>(
                         value: phase,
                         label: Text(
-                          phase.gymPhaseLabel,
+                          _phaseLabel(context, phase),
                           maxLines: 1,
                           overflow: TextOverflow.fade,
                           softWrap: false,
@@ -190,7 +189,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _SelectorBlock<DailyFocusEntity>(
-              caption: 'Enfoque',
+              caption: _focusSelectorLabel(context),
               colorScheme: colorScheme,
               compact: isCompact,
               selected: {dailyFocus},
@@ -198,7 +197,7 @@ class DashboardWidget extends StatelessWidget {
                   .map((focus) => ButtonSegment<DailyFocusEntity>(
                         value: focus,
                         label: Text(
-                          focus.label,
+                          _focusLabel(focus),
                           maxLines: 1,
                           overflow: TextOverflow.fade,
                           softWrap: false,
@@ -211,7 +210,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Text(
-              nutritionPhase.gymHeadline,
+              _phaseHeadline(context, nutritionPhase),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: bodyColor,
                     fontWeight: FontWeight.w800,
@@ -221,7 +220,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 7),
             Text(
-              dailyFocus.headline,
+              _focusHeadline(context, dailyFocus),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: mutedColor,
                     fontWeight: FontWeight.w600,
@@ -229,7 +228,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             Text(
-              '${nutritionPhase.macroHint} ${dailyFocus.macroHint}',
+              '${_phaseMacroHint(context, nutritionPhase)} ${_focusMacroHint(context, dailyFocus)}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: mutedColor,
                     height: 1.35,
@@ -238,7 +237,7 @@ class DashboardWidget extends StatelessWidget {
             const SizedBox(height: 18),
             if (isCompact) ...[
               _PrimaryMetric(
-                label: 'Proteína restante',
+                label: _proteinRemainingLabel(context),
                 value: proteinRemaining.toInt(),
                 suffix: 'g',
                 textColor: bodyColor,
@@ -248,7 +247,9 @@ class DashboardWidget extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               _PrimaryMetric(
-                label: totalKcalLeft >= 0 ? 'Kcal restantes' : 'Sobre objetivo',
+                label: totalKcalLeft >= 0
+                    ? _kcalRemainingLabel(context)
+                    : _overGoalLabel(context),
                 value: totalKcalLeft.abs().toInt(),
                 suffix: 'kcal',
                 textColor: bodyColor,
@@ -266,7 +267,7 @@ class DashboardWidget extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _PrimaryMetric(
-                      label: 'Proteína restante',
+                      label: _proteinRemainingLabel(context),
                       value: proteinRemaining.toInt(),
                       suffix: 'g',
                       textColor: bodyColor,
@@ -279,8 +280,8 @@ class DashboardWidget extends StatelessWidget {
                   Expanded(
                     child: _PrimaryMetric(
                       label: totalKcalLeft >= 0
-                          ? 'Kcal restantes'
-                          : 'Sobre objetivo',
+                          ? _kcalRemainingLabel(context)
+                          : _overGoalLabel(context),
                       value: totalKcalLeft.abs().toInt(),
                       suffix: 'kcal',
                       textColor: bodyColor,
@@ -307,7 +308,11 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '${totalKcalSupplied.toInt()} de ${totalKcalDaily.toInt()} kcal',
+              _kcalProgressLabel(
+                context,
+                totalKcalSupplied.toInt(),
+                totalKcalDaily.toInt(),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: mutedColor,
                     fontWeight: FontWeight.w600,
@@ -315,7 +320,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             _MacroTrackRow(
-              label: 'Proteína',
+              label: localizations.proteinLabel,
               intake: totalProteinsIntake,
               goal: totalProteinsGoal,
               remaining: proteinRemaining,
@@ -324,7 +329,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _MacroTrackRow(
-              label: 'Carbohidratos',
+              label: localizations.carbohydrateLabel,
               intake: totalCarbsIntake,
               goal: totalCarbsGoal,
               remaining: carbsRemaining,
@@ -332,7 +337,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _MacroTrackRow(
-              label: 'Grasa',
+              label: localizations.fatLabel,
               intake: totalFatsIntake,
               goal: totalFatsGoal,
               remaining: fatRemaining,
@@ -370,6 +375,7 @@ class DashboardWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       _buildStatusCopy(
+                        context: context,
                         dailyFocus: dailyFocus,
                         nutritionPhase: nutritionPhase,
                         proteinRemaining: proteinRemaining,
@@ -392,6 +398,7 @@ class DashboardWidget extends StatelessWidget {
   }
 
   String _buildStatusCopy({
+    required BuildContext context,
     required DailyFocusEntity dailyFocus,
     required UserWeightGoalEntity nutritionPhase,
     required double proteinRemaining,
@@ -401,25 +408,25 @@ class DashboardWidget extends StatelessWidget {
     if (nutritionPhase == UserWeightGoalEntity.loseWeight &&
         kcalRemaining < 200 &&
         kcalRemaining >= 0) {
-      return 'La definición va en ritmo. Mantén la última comida alta en proteína y limpia.';
+      return _statusDefClosing(context);
     }
     if (nutritionPhase == UserWeightGoalEntity.gainWeight &&
         kcalRemaining >= 450) {
-      return 'Aún tienes margen en volumen. Mete carbohidrato fácil y proteína.';
+      return _statusBulkOpen(context);
     }
     if (proteinRemaining >= 30) {
-      return 'La proteína sigue siendo la principal brecha. Prioriza proteína en la siguiente comida.';
+      return _statusProteinGap(context);
     }
     if (dailyFocus == DailyFocusEntity.lowerBody && carbsRemaining >= 45) {
-      return 'Aún tienes margen de carbohidratos. Buen momento para pre o post entreno.';
+      return _statusCarbWindow(context);
     }
     if (dailyFocus == DailyFocusEntity.rest && kcalRemaining < 150) {
-      return 'El día de descanso está casi en objetivo. Cierra con comida ligera y limpia.';
+      return _statusRestClosing(context);
     }
     if (kcalRemaining < 0) {
-      return 'Estás por encima del objetivo. Mantén el resto del día controlado y con proteína alta.';
+      return _statusOverGoal(context);
     }
-    return 'Buen ritmo. Mantén consistencia y cierra el día de forma limpia.';
+    return _statusDefault(context);
   }
 
   double _positiveRemaining(double value) {
@@ -428,6 +435,175 @@ class DashboardWidget extends StatelessWidget {
     }
     return value;
   }
+
+  String _phaseLabel(BuildContext context, UserWeightGoalEntity phase) {
+    switch (phase) {
+      case UserWeightGoalEntity.loseWeight:
+        return S.of(context).profileGoalLose;
+      case UserWeightGoalEntity.maintainWeight:
+        return S.of(context).profileGoalMaintain;
+      case UserWeightGoalEntity.gainWeight:
+        return S.of(context).profileGoalGain;
+    }
+  }
+
+  String _phaseHeadline(BuildContext context, UserWeightGoalEntity phase) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    switch (phase) {
+      case UserWeightGoalEntity.loseWeight:
+        return isEs
+            ? 'Protege músculo y controla calorías'
+            : 'Protect muscle and control calories';
+      case UserWeightGoalEntity.maintainWeight:
+        return isEs ? 'Mantén el peso estable' : 'Keep weight stable';
+      case UserWeightGoalEntity.gainWeight:
+        return isEs
+            ? 'Empuja rendimiento y recuperación'
+            : 'Push performance and recovery';
+    }
+  }
+
+  String _phaseMacroHint(BuildContext context, UserWeightGoalEntity phase) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    switch (phase) {
+      case UserWeightGoalEntity.loseWeight:
+        return isEs
+            ? 'Proteína alta y energía ajustada.'
+            : 'High protein and tighter energy.';
+      case UserWeightGoalEntity.maintainWeight:
+        return isEs
+            ? 'Macros equilibrados y proteína constante.'
+            : 'Balanced macros and steady protein.';
+      case UserWeightGoalEntity.gainWeight:
+        return isEs
+            ? 'Más energía y carbohidrato para progresar.'
+            : 'More energy and carbs to progress.';
+    }
+  }
+
+  String _focusLabel(DailyFocusEntity focus) {
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return 'Pierna';
+      case DailyFocusEntity.upperBody:
+        return 'Torso';
+      case DailyFocusEntity.cardio:
+        return 'Cardio';
+      case DailyFocusEntity.rest:
+        return 'Desc.';
+    }
+  }
+
+  String _focusHeadline(BuildContext context, DailyFocusEntity focus) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return isEs
+            ? 'Pierna: prioriza energía y recuperación.'
+            : 'Leg day: prioritize energy and recovery.';
+      case DailyFocusEntity.upperBody:
+        return isEs
+            ? 'Torso: rinde y recupera bien.'
+            : 'Upper body: perform and recover well.';
+      case DailyFocusEntity.cardio:
+        return isEs
+            ? 'Cardio: energía limpia y fatiga controlada.'
+            : 'Cardio: clean fuel and fatigue control.';
+      case DailyFocusEntity.rest:
+        return isEs
+            ? 'Descanso: recupera con proteína alta.'
+            : 'Rest day: recover with high protein.';
+    }
+  }
+
+  String _focusMacroHint(BuildContext context, DailyFocusEntity focus) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return isEs
+            ? 'Sube carbohidrato cerca del entreno.'
+            : 'Raise carbs around training.';
+      case DailyFocusEntity.upperBody:
+        return isEs
+            ? 'Mantén buen combustible todo el día.'
+            : 'Keep fuel steady through the day.';
+      case DailyFocusEntity.cardio:
+        return isEs
+            ? 'Hidratación alta y carbohidrato moderado.'
+            : 'High hydration and moderate carbs.';
+      case DailyFocusEntity.rest:
+        return isEs ? 'Recorta algo de carbohidrato.' : 'Trim carbs a bit.';
+    }
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
+  }
+
+  String _dashboardTitle(BuildContext context) =>
+      _isEs(context) ? 'Nutrición de gimnasio' : 'Gym nutrition';
+
+  String _dashboardSubtitle(BuildContext context) =>
+      _isEs(context) ? 'Lo importante de hoy.' : 'Today at a glance.';
+
+  String _emptyCopy(BuildContext context) => _isEs(context)
+      ? 'Registra una comida o un entreno para activar mejor contexto.'
+      : 'Log a meal or workout to unlock better guidance.';
+
+  String _goalLabel(BuildContext context) =>
+      _isEs(context) ? 'Objetivo' : 'Goal';
+
+  String _focusSelectorLabel(BuildContext context) =>
+      _isEs(context) ? 'Enfoque' : 'Focus';
+
+  String _mealsChip(BuildContext context, int count) =>
+      _isEs(context) ? '$count comidas' : '$count meals';
+
+  String _sessionsChip(BuildContext context, int count) =>
+      _isEs(context) ? '$count sesiones' : '$count sessions';
+
+  String _burnedChip(BuildContext context, int count) =>
+      _isEs(context) ? '$count cals' : '$count burned';
+
+  String _proteinRemainingLabel(BuildContext context) =>
+      _isEs(context) ? 'Proteína restante' : 'Protein left';
+
+  String _kcalRemainingLabel(BuildContext context) =>
+      _isEs(context) ? 'Kcal restantes' : 'Kcal left';
+
+  String _overGoalLabel(BuildContext context) =>
+      _isEs(context) ? 'Sobre objetivo' : 'Over goal';
+
+  String _kcalProgressLabel(BuildContext context, int current, int goal) =>
+      _isEs(context) ? '$current de $goal kcal' : '$current of $goal kcal';
+
+  String _statusDefClosing(BuildContext context) => _isEs(context)
+      ? 'La definición va en ritmo. Cierra con proteína alta.'
+      : 'Definition on track. Keep the last meal high in protein.';
+
+  String _statusBulkOpen(BuildContext context) => _isEs(context)
+      ? 'Aún tienes margen. Mete carbohidrato fácil y proteína.'
+      : 'You still have room. Add easy carbs and protein.';
+
+  String _statusProteinGap(BuildContext context) => _isEs(context)
+      ? 'La principal brecha sigue siendo la proteína. Priorízala en la siguiente comida.'
+      : 'Protein is still the main gap. Prioritize it next meal.';
+
+  String _statusCarbWindow(BuildContext context) => _isEs(context)
+      ? 'Aún tienes margen de carbohidratos. Buen momento para meter energía de entreno.'
+      : 'You still have carb room. Good moment for training fuel.';
+
+  String _statusRestClosing(BuildContext context) => _isEs(context)
+      ? 'Día de descanso casi cerrado. Termina ligero y con proteína.'
+      : 'Rest day almost closed. Finish light and protein-first.';
+
+  String _statusOverGoal(BuildContext context) => _isEs(context)
+      ? 'Vas por encima del objetivo. Mantén el resto del día más controlado.'
+      : 'You are above target. Keep the rest of the day tighter.';
+
+  String _statusDefault(BuildContext context) => _isEs(context)
+      ? 'Buen ritmo. Manténlo simple y cierra limpio.'
+      : 'Good pace. Keep it simple and close the day clean.';
 }
 
 class _SelectorBlock<T> extends StatelessWidget {
@@ -575,31 +751,38 @@ class _PrimaryMetric extends StatelessWidget {
                 ),
               ),
               Flexible(
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.end,
-                  spacing: 6,
-                  children: [
-                    AnimatedFlipCounter(
-                      duration: const Duration(milliseconds: 700),
-                      value: value,
-                      textStyle:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: textColor,
-                                fontWeight: FontWeight.w800,
-                                fontSize: compact ? 28 : null,
-                              ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text(
-                        suffix,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: textColor.withValues(alpha: 0.72),
-                              fontWeight: FontWeight.w600,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.bottomLeft,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      AnimatedFlipCounter(
+                        duration: const Duration(milliseconds: 700),
+                        value: value,
+                        textStyle: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              color: textColor,
+                              fontWeight: FontWeight.w800,
+                              fontSize: compact ? 28 : null,
                             ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 6),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 6),
+                        child: Text(
+                          suffix,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: textColor.withValues(alpha: 0.72),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -612,7 +795,6 @@ class _PrimaryMetric extends StatelessWidget {
 
 class _SummaryChip extends StatelessWidget {
   final IconData icon;
-  final String value;
   final String label;
   final bool compact;
   final Color color;
@@ -620,7 +802,6 @@ class _SummaryChip extends StatelessWidget {
 
   const _SummaryChip({
     required this.icon,
-    required this.value,
     required this.label,
     required this.compact,
     required this.color,
@@ -648,17 +829,10 @@ class _SummaryChip extends StatelessWidget {
               size: compact ? 13 : 14, color: color.withValues(alpha: 0.85)),
           const SizedBox(width: 6),
           Text(
-            value,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: color.withValues(alpha: 0.90),
-                ),
-          ),
-          const SizedBox(width: 6),
-          Text(
             label,
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color.withValues(alpha: 0.75),
+                  fontWeight: FontWeight.w700,
+                  color: color.withValues(alpha: 0.85),
                 ),
           ),
         ],
@@ -686,6 +860,7 @@ class _MacroTrackRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = S.of(context);
     final progress = goal <= 0 ? 0.0 : ((intake / goal).clamp(0, 1)).toDouble();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,8 +899,10 @@ class _MacroTrackRow extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           remaining > 0
-              ? '${remaining.toInt()} g restantes'
-              : 'Objetivo cumplido',
+              ? (Localizations.localeOf(context).languageCode == 'es'
+                  ? '${remaining.toInt()} g restantes'
+                  : '${remaining.toInt()} g left')
+              : localizations.homeDashboardMacroDone,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

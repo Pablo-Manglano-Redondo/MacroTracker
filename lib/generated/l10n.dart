@@ -180,6 +180,147 @@ class S {
     );
   }
 
+  /// `Quick shortcuts`
+  String get addMealQuickActionsTitle {
+    return Intl.message(
+      'Quick shortcuts',
+      name: 'addMealQuickActionsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start with barcode, photo, text, or saved meals. If you search, choose the source below.`
+  String get addMealQuickActionsSubtitle {
+    return Intl.message(
+      'Start with barcode, photo, text, or saved meals. If you search, choose the source below.',
+      name: 'addMealQuickActionsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Packaged`
+  String get addMealTabPackaged {
+    return Intl.message(
+      'Packaged',
+      name: 'addMealTabPackaged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generic foods`
+  String get addMealTabGeneric {
+    return Intl.message(
+      'Generic foods',
+      name: 'addMealTabGeneric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recent history`
+  String get addMealTabRecent {
+    return Intl.message(
+      'Recent history',
+      name: 'addMealTabRecent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use this for supermarket products and branded items.`
+  String get addMealTabPackagedHelper {
+    return Intl.message(
+      'Use this for supermarket products and branded items.',
+      name: 'addMealTabPackagedHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use this for simple foods like rice, chicken, fruit, or oats.`
+  String get addMealTabGenericHelper {
+    return Intl.message(
+      'Use this for simple foods like rice, chicken, fruit, or oats.',
+      name: 'addMealTabGenericHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reuse something you logged recently.`
+  String get addMealTabRecentHelper {
+    return Intl.message(
+      'Reuse something you logged recently.',
+      name: 'addMealTabRecentHelper',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Packaged results`
+  String get addMealSectionPackagedResults {
+    return Intl.message(
+      'Packaged results',
+      name: 'addMealSectionPackagedResults',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Generic food results`
+  String get addMealSectionGenericResults {
+    return Intl.message(
+      'Generic food results',
+      name: 'addMealSectionGenericResults',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recent meals`
+  String get addMealSectionRecentResults {
+    return Intl.message(
+      'Recent meals',
+      name: 'addMealSectionRecentResults',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No recent meals yet.
+  /// Log a meal once and it will appear here.`
+  String get addMealRecentEmpty {
+    return Intl.message(
+      'No recent meals yet.\nLog a meal once and it will appear here.',
+      name: 'addMealRecentEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search a packaged product or use barcode.`
+  String get addMealSearchPromptPackaged {
+    return Intl.message(
+      'Search a packaged product or use barcode.',
+      name: 'addMealSearchPromptPackaged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search a generic food like rice, eggs, or yogurt.`
+  String get addMealSearchPromptGeneric {
+    return Intl.message(
+      'Search a generic food like rice, eggs, or yogurt.',
+      name: 'addMealSearchPromptGeneric',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Products`
   String get searchProductsPage {
     return Intl.message(
@@ -4801,6 +4942,16 @@ class S {
     );
   }
 
+  /// `This is only a reference. It will never be added to your meal automatically.`
+  String get aiMatchesReferenceHint {
+    return Intl.message(
+      'This is only a reference. It will never be added to your meal automatically.',
+      name: 'aiMatchesReferenceHint',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Use`
   String get aiButtonUse {
     return Intl.message(
@@ -4961,6 +5112,26 @@ class S {
     );
   }
 
+  /// `Edit macros`
+  String get aiEditMacrosTitle {
+    return Intl.message(
+      'Edit macros',
+      name: 'aiEditMacrosTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Macros`
+  String get aiEditMacrosLabel {
+    return Intl.message(
+      'Macros',
+      name: 'aiEditMacrosLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `High match`
   String get aiMatchHigh {
     return Intl.message(
@@ -5108,6 +5279,206 @@ class S {
       name: 'macroSuggestionsServingsPortions',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `Gym nutrition`
+  String get homeDashboardTitle {
+    return Intl.message(
+      'Gym nutrition',
+      name: 'homeDashboardTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today at a glance.`
+  String get homeDashboardSubtitle {
+    return Intl.message(
+      'Today at a glance.',
+      name: 'homeDashboardSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log a meal or workout to unlock better guidance.`
+  String get homeDashboardEmpty {
+    return Intl.message(
+      'Log a meal or workout to unlock better guidance.',
+      name: 'homeDashboardEmpty',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Goal`
+  String get homeDashboardGoalLabel {
+    return Intl.message(
+      'Goal',
+      name: 'homeDashboardGoalLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Focus`
+  String get homeDashboardFocusLabel {
+    return Intl.message(
+      'Focus',
+      name: 'homeDashboardFocusLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} meals`
+  String homeDashboardMealsChip(Object count) {
+    return Intl.message(
+      '$count meals',
+      name: 'homeDashboardMealsChip',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} burned`
+  String homeDashboardBurnedChip(Object count) {
+    return Intl.message(
+      '$count burned',
+      name: 'homeDashboardBurnedChip',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} sessions`
+  String homeDashboardSessionsChip(Object count) {
+    return Intl.message(
+      '$count sessions',
+      name: 'homeDashboardSessionsChip',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Protein left`
+  String get homeDashboardProteinRemaining {
+    return Intl.message(
+      'Protein left',
+      name: 'homeDashboardProteinRemaining',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Kcal left`
+  String get homeDashboardKcalRemaining {
+    return Intl.message(
+      'Kcal left',
+      name: 'homeDashboardKcalRemaining',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Over goal`
+  String get homeDashboardOverGoal {
+    return Intl.message(
+      'Over goal',
+      name: 'homeDashboardOverGoal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{current} of {goal} kcal`
+  String homeDashboardKcalProgress(Object current, Object goal) {
+    return Intl.message(
+      '$current of $goal kcal',
+      name: 'homeDashboardKcalProgress',
+      desc: '',
+      args: [current, goal],
+    );
+  }
+
+  /// `Goal reached`
+  String get homeDashboardMacroDone {
+    return Intl.message(
+      'Goal reached',
+      name: 'homeDashboardMacroDone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Definition on track. Keep the last meal high in protein.`
+  String get homeDashboardStatusDefClosing {
+    return Intl.message(
+      'Definition on track. Keep the last meal high in protein.',
+      name: 'homeDashboardStatusDefClosing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You still have room. Add easy carbs and protein.`
+  String get homeDashboardStatusBulkOpen {
+    return Intl.message(
+      'You still have room. Add easy carbs and protein.',
+      name: 'homeDashboardStatusBulkOpen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protein is still the main gap. Prioritize it next meal.`
+  String get homeDashboardStatusProteinGap {
+    return Intl.message(
+      'Protein is still the main gap. Prioritize it next meal.',
+      name: 'homeDashboardStatusProteinGap',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You still have carb room. Good moment for training fuel.`
+  String get homeDashboardStatusCarbWindow {
+    return Intl.message(
+      'You still have carb room. Good moment for training fuel.',
+      name: 'homeDashboardStatusCarbWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rest day almost closed. Finish light and protein-first.`
+  String get homeDashboardStatusRestClosing {
+    return Intl.message(
+      'Rest day almost closed. Finish light and protein-first.',
+      name: 'homeDashboardStatusRestClosing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You are above target. Keep the rest of the day tighter.`
+  String get homeDashboardStatusOverGoal {
+    return Intl.message(
+      'You are above target. Keep the rest of the day tighter.',
+      name: 'homeDashboardStatusOverGoal',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good pace. Keep it simple and close the day clean.`
+  String get homeDashboardStatusDefault {
+    return Intl.message(
+      'Good pace. Keep it simple and close the day clean.',
+      name: 'homeDashboardStatusDefault',
+      desc: '',
+      args: [],
     );
   }
 
@@ -5521,6 +5892,66 @@ class S {
     );
   }
 
+  /// `One library, two sources: meals you save manually and repeated meals detected automatically.`
+  String get recipeLibraryIntro {
+    return Intl.message(
+      'One library, two sources: meals you save manually and repeated meals detected automatically.',
+      name: 'recipeLibraryIntro',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saved recipes`
+  String get recipeLibraryManualSectionTitle {
+    return Intl.message(
+      'Saved recipes',
+      name: 'recipeLibraryManualSectionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You save these on purpose to reuse them whenever you want.`
+  String get recipeLibraryManualSectionSubtitle {
+    return Intl.message(
+      'You save these on purpose to reuse them whenever you want.',
+      name: 'recipeLibraryManualSectionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Repeated suggestions`
+  String get recipeLibraryFrequentSectionTitle {
+    return Intl.message(
+      'Repeated suggestions',
+      name: 'recipeLibraryFrequentSectionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Detected from your history so you can repeat them faster.`
+  String get recipeLibraryFrequentSectionSubtitle {
+    return Intl.message(
+      'Detected from your history so you can repeat them faster.',
+      name: 'recipeLibraryFrequentSectionSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count} times`
+  String recipeLibraryFrequentUses(Object count) {
+    return Intl.message(
+      '$count times',
+      name: 'recipeLibraryFrequentUses',
+      desc: '',
+      args: [count],
+    );
+  }
+
   /// `AI Cost`
   String get settingsAiCostLabel {
     return Intl.message(
@@ -5801,6 +6232,206 @@ class S {
     );
   }
 
+  /// `Synced source`
+  String get habitSourceSynced {
+    return Intl.message(
+      'Synced source',
+      name: 'habitSourceSynced',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual adjustment`
+  String get habitSourceManualAdjust {
+    return Intl.message(
+      'Manual adjustment',
+      name: 'habitSourceManualAdjust',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Habits and recovery`
+  String get gymHabitsTitle {
+    return Intl.message(
+      'Habits and recovery',
+      name: 'gymHabitsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count}/7 today`
+  String gymHabitsCompletedToday(Object count) {
+    return Intl.message(
+      '$count/7 today',
+      name: 'gymHabitsCompletedToday',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Sleep`
+  String get gymHabitsSleepTitle {
+    return Intl.message(
+      'Sleep',
+      name: 'gymHabitsSleepTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Steps`
+  String get gymHabitsStepsTitle {
+    return Intl.message(
+      'Steps',
+      name: 'gymHabitsStepsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Energy`
+  String get gymHabitsEnergyTitle {
+    return Intl.message(
+      'Energy',
+      name: 'gymHabitsEnergyTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Goal {amount} h`
+  String gymHabitsSleepTarget(Object amount) {
+    return Intl.message(
+      'Goal $amount h',
+      name: 'gymHabitsSleepTarget',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Goal {amount}`
+  String gymHabitsStepsTarget(Object amount) {
+    return Intl.message(
+      'Goal $amount',
+      name: 'gymHabitsStepsTarget',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `Main value from Health Connect`
+  String get gymHabitsSourceHealthConnectDetail {
+    return Intl.message(
+      'Main value from Health Connect',
+      name: 'gymHabitsSourceHealthConnectDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Main value entered manually`
+  String get gymHabitsSourceManualDetail {
+    return Intl.message(
+      'Main value entered manually',
+      name: 'gymHabitsSourceManualDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use +/- only if you need to correct the value.`
+  String get gymHabitsManualAdjustHint {
+    return Intl.message(
+      'Use +/- only if you need to correct the value.',
+      name: 'gymHabitsManualAdjustHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Leg day`
+  String get gymHabitsFocusLowerBody {
+    return Intl.message(
+      'Leg day',
+      name: 'gymHabitsFocusLowerBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Upper body day`
+  String get gymHabitsFocusUpperBody {
+    return Intl.message(
+      'Upper body day',
+      name: 'gymHabitsFocusUpperBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cardio day`
+  String get gymHabitsFocusCardio {
+    return Intl.message(
+      'Cardio day',
+      name: 'gymHabitsFocusCardio',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Rest day`
+  String get gymHabitsFocusRest {
+    return Intl.message(
+      'Rest day',
+      name: 'gymHabitsFocusRest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Higher hydration target for leg day: {goal}.`
+  String gymHabitsHydrationHintLowerBody(Object goal) {
+    return Intl.message(
+      'Higher hydration target for leg day: $goal.',
+      name: 'gymHabitsHydrationHintLowerBody',
+      desc: '',
+      args: [goal],
+    );
+  }
+
+  /// `Keep hydration high today: {goal}.`
+  String gymHabitsHydrationHintUpperBody(Object goal) {
+    return Intl.message(
+      'Keep hydration high today: $goal.',
+      name: 'gymHabitsHydrationHintUpperBody',
+      desc: '',
+      args: [goal],
+    );
+  }
+
+  /// `Prioritize fluids today: {goal}.`
+  String gymHabitsHydrationHintCardio(Object goal) {
+    return Intl.message(
+      'Prioritize fluids today: $goal.',
+      name: 'gymHabitsHydrationHintCardio',
+      desc: '',
+      args: [goal],
+    );
+  }
+
+  /// `Keep hydration steady today: {goal}.`
+  String gymHabitsHydrationHintRest(Object goal) {
+    return Intl.message(
+      'Keep hydration steady today: $goal.',
+      name: 'gymHabitsHydrationHintRest',
+      desc: '',
+      args: [goal],
+    );
+  }
+
   /// `Check averages, adherence, protein and top meals`
   String get homeWeeklyInsightsSubtitle {
     return Intl.message(
@@ -5848,6 +6479,146 @@ class S {
       name: 'addMealSaved',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Quick meals`
+  String get quickMealsTitle {
+    return Intl.message(
+      'Quick meals',
+      name: 'quickMealsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use your saved recipes first. One tap logs a serving fast.`
+  String get quickMealsSubtitle {
+    return Intl.message(
+      'Use your saved recipes first. One tap logs a serving fast.',
+      name: 'quickMealsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Open saved meals`
+  String get quickMealsSavedTooltip {
+    return Intl.message(
+      'Open saved meals',
+      name: 'quickMealsSavedTooltip',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All`
+  String get quickMealsFilterAll {
+    return Intl.message(
+      'All',
+      name: 'quickMealsFilterAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Before workout`
+  String get quickMealsFilterPreWorkout {
+    return Intl.message(
+      'Before workout',
+      name: 'quickMealsFilterPreWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `After workout`
+  String get quickMealsFilterPostWorkout {
+    return Intl.message(
+      'After workout',
+      name: 'quickMealsFilterPostWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shake`
+  String get quickMealsFilterShake {
+    return Intl.message(
+      'Shake',
+      name: 'quickMealsFilterShake',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light meal`
+  String get quickMealsFilterLight {
+    return Intl.message(
+      'Light meal',
+      name: 'quickMealsFilterLight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save meals as recipes to keep them one tap away here.`
+  String get quickMealsEmptyAll {
+    return Intl.message(
+      'Save meals as recipes to keep them one tap away here.',
+      name: 'quickMealsEmptyAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No quick meals in this lane yet. Use clear workout-style names so they are easier to recognize later.`
+  String get quickMealsEmptyFiltered {
+    return Intl.message(
+      'No quick meals in this lane yet. Use clear workout-style names so they are easier to recognize later.',
+      name: 'quickMealsEmptyFiltered',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{recipe} added to {slot}`
+  String quickMealsAddedTo(Object recipe, Object slot) {
+    return Intl.message(
+      '$recipe added to $slot',
+      name: 'quickMealsAddedTo',
+      desc: '',
+      args: [recipe, slot],
+    );
+  }
+
+  /// `Log one serving`
+  String get quickMealsLogServing {
+    return Intl.message(
+      'Log one serving',
+      name: 'quickMealsLogServing',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `P {amount}`
+  String quickMealsProteinShort(Object amount) {
+    return Intl.message(
+      'P $amount',
+      name: 'quickMealsProteinShort',
+      desc: '',
+      args: [amount],
+    );
+  }
+
+  /// `C {carbs} | F {fat} | P {protein}`
+  String quickMealsMacrosSummary(Object carbs, Object fat, Object protein) {
+    return Intl.message(
+      'C $carbs | F $fat | P $protein',
+      name: 'quickMealsMacrosSummary',
+      desc: '',
+      args: [carbs, fat, protein],
     );
   }
 

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class NoResultsWidget extends StatelessWidget {
-  const NoResultsWidget({super.key});
+  final String? message;
+
+  const NoResultsWidget({super.key}) : message = null;
+  const NoResultsWidget.message(this.message, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +15,7 @@ class NoResultsWidget extends StatelessWidget {
         children: [
           const Icon(Icons.search, size: 64),
           const SizedBox(height: 8),
-          Text(S.of(context).noResultsFound,
+          Text(message ?? S.of(context).noResultsFound,
               style: Theme.of(context).textTheme.titleMedium)
         ],
       ),

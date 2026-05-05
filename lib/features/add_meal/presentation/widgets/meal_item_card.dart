@@ -24,71 +24,94 @@ class MealItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: Theme.of(context).colorScheme.outline),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      child: InkWell(
-        child: SizedBox(
-          height: 100,
-          child: Center(
-              child: ListTile(
-            leading: mealEntity.thumbnailImageUrl != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: CachedNetworkImage(
-                      cacheManager: locator<CacheManager>(),
-                      fit: BoxFit.cover,
-                      width: 60,
-                      height: 60,
-                      imageUrl: mealEntity.thumbnailImageUrl ?? "",
-                    ))
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                        width: 60,
-                        height: 60,
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        child: const Icon(Icons.restaurant_outlined)),
-                  ),
-            title: AutoSizeText.rich(
-                TextSpan(
-                    text: mealEntity.name ?? "?",
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface),
-                    children: [
-                      TextSpan(
-                          text: ' ${mealEntity.brands ?? ""}',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface
-                                      .withValues(alpha: 0.8))),
-                    ]),
-                style: Theme.of(context).textTheme.titleLarge,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis),
-            subtitle: mealEntity.mealQuantity != null
-                ? MealValueUnitText(
-                    value: double.parse(mealEntity.mealQuantity ?? "0"),
-                    meal: mealEntity,
-                    usesImperialUnits: usesImperialUnits)
-                : const SizedBox(),
-            trailing: IconButton(
-              style: IconButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.onSurface,
-              ),
-              icon: const Icon(Icons.add_outlined),
-              onPressed: () => _onItemPressed(context),
-            ),
-          )),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        elevation: 2,
+        shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
         ),
-        onTap: () => _onItemPressed(context),
+        child: InkWell(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          onTap: () => _onItemPressed(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+            child: Row(
+              children: [
+                // Thumbnail / Icon
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Container(
+                    width: 64,
+                    height: 64,
+                    color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                    child: mealEntity.thumbnailImageUrl != null
+                        ? CachedNetworkImage(
+                            cacheManager: locator<CacheManager>(),
+                            fit: BoxFit.cover,
+                            imageUrl: mealEntity.thumbnailImageUrl!,
+                            placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            errorWidget: (context, url, error) => const Icon(Icons.restaurant_outlined),
+                          )
+                        : const Icon(Icons.restaurant_outlined),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Content
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text.rich(
+                        TextSpan(
+                          text: mealEntity.name ?? "?",
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                          children: [
+                            if (mealEntity.brands != null && mealEntity.brands!.isNotEmpty)
+                              TextSpan(
+                                text: ' ${mealEntity.brands}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                              ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (mealEntity.mealQuantity != null) ...[
+                        const SizedBox(height: 4),
+                        MealValueUnitText(
+                          value: double.parse(mealEntity.mealQuantity ?? "0"),
+                          meal: mealEntity,
+                          usesImperialUnits: usesImperialUnits,
+                          // No pass style if the widget doesn't support it, 
+                          // let's assume it follows theme.
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Add button
+                Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

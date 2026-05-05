@@ -73,24 +73,37 @@ class SpFdcDataSource {
 
   Future<List<SpFdcFoodDTO>> fetchSearchWordResults(String searchString) async {
     try {
+      final normalizedInput = searchString.trim();
+      if (normalizedInput.length < 2) {
+        return const [];
+      }
+
       log.fine('Fetching Supabase FDC results');
       final supaBaseClient = locator<SupabaseClient>();
       final language = SupportedLanguage.fromCode(Platform.localeName);
       final preferredColumn = SPConst.getFdcFoodDescriptionColumnName(language);
-      final candidateQueries = _buildCandidateQueries(searchString);
+      final candidateQueries = _buildCandidateQueries(normalizedInput);
       final allItems = <SpFdcFoodDTO>[];
 
       for (final query in candidateQueries) {
-        final response = await supaBaseClient
-            .from(SPConst.fdcFoodTableName)
-            .select(
-                '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
-            .textSearch(preferredColumn, query, type: TextSearchType.websearch)
-            .limit(SPConst.maxNumberOfItems);
+        try {
+          final response = await supaBaseClient
+              .from(SPConst.fdcFoodTableName)
+              .select(
+                  '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
+              .textSearch(preferredColumn, query,
+                  type: TextSearchType.websearch)
+              .limit(SPConst.maxNumberOfItems);
 
-        allItems.addAll(
-          response.map((fdcFood) => SpFdcFoodDTO.fromJson(fdcFood)),
-        );
+          allItems.addAll(
+            response
+                .map((fdcFood) => _tryParseFood(fdcFood))
+                .whereType<SpFdcFoodDTO>(),
+          );
+        } catch (exception, stacktrace) {
+          log.warning('Supabase text search failed for "$query": $exception');
+          Sentry.captureException(exception, stackTrace: stacktrace);
+        }
         if (allItems.length >= SPConst.maxNumberOfItems) {
           break;
         }
@@ -98,17 +111,26 @@ class SpFdcDataSource {
 
       if (allItems.isEmpty && preferredColumn != SPConst.fdcFoodDescriptionEn) {
         for (final query in candidateQueries) {
-          final response = await supaBaseClient
-              .from(SPConst.fdcFoodTableName)
-              .select(
-                  '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
-              .textSearch(SPConst.fdcFoodDescriptionEn, query,
-                  type: TextSearchType.websearch)
-              .limit(SPConst.maxNumberOfItems);
+          try {
+            final response = await supaBaseClient
+                .from(SPConst.fdcFoodTableName)
+                .select(
+                    '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
+                .textSearch(SPConst.fdcFoodDescriptionEn, query,
+                    type: TextSearchType.websearch)
+                .limit(SPConst.maxNumberOfItems);
 
-          allItems.addAll(
-            response.map((fdcFood) => SpFdcFoodDTO.fromJson(fdcFood)),
-          );
+            allItems.addAll(
+              response
+                  .map((fdcFood) => _tryParseFood(fdcFood))
+                  .whereType<SpFdcFoodDTO>(),
+            );
+          } catch (exception, stacktrace) {
+            log.warning(
+              'Supabase english text search failed for "$query": $exception',
+            );
+            Sentry.captureException(exception, stackTrace: stacktrace);
+          }
           if (allItems.length >= SPConst.maxNumberOfItems) {
             break;
           }
@@ -118,17 +140,24 @@ class SpFdcDataSource {
       if (allItems.isEmpty) {
         for (final query in candidateQueries) {
           final ilikePattern = '%${query.replaceAll('%', '')}%';
-          final response = await supaBaseClient
-              .from(SPConst.fdcFoodTableName)
-              .select(
-                  '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
-              .or(
-                  '${SPConst.fdcFoodDescriptionEn}.ilike.$ilikePattern,${SPConst.fdcFoodDescriptionDe}.ilike.$ilikePattern')
-              .limit(SPConst.maxNumberOfItems);
+          try {
+            final response = await supaBaseClient
+                .from(SPConst.fdcFoodTableName)
+                .select(
+                    '''fdc_id, ${SPConst.fdcFoodDescriptionEn}, ${SPConst.fdcFoodDescriptionDe}, fdc_portions ( measure_unit_id, amount, gram_weight ), fdc_nutrients ( nutrient_id, amount )''')
+                .or('${SPConst.fdcFoodDescriptionEn}.ilike.$ilikePattern,${SPConst.fdcFoodDescriptionDe}.ilike.$ilikePattern')
+                .limit(SPConst.maxNumberOfItems);
 
-          allItems.addAll(
-            response.map((fdcFood) => SpFdcFoodDTO.fromJson(fdcFood)),
-          );
+            allItems.addAll(
+              response
+                  .map((fdcFood) => _tryParseFood(fdcFood))
+                  .whereType<SpFdcFoodDTO>(),
+            );
+          } catch (exception, stacktrace) {
+            log.warning(
+                'Supabase ilike search failed for "$query": $exception');
+            Sentry.captureException(exception, stackTrace: stacktrace);
+          }
           if (allItems.length >= SPConst.maxNumberOfItems) {
             break;
           }
@@ -154,6 +183,20 @@ class SpFdcDataSource {
       log.severe('Exception while getting FDC word search $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
+    }
+  }
+
+  SpFdcFoodDTO? _tryParseFood(dynamic json) {
+    if (json is! Map<String, dynamic>) {
+      return null;
+    }
+
+    try {
+      return SpFdcFoodDTO.fromJson(json);
+    } catch (exception, stacktrace) {
+      log.warning('Skipping malformed Supabase food row: $exception');
+      Sentry.captureException(exception, stackTrace: stacktrace);
+      return null;
     }
   }
 
@@ -248,7 +291,8 @@ class SpFdcDataSource {
 
         final rightDescription =
             _normalizedDescription(right, language: language);
-        final leftDescription = _normalizedDescription(left, language: language);
+        final leftDescription =
+            _normalizedDescription(left, language: language);
         return leftDescription.length.compareTo(rightDescription.length);
       });
 
@@ -262,7 +306,8 @@ class SpFdcDataSource {
     required List<String> searchTokens,
     required SupportedLanguage language,
   }) {
-    final localizedDescription = _normalizedDescription(item, language: language);
+    final localizedDescription =
+        _normalizedDescription(item, language: language);
     final englishDescription = _normalizeSpanish(
       (item.descriptionEn ?? '').toLowerCase(),
     );
@@ -301,10 +346,12 @@ class SpFdcDataSource {
     if (description == translatedSearch || description == normalizedSearch) {
       score += 400;
     }
-    if (translatedSearch.isNotEmpty && description.startsWith(translatedSearch)) {
+    if (translatedSearch.isNotEmpty &&
+        description.startsWith(translatedSearch)) {
       score += 220;
     }
-    if (normalizedSearch.isNotEmpty && description.startsWith(normalizedSearch)) {
+    if (normalizedSearch.isNotEmpty &&
+        description.startsWith(normalizedSearch)) {
       score += 180;
     }
     if (translatedSearch.isNotEmpty &&

@@ -52,6 +52,59 @@ class AppLocalizationsEs extends AppLocalizations {
   String get searchLabel => 'Buscar';
 
   @override
+  String get addMealQuickActionsTitle => 'Atajos de entrada';
+
+  @override
+  String get addMealQuickActionsSubtitle =>
+      'Empieza con barras, foto, texto o guardadas. Si buscas, elige abajo la fuente.';
+
+  @override
+  String get addMealTabPackaged => 'Envasados';
+
+  @override
+  String get addMealTabGeneric => 'Genericos';
+
+  @override
+  String get addMealTabRecent => 'Historial';
+
+  @override
+  String get addMealTabPackagedHelper =>
+      'Usalo para productos de supermercado y marcas.';
+
+  @override
+  String get addMealTabGenericHelper =>
+      'Usalo para alimentos simples como arroz, pollo, fruta o avena.';
+
+  @override
+  String get addMealTabRecentHelper =>
+      'Repite algo que ya registraste hace poco.';
+
+  @override
+  String get addMealSectionPackagedResults => 'Resultados envasados';
+
+  @override
+  String get addMealSectionGenericResults => 'Resultados genericos';
+
+  @override
+  String get addMealSectionRecentResults => 'Comidas recientes';
+
+  @override
+  String get addMealRecentEmpty =>
+      'Aun no hay comidas recientes.\nRegistra una y aparecera aqui.';
+
+  @override
+  String get addMealSearchPromptPackaged =>
+      'Busca un producto envasado o usa el codigo de barras.';
+
+  @override
+  String get addMealSearchPromptGeneric =>
+      'Busca un alimento generico como arroz, huevos o yogur.';
+
+  @override
+  String get addMealSearchPromptRecent =>
+      'Busca en tu historial reciente o abre guardadas.';
+
+  @override
   String get searchProductsPage => 'Productos';
 
   @override
@@ -1512,6 +1565,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Usa una comida frecuente, receta o corrección previa si se parece más a lo que has comido.';
 
   @override
+  String get aiMatchesReferenceHint =>
+      'Solo es una referencia. Nunca se añadirá automáticamente a tu comida.';
+
+  @override
   String get aiButtonUse => 'Usar';
 
   @override
@@ -1567,6 +1624,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aiAmountLabel => 'Cantidad';
 
   @override
+  String get aiEditMacrosTitle => 'Editar macros';
+
+  @override
+  String get aiEditMacrosLabel => 'Macros';
+
+  @override
   String get aiMatchHigh => 'Coincidencia alta';
 
   @override
@@ -1619,6 +1682,82 @@ class AppLocalizationsEs extends AppLocalizations {
   String macroSuggestionsServingsPortions(Object count) {
     return '$count porciones';
   }
+
+  @override
+  String get homeDashboardTitle => 'Nutricion de gimnasio';
+
+  @override
+  String get homeDashboardSubtitle => 'Lo importante de hoy.';
+
+  @override
+  String get homeDashboardEmpty =>
+      'Registra una comida o un entreno para activar mejor contexto.';
+
+  @override
+  String get homeDashboardGoalLabel => 'Objetivo';
+
+  @override
+  String get homeDashboardFocusLabel => 'Enfoque';
+
+  @override
+  String homeDashboardMealsChip(Object count) {
+    return '$count comidas';
+  }
+
+  @override
+  String homeDashboardBurnedChip(Object count) {
+    return '$count cals';
+  }
+
+  @override
+  String homeDashboardSessionsChip(Object count) {
+    return '$count sesiones';
+  }
+
+  @override
+  String get homeDashboardProteinRemaining => 'Proteina restante';
+
+  @override
+  String get homeDashboardKcalRemaining => 'Kcal restantes';
+
+  @override
+  String get homeDashboardOverGoal => 'Sobre objetivo';
+
+  @override
+  String homeDashboardKcalProgress(Object current, Object goal) {
+    return '$current de $goal kcal';
+  }
+
+  @override
+  String get homeDashboardMacroDone => 'Objetivo cumplido';
+
+  @override
+  String get homeDashboardStatusDefClosing =>
+      'La definicion va en ritmo. Cierra con proteina alta.';
+
+  @override
+  String get homeDashboardStatusBulkOpen =>
+      'Aun tienes margen. Mete carbohidrato facil y proteina.';
+
+  @override
+  String get homeDashboardStatusProteinGap =>
+      'La principal brecha sigue siendo la proteina. Priorizala en la siguiente comida.';
+
+  @override
+  String get homeDashboardStatusCarbWindow =>
+      'Aun tienes margen de carbohidratos. Buen momento para meter energia de entreno.';
+
+  @override
+  String get homeDashboardStatusRestClosing =>
+      'Dia de descanso casi cerrado. Termina ligero y con proteina.';
+
+  @override
+  String get homeDashboardStatusOverGoal =>
+      'Vas por encima del objetivo. Manten el resto del dia mas controlado.';
+
+  @override
+  String get homeDashboardStatusDefault =>
+      'Buen ritmo. Mantenlo simple y cierra limpio.';
 
   @override
   String get hydrationAddWater => 'Añadir agua';
@@ -1766,6 +1905,29 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get recipeLibraryIntro =>
+      'Una sola libreria, dos fuentes: recetas que guardas a mano y comidas repetidas detectadas automaticamente.';
+
+  @override
+  String get recipeLibraryManualSectionTitle => 'Recetas guardadas';
+
+  @override
+  String get recipeLibraryManualSectionSubtitle =>
+      'Las guardas a proposito para reutilizarlas cuando quieras.';
+
+  @override
+  String get recipeLibraryFrequentSectionTitle => 'Sugeridas por repeticion';
+
+  @override
+  String get recipeLibraryFrequentSectionSubtitle =>
+      'Se detectan desde tu historial para repetirlas mas rapido.';
+
+  @override
+  String recipeLibraryFrequentUses(Object count) {
+    return '$count usos';
+  }
+
+  @override
   String get settingsAiCostLabel => 'Coste de IA';
 
   @override
@@ -1878,6 +2040,83 @@ class AppLocalizationsEs extends AppLocalizations {
   String get habitSourceManual => 'Manual';
 
   @override
+  String get habitSourceSynced => 'Fuente sincronizada';
+
+  @override
+  String get habitSourceManualAdjust => 'Ajuste manual';
+
+  @override
+  String get gymHabitsTitle => 'Habitos y recuperacion';
+
+  @override
+  String gymHabitsCompletedToday(Object count) {
+    return '$count/7 hoy';
+  }
+
+  @override
+  String get gymHabitsSleepTitle => 'Sueno';
+
+  @override
+  String get gymHabitsStepsTitle => 'Pasos';
+
+  @override
+  String get gymHabitsEnergyTitle => 'Energia';
+
+  @override
+  String gymHabitsSleepTarget(Object amount) {
+    return 'Objetivo $amount h';
+  }
+
+  @override
+  String gymHabitsStepsTarget(Object amount) {
+    return 'Objetivo $amount';
+  }
+
+  @override
+  String get gymHabitsSourceHealthConnectDetail =>
+      'Dato principal sincronizado desde Health Connect';
+
+  @override
+  String get gymHabitsSourceManualDetail =>
+      'Dato principal introducido manualmente';
+
+  @override
+  String get gymHabitsManualAdjustHint =>
+      'Usa +/- solo si necesitas corregir el valor.';
+
+  @override
+  String get gymHabitsFocusLowerBody => 'Dia de pierna';
+
+  @override
+  String get gymHabitsFocusUpperBody => 'Dia de torso';
+
+  @override
+  String get gymHabitsFocusCardio => 'Dia de cardio';
+
+  @override
+  String get gymHabitsFocusRest => 'Dia de descanso';
+
+  @override
+  String gymHabitsHydrationHintLowerBody(Object goal) {
+    return 'En pierna sube hidratacion: objetivo $goal.';
+  }
+
+  @override
+  String gymHabitsHydrationHintUpperBody(Object goal) {
+    return 'En torso manten hidratacion alta: objetivo $goal.';
+  }
+
+  @override
+  String gymHabitsHydrationHintCardio(Object goal) {
+    return 'En cardio prioriza liquidos: objetivo $goal.';
+  }
+
+  @override
+  String gymHabitsHydrationHintRest(Object goal) {
+    return 'En descanso manten hidratacion: objetivo $goal.';
+  }
+
+  @override
   String get homeWeeklyInsightsSubtitle =>
       'Revisa promedios, adherencia, proteína y comidas top';
 
@@ -1892,6 +2131,57 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealSaved => 'Guardadas';
+
+  @override
+  String get quickMealsTitle => 'Comidas rapidas';
+
+  @override
+  String get quickMealsSubtitle =>
+      'Tira primero de tus recetas guardadas. Un toque registra una racion.';
+
+  @override
+  String get quickMealsSavedTooltip => 'Abrir comidas guardadas';
+
+  @override
+  String get quickMealsFilterAll => 'Todo';
+
+  @override
+  String get quickMealsFilterPreWorkout => 'Antes de entrenar';
+
+  @override
+  String get quickMealsFilterPostWorkout => 'Despues de entrenar';
+
+  @override
+  String get quickMealsFilterShake => 'Batido';
+
+  @override
+  String get quickMealsFilterLight => 'Ligera';
+
+  @override
+  String get quickMealsEmptyAll =>
+      'Guarda comidas como recetas para tenerlas a un toque aqui.';
+
+  @override
+  String get quickMealsEmptyFiltered =>
+      'Aun no hay comidas rapidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor despues.';
+
+  @override
+  String quickMealsAddedTo(Object recipe, Object slot) {
+    return '$recipe añadida a $slot';
+  }
+
+  @override
+  String get quickMealsLogServing => 'Registrar una racion';
+
+  @override
+  String quickMealsProteinShort(Object amount) {
+    return 'P $amount';
+  }
+
+  @override
+  String quickMealsMacrosSummary(Object carbs, Object fat, Object protein) {
+    return 'C $carbs | F $fat | P $protein';
+  }
 
   @override
   String get diaryDayCopied => 'Día copiado a hoy';

@@ -12,17 +12,27 @@ class ProductsRepository {
       this._offDataSource, this._fdcDataSource, this._spBackendDataSource);
 
   Future<List<MealEntity>> getOFFProductsByString(String searchString) async {
+    if (searchString.trim().length < 2) {
+      return const [];
+    }
+
     final offWordResponse =
         await _offDataSource.fetchSearchWordResults(searchString);
 
     final products = offWordResponse.products
-        .map((offProduct) => MealEntity.fromOFFProduct(offProduct))
+        .map(_tryMapOffProduct)
+        .whereType<MealEntity>()
+        .where((meal) => (meal.name ?? '').trim().isNotEmpty)
         .toList();
 
     return products;
   }
 
   Future<List<MealEntity>> getFDCFoodsByString(String searchString) async {
+    if (searchString.trim().length < 2) {
+      return const [];
+    }
+
     final fdcWordResponse =
         await _fdcDataSource.fetchSearchWordResults(searchString);
     final products = fdcWordResponse.foods
@@ -33,10 +43,16 @@ class ProductsRepository {
 
   Future<List<MealEntity>> getSupabaseFDCFoodsByString(
       String searchString) async {
+    if (searchString.trim().length < 2) {
+      return const [];
+    }
+
     final spFdcWordResponse =
         await _spBackendDataSource.fetchSearchWordResults(searchString);
     final products = spFdcWordResponse
-        .map((foodItem) => MealEntity.fromSpFDCFood(foodItem))
+        .map(_tryMapSupabaseFood)
+        .whereType<MealEntity>()
+        .where((meal) => (meal.name ?? '').trim().isNotEmpty)
         .toList();
     return products;
   }
@@ -45,5 +61,21 @@ class ProductsRepository {
     final productResponse = await _offDataSource.fetchBarcodeResults(barcode);
 
     return MealEntity.fromOFFProduct(productResponse.product);
+  }
+
+  MealEntity? _tryMapOffProduct(dynamic offProduct) {
+    try {
+      return MealEntity.fromOFFProduct(offProduct);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  MealEntity? _tryMapSupabaseFood(dynamic foodItem) {
+    try {
+      return MealEntity.fromSpFDCFood(foodItem);
+    } catch (_) {
+      return null;
+    }
   }
 }

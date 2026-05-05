@@ -11,7 +11,9 @@ import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_categor
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class QuickGymMealsCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
@@ -100,7 +102,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Comidas rapidas de gimnasio',
+                          _title(context),
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -108,7 +110,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Tus recetas favoritas primero. Un toque registra una racion en la mejor franja.',
+                          _subtitle(context),
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -129,7 +131,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       );
                     },
                     icon: const Icon(Icons.bookmarks_outlined),
-                    tooltip: 'Comidas guardadas',
+                    tooltip: _savedTooltip(context),
                   ),
                 ],
               ),
@@ -142,7 +144,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       .map(
                         (filter) => ButtonSegment<_QuickGymMealsFilter>(
                           value: filter,
-                          label: Text(_labelForFilter(filter)),
+                          label: Text(_labelForFilter(context, filter)),
                         ),
                       )
                       .toList(),
@@ -182,8 +184,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       ),
                       child: Text(
                         _selectedFilter == _QuickGymMealsFilter.all
-                            ? 'Guarda comidas como recetas para tenerlas siempre a mano.'
-                            : 'Aun no hay recetas rapidas en este carril. Anade una con pre, post, shake o cut en el nombre.',
+                            ? _emptyAll(context)
+                            : _emptyFiltered(context),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     );
@@ -197,6 +199,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                             child: _QuickRecipeTile(
                               preset: preset,
                               onAddPressed: () => _logPreset(context, preset),
+                              onLongPress: () =>
+                                  _handlePresetLongPress(context, preset),
                             ),
                           ),
                         )
@@ -229,10 +233,57 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${preset.recipe.name} anadida a ${_slotLabel(preset.defaultIntakeType)}',
+            _addedTo(
+              context,
+              preset.recipe.name,
+              _slotLabel(context, preset.defaultIntakeType),
+            ),
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _handlePresetLongPress(
+    BuildContext context,
+    QuickRecipePresetEntity preset,
+  ) async {
+    if (!preset.recipe.favorite) {
+      return;
+    }
+
+    final shouldRemove = await showModalBottomSheet<bool>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.heart_broken_outlined),
+                title: Text(S.of(context).recipeLibraryRemoveFavorite),
+                onTap: () => Navigator.of(sheetContext).pop(true),
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: Text(S.of(context).dialogCancelLabel),
+                onTap: () => Navigator.of(sheetContext).pop(false),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (shouldRemove != true) {
+      return;
+    }
+
+    await locator<SetRecipeFavoriteUsecase>()
+        .setFavorite(preset.recipe.id, false);
+
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -269,113 +320,176 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     }
   }
 
-  String _labelForFilter(_QuickGymMealsFilter filter) {
+  String _labelForFilter(BuildContext context, _QuickGymMealsFilter filter) {
     switch (filter) {
       case _QuickGymMealsFilter.all:
-        return 'Todo';
+        return _isEs(context) ? 'Todo' : 'All';
       case _QuickGymMealsFilter.preWorkout:
-        return 'Pre';
+        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
       case _QuickGymMealsFilter.postWorkout:
-        return 'Post';
+        return _isEs(context) ? 'Postentreno' : 'Post-workout';
       case _QuickGymMealsFilter.shake:
-        return 'Batido';
+        return _isEs(context) ? 'Batido' : 'Shake';
       case _QuickGymMealsFilter.leanMeal:
-        return 'Lean';
+        return _isEs(context) ? 'Ligera' : 'Light meal';
     }
   }
 
-  String _slotLabel(IntakeTypeEntity intakeType) {
+  String _slotLabel(BuildContext context, IntakeTypeEntity intakeType) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return 'desayuno';
+        return isEs ? 'desayuno' : 'breakfast';
       case IntakeTypeEntity.lunch:
-        return 'comida';
+        return isEs ? 'comida' : 'lunch';
       case IntakeTypeEntity.dinner:
-        return 'cena';
+        return isEs ? 'cena' : 'dinner';
       case IntakeTypeEntity.snack:
         return 'snack';
     }
   }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
+  }
+
+  String _title(BuildContext context) =>
+      _isEs(context) ? 'Comidas rápidas' : 'Quick meals';
+
+  String _subtitle(BuildContext context) => _isEs(context)
+      ? 'Tira primero de tus recetas guardadas. Un toque registra una ración.'
+      : 'Use your saved recipes first. One tap logs a serving fast.';
+
+  String _savedTooltip(BuildContext context) =>
+      _isEs(context) ? 'Abrir comidas guardadas' : 'Open saved meals';
+
+  String _emptyAll(BuildContext context) => _isEs(context)
+      ? 'Guarda comidas como recetas para tenerlas a un toque aquí.'
+      : 'Save meals as recipes to keep them one tap away here.';
+
+  String _emptyFiltered(BuildContext context) => _isEs(context)
+      ? 'Aún no hay comidas rápidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor después.'
+      : 'No quick meals in this lane yet. Use clear workout-style names so they are easier to recognize later.';
+
+  String _addedTo(BuildContext context, String recipe, String slot) =>
+      _isEs(context) ? '$recipe añadida a $slot' : '$recipe added to $slot';
 }
 
 class _QuickRecipeTile extends StatelessWidget {
   final QuickRecipePresetEntity preset;
   final VoidCallback onAddPressed;
+  final VoidCallback onLongPress;
 
   const _QuickRecipeTile({
     required this.preset,
     required this.onAddPressed,
+    required this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+        onLongPress: onLongPress,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      preset.recipe.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: onAddPressed,
+                    icon: const Icon(Icons.add),
+                    tooltip: _isEs(context)
+                        ? 'Registrar una ración'
+                        : 'Log one serving',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _InfoChip(
+                    icon: preset.category.icon,
+                    label: _categoryLabel(context, preset.category),
+                  ),
+                  _InfoChip(
+                    icon: Icons.local_fire_department_outlined,
+                    label: '${preset.kcalPerServing.toStringAsFixed(0)} kcal',
+                  ),
+                  _InfoChip(
+                    icon: Icons.egg_alt_outlined,
+                    label: _proteinShort(context, preset.proteinPerServing),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _macrosSummary(context),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  preset.recipe.name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ),
-              if (preset.recipe.favorite)
-                Icon(
-                  Icons.favorite,
-                  size: 16,
-                  color: colorScheme.error,
-                ),
-              const SizedBox(width: 6),
-              IconButton.filledTonal(
-                onPressed: onAddPressed,
-                icon: const Icon(Icons.add),
-                tooltip: 'Registrar una racion',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _InfoChip(
-                icon: preset.category.icon,
-                label: preset.category.label,
-              ),
-              _InfoChip(
-                icon: Icons.local_fire_department_outlined,
-                label: '${preset.kcalPerServing.toStringAsFixed(0)} kcal',
-              ),
-              _InfoChip(
-                icon: Icons.egg_alt_outlined,
-                label: 'P ${preset.proteinPerServing.toStringAsFixed(1)}',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'C ${preset.carbsPerServing.toStringAsFixed(1)} | F ${preset.fatPerServing.toStringAsFixed(1)} | P ${preset.proteinPerServing.toStringAsFixed(1)}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
     );
+  }
+
+  String _categoryLabel(
+    BuildContext context,
+    QuickRecipeCategoryEntity category,
+  ) {
+    switch (category) {
+      case QuickRecipeCategoryEntity.preWorkout:
+        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
+      case QuickRecipeCategoryEntity.postWorkout:
+        return _isEs(context) ? 'Postentreno' : 'Post-workout';
+      case QuickRecipeCategoryEntity.shake:
+        return _isEs(context) ? 'Batido' : 'Shake';
+      case QuickRecipeCategoryEntity.leanMeal:
+        return _isEs(context) ? 'Ligera' : 'Light meal';
+    }
+  }
+
+  String _proteinShort(BuildContext context, double amount) {
+    return _isEs(context)
+        ? 'P ${amount.toStringAsFixed(1)}'
+        : 'P ${amount.toStringAsFixed(1)}';
+  }
+
+  String _macrosSummary(BuildContext context) {
+    final carbs = preset.carbsPerServing.toStringAsFixed(1);
+    final fat = preset.fatPerServing.toStringAsFixed(1);
+    final protein = preset.proteinPerServing.toStringAsFixed(1);
+    return 'C $carbs | F $fat | P $protein';
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
   }
 }
 

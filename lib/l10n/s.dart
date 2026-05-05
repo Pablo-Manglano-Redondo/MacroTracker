@@ -176,6 +176,96 @@ abstract class AppLocalizations {
   /// **'Search'**
   String get searchLabel;
 
+  /// No description provided for @addMealQuickActionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick shortcuts'**
+  String get addMealQuickActionsTitle;
+
+  /// No description provided for @addMealQuickActionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with barcode, photo, text, or saved meals. If you search, choose the source below.'**
+  String get addMealQuickActionsSubtitle;
+
+  /// No description provided for @addMealTabPackaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaged'**
+  String get addMealTabPackaged;
+
+  /// No description provided for @addMealTabGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic foods'**
+  String get addMealTabGeneric;
+
+  /// No description provided for @addMealTabRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent history'**
+  String get addMealTabRecent;
+
+  /// No description provided for @addMealTabPackagedHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this for supermarket products and branded items.'**
+  String get addMealTabPackagedHelper;
+
+  /// No description provided for @addMealTabGenericHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this for simple foods like rice, chicken, fruit, or oats.'**
+  String get addMealTabGenericHelper;
+
+  /// No description provided for @addMealTabRecentHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Reuse something you logged recently.'**
+  String get addMealTabRecentHelper;
+
+  /// No description provided for @addMealSectionPackagedResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Packaged results'**
+  String get addMealSectionPackagedResults;
+
+  /// No description provided for @addMealSectionGenericResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Generic food results'**
+  String get addMealSectionGenericResults;
+
+  /// No description provided for @addMealSectionRecentResults.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent meals'**
+  String get addMealSectionRecentResults;
+
+  /// No description provided for @addMealRecentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No recent meals yet.\nLog a meal once and it will appear here.'**
+  String get addMealRecentEmpty;
+
+  /// No description provided for @addMealSearchPromptPackaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a packaged product or use barcode.'**
+  String get addMealSearchPromptPackaged;
+
+  /// No description provided for @addMealSearchPromptGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Search a generic food like rice, eggs, or yogurt.'**
+  String get addMealSearchPromptGeneric;
+
+  /// No description provided for @addMealSearchPromptRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'Search your recent history or open saved meals.'**
+  String get addMealSearchPromptRecent;
+
   /// No description provided for @searchProductsPage.
   ///
   /// In en, this message translates to:
@@ -2949,6 +3039,12 @@ abstract class AppLocalizations {
   /// **'Use a frequent meal, recipe, or previous correction if it looks more like what you ate.'**
   String get aiMatchesHint;
 
+  /// No description provided for @aiMatchesReferenceHint.
+  ///
+  /// In en, this message translates to:
+  /// **'This is only a reference. It will never be added to your meal automatically.'**
+  String get aiMatchesReferenceHint;
+
   /// No description provided for @aiButtonUse.
   ///
   /// In en, this message translates to:
@@ -3045,6 +3141,18 @@ abstract class AppLocalizations {
   /// **'Amount'**
   String get aiAmountLabel;
 
+  /// No description provided for @aiEditMacrosTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit macros'**
+  String get aiEditMacrosTitle;
+
+  /// No description provided for @aiEditMacrosLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Macros'**
+  String get aiEditMacrosLabel;
+
   /// No description provided for @aiMatchHigh.
   ///
   /// In en, this message translates to:
@@ -3134,6 +3242,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} portions'**
   String macroSuggestionsServingsPortions(Object count);
+
+  /// No description provided for @homeDashboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gym nutrition'**
+  String get homeDashboardTitle;
+
+  /// No description provided for @homeDashboardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today at a glance.'**
+  String get homeDashboardSubtitle;
+
+  /// No description provided for @homeDashboardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a meal or workout to unlock better guidance.'**
+  String get homeDashboardEmpty;
+
+  /// No description provided for @homeDashboardGoalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal'**
+  String get homeDashboardGoalLabel;
+
+  /// No description provided for @homeDashboardFocusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get homeDashboardFocusLabel;
+
+  /// No description provided for @homeDashboardMealsChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} meals'**
+  String homeDashboardMealsChip(Object count);
+
+  /// No description provided for @homeDashboardBurnedChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} burned'**
+  String homeDashboardBurnedChip(Object count);
+
+  /// No description provided for @homeDashboardSessionsChip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sessions'**
+  String homeDashboardSessionsChip(Object count);
+
+  /// No description provided for @homeDashboardProteinRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein left'**
+  String get homeDashboardProteinRemaining;
+
+  /// No description provided for @homeDashboardKcalRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Kcal left'**
+  String get homeDashboardKcalRemaining;
+
+  /// No description provided for @homeDashboardOverGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Over goal'**
+  String get homeDashboardOverGoal;
+
+  /// No description provided for @homeDashboardKcalProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} of {goal} kcal'**
+  String homeDashboardKcalProgress(Object current, Object goal);
+
+  /// No description provided for @homeDashboardMacroDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal reached'**
+  String get homeDashboardMacroDone;
+
+  /// No description provided for @homeDashboardStatusDefClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Definition on track. Keep the last meal high in protein.'**
+  String get homeDashboardStatusDefClosing;
+
+  /// No description provided for @homeDashboardStatusBulkOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'You still have room. Add easy carbs and protein.'**
+  String get homeDashboardStatusBulkOpen;
+
+  /// No description provided for @homeDashboardStatusProteinGap.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein is still the main gap. Prioritize it next meal.'**
+  String get homeDashboardStatusProteinGap;
+
+  /// No description provided for @homeDashboardStatusCarbWindow.
+  ///
+  /// In en, this message translates to:
+  /// **'You still have carb room. Good moment for training fuel.'**
+  String get homeDashboardStatusCarbWindow;
+
+  /// No description provided for @homeDashboardStatusRestClosing.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day almost closed. Finish light and protein-first.'**
+  String get homeDashboardStatusRestClosing;
+
+  /// No description provided for @homeDashboardStatusOverGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'You are above target. Keep the rest of the day tighter.'**
+  String get homeDashboardStatusOverGoal;
+
+  /// No description provided for @homeDashboardStatusDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Good pace. Keep it simple and close the day clean.'**
+  String get homeDashboardStatusDefault;
 
   /// No description provided for @hydrationAddWater.
   ///
@@ -3381,6 +3609,42 @@ abstract class AppLocalizations {
   /// **'{name} added'**
   String recipeLibraryAddedSnackbar(Object name);
 
+  /// No description provided for @recipeLibraryIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'One library, two sources: meals you save manually and repeated meals detected automatically.'**
+  String get recipeLibraryIntro;
+
+  /// No description provided for @recipeLibraryManualSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved recipes'**
+  String get recipeLibraryManualSectionTitle;
+
+  /// No description provided for @recipeLibraryManualSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'You save these on purpose to reuse them whenever you want.'**
+  String get recipeLibraryManualSectionSubtitle;
+
+  /// No description provided for @recipeLibraryFrequentSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeated suggestions'**
+  String get recipeLibraryFrequentSectionTitle;
+
+  /// No description provided for @recipeLibraryFrequentSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected from your history so you can repeat them faster.'**
+  String get recipeLibraryFrequentSectionSubtitle;
+
+  /// No description provided for @recipeLibraryFrequentUses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} times'**
+  String recipeLibraryFrequentUses(Object count);
+
   /// No description provided for @settingsAiCostLabel.
   ///
   /// In en, this message translates to:
@@ -3549,6 +3813,126 @@ abstract class AppLocalizations {
   /// **'Manual'**
   String get habitSourceManual;
 
+  /// No description provided for @habitSourceSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced source'**
+  String get habitSourceSynced;
+
+  /// No description provided for @habitSourceManualAdjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual adjustment'**
+  String get habitSourceManualAdjust;
+
+  /// No description provided for @gymHabitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Habits and recovery'**
+  String get gymHabitsTitle;
+
+  /// No description provided for @gymHabitsCompletedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}/7 today'**
+  String gymHabitsCompletedToday(Object count);
+
+  /// No description provided for @gymHabitsSleepTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep'**
+  String get gymHabitsSleepTitle;
+
+  /// No description provided for @gymHabitsStepsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Steps'**
+  String get gymHabitsStepsTitle;
+
+  /// No description provided for @gymHabitsEnergyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy'**
+  String get gymHabitsEnergyTitle;
+
+  /// No description provided for @gymHabitsSleepTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal {amount} h'**
+  String gymHabitsSleepTarget(Object amount);
+
+  /// No description provided for @gymHabitsStepsTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Goal {amount}'**
+  String gymHabitsStepsTarget(Object amount);
+
+  /// No description provided for @gymHabitsSourceHealthConnectDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Main value from Health Connect'**
+  String get gymHabitsSourceHealthConnectDetail;
+
+  /// No description provided for @gymHabitsSourceManualDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Main value entered manually'**
+  String get gymHabitsSourceManualDetail;
+
+  /// No description provided for @gymHabitsManualAdjustHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Use +/- only if you need to correct the value.'**
+  String get gymHabitsManualAdjustHint;
+
+  /// No description provided for @gymHabitsFocusLowerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Leg day'**
+  String get gymHabitsFocusLowerBody;
+
+  /// No description provided for @gymHabitsFocusUpperBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Upper body day'**
+  String get gymHabitsFocusUpperBody;
+
+  /// No description provided for @gymHabitsFocusCardio.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardio day'**
+  String get gymHabitsFocusCardio;
+
+  /// No description provided for @gymHabitsFocusRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Rest day'**
+  String get gymHabitsFocusRest;
+
+  /// No description provided for @gymHabitsHydrationHintLowerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Higher hydration target for leg day: {goal}.'**
+  String gymHabitsHydrationHintLowerBody(Object goal);
+
+  /// No description provided for @gymHabitsHydrationHintUpperBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep hydration high today: {goal}.'**
+  String gymHabitsHydrationHintUpperBody(Object goal);
+
+  /// No description provided for @gymHabitsHydrationHintCardio.
+  ///
+  /// In en, this message translates to:
+  /// **'Prioritize fluids today: {goal}.'**
+  String gymHabitsHydrationHintCardio(Object goal);
+
+  /// No description provided for @gymHabitsHydrationHintRest.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep hydration steady today: {goal}.'**
+  String gymHabitsHydrationHintRest(Object goal);
+
   /// No description provided for @homeWeeklyInsightsSubtitle.
   ///
   /// In en, this message translates to:
@@ -3578,6 +3962,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Saved'**
   String get addMealSaved;
+
+  /// No description provided for @quickMealsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick meals'**
+  String get quickMealsTitle;
+
+  /// No description provided for @quickMealsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Use your saved recipes first. One tap logs a serving fast.'**
+  String get quickMealsSubtitle;
+
+  /// No description provided for @quickMealsSavedTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Open saved meals'**
+  String get quickMealsSavedTooltip;
+
+  /// No description provided for @quickMealsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get quickMealsFilterAll;
+
+  /// No description provided for @quickMealsFilterPreWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Before workout'**
+  String get quickMealsFilterPreWorkout;
+
+  /// No description provided for @quickMealsFilterPostWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'After workout'**
+  String get quickMealsFilterPostWorkout;
+
+  /// No description provided for @quickMealsFilterShake.
+  ///
+  /// In en, this message translates to:
+  /// **'Shake'**
+  String get quickMealsFilterShake;
+
+  /// No description provided for @quickMealsFilterLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light meal'**
+  String get quickMealsFilterLight;
+
+  /// No description provided for @quickMealsEmptyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save meals as recipes to keep them one tap away here.'**
+  String get quickMealsEmptyAll;
+
+  /// No description provided for @quickMealsEmptyFiltered.
+  ///
+  /// In en, this message translates to:
+  /// **'No quick meals in this lane yet. Use clear workout-style names so they are easier to recognize later.'**
+  String get quickMealsEmptyFiltered;
+
+  /// No description provided for @quickMealsAddedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'{recipe} added to {slot}'**
+  String quickMealsAddedTo(Object recipe, Object slot);
+
+  /// No description provided for @quickMealsLogServing.
+  ///
+  /// In en, this message translates to:
+  /// **'Log one serving'**
+  String get quickMealsLogServing;
+
+  /// No description provided for @quickMealsProteinShort.
+  ///
+  /// In en, this message translates to:
+  /// **'P {amount}'**
+  String quickMealsProteinShort(Object amount);
+
+  /// No description provided for @quickMealsMacrosSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'C {carbs} | F {fat} | P {protein}'**
+  String quickMealsMacrosSummary(Object carbs, Object fat, Object protein);
 
   /// No description provided for @diaryDayCopied.
   ///

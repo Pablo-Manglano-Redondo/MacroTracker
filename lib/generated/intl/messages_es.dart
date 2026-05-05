@@ -112,6 +112,39 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m42(age) => "${age} años";
 
+  static String m43(count) => "${count} comidas";
+
+  static String m44(count) => "${count} cals";
+
+  static String m45(count) => "${count} sesiones";
+
+  static String m46(current, goal) => "${current} de ${goal} kcal";
+
+  static String m47(count) => "${count} usos";
+
+  static String m48(count) => "${count}/7 hoy";
+
+  static String m49(amount) => "Objetivo ${amount} h";
+
+  static String m50(amount) => "Objetivo ${amount}";
+
+  static String m51(goal) => "En pierna sube hidrataciÃ³n: objetivo ${goal}.";
+
+  static String m52(goal) =>
+      "En torso mantÃ©n hidrataciÃ³n alta: objetivo ${goal}.";
+
+  static String m53(goal) => "En cardio prioriza lÃ­quidos: objetivo ${goal}.";
+
+  static String m54(goal) =>
+      "En descanso mantÃ©n hidrataciÃ³n: objetivo ${goal}.";
+
+  static String m55(recipe, slot) => "${recipe} aÃ±adida a ${slot}";
+
+  static String m56(amount) => "P ${amount}";
+
+  static String m57(carbs, fat, protein) =>
+      "C ${carbs} | F ${fat} | P ${protein}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -120,9 +153,34 @@ class MessageLookup extends MessageLookupByLibrary {
         "addItemLabel":
             MessageLookupByLibrary.simpleMessage("Añadir nuevo elemento:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Añadir"),
+        "addMealQuickActionsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Empieza con barras, foto, texto o guardadas. Si buscas, elige abajo la fuente."),
+        "addMealQuickActionsTitle":
+            MessageLookupByLibrary.simpleMessage("Atajos de entrada"),
+        "addMealRecentEmpty": MessageLookupByLibrary.simpleMessage(
+            "Aun no hay comidas recientes.\nRegistra una y aparecera aqui."),
         "addMealBarcode": MessageLookupByLibrary.simpleMessage("Barras"),
         "addMealPhoto": MessageLookupByLibrary.simpleMessage("Foto"),
         "addMealSaved": MessageLookupByLibrary.simpleMessage("Guardadas"),
+        "addMealSearchPromptGeneric": MessageLookupByLibrary.simpleMessage(
+            "Busca un alimento generico como arroz, huevos o yogur."),
+        "addMealSearchPromptPackaged": MessageLookupByLibrary.simpleMessage(
+            "Busca un producto envasado o usa el codigo de barras."),
+        "addMealSectionGenericResults":
+            MessageLookupByLibrary.simpleMessage("Resultados genericos"),
+        "addMealSectionPackagedResults":
+            MessageLookupByLibrary.simpleMessage("Resultados envasados"),
+        "addMealSectionRecentResults":
+            MessageLookupByLibrary.simpleMessage("Comidas recientes"),
+        "addMealTabGeneric": MessageLookupByLibrary.simpleMessage("Genericos"),
+        "addMealTabGenericHelper": MessageLookupByLibrary.simpleMessage(
+            "Usalo para alimentos simples como arroz, pollo, fruta o avena."),
+        "addMealTabPackaged": MessageLookupByLibrary.simpleMessage("Envasados"),
+        "addMealTabPackagedHelper": MessageLookupByLibrary.simpleMessage(
+            "Usalo para productos de supermercado y marcas."),
+        "addMealTabRecent": MessageLookupByLibrary.simpleMessage("Historial"),
+        "addMealTabRecentHelper": MessageLookupByLibrary.simpleMessage(
+            "Repite algo que ya registraste hace poco."),
         "addMealText": MessageLookupByLibrary.simpleMessage("Texto"),
         "additionalInfoLabelCompendium2011": MessageLookupByLibrary.simpleMessage(
             "Información proporcionada\npor el\n\'Compendio 2011\nde actividades físicas\'"),
@@ -170,6 +228,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "aiDraftNotFound": MessageLookupByLibrary.simpleMessage(
             "Borrador no encontrado o caducado."),
         "aiEditAmountTitle": m2,
+        "aiEditMacrosLabel": MessageLookupByLibrary.simpleMessage("Macros"),
+        "aiEditMacrosTitle":
+            MessageLookupByLibrary.simpleMessage("Editar macros"),
         "aiEditableLabel": MessageLookupByLibrary.simpleMessage("Editable"),
         "aiErrorGeneric": MessageLookupByLibrary.simpleMessage(
             "Falló la interpretación remota de imagen. Se creó un borrador local con apoyo de memoria."),
@@ -217,6 +278,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Coincidencia alta"),
         "aiMatchPossible":
             MessageLookupByLibrary.simpleMessage("Coincidencia posible"),
+        "aiMatchesReferenceHint": MessageLookupByLibrary.simpleMessage(
+            "Solo es una referencia. Nunca se añadirá automáticamente a tu comida."),
         "aiMatchesHint": MessageLookupByLibrary.simpleMessage(
             "Usa una comida frecuente, receta o corrección previa si se parece más a lo que has comido."),
         "aiMealPhotoTitle":
@@ -506,9 +569,40 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mantener peso"),
         "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
         "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
+        "gymHabitsCompletedToday": m48,
+        "gymHabitsEnergyTitle": MessageLookupByLibrary.simpleMessage("Energia"),
+        "gymHabitsFocusCardio":
+            MessageLookupByLibrary.simpleMessage("Dia de cardio"),
+        "gymHabitsFocusLowerBody":
+            MessageLookupByLibrary.simpleMessage("Dia de pierna"),
+        "gymHabitsFocusRest":
+            MessageLookupByLibrary.simpleMessage("Dia de descanso"),
+        "gymHabitsFocusUpperBody":
+            MessageLookupByLibrary.simpleMessage("Dia de torso"),
+        "gymHabitsHydrationHintCardio": m53,
+        "gymHabitsHydrationHintLowerBody": m51,
+        "gymHabitsHydrationHintRest": m54,
+        "gymHabitsHydrationHintUpperBody": m52,
+        "gymHabitsManualAdjustHint": MessageLookupByLibrary.simpleMessage(
+            "Usa +/- solo si necesitas corregir el valor."),
+        "gymHabitsSleepTarget": m49,
+        "gymHabitsSleepTitle": MessageLookupByLibrary.simpleMessage("Sueno"),
+        "gymHabitsSourceHealthConnectDetail":
+            MessageLookupByLibrary.simpleMessage(
+                "Dato principal sincronizado desde Health Connect"),
+        "gymHabitsSourceManualDetail": MessageLookupByLibrary.simpleMessage(
+            "Dato principal introducido manualmente"),
+        "gymHabitsStepsTarget": m50,
+        "gymHabitsStepsTitle": MessageLookupByLibrary.simpleMessage("Pasos"),
+        "gymHabitsTitle":
+            MessageLookupByLibrary.simpleMessage("Habitos y recuperacion"),
         "habitSourceHealthConnect":
             MessageLookupByLibrary.simpleMessage("Health Connect"),
+        "habitSourceManualAdjust":
+            MessageLookupByLibrary.simpleMessage("Ajuste manual"),
         "habitSourceManual": MessageLookupByLibrary.simpleMessage("Manual"),
+        "habitSourceSynced":
+            MessageLookupByLibrary.simpleMessage("Fuente sincronizada"),
         "healthConnectAutoSyncDisabledMessage":
             MessageLookupByLibrary.simpleMessage(
                 "Auto-sync de Health Connect desactivado."),
@@ -553,6 +647,42 @@ class MessageLookup extends MessageLookupByLibrary {
         "heightLabel": MessageLookupByLibrary.simpleMessage("Altura"),
         "historyLabel": MessageLookupByLibrary.simpleMessage("Historial"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Inicio"),
+        "homeDashboardBurnedChip": m44,
+        "homeDashboardEmpty": MessageLookupByLibrary.simpleMessage(
+            "Registra una comida o un entreno para activar mejor contexto."),
+        "homeDashboardFocusLabel":
+            MessageLookupByLibrary.simpleMessage("Enfoque"),
+        "homeDashboardGoalLabel":
+            MessageLookupByLibrary.simpleMessage("Objetivo"),
+        "homeDashboardKcalProgress": m46,
+        "homeDashboardKcalRemaining":
+            MessageLookupByLibrary.simpleMessage("Kcal restantes"),
+        "homeDashboardMacroDone":
+            MessageLookupByLibrary.simpleMessage("Objetivo cumplido"),
+        "homeDashboardMealsChip": m43,
+        "homeDashboardOverGoal":
+            MessageLookupByLibrary.simpleMessage("Sobre objetivo"),
+        "homeDashboardProteinRemaining":
+            MessageLookupByLibrary.simpleMessage("Proteina restante"),
+        "homeDashboardSessionsChip": m45,
+        "homeDashboardStatusBulkOpen": MessageLookupByLibrary.simpleMessage(
+            "Aun tienes margen. Mete carbohidrato facil y proteina."),
+        "homeDashboardStatusCarbWindow": MessageLookupByLibrary.simpleMessage(
+            "Aun tienes margen de carbohidratos. Buen momento para meter energia de entreno."),
+        "homeDashboardStatusDefClosing": MessageLookupByLibrary.simpleMessage(
+            "La definicion va en ritmo. Cierra con proteina alta."),
+        "homeDashboardStatusDefault": MessageLookupByLibrary.simpleMessage(
+            "Buen ritmo. Mantenlo simple y cierra limpio."),
+        "homeDashboardStatusOverGoal": MessageLookupByLibrary.simpleMessage(
+            "Vas por encima del objetivo. Manten el resto del dia mas controlado."),
+        "homeDashboardStatusProteinGap": MessageLookupByLibrary.simpleMessage(
+            "La principal brecha sigue siendo la proteina. Priorizala en la siguiente comida."),
+        "homeDashboardStatusRestClosing": MessageLookupByLibrary.simpleMessage(
+            "Dia de descanso casi cerrado. Termina ligero y con proteina."),
+        "homeDashboardSubtitle":
+            MessageLookupByLibrary.simpleMessage("Lo importante de hoy."),
+        "homeDashboardTitle":
+            MessageLookupByLibrary.simpleMessage("Nutricion de gimnasio"),
         "homePerformanceSummary":
             MessageLookupByLibrary.simpleMessage("Resumen de rendimiento"),
         "homeWeeklyInsightsSubtitle": MessageLookupByLibrary.simpleMessage(
@@ -1083,6 +1213,28 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileYourProfileSubtitle": MessageLookupByLibrary.simpleMessage(
             "Ajusta tus datos base para que calorías, macros y recomendaciones sean coherentes."),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("proteínas"),
+        "quickMealsAddedTo": m55,
+        "quickMealsEmptyAll": MessageLookupByLibrary.simpleMessage(
+            "Guarda comidas como recetas para tenerlas a un toque aqui."),
+        "quickMealsEmptyFiltered": MessageLookupByLibrary.simpleMessage(
+            "Aun no hay comidas rapidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor despues."),
+        "quickMealsFilterAll": MessageLookupByLibrary.simpleMessage("Todo"),
+        "quickMealsFilterLight": MessageLookupByLibrary.simpleMessage("Ligera"),
+        "quickMealsFilterPostWorkout":
+            MessageLookupByLibrary.simpleMessage("Despues de entrenar"),
+        "quickMealsFilterPreWorkout":
+            MessageLookupByLibrary.simpleMessage("Antes de entrenar"),
+        "quickMealsFilterShake": MessageLookupByLibrary.simpleMessage("Batido"),
+        "quickMealsLogServing":
+            MessageLookupByLibrary.simpleMessage("Registrar una racion"),
+        "quickMealsMacrosSummary": m57,
+        "quickMealsProteinShort": m56,
+        "quickMealsSavedTooltip":
+            MessageLookupByLibrary.simpleMessage("Abrir comidas guardadas"),
+        "quickMealsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Tira primero de tus recetas guardadas. Un toque registra una racion."),
+        "quickMealsTitle":
+            MessageLookupByLibrary.simpleMessage("Comidas rapidas"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Cantidad"),
         "readLabel": MessageLookupByLibrary.simpleMessage(
             "He leído y acepto la política de privacidad."),
@@ -1090,9 +1242,22 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeLibraryAddedSnackbar": m27,
         "recipeLibraryEmpty": MessageLookupByLibrary.simpleMessage(
             "Aun no hay comidas guardadas.\nGuarda comidas como recetas para reutilizarlas."),
+        "recipeLibraryFrequentSectionSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Se detectan desde tu historial para repetirlas mas rapido."),
+        "recipeLibraryFrequentSectionTitle":
+            MessageLookupByLibrary.simpleMessage("Sugeridas por repeticion"),
+        "recipeLibraryFrequentUses": m47,
         "recipeLibraryFavorite":
             MessageLookupByLibrary.simpleMessage("Favorita"),
         "recipeLibraryIngredientsCount": m28,
+        "recipeLibraryIntro": MessageLookupByLibrary.simpleMessage(
+            "Una sola libreria, dos fuentes: recetas que guardas a mano y comidas repetidas detectadas automaticamente."),
+        "recipeLibraryManualSectionSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Las guardas a proposito para reutilizarlas cuando quieras."),
+        "recipeLibraryManualSectionTitle":
+            MessageLookupByLibrary.simpleMessage("Recetas guardadas"),
         "recipeLibraryMarkFavorite":
             MessageLookupByLibrary.simpleMessage("Marcar favorita"),
         "recipeLibraryRemoveFavorite":

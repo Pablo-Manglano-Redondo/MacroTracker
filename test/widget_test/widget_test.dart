@@ -8,10 +8,10 @@ import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget
 import 'package:macrotracker/generated/l10n.dart';
 
 void main() {
-  testWidgets('DashboardWidget displays correct data',
+  testWidgets('DashboardWidget displays updated summary copy',
       (WidgetTester tester) async {
-    // Build our app and trigger a frame.
     await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
       localizationsDelegates: const [
         S.delegate,
         GlobalMaterialLocalizations.delegate,
@@ -45,15 +45,14 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Nutrición de gimnasio'), findsOneWidget);
-    expect(find.text('4 comidas registradas'), findsOneWidget);
-    expect(find.text('500 quemadas'), findsOneWidget);
+    expect(find.text('4 comidas'), findsOneWidget);
+    expect(find.text('500 cals'), findsOneWidget);
     expect(find.text('1 sesiones'), findsOneWidget);
     expect(find.text('Proteína restante'), findsOneWidget);
     expect(find.text('Kcal restantes'), findsOneWidget);
-    expect(find.text('Día de torso: rendimiento estable con buena recuperación.'),
-        findsOneWidget);
+    expect(find.text('Torso: rinde y recupera bien.'), findsOneWidget);
     expect(find.text('Volumen'), findsOneWidget);
-    expect(find.text('Torso'), findsOneWidget);
+    expect(find.text('Torso'), findsWidgets);
 
     final counters = tester.widgetList<AnimatedFlipCounter>(
       find.byType(AnimatedFlipCounter),

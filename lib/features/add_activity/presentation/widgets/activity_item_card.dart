@@ -13,45 +13,71 @@ class ActivityItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        side: BorderSide(color: Theme.of(context).colorScheme.outline),
-        borderRadius: const BorderRadius.all(Radius.circular(12)),
-      ),
-      child: InkWell(
-        child: SizedBox(
-          height: 100,
-          child: Center(
-            child: ListTile(
-              leading: CircleAvatar(
-                radius: 40,
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondaryContainer,
-                child: Icon(physicalActivityEntity.displayIcon,
-                    color: Theme.of(context).colorScheme.onSecondaryContainer),
-              ),
-              title: AutoSizeText(
-                physicalActivityEntity.getName(context),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: AutoSizeText(
-                physicalActivityEntity.getDescription(context),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: IconButton(
-                style: IconButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onSurface),
-                icon: const Icon(Icons.add_outlined),
-                onPressed: () => _onItemPressed(context),
-              ),
-              onTap: () => _onItemPressed(context),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Card(
+        elevation: 2,
+        shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+        ),
+        child: InkWell(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          onTap: () => _onItemPressed(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    physicalActivityEntity.displayIcon,
+                    size: 28,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        physicalActivityEntity.getName(context),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        physicalActivityEntity.getDescription(context),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 8),
+              ],
             ),
           ),
         ),

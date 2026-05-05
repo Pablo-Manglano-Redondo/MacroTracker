@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
-import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class GymHabitsCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
@@ -28,6 +28,21 @@ class GymHabitsCard extends StatefulWidget {
 class _GymHabitsCardState extends State<GymHabitsCard> {
   int _refreshSeed = 0;
   DailyHabitLogEntity? _cachedLog;
+  late Future<DailyHabitLogEntity> _logFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _logFuture = _loadLog(0);
+  }
+
+  @override
+  void didUpdateWidget(covariant GymHabitsCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.refreshSeed != widget.refreshSeed) {
+      _logFuture = _loadLog(_refreshSeed + widget.refreshSeed);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,16 +57,17 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<DailyHabitLogEntity>(
-            future: _loadLog(_refreshSeed + widget.refreshSeed),
+            future: _logFuture,
             builder: (context, snapshot) {
-              // Use cached data to avoid height change during refresh
-              final log = snapshot.data ?? _cachedLog ?? DailyHabitLogEntity.empty(DateTime.now());
+              final log = snapshot.data ??
+                  _cachedLog ??
+                  DailyHabitLogEntity.empty(DateTime.now());
               if (snapshot.hasData && snapshot.data != null) {
                 _cachedLog = snapshot.data;
               }
 
-              // Only show spinner on first load (no cached data yet)
-              if (_cachedLog == null && snapshot.connectionState != ConnectionState.done) {
+              if (_cachedLog == null &&
+                  snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 168,
                   child: Center(child: CircularProgressIndicator()),
@@ -78,12 +94,12 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Suplementos y hábitos',
+                          _title(context),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ),
                       Text(
-                        '$completedCount/7 hoy',
+                        _completedToday(context, completedCount),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -102,7 +118,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                         ),
                         const SizedBox(width: 8),
                         _HabitStatusPill(
-                          label: _focusLabel(widget.dailyFocus),
+                          label: _focusLabel(context, widget.dailyFocus),
                           icon: _focusIcon(widget.dailyFocus),
                           foreground: Theme.of(context).colorScheme.tertiary,
                           background: Theme.of(context)
@@ -125,7 +141,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           label: 'Creat.',
                           icon: Icons.bolt_outlined,
                           selected: log.creatineTaken,
-                          onSelected: (value) => _setHabit(creatineTaken: value),
+                          onSelected: (value) =>
+                              _setHabit(creatineTaken: value),
                         ),
                         _HabitChip(
                           label: 'Prot.',
@@ -137,7 +154,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           label: 'Caf.',
                           icon: Icons.coffee_outlined,
                           selected: log.caffeineTaken,
-                          onSelected: (value) => _setHabit(caffeineTaken: value),
+                          onSelected: (value) =>
+                              _setHabit(caffeineTaken: value),
                         ),
                       ],
                     ),
@@ -150,7 +168,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              S.of(context).hydrationTitle,
+                              _hydrationTitle(context),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: 4),
@@ -164,12 +182,12 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                       IconButton(
                         onPressed: () => _adjustWater(-0.25),
                         icon: const Icon(Icons.remove),
-                        tooltip: S.of(context).hydrationRemoveWater,
+                        tooltip: _removeWaterTooltip(context),
                       ),
                       IconButton(
                         onPressed: () => _adjustWater(0.25),
                         icon: const Icon(Icons.add),
-                        tooltip: S.of(context).hydrationAddWater,
+                        tooltip: _addWaterTooltip(context),
                       ),
                     ],
                   ),
@@ -187,7 +205,11 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _hydrationHint(widget.dailyFocus, hydrationGoalLiters),
+                    _hydrationHint(
+                      context,
+                      widget.dailyFocus,
+                      hydrationGoalLiters,
+                    ),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   const SizedBox(height: 16),
@@ -195,44 +217,53 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                     children: [
                       Expanded(
                         child: _MetricAdjuster(
-                          label: 'Sueño',
+                          label: _sleepTitle(context),
                           value:
                               '${log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1)} h',
-                          target:
-                              'Objetivo ${sleepGoalHours.toStringAsFixed(sleepGoalHours % 1 == 0 ? 0 : 1)} h',
+                          target: _sleepTarget(context, sleepGoalHours),
                           sourceLabel: log.sleepHours > 0
-                              ? (log.sleepSyncedFromHealthConnect
-                                  ? S.of(context).habitSourceHealthConnect
-                                  : S.of(context).habitSourceManual)
+                              ? _sourceLabel(
+                                  context, log.sleepSyncedFromHealthConnect)
+                              : null,
+                          sourceDetail: log.sleepHours > 0
+                              ? _sourceDetail(
+                                  context, log.sleepSyncedFromHealthConnect)
                               : null,
                           onDecrease: () => _adjustSleep(-0.5),
                           onIncrease: () => _adjustSleep(0.5),
                           accentColor: _goalTone(
-                              log.meetsSleepGoal(sleepGoalHours), context),
+                            log.meetsSleepGoal(sleepGoalHours),
+                            context,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _MetricAdjuster(
-                          label: 'Pasos',
-                          value: _formatSteps(log.steps),
-                          target: 'Objetivo ${_formatSteps(stepGoal)}',
+                          label: _stepsTitle(context),
+                          value: _formatSteps(context, log.steps),
+                          target: _stepsTarget(context, stepGoal),
                           sourceLabel: log.steps > 0
-                              ? (log.stepsSyncedFromHealthConnect
-                                  ? S.of(context).habitSourceHealthConnect
-                                  : S.of(context).habitSourceManual)
+                              ? _sourceLabel(
+                                  context, log.stepsSyncedFromHealthConnect)
+                              : null,
+                          sourceDetail: log.steps > 0
+                              ? _sourceDetail(
+                                  context, log.stepsSyncedFromHealthConnect)
                               : null,
                           onDecrease: () => _adjustSteps(-1000),
                           onIncrease: () => _adjustSteps(1000),
-                          accentColor:
-                              _goalTone(log.meetsStepGoal(stepGoal), context),
+                          accentColor: _goalTone(
+                            log.meetsStepGoal(stepGoal),
+                            context,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Energía',
+                    _energyTitle(context),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 8),
@@ -241,9 +272,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                       5,
                       (index) => Expanded(
                         child: Padding(
-                          padding: EdgeInsets.only(
-                            right: index < 4 ? 8 : 0,
-                          ),
+                          padding: EdgeInsets.only(right: index < 4 ? 8 : 0),
                           child: ChoiceChip(
                             showCheckmark: false,
                             label: SizedBox(
@@ -294,9 +323,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       caffeineTaken: caffeineTaken,
     );
     if (mounted) {
-      setState(() {
-        _refreshSeed++;
-      });
+      _refreshLog();
     }
   }
 
@@ -306,9 +333,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       deltaLiters: deltaLiters,
     );
     if (mounted) {
-      setState(() {
-        _refreshSeed++;
-      });
+      _refreshLog();
     }
   }
 
@@ -318,9 +343,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       deltaHours: deltaHours,
     );
     if (mounted) {
-      setState(() {
-        _refreshSeed++;
-      });
+      _refreshLog();
     }
   }
 
@@ -330,9 +353,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       deltaSteps: deltaSteps,
     );
     if (mounted) {
-      setState(() {
-        _refreshSeed++;
-      });
+      _refreshLog();
     }
   }
 
@@ -342,10 +363,15 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       energyLevel: energyLevel,
     );
     if (mounted) {
-      setState(() {
-        _refreshSeed++;
-      });
+      _refreshLog();
     }
+  }
+
+  void _refreshLog() {
+    setState(() {
+      _refreshSeed++;
+      _logFuture = _loadLog(_refreshSeed + widget.refreshSeed);
+    });
   }
 
   double _hydrationGoalForFocus(DailyFocusEntity focus) {
@@ -365,7 +391,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
       case DailyFocusEntity.upperBody:
-        return 8;
       case DailyFocusEntity.cardio:
         return 8;
       case DailyFocusEntity.rest:
@@ -385,16 +410,16 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     }
   }
 
-  String _focusLabel(DailyFocusEntity focus) {
+  String _focusLabel(BuildContext context, DailyFocusEntity focus) {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return 'Día de pierna';
+        return _isEs(context) ? 'Día de pierna' : 'Leg day';
       case DailyFocusEntity.upperBody:
-        return 'Día de torso';
+        return _isEs(context) ? 'Día de torso' : 'Upper body day';
       case DailyFocusEntity.cardio:
-        return 'Día de cardio';
+        return _isEs(context) ? 'Día de cardio' : 'Cardio day';
       case DailyFocusEntity.rest:
-        return 'Día de descanso';
+        return _isEs(context) ? 'Día de descanso' : 'Rest day';
     }
   }
 
@@ -411,16 +436,29 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     }
   }
 
-  String _hydrationHint(DailyFocusEntity focus, double hydrationGoalLiters) {
+  String _hydrationHint(
+    BuildContext context,
+    DailyFocusEntity focus,
+    double hydrationGoalLiters,
+  ) {
+    final goal = _formatWater(hydrationGoalLiters);
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return 'En pierna sube hidratación: objetivo ${_formatWater(hydrationGoalLiters)}.';
+        return _isEs(context)
+            ? 'En pierna sube hidratación: objetivo $goal.'
+            : 'Higher hydration target for leg day: $goal.';
       case DailyFocusEntity.upperBody:
-        return 'En torso mantén hidratación alta: objetivo ${_formatWater(hydrationGoalLiters)}.';
+        return _isEs(context)
+            ? 'En torso mantén hidratación alta: objetivo $goal.'
+            : 'Keep hydration high today: $goal.';
       case DailyFocusEntity.cardio:
-        return 'En cardio prioriza líquidos: objetivo ${_formatWater(hydrationGoalLiters)}.';
+        return _isEs(context)
+            ? 'En cardio prioriza líquidos: objetivo $goal.'
+            : 'Prioritize fluids today: $goal.';
       case DailyFocusEntity.rest:
-        return 'En descanso mantén la hidratación: objetivo ${_formatWater(hydrationGoalLiters)}.';
+        return _isEs(context)
+            ? 'En descanso mantén hidratación: objetivo $goal.'
+            : 'Keep hydration steady today: $goal.';
     }
   }
 
@@ -432,8 +470,9 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} L';
   }
 
-  String _formatSteps(int steps) {
-    return '${steps.toString()} pasos';
+  String _formatSteps(BuildContext context, int steps) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    return isEs ? '$steps pasos' : '$steps steps';
   }
 
   _ReadinessTone _readinessTone({
@@ -466,6 +505,59 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       return scheme.tertiary;
     }
     return scheme.error;
+  }
+
+  String _sourceLabel(BuildContext context, bool synced) {
+    if (synced) {
+      return S.of(context).habitSourceSynced;
+    }
+    return S.of(context).habitSourceManualAdjust;
+  }
+
+  String _sourceDetail(BuildContext context, bool synced) {
+    if (synced) {
+      return S.of(context).gymHabitsSourceHealthConnectDetail;
+    }
+    return S.of(context).gymHabitsSourceManualDetail;
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
+  }
+
+  String _title(BuildContext context) =>
+      _isEs(context) ? 'Hábitos y recuperación' : 'Habits and recovery';
+
+  String _completedToday(BuildContext context, int count) =>
+      _isEs(context) ? '$count/7 hoy' : '$count/7 today';
+
+  String _hydrationTitle(BuildContext context) =>
+      _isEs(context) ? 'Hidratación' : 'Hydration';
+
+  String _addWaterTooltip(BuildContext context) =>
+      _isEs(context) ? 'Añadir agua' : 'Add water';
+
+  String _removeWaterTooltip(BuildContext context) =>
+      _isEs(context) ? 'Reducir agua' : 'Remove water';
+
+  String _sleepTitle(BuildContext context) =>
+      _isEs(context) ? 'Sueño' : 'Sleep';
+
+  String _stepsTitle(BuildContext context) =>
+      _isEs(context) ? 'Pasos' : 'Steps';
+
+  String _energyTitle(BuildContext context) =>
+      _isEs(context) ? 'Energía' : 'Energy';
+
+  String _sleepTarget(BuildContext context, double hours) {
+    final amount = hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1);
+    return _isEs(context) ? 'Objetivo $amount h' : 'Goal $amount h';
+  }
+
+  String _stepsTarget(BuildContext context, int steps) {
+    return _isEs(context)
+        ? 'Objetivo ${_formatSteps(context, steps)}'
+        : 'Goal ${_formatSteps(context, steps)}';
   }
 }
 
@@ -505,6 +597,7 @@ class _MetricAdjuster extends StatelessWidget {
   final String value;
   final String target;
   final String? sourceLabel;
+  final String? sourceDetail;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
   final Color accentColor;
@@ -514,6 +607,7 @@ class _MetricAdjuster extends StatelessWidget {
     required this.value,
     required this.target,
     this.sourceLabel,
+    this.sourceDetail,
     required this.onDecrease,
     required this.onIncrease,
     required this.accentColor,
@@ -544,27 +638,61 @@ class _MetricAdjuster extends StatelessWidget {
           const SizedBox(height: 2),
           Text(target, style: Theme.of(context).textTheme.bodySmall),
           if (sourceLabel != null) ...[
-            const SizedBox(height: 6),
-            Text(
-              sourceLabel!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: accentColor,
-                    fontWeight: FontWeight.w600,
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Theme.of(context)
+                    .colorScheme
+                    .surface
+                    .withValues(alpha: 0.75),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    sourceLabel!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: accentColor,
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
+                  if (sourceDetail != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sourceDetail!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 8),
+          Text(
+            S.of(context).gymHabitsManualAdjustHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 6),
           Row(
             children: [
               IconButton(
                 onPressed: onDecrease,
                 icon: Icon(Icons.remove, color: accentColor),
-                tooltip: 'Reducir $label',
+                tooltip: Localizations.localeOf(context).languageCode == 'es'
+                    ? 'Reducir $label'
+                    : 'Reduce $label',
               ),
               IconButton(
                 onPressed: onIncrease,
                 icon: Icon(Icons.add, color: accentColor),
-                tooltip: 'Aumentar $label',
+                tooltip: Localizations.localeOf(context).languageCode == 'es'
+                    ? 'Aumentar $label'
+                    : 'Increase $label',
               ),
             ],
           ),
