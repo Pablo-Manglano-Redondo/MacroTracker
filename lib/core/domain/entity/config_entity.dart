@@ -25,6 +25,7 @@ class ConfigEntity extends Equatable {
   final TrainingDayTemplateEntity trainingDayTemplate;
   final String? selectedLocale;
   final bool healthConnectAutoSyncEnabled;
+  final List<String> discardedHealthConnectActivityIds;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
@@ -43,7 +44,8 @@ class ConfigEntity extends Equatable {
       this.aiCostMonthKey,
       this.trainingDayTemplate = TrainingDayTemplateEntity.rest,
       this.selectedLocale,
-      this.healthConnectAutoSyncEnabled = true});
+      this.healthConnectAutoSyncEnabled = true,
+      this.discardedHealthConnectActivityIds = const []});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -67,6 +69,8 @@ class ConfigEntity extends Equatable {
             dbo.trainingDayTemplate),
         selectedLocale: dbo.selectedLocale,
         healthConnectAutoSyncEnabled: dbo.healthConnectAutoSyncEnabled ?? true,
+        discardedHealthConnectActivityIds:
+            dbo.discardedHealthConnectActivityIds ?? const [],
       );
 
   @override
@@ -90,5 +94,6 @@ class ConfigEntity extends Equatable {
         trainingDayTemplate,
         selectedLocale,
         healthConnectAutoSyncEnabled,
+        discardedHealthConnectActivityIds,
       ];
 }

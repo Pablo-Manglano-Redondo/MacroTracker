@@ -22,13 +22,15 @@ class UserActivityDBOAdapter extends TypeAdapter<UserActivityDBO> {
       fields[2] as double,
       fields[3] as DateTime,
       fields[4] as PhysicalActivityDBO,
+      source: fields[5] as String?,
+      externalId: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserActivityDBO obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(7)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -38,7 +40,11 @@ class UserActivityDBOAdapter extends TypeAdapter<UserActivityDBO> {
       ..writeByte(3)
       ..write(obj.date)
       ..writeByte(4)
-      ..write(obj.physicalActivityDBO);
+      ..write(obj.physicalActivityDBO)
+      ..writeByte(5)
+      ..write(obj.source)
+      ..writeByte(6)
+      ..write(obj.externalId);
   }
 
   @override
@@ -64,6 +70,8 @@ UserActivityDBO _$UserActivityDBOFromJson(Map<String, dynamic> json) =>
       DateTime.parse(json['date'] as String),
       PhysicalActivityDBO.fromJson(
           json['physicalActivityDBO'] as Map<String, dynamic>),
+      source: json['source'] as String?,
+      externalId: json['externalId'] as String?,
     );
 
 Map<String, dynamic> _$UserActivityDBOToJson(UserActivityDBO instance) =>
@@ -73,4 +81,6 @@ Map<String, dynamic> _$UserActivityDBOToJson(UserActivityDBO instance) =>
       'burnedKcal': instance.burnedKcal,
       'date': instance.date.toIso8601String(),
       'physicalActivityDBO': instance.physicalActivityDBO,
+      'source': instance.source,
+      'externalId': instance.externalId,
     };

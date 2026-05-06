@@ -123,6 +123,27 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<List<String>> getDiscardedHealthConnectActivityIds() async {
+    final config = _configBox.get(_configKey);
+    return List<String>.from(
+      config?.discardedHealthConnectActivityIds ?? const [],
+    );
+  }
+
+  Future<void> addDiscardedHealthConnectActivityId(String externalId) async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+    final discarded =
+        List<String>.from(config.discardedHealthConnectActivityIds ?? const []);
+    if (!discarded.contains(externalId)) {
+      discarded.add(externalId);
+      config.discardedHealthConnectActivityIds = discarded;
+      await config.save();
+    }
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

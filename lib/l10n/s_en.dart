@@ -56,10 +56,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addMealQuickActionsSubtitle =>
-      'Start with barcode, photo, text, or saved meals. If you search, choose the source below.';
+      'Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history.';
 
   @override
-  String get addMealTabPackaged => 'Packaged';
+  String get addMealTabPackaged => 'Food';
 
   @override
   String get addMealTabGeneric => 'Generic foods';
@@ -69,7 +69,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addMealTabPackagedHelper =>
-      'Use this for supermarket products and branded items.';
+      'Use this for any food search, including branded items.';
 
   @override
   String get addMealTabGenericHelper =>
@@ -79,7 +79,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addMealTabRecentHelper => 'Reuse something you logged recently.';
 
   @override
-  String get addMealSectionPackagedResults => 'Packaged results';
+  String get addMealSectionPackagedResults => 'Food results';
 
   @override
   String get addMealSectionGenericResults => 'Generic food results';
@@ -92,8 +92,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'No recent meals yet.\nLog a meal once and it will appear here.';
 
   @override
-  String get addMealSearchPromptPackaged =>
-      'Search a packaged product or use barcode.';
+  String get addMealSearchPromptPackaged => 'Search any food or use barcode.';
 
   @override
   String get addMealSearchPromptGeneric =>
@@ -1962,7 +1961,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthConnectAutoSyncSubtitle =>
-      'Sync sleep and steps automatically on app open.';
+      'Sync sleep, steps, and workouts automatically on app open.';
 
   @override
   String get healthConnectSyncNowTitle => 'Sync Health Connect now';
@@ -1973,7 +1972,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthConnectGrantPermissionsSubtitle =>
-      'Open the permission flow for sleep and steps.';
+      'Open the permission flow for sleep, steps, and workouts.';
 
   @override
   String get healthConnectStatusChecking => 'Checking Health Connect status...';
@@ -1984,7 +1983,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthConnectStatusPermissionsRequired =>
-      'Health permissions are required to read sleep and steps.';
+      'Health permissions are required to read sleep, steps, and workouts.';
 
   @override
   String get healthConnectStatusActivityPermissionRequired =>
@@ -1996,7 +1995,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get healthConnectStatusReady =>
-      'Connected. Sleep and steps can sync automatically.';
+      'Connected. Sleep, steps, and workouts can sync automatically.';
 
   @override
   String get healthConnectAutoSyncEnabledMessage =>
@@ -2015,11 +2014,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Health Connect permissions are still missing.';
 
   @override
-  String get healthConnectSyncSuccess => 'Health Connect data synced.';
+  String get healthConnectSyncSuccess =>
+      'Health Connect data synced, including workouts.';
 
   @override
   String get healthConnectSyncNoChanges =>
-      'No new Health Connect data was imported.';
+      'No new Health Connect data or workouts were imported.';
 
   @override
   String get habitSourceHealthConnect => 'Health Connect';
@@ -2070,6 +2070,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gymHabitsManualAdjustHint =>
       'Use +/- only if you need to correct the value.';
+
+  @override
+  String get recipeQuickCategoryLabel => 'Quick category';
+
+  @override
+  String get quickCategoryPreWorkout => 'Pre-workout';
+
+  @override
+  String get quickCategoryPostWorkout => 'Post-workout';
+
+  @override
+  String get quickCategoryShake => 'Shake';
+
+  @override
+  String get quickCategoryLeanMeal => 'Light meal';
 
   @override
   String get gymHabitsFocusLowerBody => 'Leg day';

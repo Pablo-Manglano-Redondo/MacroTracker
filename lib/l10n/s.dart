@@ -185,13 +185,13 @@ abstract class AppLocalizations {
   /// No description provided for @addMealQuickActionsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Start with barcode, photo, text, or saved meals. If you search, choose the source below.'**
+  /// **'Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history.'**
   String get addMealQuickActionsSubtitle;
 
   /// No description provided for @addMealTabPackaged.
   ///
   /// In en, this message translates to:
-  /// **'Packaged'**
+  /// **'Food'**
   String get addMealTabPackaged;
 
   /// No description provided for @addMealTabGeneric.
@@ -209,7 +209,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealTabPackagedHelper.
   ///
   /// In en, this message translates to:
-  /// **'Use this for supermarket products and branded items.'**
+  /// **'Use this for any food search, including branded items.'**
   String get addMealTabPackagedHelper;
 
   /// No description provided for @addMealTabGenericHelper.
@@ -227,7 +227,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealSectionPackagedResults.
   ///
   /// In en, this message translates to:
-  /// **'Packaged results'**
+  /// **'Food results'**
   String get addMealSectionPackagedResults;
 
   /// No description provided for @addMealSectionGenericResults.
@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @addMealSearchPromptPackaged.
   ///
   /// In en, this message translates to:
-  /// **'Search a packaged product or use barcode.'**
+  /// **'Search any food or use barcode.'**
   String get addMealSearchPromptPackaged;
 
   /// No description provided for @addMealSearchPromptGeneric.
@@ -3708,7 +3708,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectAutoSyncSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sync sleep and steps automatically on app open.'**
+  /// **'Sync sleep, steps, and workouts automatically on app open.'**
   String get healthConnectAutoSyncSubtitle;
 
   /// No description provided for @healthConnectSyncNowTitle.
@@ -3726,7 +3726,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectGrantPermissionsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Open the permission flow for sleep and steps.'**
+  /// **'Open the permission flow for sleep, steps, and workouts.'**
   String get healthConnectGrantPermissionsSubtitle;
 
   /// No description provided for @healthConnectStatusChecking.
@@ -3744,7 +3744,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectStatusPermissionsRequired.
   ///
   /// In en, this message translates to:
-  /// **'Health permissions are required to read sleep and steps.'**
+  /// **'Health permissions are required to read sleep, steps, and workouts.'**
   String get healthConnectStatusPermissionsRequired;
 
   /// No description provided for @healthConnectStatusActivityPermissionRequired.
@@ -3762,7 +3762,7 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectStatusReady.
   ///
   /// In en, this message translates to:
-  /// **'Connected. Sleep and steps can sync automatically.'**
+  /// **'Connected. Sleep, steps, and workouts can sync automatically.'**
   String get healthConnectStatusReady;
 
   /// No description provided for @healthConnectAutoSyncEnabledMessage.
@@ -3792,13 +3792,13 @@ abstract class AppLocalizations {
   /// No description provided for @healthConnectSyncSuccess.
   ///
   /// In en, this message translates to:
-  /// **'Health Connect data synced.'**
+  /// **'Health Connect data synced, including workouts.'**
   String get healthConnectSyncSuccess;
 
   /// No description provided for @healthConnectSyncNoChanges.
   ///
   /// In en, this message translates to:
-  /// **'No new Health Connect data was imported.'**
+  /// **'No new Health Connect data or workouts were imported.'**
   String get healthConnectSyncNoChanges;
 
   /// No description provided for @habitSourceHealthConnect.
@@ -3884,6 +3884,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use +/- only if you need to correct the value.'**
   String get gymHabitsManualAdjustHint;
+
+  /// No description provided for @recipeQuickCategoryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick category'**
+  String get recipeQuickCategoryLabel;
+
+  /// No description provided for @quickCategoryPreWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-workout'**
+  String get quickCategoryPreWorkout;
+
+  /// No description provided for @quickCategoryPostWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-workout'**
+  String get quickCategoryPostWorkout;
+
+  /// No description provided for @quickCategoryShake.
+  ///
+  /// In en, this message translates to:
+  /// **'Shake'**
+  String get quickCategoryShake;
+
+  /// No description provided for @quickCategoryLeanMeal.
+  ///
+  /// In en, this message translates to:
+  /// **'Light meal'**
+  String get quickCategoryLeanMeal;
 
   /// No description provided for @gymHabitsFocusLowerBody.
   ///

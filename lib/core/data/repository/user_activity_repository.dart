@@ -45,4 +45,12 @@ class UserActivityRepository {
             UserActivityEntity.fromUserActivityDBO(userActivityDBO))
         .toList();
   }
+
+  Future<List<UserActivityEntity>> getAllUserActivity() async {
+    final userActivityDBOList = await _userActivityDataSource.getAllUserActivities();
+    return userActivityDBOList
+        .map((userActivityDBO) =>
+            UserActivityEntity.fromUserActivityDBO(userActivityDBO))
+        .toList();
+  }
 }

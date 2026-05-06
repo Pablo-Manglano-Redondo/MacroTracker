@@ -56,10 +56,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealQuickActionsSubtitle =>
-      'Empieza con barras, foto, texto o guardadas. Si buscas, elige abajo la fuente.';
+      'Empieza con código de barras, foto, texto o guardadas. Si buscas, usa Comida o Historial.';
 
   @override
-  String get addMealTabPackaged => 'Envasados';
+  String get addMealTabPackaged => 'Comida';
 
   @override
   String get addMealTabGeneric => 'Genericos';
@@ -69,7 +69,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealTabPackagedHelper =>
-      'Usalo para productos de supermercado y marcas.';
+      'Úsalo para buscar cualquier comida y producto.';
 
   @override
   String get addMealTabGenericHelper =>
@@ -80,7 +80,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Repite algo que ya registraste hace poco.';
 
   @override
-  String get addMealSectionPackagedResults => 'Resultados envasados';
+  String get addMealSectionPackagedResults => 'Resultados de comida';
 
   @override
   String get addMealSectionGenericResults => 'Resultados genericos';
@@ -94,7 +94,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealSearchPromptPackaged =>
-      'Busca un producto envasado o usa el codigo de barras.';
+      'Busca cualquier comida o usa el código de barras.';
 
   @override
   String get addMealSearchPromptGeneric =>
@@ -1711,7 +1711,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String homeDashboardSessionsChip(Object count) {
-    return '$count sesiones';
+    return '$count sesión';
   }
 
   @override
@@ -1972,7 +1972,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConnectAutoSyncSubtitle =>
-      'Sincroniza sueño y pasos automáticamente al abrir la app.';
+      'Sincroniza sueño, pasos y entrenamientos automáticamente al abrir la app.';
 
   @override
   String get healthConnectSyncNowTitle => 'Sincronizar Health Connect ahora';
@@ -1983,7 +1983,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConnectGrantPermissionsSubtitle =>
-      'Abre el flujo de permisos para sueño y pasos.';
+      'Abre el flujo de permisos para sueño, pasos y entrenamientos.';
 
   @override
   String get healthConnectStatusChecking =>
@@ -1995,7 +1995,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConnectStatusPermissionsRequired =>
-      'Se necesitan permisos de salud para leer sueño y pasos.';
+      'Se necesitan permisos de salud para leer sueño, pasos y entrenamientos.';
 
   @override
   String get healthConnectStatusActivityPermissionRequired =>
@@ -2007,7 +2007,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConnectStatusReady =>
-      'Conectado. Sueño y pasos pueden sincronizarse automáticamente.';
+      'Conectado. Sueño, pasos y entrenamientos pueden sincronizarse automáticamente.';
 
   @override
   String get healthConnectAutoSyncEnabledMessage =>
@@ -2027,11 +2027,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get healthConnectSyncSuccess =>
-      'Datos de Health Connect sincronizados.';
+      'Datos de Health Connect sincronizados, incluidas actividades.';
 
   @override
   String get healthConnectSyncNoChanges =>
-      'No se importaron datos nuevos de Health Connect.';
+      'No se importaron datos nuevos de Health Connect ni entrenamientos.';
 
   @override
   String get habitSourceHealthConnect => 'Health Connect';
@@ -2083,6 +2083,21 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gymHabitsManualAdjustHint =>
       'Usa +/- solo si necesitas corregir el valor.';
+
+  @override
+  String get recipeQuickCategoryLabel => 'Categoría rápida';
+
+  @override
+  String get quickCategoryPreWorkout => 'Preentreno';
+
+  @override
+  String get quickCategoryPostWorkout => 'Postentreno';
+
+  @override
+  String get quickCategoryShake => 'Batido';
+
+  @override
+  String get quickCategoryLeanMeal => 'Ligera';
 
   @override
   String get gymHabitsFocusLowerBody => 'Dia de pierna';

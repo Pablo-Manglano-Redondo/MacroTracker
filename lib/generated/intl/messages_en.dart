@@ -150,7 +150,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
         "addMealQuickActionsSubtitle": MessageLookupByLibrary.simpleMessage(
-            "Start with barcode, photo, text, or saved meals. If you search, choose the source below."),
+            "Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history."),
         "addMealQuickActionsTitle":
             MessageLookupByLibrary.simpleMessage("Quick shortcuts"),
         "addMealRecentEmpty": MessageLookupByLibrary.simpleMessage(
@@ -158,23 +158,33 @@ class MessageLookup extends MessageLookupByLibrary {
         "addMealBarcode": MessageLookupByLibrary.simpleMessage("Barcode"),
         "addMealPhoto": MessageLookupByLibrary.simpleMessage("Photo"),
         "addMealSaved": MessageLookupByLibrary.simpleMessage("Saved"),
+        "recipeQuickCategoryLabel":
+            MessageLookupByLibrary.simpleMessage("Quick category"),
+        "quickCategoryLeanMeal":
+            MessageLookupByLibrary.simpleMessage("Light meal"),
+        "quickCategoryPostWorkout":
+            MessageLookupByLibrary.simpleMessage("Post-workout"),
+        "quickCategoryPreWorkout":
+            MessageLookupByLibrary.simpleMessage("Pre-workout"),
+        "quickCategoryShake":
+            MessageLookupByLibrary.simpleMessage("Shake"),
         "addMealSearchPromptGeneric": MessageLookupByLibrary.simpleMessage(
             "Search a generic food like rice, eggs, or yogurt."),
         "addMealSearchPromptPackaged": MessageLookupByLibrary.simpleMessage(
-            "Search a packaged product or use barcode."),
+            "Search any food or use barcode."),
         "addMealSectionGenericResults":
             MessageLookupByLibrary.simpleMessage("Generic food results"),
         "addMealSectionPackagedResults":
-            MessageLookupByLibrary.simpleMessage("Packaged results"),
+            MessageLookupByLibrary.simpleMessage("Food results"),
         "addMealSectionRecentResults":
             MessageLookupByLibrary.simpleMessage("Recent meals"),
         "addMealTabGeneric":
             MessageLookupByLibrary.simpleMessage("Generic foods"),
         "addMealTabGenericHelper": MessageLookupByLibrary.simpleMessage(
             "Use this for simple foods like rice, chicken, fruit, or oats."),
-        "addMealTabPackaged": MessageLookupByLibrary.simpleMessage("Packaged"),
+        "addMealTabPackaged": MessageLookupByLibrary.simpleMessage("Food"),
         "addMealTabPackagedHelper": MessageLookupByLibrary.simpleMessage(
-            "Use this for supermarket products and branded items."),
+            "Use this for any food search, including branded items."),
         "addMealTabRecent":
             MessageLookupByLibrary.simpleMessage("Recent history"),
         "addMealTabRecentHelper": MessageLookupByLibrary.simpleMessage(
@@ -599,12 +609,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage(
                 "Health Connect auto-sync enabled."),
         "healthConnectAutoSyncSubtitle": MessageLookupByLibrary.simpleMessage(
-            "Sync sleep and steps automatically on app open."),
+            "Sync sleep, steps, and workouts automatically on app open."),
         "healthConnectAutoSyncTitle":
             MessageLookupByLibrary.simpleMessage("Health Connect auto-sync"),
         "healthConnectGrantPermissionsSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "Open the permission flow for sleep and steps."),
+                "Open the permission flow for sleep, steps, and workouts."),
         "healthConnectGrantPermissionsTitle":
             MessageLookupByLibrary.simpleMessage(
                 "Grant Health Connect permissions"),
@@ -622,17 +632,18 @@ class MessageLookup extends MessageLookupByLibrary {
             "Checking Health Connect status..."),
         "healthConnectStatusPermissionsRequired":
             MessageLookupByLibrary.simpleMessage(
-                "Health permissions are required to read sleep and steps."),
+                "Health permissions are required to read sleep, steps, and workouts."),
         "healthConnectStatusReady": MessageLookupByLibrary.simpleMessage(
-            "Connected. Sleep and steps can sync automatically."),
+            "Connected. Sleep, steps, and workouts can sync automatically."),
         "healthConnectStatusUnavailable": MessageLookupByLibrary.simpleMessage(
             "Health Connect is not available on this device."),
         "healthConnectSyncNoChanges": MessageLookupByLibrary.simpleMessage(
-            "No new Health Connect data was imported."),
+            "No new Health Connect data or workouts were imported."),
         "healthConnectSyncNowTitle":
             MessageLookupByLibrary.simpleMessage("Sync Health Connect now"),
         "healthConnectSyncSuccess":
-            MessageLookupByLibrary.simpleMessage("Health Connect data synced."),
+            MessageLookupByLibrary.simpleMessage(
+                "Health Connect data synced, including workouts."),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "historyLabel": MessageLookupByLibrary.simpleMessage("History"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),

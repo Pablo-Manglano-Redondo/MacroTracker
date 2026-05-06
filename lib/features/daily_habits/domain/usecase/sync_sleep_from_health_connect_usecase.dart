@@ -2,6 +2,11 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/data/repository/config_repository.dart';
+import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
+import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
+import 'package:macrotracker/core/domain/usecase/add_user_activity_usercase.dart';
+import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/features/daily_habits/data/data_source/health_connect_sleep_data_source.dart';
 import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
@@ -10,10 +15,13 @@ import 'package:macrotracker/features/daily_habits/domain/entity/health_sleep_se
 
 class SyncSleepFromHealthConnectUsecase {
   final _log = Logger('SyncSleepFromHealthConnectUsecase');
+  static const _workoutSyncLookbackDays = 7;
 
   final HealthConnectSleepDataSource _healthConnectSleepDataSource;
   final DailyHabitLogRepository _dailyHabitLogRepository;
   final ConfigRepository _configRepository;
+  final AddUserActivityUsecase _addUserActivityUsecase;
+  final GetUserActivityUsecase _getUserActivityUsecase;
 
   bool _authorizationRequestedThisLaunch = false;
   bool _activityPermissionRequestedThisLaunch = false;
@@ -22,6 +30,8 @@ class SyncSleepFromHealthConnectUsecase {
     this._healthConnectSleepDataSource,
     this._dailyHabitLogRepository,
     this._configRepository,
+    this._addUserActivityUsecase,
+    this._getUserActivityUsecase,
   );
 
   Future<bool> syncToday({
@@ -86,11 +96,6 @@ class SyncSleepFromHealthConnectUsecase {
             .requestActivityRecognitionPermission();
       }
 
-      if (!hasActivityRecognition) {
-        _log.fine('Activity recognition permission not granted');
-        return false;
-      }
-
       final sessions = await _healthConnectSleepDataSource.readSleepSessions(
         normalizedDay.subtract(const Duration(days: 1)),
         dayEnd,
@@ -99,21 +104,46 @@ class SyncSleepFromHealthConnectUsecase {
       final syncedSleepHours = selectedSession == null
           ? null
           : _roundHours(selectedSession.duration);
-      final syncedSteps = await _healthConnectSleepDataSource.readStepCount(
-        normalizedDay,
-        dayEnd,
-      );
       final currentLog = await _dailyHabitLogRepository.getLog(normalizedDay) ??
           DailyHabitLogEntity.empty(normalizedDay);
+      final syncedSteps = hasActivityRecognition
+          ? await _healthConnectSleepDataSource.readStepCount(
+              normalizedDay,
+              dayEnd,
+            )
+          : currentLog.steps;
+      final workouts = await _healthConnectSleepDataSource.readWorkouts(
+        normalizedDay.subtract(const Duration(days: _workoutSyncLookbackDays)),
+        dayEnd,
+      );
+      final discardedIds =
+          await _configRepository.getDiscardedHealthConnectActivityIds();
+      final existingActivities = await _getUserActivityUsecase.getAllUserActivity();
+      final existingExternalIds = existingActivities
+          .where(
+            (activity) =>
+                activity.source == UserActivitySourceEntity.healthConnect &&
+                activity.externalId != null,
+          )
+          .map((activity) => activity.externalId!)
+          .toSet();
 
       final forceSync = ignoreAutoSyncSetting;
       final sleepChanged = syncedSleepHours != null &&
           ((currentLog.sleepHours - syncedSleepHours).abs() >= 0.01 ||
               (forceSync && currentLog.sleepSyncedFromHealthConnect != true));
-      final stepsChanged = currentLog.steps != syncedSteps ||
-          (forceSync && currentLog.stepsSyncedFromHealthConnect != true);
+      final stepsChanged = hasActivityRecognition &&
+          (currentLog.steps != syncedSteps ||
+              (forceSync && currentLog.stepsSyncedFromHealthConnect != true));
 
-      if (!sleepChanged && !stepsChanged) {
+      if (!hasActivityRecognition) {
+        _log.fine(
+          'Activity recognition permission not granted. '
+          'Skipping steps sync but continuing with sleep/workouts.',
+        );
+      }
+
+      if (!sleepChanged && !stepsChanged && workouts.isEmpty) {
         return false;
       }
 
@@ -129,9 +159,43 @@ class SyncSleepFromHealthConnectUsecase {
       _log.info(
         'Synced Health Connect daily habits for $normalizedDay: '
         'sleep=${sleepChanged ? syncedSleepHours : currentLog.sleepHours}, '
-        'steps=${stepsChanged ? syncedSteps : currentLog.steps}',
+        'steps=${stepsChanged ? syncedSteps : currentLog.steps}, '
+        'workoutsRead=${workouts.length}',
       );
-      return true;
+      var importedWorkouts = 0;
+      for (final workout in workouts) {
+        if (existingExternalIds.contains(workout.externalId) ||
+            discardedIds.contains(workout.externalId)) {
+          continue;
+        }
+
+        final workoutDay = DateTime(
+          workout.startTime.year,
+          workout.startTime.month,
+          workout.startTime.day,
+        );
+        final activity = UserActivityEntity(
+          IdGenerator.getUniqueID(),
+          workout.durationMinutes,
+          workout.burnedKcal,
+          workoutDay,
+          PhysicalActivityEntity(
+            workout.activityCode,
+            workout.displayName,
+            workout.description,
+            0,
+            const ['health-connect'],
+            _mapWorkoutType(workout.activityCode),
+          ),
+          source: UserActivitySourceEntity.healthConnect,
+          externalId: workout.externalId,
+        );
+        await _addUserActivityUsecase.addUserActivity(activity);
+        existingExternalIds.add(workout.externalId);
+        importedWorkouts++;
+      }
+      _log.info('Imported $importedWorkouts Health Connect workouts');
+      return sleepChanged || stepsChanged || importedWorkouts > 0;
     } catch (error, stackTrace) {
       _log.warning('Health Connect sync failed', error, stackTrace);
       return false;
@@ -275,5 +339,21 @@ class SyncSleepFromHealthConnectUsecase {
             ? 16.0
             : hours;
     return double.parse(normalizedHours.toStringAsFixed(1));
+  }
+
+  PhysicalActivityTypeEntity _mapWorkoutType(String activityCode) {
+    if (activityCode.contains('run') || activityCode.contains('walk')) {
+      return PhysicalActivityTypeEntity.running;
+    }
+    if (activityCode.contains('bike') || activityCode.contains('cycling')) {
+      return PhysicalActivityTypeEntity.bicycling;
+    }
+    if (activityCode.contains('swim') || activityCode.contains('row')) {
+      return PhysicalActivityTypeEntity.waterActivities;
+    }
+    if (activityCode.contains('ski')) {
+      return PhysicalActivityTypeEntity.winterActivities;
+    }
+    return PhysicalActivityTypeEntity.conditioningExercise;
   }
 }

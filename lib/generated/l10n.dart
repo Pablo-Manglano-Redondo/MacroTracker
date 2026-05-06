@@ -193,17 +193,17 @@ class S {
   /// `Start with barcode, photo, text, or saved meals. If you search, choose the source below.`
   String get addMealQuickActionsSubtitle {
     return Intl.message(
-      'Start with barcode, photo, text, or saved meals. If you search, choose the source below.',
+      'Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history.',
       name: 'addMealQuickActionsSubtitle',
       desc: '',
       args: [],
     );
   }
 
-  /// `Packaged`
+  /// `Food`
   String get addMealTabPackaged {
     return Intl.message(
-      'Packaged',
+      'Food',
       name: 'addMealTabPackaged',
       desc: '',
       args: [],
@@ -230,10 +230,10 @@ class S {
     );
   }
 
-  /// `Use this for supermarket products and branded items.`
+  /// `Use this for any food search, including branded items.`
   String get addMealTabPackagedHelper {
     return Intl.message(
-      'Use this for supermarket products and branded items.',
+      'Use this for any food search, including branded items.',
       name: 'addMealTabPackagedHelper',
       desc: '',
       args: [],
@@ -260,10 +260,10 @@ class S {
     );
   }
 
-  /// `Packaged results`
+  /// `Food results`
   String get addMealSectionPackagedResults {
     return Intl.message(
-      'Packaged results',
+      'Food results',
       name: 'addMealSectionPackagedResults',
       desc: '',
       args: [],
@@ -301,10 +301,10 @@ class S {
     );
   }
 
-  /// `Search a packaged product or use barcode.`
+  /// `Search any food or use barcode.`
   String get addMealSearchPromptPackaged {
     return Intl.message(
-      'Search a packaged product or use barcode.',
+      'Search any food or use barcode.',
       name: 'addMealSearchPromptPackaged',
       desc: '',
       args: [],
@@ -6052,10 +6052,10 @@ class S {
     );
   }
 
-  /// `Sync sleep and steps automatically on app open.`
+  /// `Sync sleep, steps, and workouts automatically on app open.`
   String get healthConnectAutoSyncSubtitle {
     return Intl.message(
-      'Sync sleep and steps automatically on app open.',
+      'Sync sleep, steps, and workouts automatically on app open.',
       name: 'healthConnectAutoSyncSubtitle',
       desc: '',
       args: [],
@@ -6082,10 +6082,10 @@ class S {
     );
   }
 
-  /// `Open the permission flow for sleep and steps.`
+  /// `Open the permission flow for sleep, steps, and workouts.`
   String get healthConnectGrantPermissionsSubtitle {
     return Intl.message(
-      'Open the permission flow for sleep and steps.',
+      'Open the permission flow for sleep, steps, and workouts.',
       name: 'healthConnectGrantPermissionsSubtitle',
       desc: '',
       args: [],
@@ -6112,10 +6112,10 @@ class S {
     );
   }
 
-  /// `Health permissions are required to read sleep and steps.`
+  /// `Health permissions are required to read sleep, steps, and workouts.`
   String get healthConnectStatusPermissionsRequired {
     return Intl.message(
-      'Health permissions are required to read sleep and steps.',
+      'Health permissions are required to read sleep, steps, and workouts.',
       name: 'healthConnectStatusPermissionsRequired',
       desc: '',
       args: [],
@@ -6142,10 +6142,10 @@ class S {
     );
   }
 
-  /// `Connected. Sleep and steps can sync automatically.`
+  /// `Connected. Sleep, steps, and workouts can sync automatically.`
   String get healthConnectStatusReady {
     return Intl.message(
-      'Connected. Sleep and steps can sync automatically.',
+      'Connected. Sleep, steps, and workouts can sync automatically.',
       name: 'healthConnectStatusReady',
       desc: '',
       args: [],
@@ -6195,7 +6195,7 @@ class S {
   /// `Health Connect data synced.`
   String get healthConnectSyncSuccess {
     return Intl.message(
-      'Health Connect data synced.',
+      'Health Connect data synced, including workouts.',
       name: 'healthConnectSyncSuccess',
       desc: '',
       args: [],
@@ -6205,7 +6205,7 @@ class S {
   /// `No new Health Connect data was imported.`
   String get healthConnectSyncNoChanges {
     return Intl.message(
-      'No new Health Connect data was imported.',
+      'No new Health Connect data or workouts were imported.',
       name: 'healthConnectSyncNoChanges',
       desc: '',
       args: [],
@@ -6477,6 +6477,56 @@ class S {
     return Intl.message(
       'Saved',
       name: 'addMealSaved',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Quick category`
+  String get recipeQuickCategoryLabel {
+    return Intl.message(
+      'Quick category',
+      name: 'recipeQuickCategoryLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pre-workout`
+  String get quickCategoryPreWorkout {
+    return Intl.message(
+      'Pre-workout',
+      name: 'quickCategoryPreWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Post-workout`
+  String get quickCategoryPostWorkout {
+    return Intl.message(
+      'Post-workout',
+      name: 'quickCategoryPostWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shake`
+  String get quickCategoryShake {
+    return Intl.message(
+      'Shake',
+      name: 'quickCategoryShake',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light meal`
+  String get quickCategoryLeanMeal {
+    return Intl.message(
+      'Light meal',
+      name: 'quickCategoryLeanMeal',
       desc: '',
       args: [],
     );

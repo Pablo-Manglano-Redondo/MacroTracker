@@ -37,7 +37,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..aiPhotoCallsTotal = fields[14] as int?
       ..aiCostTodayDate = fields[15] as String?
       ..aiCostMonthKey = fields[16] as String?
-      ..trainingDayTemplate = fields[17] as String?;
+      ..trainingDayTemplate = fields[17] as String?
+      ..discardedHealthConnectActivityIds =
+          (fields[20] as List?)?.cast<String>();
   }
 
   @override
@@ -83,7 +85,9 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(18)
       ..write(obj.selectedLocale)
       ..writeByte(19)
-      ..write(obj.healthConnectAutoSyncEnabled);
+      ..write(obj.healthConnectAutoSyncEnabled)
+      ..writeByte(20)
+      ..write(obj.discardedHealthConnectActivityIds);
   }
 
   @override
@@ -126,7 +130,11 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..aiPhotoCallsTotal = (json['aiPhotoCallsTotal'] as num?)?.toInt()
       ..aiCostTodayDate = json['aiCostTodayDate'] as String?
       ..aiCostMonthKey = json['aiCostMonthKey'] as String?
-      ..trainingDayTemplate = json['trainingDayTemplate'] as String?;
+      ..trainingDayTemplate = json['trainingDayTemplate'] as String?
+      ..discardedHealthConnectActivityIds =
+          (json['discardedHealthConnectActivityIds'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList();
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -149,6 +157,8 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'trainingDayTemplate': instance.trainingDayTemplate,
       'selectedLocale': instance.selectedLocale,
       'healthConnectAutoSyncEnabled': instance.healthConnectAutoSyncEnabled,
+      'discardedHealthConnectActivityIds':
+          instance.discardedHealthConnectActivityIds,
     };
 
 const _$AppThemeDBOEnumMap = {

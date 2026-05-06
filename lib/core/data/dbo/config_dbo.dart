@@ -49,6 +49,8 @@ class ConfigDBO extends HiveObject {
   String? selectedLocale;
   @HiveField(19)
   bool? healthConnectAutoSyncEnabled;
+  @HiveField(20)
+  List<String>? discardedHealthConnectActivityIds;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
@@ -81,7 +83,9 @@ class ConfigDBO extends HiveObject {
     ..aiCostTodayDate = entity.aiCostTodayDate
     ..aiCostMonthKey = entity.aiCostMonthKey
     ..trainingDayTemplate = entity.trainingDayTemplate.storageValue
-    ..healthConnectAutoSyncEnabled = entity.healthConnectAutoSyncEnabled;
+    ..healthConnectAutoSyncEnabled = entity.healthConnectAutoSyncEnabled
+    ..discardedHealthConnectActivityIds =
+        entity.discardedHealthConnectActivityIds;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

@@ -89,6 +89,14 @@ class ConfigRepository {
     await _configDataSource.setHealthConnectAutoSyncEnabled(enabled);
   }
 
+  Future<List<String>> getDiscardedHealthConnectActivityIds() async {
+    return _configDataSource.getDiscardedHealthConnectActivityIds();
+  }
+
+  Future<void> addDiscardedHealthConnectActivityId(String externalId) async {
+    await _configDataSource.addDiscardedHealthConnectActivityId(externalId);
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

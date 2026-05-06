@@ -27,6 +27,9 @@ class PhysicalActivityEntity extends Equatable {
   List<Object?> get props => [code, specificActivity, description, mets];
 
   String getName(BuildContext context) {
+    if (code.startsWith('hc:') && specificActivity.trim().isNotEmpty) {
+      return specificActivity;
+    }
     final physicalActivityMap = {
       "01015": S.of(context).paBicyclingGeneral,
       "01009": S.of(context).paBicyclingMountainGeneral,
@@ -125,6 +128,9 @@ class PhysicalActivityEntity extends Equatable {
   }
 
   String getDescription(BuildContext context) {
+    if (code.startsWith('hc:') && description.trim().isNotEmpty) {
+      return description;
+    }
     final physicalActivityMap = {
       "01009": S.of(context).paBicyclingMountainGeneralDesc,
       "01015": S.of(context).paBicyclingGeneralDesc,

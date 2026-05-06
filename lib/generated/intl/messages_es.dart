@@ -116,7 +116,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m44(count) => "${count} cals";
 
-  static String m45(count) => "${count} sesiones";
+  static String m45(count) => "${count} sesión";
 
   static String m46(current, goal) => "${current} de ${goal} kcal";
 
@@ -154,7 +154,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Añadir nuevo elemento:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Añadir"),
         "addMealQuickActionsSubtitle": MessageLookupByLibrary.simpleMessage(
-            "Empieza con barras, foto, texto o guardadas. Si buscas, elige abajo la fuente."),
+            "Empieza con código de barras, foto, texto o guardadas. Si buscas, usa Comida o Historial."),
         "addMealQuickActionsTitle":
             MessageLookupByLibrary.simpleMessage("Atajos de entrada"),
         "addMealRecentEmpty": MessageLookupByLibrary.simpleMessage(
@@ -162,22 +162,30 @@ class MessageLookup extends MessageLookupByLibrary {
         "addMealBarcode": MessageLookupByLibrary.simpleMessage("Barras"),
         "addMealPhoto": MessageLookupByLibrary.simpleMessage("Foto"),
         "addMealSaved": MessageLookupByLibrary.simpleMessage("Guardadas"),
+        "recipeQuickCategoryLabel":
+            MessageLookupByLibrary.simpleMessage("CategorÃ­a rÃ¡pida"),
+        "quickCategoryLeanMeal": MessageLookupByLibrary.simpleMessage("Ligera"),
+        "quickCategoryPostWorkout":
+            MessageLookupByLibrary.simpleMessage("Postentreno"),
+        "quickCategoryPreWorkout":
+            MessageLookupByLibrary.simpleMessage("Preentreno"),
+        "quickCategoryShake": MessageLookupByLibrary.simpleMessage("Batido"),
         "addMealSearchPromptGeneric": MessageLookupByLibrary.simpleMessage(
             "Busca un alimento generico como arroz, huevos o yogur."),
         "addMealSearchPromptPackaged": MessageLookupByLibrary.simpleMessage(
-            "Busca un producto envasado o usa el codigo de barras."),
+            "Busca cualquier comida o usa el codigo de barras."),
         "addMealSectionGenericResults":
             MessageLookupByLibrary.simpleMessage("Resultados genericos"),
         "addMealSectionPackagedResults":
-            MessageLookupByLibrary.simpleMessage("Resultados envasados"),
+            MessageLookupByLibrary.simpleMessage("Resultados de comida"),
         "addMealSectionRecentResults":
             MessageLookupByLibrary.simpleMessage("Comidas recientes"),
         "addMealTabGeneric": MessageLookupByLibrary.simpleMessage("Genericos"),
         "addMealTabGenericHelper": MessageLookupByLibrary.simpleMessage(
             "Usalo para alimentos simples como arroz, pollo, fruta o avena."),
-        "addMealTabPackaged": MessageLookupByLibrary.simpleMessage("Envasados"),
+        "addMealTabPackaged": MessageLookupByLibrary.simpleMessage("Comida"),
         "addMealTabPackagedHelper": MessageLookupByLibrary.simpleMessage(
-            "Usalo para productos de supermercado y marcas."),
+            "Usalo para buscar cualquier comida y producto."),
         "addMealTabRecent": MessageLookupByLibrary.simpleMessage("Historial"),
         "addMealTabRecentHelper": MessageLookupByLibrary.simpleMessage(
             "Repite algo que ya registraste hace poco."),
@@ -610,12 +618,12 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage(
                 "Auto-sync de Health Connect activado."),
         "healthConnectAutoSyncSubtitle": MessageLookupByLibrary.simpleMessage(
-            "Sincroniza sueño y pasos automáticamente al abrir la app."),
+            "Sincroniza sueño, pasos y entrenamientos automáticamente al abrir la app."),
         "healthConnectAutoSyncTitle":
             MessageLookupByLibrary.simpleMessage("Auto-sync de Health Connect"),
         "healthConnectGrantPermissionsSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "Abre el flujo de permisos para sueño y pasos."),
+                "Abre el flujo de permisos para sueño, pasos y entrenamientos."),
         "healthConnectGrantPermissionsTitle":
             MessageLookupByLibrary.simpleMessage(
                 "Conceder permisos de Health Connect"),
@@ -633,17 +641,17 @@ class MessageLookup extends MessageLookupByLibrary {
             "Comprobando el estado de Health Connect..."),
         "healthConnectStatusPermissionsRequired":
             MessageLookupByLibrary.simpleMessage(
-                "Se necesitan permisos de salud para leer sueño y pasos."),
+                "Se necesitan permisos de salud para leer sueño, pasos y entrenamientos."),
         "healthConnectStatusReady": MessageLookupByLibrary.simpleMessage(
-            "Conectado. Sueño y pasos pueden sincronizarse automáticamente."),
+            "Conectado. Sueño, pasos y entrenamientos pueden sincronizarse automáticamente."),
         "healthConnectStatusUnavailable": MessageLookupByLibrary.simpleMessage(
             "Health Connect no está disponible en este dispositivo."),
         "healthConnectSyncNoChanges": MessageLookupByLibrary.simpleMessage(
-            "No se importaron datos nuevos de Health Connect."),
+            "No se importaron datos nuevos de Health Connect ni entrenamientos."),
         "healthConnectSyncNowTitle": MessageLookupByLibrary.simpleMessage(
             "Sincronizar Health Connect ahora"),
         "healthConnectSyncSuccess": MessageLookupByLibrary.simpleMessage(
-            "Datos de Health Connect sincronizados."),
+            "Datos de Health Connect sincronizados, incluidas actividades."),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Altura"),
         "historyLabel": MessageLookupByLibrary.simpleMessage("Historial"),
         "homeLabel": MessageLookupByLibrary.simpleMessage("Inicio"),
