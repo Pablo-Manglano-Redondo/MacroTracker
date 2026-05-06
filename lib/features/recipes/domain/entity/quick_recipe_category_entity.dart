@@ -37,6 +37,13 @@ extension QuickRecipeCategoryEntityX on QuickRecipeCategoryEntity {
   }
 
   static QuickRecipeCategoryEntity inferFromRecipe(RecipeEntity recipe) {
+    if (recipe.quickCategory != null) {
+      return recipe.quickCategory!;
+    }
+    return inferLegacyFromRecipe(recipe);
+  }
+
+  static QuickRecipeCategoryEntity inferLegacyFromRecipe(RecipeEntity recipe) {
     final text = '${recipe.name} ${recipe.notes ?? ''}'.toLowerCase();
 
     if (_containsAny(text, const [

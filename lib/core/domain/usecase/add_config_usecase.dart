@@ -57,6 +57,10 @@ class AddConfigUsecase {
     await _configRepository.setHealthConnectAutoSyncEnabled(enabled);
   }
 
+  Future<void> addDiscardedHealthConnectActivityId(String externalId) async {
+    await _configRepository.addDiscardedHealthConnectActivityId(externalId);
+  }
+
   Future<void> addAiEstimatedCost({
     required bool isPhoto,
     required double usdCost,

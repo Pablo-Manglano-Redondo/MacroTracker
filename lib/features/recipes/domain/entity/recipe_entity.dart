@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
 class RecipeEntity extends Equatable {
@@ -9,6 +10,7 @@ class RecipeEntity extends Equatable {
   final double? yieldQuantity;
   final String? yieldUnit;
   final bool favorite;
+  final QuickRecipeCategoryEntity? quickCategory;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<RecipeIngredientEntity> ingredients;
@@ -21,6 +23,7 @@ class RecipeEntity extends Equatable {
     required this.yieldQuantity,
     required this.yieldUnit,
     required this.favorite,
+    required this.quickCategory,
     required this.createdAt,
     required this.updatedAt,
     required this.ingredients,
@@ -34,6 +37,7 @@ class RecipeEntity extends Equatable {
     double? yieldQuantity,
     String? yieldUnit,
     bool? favorite,
+    QuickRecipeCategoryEntity? quickCategory,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<RecipeIngredientEntity>? ingredients,
@@ -46,6 +50,7 @@ class RecipeEntity extends Equatable {
       yieldQuantity: yieldQuantity ?? this.yieldQuantity,
       yieldUnit: yieldUnit ?? this.yieldUnit,
       favorite: favorite ?? this.favorite,
+      quickCategory: quickCategory ?? this.quickCategory,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       ingredients: ingredients ?? this.ingredients,
@@ -61,6 +66,7 @@ class RecipeEntity extends Equatable {
         yieldQuantity,
         yieldUnit,
         favorite,
+        quickCategory,
         createdAt,
         updatedAt,
         ingredients,

@@ -44,6 +44,7 @@ class RecipeRepository {
       yieldQuantity: recipeDBO.yieldQuantity,
       yieldUnit: recipeDBO.yieldUnit,
       favorite: recipeDBO.favorite,
+      quickCategory: recipeDBO.quickCategoryEntity,
       createdAt: recipeDBO.createdAt,
       updatedAt: recipeDBO.updatedAt,
       ingredients: recipeDBO.ingredients

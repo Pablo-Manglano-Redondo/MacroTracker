@@ -204,7 +204,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddUserActivityUsecase>(
       () => AddUserActivityUsecase(locator()));
   locator.registerLazySingleton<DeleteUserActivityUsecase>(
-      () => DeleteUserActivityUsecase(locator()));
+      () => DeleteUserActivityUsecase(locator(), locator()));
   locator.registerLazySingleton<GetPhysicalActivityUsecase>(
       () => GetPhysicalActivityUsecase(locator()));
   locator.registerLazySingleton<GetTrackedDayUsecase>(
@@ -230,7 +230,13 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<UpdateDailyHabitLogUsecase>(
       () => UpdateDailyHabitLogUsecase(locator(), locator()));
   locator.registerLazySingleton<SyncSleepFromHealthConnectUsecase>(
-      () => SyncSleepFromHealthConnectUsecase(locator(), locator(), locator()));
+      () => SyncSleepFromHealthConnectUsecase(
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+          ));
   locator.registerLazySingleton(() => ExportDataUsecase(
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => ImportDataUsecase(

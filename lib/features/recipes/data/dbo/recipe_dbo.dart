@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:macrotracker/features/recipes/data/dbo/recipe_ingredient_dbo.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 part 'recipe_dbo.g.dart';
@@ -28,6 +29,8 @@ class RecipeDBO extends HiveObject {
   DateTime updatedAt;
   @HiveField(9)
   final List<RecipeIngredientDBO> ingredients;
+  @HiveField(10)
+  final String? quickCategory;
 
   RecipeDBO({
     required this.id,
@@ -40,6 +43,7 @@ class RecipeDBO extends HiveObject {
     required this.createdAt,
     required this.updatedAt,
     required this.ingredients,
+    required this.quickCategory,
   });
 
   factory RecipeDBO.fromEntity(RecipeEntity entity) {
@@ -55,7 +59,21 @@ class RecipeDBO extends HiveObject {
       updatedAt: entity.updatedAt,
       ingredients:
           entity.ingredients.map(RecipeIngredientDBO.fromEntity).toList(),
+      quickCategory: entity.quickCategory?.name,
     );
+  }
+
+  QuickRecipeCategoryEntity? get quickCategoryEntity {
+    final value = quickCategory;
+    if (value == null || value.isEmpty) {
+      return null;
+    }
+    for (final category in QuickRecipeCategoryEntity.values) {
+      if (category.name == value) {
+        return category;
+      }
+    }
+    return null;
   }
 
   factory RecipeDBO.fromJson(Map<String, dynamic> json) =>

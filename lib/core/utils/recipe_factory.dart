@@ -4,6 +4,7 @@ import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 
@@ -13,6 +14,7 @@ class RecipeFactory {
     required MealEntity meal,
     required double amount,
     required String unit,
+    required QuickRecipeCategoryEntity quickCategory,
   }) {
     final now = DateTime.now();
     return RecipeEntity(
@@ -23,6 +25,7 @@ class RecipeFactory {
       yieldQuantity: null,
       yieldUnit: null,
       favorite: false,
+      quickCategory: quickCategory,
       createdAt: now,
       updatedAt: now,
       ingredients: [
@@ -40,6 +43,7 @@ class RecipeFactory {
   static RecipeEntity fromInterpretationDraft({
     required String name,
     required InterpretationDraftEntity draft,
+    required QuickRecipeCategoryEntity quickCategory,
   }) {
     final now = DateTime.now();
     final activeItems =
@@ -53,6 +57,7 @@ class RecipeFactory {
       yieldQuantity: null,
       yieldUnit: null,
       favorite: false,
+      quickCategory: quickCategory,
       createdAt: now,
       updatedAt: now,
       ingredients: activeItems

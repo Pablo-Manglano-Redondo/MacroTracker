@@ -45,6 +45,7 @@ class GenerateMacroSuggestionsUsecase {
       yieldQuantity: 1.0,
       yieldUnit: 'serving',
       favorite: false,
+      quickCategory: null,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       ingredients: [

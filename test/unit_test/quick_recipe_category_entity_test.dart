@@ -49,10 +49,26 @@ void main() {
         IntakeTypeEntity.dinner,
       );
     });
+
+    test('prefers persisted category over name heuristics', () {
+      expect(
+        QuickRecipeCategoryEntityX.inferFromRecipe(
+          _recipe(
+            'Random bowl',
+            quickCategory: QuickRecipeCategoryEntity.postWorkout,
+          ),
+        ),
+        QuickRecipeCategoryEntity.postWorkout,
+      );
+    });
   });
 }
 
-RecipeEntity _recipe(String name, {String? notes}) {
+RecipeEntity _recipe(
+  String name, {
+  String? notes,
+  QuickRecipeCategoryEntity? quickCategory,
+}) {
   final now = DateTime(2025, 1, 1);
   return RecipeEntity(
     id: name,
@@ -62,6 +78,7 @@ RecipeEntity _recipe(String name, {String? notes}) {
     yieldQuantity: null,
     yieldUnit: null,
     favorite: false,
+    quickCategory: quickCategory,
     createdAt: now,
     updatedAt: now,
     ingredients: const [],

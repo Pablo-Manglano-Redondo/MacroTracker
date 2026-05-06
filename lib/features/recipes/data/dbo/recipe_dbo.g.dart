@@ -27,6 +27,7 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       createdAt: fields[7] as DateTime,
       updatedAt: fields[8] as DateTime,
       ingredients: (fields[9] as List).cast<RecipeIngredientDBO>(),
+      quickCategory: fields[10] as String?,
     );
   }
 
@@ -53,7 +54,9 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       ..writeByte(8)
       ..write(obj.updatedAt)
       ..writeByte(9)
-      ..write(obj.ingredients);
+      ..write(obj.ingredients)
+      ..writeByte(10)
+      ..write(obj.quickCategory);
   }
 
   @override
@@ -84,6 +87,7 @@ RecipeDBO _$RecipeDBOFromJson(Map<String, dynamic> json) => RecipeDBO(
       ingredients: (json['ingredients'] as List<dynamic>)
           .map((e) => RecipeIngredientDBO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      quickCategory: json['quickCategory'] as String?,
     );
 
 Map<String, dynamic> _$RecipeDBOToJson(RecipeDBO instance) => <String, dynamic>{
@@ -97,4 +101,5 @@ Map<String, dynamic> _$RecipeDBOToJson(RecipeDBO instance) => <String, dynamic>{
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'ingredients': instance.ingredients,
+      'quickCategory': instance.quickCategory,
     };
