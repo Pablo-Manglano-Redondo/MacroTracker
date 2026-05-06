@@ -31,13 +31,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final log = Logger('HomePage');
 
   late HomeBloc _homeBloc;
-  int _habitRefreshSeed = 0;
+  late final GymHabitsCardController _gymHabitsCardController;
   bool _isSyncingSleep = false;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
+    _gymHabitsCardController = GymHabitsCardController();
     super.initState();
     _refreshHomeWidgetSummary();
     _syncSleepFromHealthConnect();
@@ -46,6 +47,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _gymHabitsCardController.dispose();
     super.dispose();
   }
 
@@ -143,9 +145,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: contentWidth),
-            child: ListView(
-              children: [
-                DashboardWidget(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  DashboardWidget(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
                   nutritionPhase: nutritionPhase,
                   onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
@@ -184,45 +187,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
                 ),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      SizedBox(
-                        width: overviewCardWidth,
-                        child: BodyProgressCard(
-                          padding: EdgeInsets.zero,
-                          usesImperialUnits: usesImperialUnits,
-                        ),
-                      ),
-                      SizedBox(
-                        width: overviewCardWidth,
-                        child: GymHabitsCard(
-                          padding: EdgeInsets.zero,
-                          dailyFocus: dailyFocus,
-                          usesImperialUnits: usesImperialUnits,
-                          refreshSeed: _habitRefreshSeed,
-                        ),
-                      ),
-                      SizedBox(
-                        width: overviewCardWidth,
-                        child: _WeeklyInsightsCard(
-                          onTap: () {
-                            Navigator.of(context).pushNamed(
-                              NavigationOptions.weeklyInsightsRoute,
-                              arguments:
-                                  WeeklyInsightsScreenArguments(DateTime.now()),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
+                _buildOverviewSection(
+                  context: context,
+                  overviewColumns: overviewColumns,
+                  overviewCardWidth: overviewCardWidth,
+                  usesImperialUnits: usesImperialUnits,
+                  dailyFocus: dailyFocus,
                 ),
                 const SizedBox(height: 48.0),
               ],
+            ),
             ),
           ),
         );
@@ -264,9 +238,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         requestPermissionsIfNeeded: true,
       );
       if (didUpdate && mounted) {
-        setState(() {
-          _habitRefreshSeed++;
-        });
+        _gymHabitsCardController.refresh();
+        _homeBloc.add(const LoadItemsEvent());
       }
     } catch (error, stackTrace) {
       log.warning(
@@ -289,6 +262,70 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         stackTrace,
       );
     }
+  }
+
+  Widget _buildOverviewSection({
+    required BuildContext context,
+    required int overviewColumns,
+    required double overviewCardWidth,
+    required bool usesImperialUnits,
+    required DailyFocusEntity dailyFocus,
+  }) {
+    final bodyProgressCard = SizedBox(
+      width: overviewCardWidth,
+      child: BodyProgressCard(
+        padding: EdgeInsets.zero,
+        usesImperialUnits: usesImperialUnits,
+      ),
+    );
+    final gymHabitsCard = SizedBox(
+      width: overviewCardWidth,
+      child: GymHabitsCard(
+        padding: EdgeInsets.zero,
+        dailyFocus: dailyFocus,
+        usesImperialUnits: usesImperialUnits,
+        controller: _gymHabitsCardController,
+      ),
+    );
+    final weeklyInsightsCard = SizedBox(
+      width: overviewCardWidth,
+      child: _WeeklyInsightsCard(
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            NavigationOptions.weeklyInsightsRoute,
+            arguments: WeeklyInsightsScreenArguments(DateTime.now()),
+          );
+        },
+      ),
+    );
+
+    if (overviewColumns == 1) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            bodyProgressCard,
+            const SizedBox(height: 12),
+            gymHabitsCard,
+            const SizedBox(height: 12),
+            weeklyInsightsCard,
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: [
+          bodyProgressCard,
+          gymHabitsCard,
+          weeklyInsightsCard,
+        ],
+      ),
+    );
   }
 }
 

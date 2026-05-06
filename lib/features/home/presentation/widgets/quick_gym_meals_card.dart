@@ -41,11 +41,13 @@ enum _QuickGymMealsFilter {
 
 class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
   late _QuickGymMealsFilter _selectedFilter;
+  late Future<List<QuickRecipePresetEntity>> _presetsFuture;
 
   @override
   void initState() {
     super.initState();
     _selectedFilter = _defaultFilter(widget.dailyFocus, widget.nutritionPhase);
+    _presetsFuture = _loadPresets(_selectedFilter);
   }
 
   @override
@@ -55,6 +57,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
         oldWidget.nutritionPhase != widget.nutritionPhase) {
       _selectedFilter =
           _defaultFilter(widget.dailyFocus, widget.nutritionPhase);
+      _presetsFuture = _loadPresets(_selectedFilter);
     }
   }
 
@@ -152,16 +155,14 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   onSelectionChanged: (selection) {
                     setState(() {
                       _selectedFilter = selection.first;
+                      _presetsFuture = _loadPresets(_selectedFilter);
                     });
                   },
                 ),
               ),
               const SizedBox(height: 16),
               FutureBuilder<List<QuickRecipePresetEntity>>(
-                future: locator<GetQuickRecipePresetsUsecase>().getPresets(
-                  category: _categoryForFilter(_selectedFilter),
-                  limit: 3,
-                ),
+                future: _presetsFuture,
                 builder: (context, snapshot) {
                   if (!snapshot.hasData &&
                       snapshot.connectionState != ConnectionState.done) {
@@ -285,6 +286,15 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     if (mounted) {
       setState(() {});
     }
+  }
+
+  Future<List<QuickRecipePresetEntity>> _loadPresets(
+    _QuickGymMealsFilter filter,
+  ) {
+    return locator<GetQuickRecipePresetsUsecase>().getPresets(
+      category: _categoryForFilter(filter),
+      limit: 3,
+    );
   }
 
   _QuickGymMealsFilter _defaultFilter(

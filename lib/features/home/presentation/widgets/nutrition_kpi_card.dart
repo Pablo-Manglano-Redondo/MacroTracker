@@ -3,7 +3,7 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 
-class NutritionKpiCard extends StatelessWidget {
+class NutritionKpiCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
 
   const NutritionKpiCard({
@@ -12,11 +12,24 @@ class NutritionKpiCard extends StatelessWidget {
   });
 
   @override
+  State<NutritionKpiCard> createState() => _NutritionKpiCardState();
+}
+
+class _NutritionKpiCardState extends State<NutritionKpiCard> {
+  late Future<WeeklyInsightsEntity> _kpiFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _kpiFuture = locator<BuildWeeklyInsightsUsecase>().build(DateTime.now());
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: padding,
+      padding: widget.padding,
       child: Card(
         elevation: 0.5,
         shape: RoundedRectangleBorder(
@@ -28,7 +41,7 @@ class NutritionKpiCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<WeeklyInsightsEntity>(
-            future: locator<BuildWeeklyInsightsUsecase>().build(DateTime.now()),
+            future: _kpiFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(

@@ -4,7 +4,6 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
-import 'package:macrotracker/features/add_meal/presentation/bloc/food_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/products_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/recent_meal_bloc.dart';
 import 'package:macrotracker/features/add_meal/presentation/widgets/default_results_widget.dart';
@@ -36,7 +35,6 @@ class _AddMealScreenState extends State<AddMealScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ProductsBloc _productsBloc;
-  late FoodBloc _foodBloc;
   late RecentMealBloc _recentMealBloc;
 
   late DateTime _day;
@@ -46,9 +44,8 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   @override
   void initState() {
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _productsBloc = locator<ProductsBloc>();
-    _foodBloc = locator<FoodBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
     super.initState();
   }
@@ -86,73 +83,10 @@ class _AddMealScreenState extends State<AddMealScreen>
                 onSearchSubmit: _onSearchSubmit,
                 onBarcodePressed: _onBarcodeIconPressed,
               ),
-              const SizedBox(height: 8.0),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: Theme.of(context)
-                      .colorScheme
-                      .surfaceContainerHighest
-                      .withValues(alpha: 0.35),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations.addMealQuickActionsTitle,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      localizations.addMealQuickActionsSubtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8.0),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _onBarcodeIconPressed,
-                      icon: const Icon(Icons.qr_code_scanner_outlined),
-                      label: Text(S.of(context).addMealBarcode),
-                    ),
-                    const SizedBox(width: 8.0),
-                    OutlinedButton.icon(
-                      onPressed: _openTextCapture,
-                      icon: const Icon(Icons.text_fields_outlined),
-                      label: Text(S.of(context).addMealText),
-                    ),
-                    const SizedBox(width: 8.0),
-                    OutlinedButton.icon(
-                      onPressed: _openPhotoCapture,
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: Text(S.of(context).addMealPhoto),
-                    ),
-                    const SizedBox(width: 8.0),
-                    OutlinedButton.icon(
-                      onPressed: _openRecipeLibrary,
-                      icon: const Icon(Icons.bookmarks_outlined),
-                      label: Text(S.of(context).addMealSaved),
-                    ),
-                  ],
-                ),
-              ),
               const SizedBox(height: 16.0),
               TabBar(
                   tabs: [
                     Tab(text: localizations.addMealTabPackaged),
-                    Tab(text: localizations.addMealTabGeneric),
                     Tab(text: localizations.addMealTabRecent)
                   ],
                   controller: _tabController,
@@ -229,56 +163,6 @@ class _AddMealScreenState extends State<AddMealScreen>
                   Column(
                     children: [
                       Container(
-                          padding: const EdgeInsets.only(left: 8.0),
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                              localizations.addMealSectionGenericResults,
-                              style:
-                                  Theme.of(context).textTheme.headlineSmall)),
-                      BlocBuilder<FoodBloc, FoodState>(
-                        bloc: _foodBloc,
-                        builder: (context, state) {
-                          if (state is FoodInitial) {
-                            return DefaultsResultsWidget.message(
-                              localizations.addMealSearchPromptGeneric,
-                            );
-                          } else if (state is FoodLoadingState) {
-                            return const Padding(
-                              padding: EdgeInsets.only(top: 32),
-                              child: CircularProgressIndicator(),
-                            );
-                          } else if (state is FoodLoadedState) {
-                            return state.food.isNotEmpty
-                                ? Flexible(
-                                    child: ListView.builder(
-                                        itemCount: state.food.length,
-                                        itemBuilder: (context, index) {
-                                          return MealItemCard(
-                                            day: _day,
-                                            mealEntity: state.food[index],
-                                            addMealType: _mealType,
-                                            usesImperialUnits:
-                                                state.usesImperialUnits,
-                                          );
-                                        }))
-                                : NoResultsWidget.message(
-                                    localizations.noResultsFound,
-                                  );
-                          } else if (state is FoodFailedState) {
-                            return ErrorDialog(
-                              errorText: localizations.errorFetchingProductData,
-                              onRefreshPressed: _onFoodRefreshButtonPressed,
-                            );
-                          } else {
-                            return const SizedBox();
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Container(
                           padding: const EdgeInsets.only(left: 8.0, bottom: 8),
                           alignment: Alignment.centerLeft,
                           child: Text(localizations.addMealSectionRecentResults,
@@ -337,8 +221,6 @@ class _AddMealScreenState extends State<AddMealScreen>
       case 0:
         return localizations.addMealTabPackagedHelper;
       case 1:
-        return localizations.addMealTabGenericHelper;
-      case 2:
         return localizations.addMealTabRecentHelper;
       default:
         return localizations.addMealTabPackagedHelper;
@@ -347,10 +229,6 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   void _onProductsRefreshButtonPressed() {
     _productsBloc.add(const RefreshProductsEvent());
-  }
-
-  void _onFoodRefreshButtonPressed() {
-    _foodBloc.add(const RefreshFoodEvent());
   }
 
   void _onRecentMealsRefreshButtonPressed() {
@@ -363,9 +241,6 @@ class _AddMealScreenState extends State<AddMealScreen>
         _productsBloc.add(LoadProductsEvent(searchString: inputText));
         break;
       case 1:
-        _foodBloc.add(LoadFoodEvent(searchString: inputText));
-        break;
-      case 2:
         _recentMealBloc.add(LoadRecentMealEvent(searchString: inputText));
         break;
     }

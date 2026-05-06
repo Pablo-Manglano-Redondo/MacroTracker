@@ -1,8 +1,10 @@
+import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
@@ -20,6 +22,7 @@ import 'package:macrotracker/features/meal_detail/presentation/widgets/meal_info
 import 'package:macrotracker/features/meal_detail/presentation/widgets/meal_placeholder.dart';
 import 'package:macrotracker/features/meal_detail/presentation/widgets/meal_title_expanded.dart';
 import 'package:macrotracker/features/meal_detail/presentation/widgets/off_disclaimer.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MealDetailScreen extends StatefulWidget {
@@ -43,6 +46,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   late MealEntity meal;
   late DateTime _day;
   late IntakeTypeEntity intakeTypeEntity;
+  IntakeEntity? _loggedIntake;
 
   final quantityTextController = TextEditingController();
   late bool _usesImperialUnits;
@@ -65,10 +69,13 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     _day = args.day;
     intakeTypeEntity = args.intakeTypeEntity;
     _usesImperialUnits = args.usesImperialUnits;
+    _loggedIntake = args.intakeEntity;
 
     // Set initial unit
     if (_initialUnit == "") {
-      if (meal.hasServingValues) {
+      if (_loggedIntake != null) {
+        _initialUnit = _loggedIntake!.unit;
+      } else if (meal.hasServingValues) {
         _initialUnit = UnitDropdownItem.serving.toString();
       } else if (meal.isLiquid) {
         _initialUnit = _usesImperialUnits
@@ -87,7 +94,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
     // Set initial quantity
     if (_initialQuantity == "") {
-      if (meal.hasServingValues) {
+      if (_loggedIntake != null) {
+        _initialQuantity = _loggedIntake!.amount.toString();
+        quantityTextController.text = _formatInitialQuantity(_loggedIntake!.amount);
+      } else if (meal.hasServingValues) {
         _initialQuantity = "1";
         quantityTextController.text = "1";
       } else if (_usesImperialUnits) {
@@ -121,15 +131,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 state.totalProtein,
                 state.selectedUnit,
               ),
-              bottomSheet: MealDetailBottomSheet(
-                product: meal,
-                day: _day,
-                intakeTypeEntity: intakeTypeEntity,
-                selectedUnit: state.selectedUnit,
-                mealDetailBloc: _mealDetailBloc,
-                quantityTextController: quantityTextController,
-                onQuantityOrUnitChanged: onQuantityOrUnitChanged,
-              ),
+              bottomSheet: _loggedIntake == null
+                  ? MealDetailBottomSheet(
+                      product: meal,
+                      day: _day,
+                      intakeTypeEntity: intakeTypeEntity,
+                      selectedUnit: state.selectedUnit,
+                      mealDetailBloc: _mealDetailBloc,
+                      quantityTextController: quantityTextController,
+                      onQuantityOrUnitChanged: onQuantityOrUnitChanged,
+                    )
+                  : null,
             );
           } else {
             return Scaffold(
@@ -181,18 +193,19 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                   _showSaveRecipeDialog(context, selectedUnit);
                 },
                 icon: const Icon(Icons.bookmark_add_outlined)),
-            IconButton(
-                onPressed: () {
-                  Navigator.of(context)
-                      .pushNamed(NavigationOptions.editMealRoute,
-                          arguments: EditMealScreenArguments(
-                            _day,
-                            meal,
-                            intakeTypeEntity,
-                            _usesImperialUnits,
-                          ));
-                },
-                icon: const Icon(Icons.edit_outlined))
+            if (_loggedIntake == null)
+              IconButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .pushNamed(NavigationOptions.editMealRoute,
+                            arguments: EditMealScreenArguments(
+                              _day,
+                              meal,
+                              intakeTypeEntity,
+                              _usesImperialUnits,
+                            ));
+                  },
+                  icon: const Icon(Icons.edit_outlined))
           ],
         ),
         SliverList(
@@ -226,7 +239,15 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_loggedIntake != null) ...[
+                  _LoggedIntakeSummaryCard(
+                    intake: _loggedIntake!,
+                    usesImperialUnits: _usesImperialUnits,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 Row(
                   children: [
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
@@ -258,6 +279,33 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         value: totalProtein)
                   ],
                 ),
+                if (_loggedIntake != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    _isEs(context) ? 'Macros del registro' : 'Logged macros',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      MealDetailMacroNutrients(
+                        typeString: S.of(context).carbsLabel,
+                        value: _loggedIntake!.totalCarbsGram,
+                      ),
+                      MealDetailMacroNutrients(
+                        typeString: S.of(context).fatLabel,
+                        value: _loggedIntake!.totalFatsGram,
+                      ),
+                      MealDetailMacroNutrients(
+                        typeString: S.of(context).proteinLabel,
+                        value: _loggedIntake!.totalProteinsGram,
+                      ),
+                    ],
+                  ),
+                ],
                 const Divider(),
                 const SizedBox(height: 16.0),
                 MealDetailNutrimentsTable(
@@ -306,6 +354,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   void _showSaveRecipeDialog(BuildContext context, String selectedUnit) {
     final controller = TextEditingController(text: meal.name ?? '');
     bool favorite = true;
+    var quickCategory = QuickRecipeCategoryEntityX.inferLegacyFromRecipe(
+      RecipeFactory.fromSingleMeal(
+        name: meal.name ?? '',
+        meal: meal,
+        amount:
+            double.tryParse(quantityTextController.text.replaceAll(',', '.')) ??
+                1,
+        unit: selectedUnit,
+        quickCategory: QuickRecipeCategoryEntity.leanMeal,
+      ),
+    );
     showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -335,6 +394,30 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     },
                     title: Text(S.of(context).aiFavoriteQuickAccess),
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<QuickRecipeCategoryEntity>(
+                    initialValue: quickCategory,
+                    decoration: InputDecoration(
+                      labelText: S.of(context).recipeQuickCategoryLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: QuickRecipeCategoryEntity.values
+                        .map(
+                          (category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(_quickCategoryLabel(context, category)),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setDialogState(() {
+                        quickCategory = value;
+                      });
+                    },
+                  ),
                 ],
               ),
               actions: [
@@ -356,6 +439,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                               .replaceAll(',', '.')) ??
                           1,
                       unit: selectedUnit,
+                      quickCategory: quickCategory,
                     ).copyWith(favorite: favorite);
 
                     await locator<SaveRecipeUsecase>().saveRecipe(recipe);
@@ -378,6 +462,30 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       },
     );
   }
+
+  String _formatInitialQuantity(double amount) {
+    return amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toString();
+  }
+
+  bool _isEs(BuildContext context) {
+    return Localizations.localeOf(context).languageCode == 'es';
+  }
+
+  String _quickCategoryLabel(
+    BuildContext context,
+    QuickRecipeCategoryEntity category,
+  ) {
+    switch (category) {
+      case QuickRecipeCategoryEntity.preWorkout:
+        return S.of(context).quickCategoryPreWorkout;
+      case QuickRecipeCategoryEntity.postWorkout:
+        return S.of(context).quickCategoryPostWorkout;
+      case QuickRecipeCategoryEntity.shake:
+        return S.of(context).quickCategoryShake;
+      case QuickRecipeCategoryEntity.leanMeal:
+        return S.of(context).quickCategoryLeanMeal;
+    }
+  }
 }
 
 class MealDetailScreenArguments {
@@ -385,7 +493,126 @@ class MealDetailScreenArguments {
   final IntakeTypeEntity intakeTypeEntity;
   final DateTime day;
   final bool usesImperialUnits;
+  final IntakeEntity? intakeEntity;
 
   MealDetailScreenArguments(
-      this.mealEntity, this.intakeTypeEntity, this.day, this.usesImperialUnits);
+      this.mealEntity, this.intakeTypeEntity, this.day, this.usesImperialUnits,
+      {this.intakeEntity});
+}
+
+class _LoggedIntakeSummaryCard extends StatelessWidget {
+  final IntakeEntity intake;
+  final bool usesImperialUnits;
+
+  const _LoggedIntakeSummaryCard({
+    required this.intake,
+    required this.usesImperialUnits,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final colorScheme = Theme.of(context).colorScheme;
+    final timeLabel = DateFormat.Hm().format(intake.dateTime);
+    final mealTypeLabel = _mealTypeLabel(context, intake.type);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.45),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.16),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            isEs ? 'Detalle del registro' : 'Logged entry details',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _DetailPill(
+                icon: intake.type.getIconData(),
+                label: mealTypeLabel,
+              ),
+              _DetailPill(
+                icon: Icons.schedule_outlined,
+                label: timeLabel,
+              ),
+              _DetailPill(
+                icon: Icons.local_fire_department_outlined,
+                label: '${intake.totalKcal.toStringAsFixed(0)} kcal',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          MealValueUnitText(
+            value: intake.amount,
+            meal: intake.meal,
+            displayUnit: intake.unit,
+            usesImperialUnits: usesImperialUnits,
+            textStyle: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                ),
+            prefix: isEs ? 'Cantidad: ' : 'Amount: ',
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _mealTypeLabel(BuildContext context, IntakeTypeEntity type) {
+    switch (type) {
+      case IntakeTypeEntity.breakfast:
+        return S.of(context).breakfastLabel;
+      case IntakeTypeEntity.lunch:
+        return S.of(context).lunchLabel;
+      case IntakeTypeEntity.dinner:
+        return S.of(context).dinnerLabel;
+      case IntakeTypeEntity.snack:
+        return S.of(context).snackLabel;
+    }
+  }
+}
+
+class _DetailPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _DetailPill({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: Theme.of(context)
+            .colorScheme
+            .surface
+            .withValues(alpha: 0.9),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 6),
+          Text(label, style: Theme.of(context).textTheme.labelMedium),
+        ],
+      ),
+    );
+  }
 }

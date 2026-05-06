@@ -12,6 +12,7 @@ class ActivityVerticalList extends StatelessWidget {
   final String title;
   final List<UserActivityEntity> userActivityList;
   final Function(BuildContext, UserActivityEntity) onItemLongPressedCallback;
+  final Function(BuildContext, UserActivityEntity)? onItemTappedCallback;
 
   const ActivityVerticalList(
       {super.key,
@@ -20,7 +21,8 @@ class ActivityVerticalList extends StatelessWidget {
       required this.day,
       required this.title,
       required this.userActivityList,
-      required this.onItemLongPressedCallback});
+      required this.onItemLongPressedCallback,
+      this.onItemTappedCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +93,7 @@ class ActivityVerticalList extends StatelessWidget {
                 return ActivityCard(
                   activityEntity: userActivity,
                   onItemLongPressed: onItemLongPressedCallback,
+                  onItemTapped: onItemTappedCallback,
                   firstListElement: firstListElement,
                   compact: compact,
                 );

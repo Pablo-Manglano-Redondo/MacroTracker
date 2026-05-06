@@ -29,6 +29,13 @@ class BodyProgressCard extends StatefulWidget {
 
 class _BodyProgressCardState extends State<BodyProgressCard> {
   int _refreshSeed = 0;
+  late Future<BodyProgressSummaryEntity> _summaryFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _summaryFuture = _loadSummary(_refreshSeed);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +46,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<BodyProgressSummaryEntity>(
-            future: _loadSummary(_refreshSeed),
+            future: _summaryFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
@@ -90,11 +97,14 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                         background: tone.background(context),
                       ),
                       const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: () => Navigator.of(context)
-                            .pushNamed(NavigationOptions.bodyProgressRoute),
-                        icon: const Icon(Icons.chevron_right),
-                        tooltip: S.of(context).bodyProgressOpenHistoryTooltip,
+                      Focus(
+                        canRequestFocus: false,
+                        child: IconButton(
+                          onPressed: () => Navigator.of(context)
+                              .pushNamed(NavigationOptions.bodyProgressRoute),
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: S.of(context).bodyProgressOpenHistoryTooltip,
+                        ),
                       ),
                     ],
                   ),
@@ -144,25 +154,31 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
-                        child: FilledButton.icon(
-                          onPressed: _showTodayDialog,
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Focus(
+                          canRequestFocus: false,
+                          child: FilledButton.icon(
+                            onPressed: _showTodayDialog,
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: const Icon(Icons.add),
+                            label: Text(S.of(context).logTodayLabel),
                           ),
-                          icon: const Icon(Icons.add),
-                          label: Text(S.of(context).logTodayLabel),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => Navigator.of(context)
-                              .pushNamed(NavigationOptions.bodyProgressRoute),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Focus(
+                          canRequestFocus: false,
+                          child: OutlinedButton.icon(
+                            onPressed: () => Navigator.of(context)
+                                .pushNamed(NavigationOptions.bodyProgressRoute),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            icon: const Icon(Icons.show_chart),
+                            label: Text(S.of(context).historyLabel),
                           ),
-                          icon: const Icon(Icons.show_chart),
-                          label: Text(S.of(context).historyLabel),
                         ),
                       ),
                     ],
@@ -206,6 +222,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
     if (mounted) {
       setState(() {
         _refreshSeed++;
+        _summaryFuture = _loadSummary(_refreshSeed);
       });
     }
   }

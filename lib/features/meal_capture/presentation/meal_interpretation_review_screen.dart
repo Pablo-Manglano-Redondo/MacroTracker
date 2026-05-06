@@ -20,6 +20,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/commit_interpr
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/widgets/meal_replacement_dialog.dart';
+import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -461,9 +462,6 @@ class _MealInterpretationReviewScreenState
   }
 
   Future<void> _showMacroEditor(InterpretationDraftItemEntity item) async {
-    final kcalController = TextEditingController(
-      text: item.kcal.toStringAsFixed(0),
-    );
     final carbsController = TextEditingController(
       text: item.carbs.toStringAsFixed(1),
     );
@@ -482,16 +480,6 @@ class _MealInterpretationReviewScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: kcalController,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: 'kcal',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
               TextField(
                 controller: carbsController,
                 keyboardType:
@@ -521,6 +509,38 @@ class _MealInterpretationReviewScreenState
                   border: const OutlineInputBorder(),
                 ),
               ),
+              const SizedBox(height: 12),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: carbsController,
+                builder: (context, _, __) {
+                  return ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: fatController,
+                    builder: (context, __, ___) {
+                      return ValueListenableBuilder<TextEditingValue>(
+                        valueListenable: proteinController,
+                        builder: (context, ___, ____) {
+                          final carbs = _parseMacroValue(carbsController.text);
+                          final fat = _parseMacroValue(fatController.text);
+                          final protein =
+                              _parseMacroValue(proteinController.text);
+                          final derivedKcal = _deriveKcal(
+                            carbs: carbs,
+                            fat: fat,
+                            protein: protein,
+                          );
+                          return InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'kcal',
+                              border: OutlineInputBorder(),
+                            ),
+                            child: Text(derivedKcal.toStringAsFixed(0)),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
         ),
@@ -531,24 +551,25 @@ class _MealInterpretationReviewScreenState
           ),
           TextButton(
             onPressed: () {
-              final kcal =
-                  double.tryParse(kcalController.text.replaceAll(',', '.'));
               final carbs =
                   double.tryParse(carbsController.text.replaceAll(',', '.'));
               final fat =
                   double.tryParse(fatController.text.replaceAll(',', '.'));
               final protein =
                   double.tryParse(proteinController.text.replaceAll(',', '.'));
-              if (kcal == null ||
-                  carbs == null ||
+              if (carbs == null ||
                   fat == null ||
                   protein == null ||
-                  kcal < 0 ||
                   carbs < 0 ||
                   fat < 0 ||
                   protein < 0) {
                 return;
               }
+              final kcal = _deriveKcal(
+                carbs: carbs,
+                fat: fat,
+                protein: protein,
+              );
 
               Navigator.of(context).pop(
                 item.copyWith(
@@ -565,7 +586,6 @@ class _MealInterpretationReviewScreenState
       ),
     );
 
-    kcalController.dispose();
     carbsController.dispose();
     fatController.dispose();
     proteinController.dispose();
@@ -576,6 +596,18 @@ class _MealInterpretationReviewScreenState
 
     await _saveCorrection(updated);
     await _replaceItem(updated);
+  }
+
+  double _parseMacroValue(String input) {
+    return double.tryParse(input.replaceAll(',', '.')) ?? 0;
+  }
+
+  double _deriveKcal({
+    required double carbs,
+    required double fat,
+    required double protein,
+  }) {
+    return (carbs * 4) + (protein * 4) + (fat * 9);
   }
 
   Future<void> _showAddIngredientFlow() async {
@@ -836,6 +868,13 @@ class _MealInterpretationReviewScreenState
 
     final controller = TextEditingController(text: draft.title);
     bool favorite = true;
+    var quickCategory = QuickRecipeCategoryEntityX.inferLegacyFromRecipe(
+      RecipeFactory.fromInterpretationDraft(
+        name: draft.title,
+        draft: draft,
+        quickCategory: QuickRecipeCategoryEntity.leanMeal,
+      ),
+    );
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
@@ -865,6 +904,30 @@ class _MealInterpretationReviewScreenState
                     },
                     title: Text(S.of(context).aiFavoriteQuickAccess),
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<QuickRecipeCategoryEntity>(
+                    initialValue: quickCategory,
+                    decoration: InputDecoration(
+                      labelText: S.of(context).recipeQuickCategoryLabel,
+                      border: const OutlineInputBorder(),
+                    ),
+                    items: QuickRecipeCategoryEntity.values
+                        .map(
+                          (category) => DropdownMenuItem(
+                            value: category,
+                            child: Text(_quickCategoryLabel(context, category)),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setDialogState(() {
+                        quickCategory = value;
+                      });
+                    },
+                  ),
                 ],
               ),
               actions: [
@@ -882,6 +945,7 @@ class _MealInterpretationReviewScreenState
                     final recipe = RecipeFactory.fromInterpretationDraft(
                       name: recipeName,
                       draft: draft,
+                      quickCategory: quickCategory,
                     ).copyWith(favorite: favorite);
                     await locator<SaveRecipeUsecase>().saveRecipe(recipe);
 
@@ -904,6 +968,22 @@ class _MealInterpretationReviewScreenState
       },
     );
     controller.dispose();
+  }
+
+  String _quickCategoryLabel(
+    BuildContext context,
+    QuickRecipeCategoryEntity category,
+  ) {
+    switch (category) {
+      case QuickRecipeCategoryEntity.preWorkout:
+        return S.of(context).quickCategoryPreWorkout;
+      case QuickRecipeCategoryEntity.postWorkout:
+        return S.of(context).quickCategoryPostWorkout;
+      case QuickRecipeCategoryEntity.shake:
+        return S.of(context).quickCategoryShake;
+      case QuickRecipeCategoryEntity.leanMeal:
+        return S.of(context).quickCategoryLeanMeal;
+    }
   }
 }
 

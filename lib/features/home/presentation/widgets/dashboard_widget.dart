@@ -560,7 +560,7 @@ class DashboardWidget extends StatelessWidget {
       _isEs(context) ? '$count comidas' : '$count meals';
 
   String _sessionsChip(BuildContext context, int count) =>
-      _isEs(context) ? '$count sesiones' : '$count sessions';
+      _isEs(context) ? '$count sesión' : '$count sessions';
 
   String _burnedChip(BuildContext context, int count) =>
       _isEs(context) ? '$count cals' : '$count burned';
@@ -728,6 +728,7 @@ class _PrimaryMetric extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -737,7 +738,7 @@ class _PrimaryMetric extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
           ),
-          SizedBox(height: compact ? 8 : 10),
+          const SizedBox(height: 8),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

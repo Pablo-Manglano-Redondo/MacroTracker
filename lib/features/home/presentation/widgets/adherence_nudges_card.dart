@@ -5,7 +5,7 @@ import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
-class AdherenceNudgesCard extends StatelessWidget {
+class AdherenceNudgesCard extends StatefulWidget {
   final EdgeInsetsGeometry padding;
   final DailyFocusEntity dailyFocus;
   final double totalKcalDaily;
@@ -24,11 +24,24 @@ class AdherenceNudgesCard extends StatelessWidget {
   });
 
   @override
+  State<AdherenceNudgesCard> createState() => _AdherenceNudgesCardState();
+}
+
+class _AdherenceNudgesCardState extends State<AdherenceNudgesCard> {
+  late Future<DailyHabitLogEntity> _habitFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _habitFuture = locator<GetDailyHabitLogUsecase>().getToday();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: padding,
+      padding: widget.padding,
       child: Card(
         elevation: 0.5,
         shape: RoundedRectangleBorder(
@@ -40,18 +53,20 @@ class AdherenceNudgesCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: FutureBuilder<DailyHabitLogEntity>(
-            future: locator<GetDailyHabitLogUsecase>().getToday(),
+            future: _habitFuture,
             builder: (context, snapshot) {
               final now = DateTime.now();
               final reminders = <String>[];
               final proteinLeft =
-                  (totalProteinsGoal - totalProteinsIntake).clamp(0, 9999);
-              final kcalProgress = totalKcalDaily <= 0
+                  (widget.totalProteinsGoal - widget.totalProteinsIntake)
+                      .clamp(0, 9999);
+              final kcalProgress = widget.totalKcalDaily <= 0
                   ? 0.0
-                  : (totalKcalSupplied / totalKcalDaily).clamp(0, 1);
+                  : (widget.totalKcalSupplied / widget.totalKcalDaily)
+                      .clamp(0, 1);
 
               final habit = snapshot.data;
-              final hydrationGoal = switch (dailyFocus) {
+              final hydrationGoal = switch (widget.dailyFocus) {
                 DailyFocusEntity.lowerBody => 3.8,
                 DailyFocusEntity.upperBody => 3.5,
                 DailyFocusEntity.cardio => 3.75,

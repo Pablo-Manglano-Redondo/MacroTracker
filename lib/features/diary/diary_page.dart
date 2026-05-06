@@ -255,6 +255,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         activity.burnedKcal,
         today,
         activity.physicalActivityEntity,
+        source: UserActivitySourceEntity.manual,
       );
       await _addUserActivityUsecase.addUserActivity(copied);
       await _addTrackedDayUsecase.increaseDayCalorieGoal(

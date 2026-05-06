@@ -5,6 +5,7 @@ class ActivityCard extends StatelessWidget {
   final bool compact;
   final UserActivityEntity activityEntity;
   final Function(BuildContext, UserActivityEntity) onItemLongPressed;
+  final Function(BuildContext, UserActivityEntity)? onItemTapped;
   final bool firstListElement;
 
   const ActivityCard(
@@ -12,6 +13,7 @@ class ActivityCard extends StatelessWidget {
       this.compact = false,
       required this.activityEntity,
       required this.onItemLongPressed,
+      this.onItemTapped,
       required this.firstListElement});
 
   @override
@@ -56,7 +58,10 @@ class ActivityCard extends StatelessWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
-                  child: InkWell(
+                child: InkWell(
+                    onTap: () {
+                      onTappedItem(context);
+                    },
                     onLongPress: () {
                       onLongPressedItem(context);
                     },
@@ -166,5 +171,9 @@ class ActivityCard extends StatelessWidget {
 
   void onLongPressedItem(BuildContext context) {
     onItemLongPressed(context, activityEntity);
+  }
+
+  void onTappedItem(BuildContext context) {
+    onItemTapped?.call(context, activityEntity);
   }
 }

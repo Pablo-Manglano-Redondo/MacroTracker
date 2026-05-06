@@ -436,8 +436,7 @@ class _ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final path = imagePath;
-    final file = path == null || path.trim().isEmpty ? null : File(path);
-    final hasValidImage = file != null && file.existsSync();
+    final hasImage = path != null && path.trim().isNotEmpty;
 
     return Container(
       width: 92,
@@ -458,24 +457,41 @@ class _ProfileAvatar extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: hasValidImage
-          ? Image.file(file, fit: BoxFit.cover)
-          : Stack(
-              fit: StackFit.expand,
-              children: [
-                Container(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withValues(alpha: 0.5),
-                ),
-                Icon(
-                  Icons.account_circle_outlined,
-                  size: 58,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ),
+      child: hasImage
+          ? Image.file(
+              File(path!),
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (context, error, stackTrace) {
+                return const _ProfileAvatarPlaceholder();
+              },
+            )
+          : const _ProfileAvatarPlaceholder(),
+    );
+  }
+}
+
+class _ProfileAvatarPlaceholder extends StatelessWidget {
+  const _ProfileAvatarPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Container(
+          color: Theme.of(context)
+              .colorScheme
+              .primaryContainer
+              .withValues(alpha: 0.5),
+        ),
+        Icon(
+          Icons.account_circle_outlined,
+          size: 58,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+      ],
     );
   }
 }

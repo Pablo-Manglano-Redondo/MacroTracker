@@ -6,6 +6,7 @@ import 'package:macrotracker/generated/l10n.dart';
 
 class ActivityDetailBottomSheet extends StatefulWidget {
   final Function(BuildContext) onAddButtonPressed;
+  final void Function(String quantityString) onQuantityChanged;
   final PhysicalActivityEntity activityEntity;
   final TextEditingController quantityTextController;
   final ActivityDetailBloc activityDetailBloc;
@@ -13,6 +14,7 @@ class ActivityDetailBottomSheet extends StatefulWidget {
   const ActivityDetailBottomSheet(
       {super.key,
       required this.onAddButtonPressed,
+      required this.onQuantityChanged,
       required this.quantityTextController,
       required this.activityEntity,
       required this.activityDetailBloc});
@@ -53,6 +55,7 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                         Expanded(
                           child: TextFormField(
                             controller: widget.quantityTextController,
+                            onChanged: widget.onQuantityChanged,
                             keyboardType: TextInputType.number,
                             inputFormatters: <TextInputFormatter>[
                               FilteringTextInputFormatter.allow(

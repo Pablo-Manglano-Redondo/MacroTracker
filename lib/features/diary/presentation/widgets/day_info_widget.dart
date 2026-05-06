@@ -7,9 +7,12 @@ import 'package:macrotracker/core/presentation/widgets/activity_vertial_list.dar
 import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
+import 'package:macrotracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:macrotracker/features/home/presentation/widgets/intake_vertical_list.dart';
+import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatefulWidget {
@@ -158,6 +161,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               title: S.of(context).activityLabel,
               userActivityList: widget.userActivities,
               onItemLongPressedCallback: _onActivityItemLongPressed,
+              onItemTappedCallback: _openActivityDetails,
             ),
           ),
           const SizedBox(height: 10),
@@ -179,6 +183,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               intakeList: widget.breakfastIntake,
               onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: _onIntakeItemLongPressed,
+              onItemTappedCallback: _openIntakeDetails,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
@@ -205,6 +210,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               intakeList: widget.lunchIntake,
               onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: _onIntakeItemLongPressed,
+              onItemTappedCallback: _openIntakeDetails,
               usesImperialUnits: widget.usesImperialUnits,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(widget.selectedDay, DateTime.now())
@@ -231,6 +237,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               intakeList: widget.dinnerIntake,
               onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: _onIntakeItemLongPressed,
+              onItemTappedCallback: _openIntakeDetails,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(widget.selectedDay, DateTime.now())
                       ? null
@@ -257,6 +264,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               intakeList: widget.snackIntake,
               onDeleteIntakeCallback: widget.onDeleteIntake,
               onItemLongPressedCallback: _onIntakeItemLongPressed,
+              onItemTappedCallback: _openIntakeDetails,
               usesImperialUnits: widget.usesImperialUnits,
               onCopyIntakeCallback:
                   DateUtils.isSameDay(widget.selectedDay, DateTime.now())
@@ -336,6 +344,37 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     if (shouldDeleteActivity != null) {
       widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
     }
+  }
+
+  void _openIntakeDetails(
+    BuildContext context,
+    IntakeEntity intakeEntity,
+    bool usesImperialUnits,
+  ) {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.mealDetailRoute,
+      arguments: MealDetailScreenArguments(
+        intakeEntity.meal,
+        intakeEntity.type,
+        widget.selectedDay,
+        usesImperialUnits,
+        intakeEntity: intakeEntity,
+      ),
+    );
+  }
+
+  void _openActivityDetails(
+    BuildContext context,
+    UserActivityEntity activityEntity,
+  ) {
+    Navigator.of(context).pushNamed(
+      NavigationOptions.activityDetailRoute,
+      arguments: ActivityDetailScreenArguments(
+        activityEntity.physicalActivityEntity,
+        widget.selectedDay,
+        userActivityEntity: activityEntity,
+      ),
+    );
   }
 }
 
