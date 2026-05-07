@@ -114,7 +114,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m43(count) => "${count} comidas";
 
-  static String m44(count) => "${count} cals";
+  static String m44(count) => "${count} kcals";
 
   static String m45(count) => "${count} sesión";
 

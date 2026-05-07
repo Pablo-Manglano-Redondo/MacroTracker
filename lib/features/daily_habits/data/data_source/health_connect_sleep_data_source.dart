@@ -9,14 +9,24 @@ import 'package:permission_handler/permission_handler.dart';
 class HealthConnectSleepDataSource {
   final _log = Logger('HealthConnectSleepDataSource');
 
-  static const _readTypes = [
+  static const _coreReadTypes = [
     HealthDataType.SLEEP_SESSION,
-    HealthDataType.STEPS,
     HealthDataType.WORKOUT,
   ];
-  static const _permissions = [
+  static const _corePermissions = [
     HealthDataAccess.READ,
     HealthDataAccess.READ,
+  ];
+  static const _workoutSupplementReadTypes = [
+    HealthDataType.TOTAL_CALORIES_BURNED,
+  ];
+  static const _workoutSupplementPermissions = [
+    HealthDataAccess.READ,
+  ];
+  static const _stepsReadTypes = [
+    HealthDataType.STEPS,
+  ];
+  static const _stepsPermissions = [
     HealthDataAccess.READ,
   ];
 
@@ -47,8 +57,8 @@ class HealthConnectSleepDataSource {
   Future<bool> hasReadPermission() async {
     try {
       final hasPermissions = await _health.hasPermissions(
-        _readTypes,
-        permissions: _permissions,
+        _coreReadTypes,
+        permissions: _corePermissions,
       );
       return hasPermissions ?? false;
     } catch (error, stackTrace) {
@@ -60,11 +70,77 @@ class HealthConnectSleepDataSource {
   Future<bool> requestReadPermission() async {
     try {
       return await _health.requestAuthorization(
-        _readTypes,
-        permissions: _permissions,
+        _coreReadTypes,
+        permissions: _corePermissions,
       );
     } catch (error, stackTrace) {
       _log.warning('Health Connect permission request failed', error, stackTrace);
+      return false;
+    }
+  }
+
+  Future<bool> hasStepsReadPermission() async {
+    try {
+      final hasPermissions = await _health.hasPermissions(
+        _stepsReadTypes,
+        permissions: _stepsPermissions,
+      );
+      return hasPermissions ?? false;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Health Connect steps permission check failed',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> requestStepsReadPermission() async {
+    try {
+      return await _health.requestAuthorization(
+        _stepsReadTypes,
+        permissions: _stepsPermissions,
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Health Connect steps permission request failed',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> hasWorkoutSupplementReadPermission() async {
+    try {
+      final hasPermissions = await _health.hasPermissions(
+        _workoutSupplementReadTypes,
+        permissions: _workoutSupplementPermissions,
+      );
+      return hasPermissions ?? false;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Health Connect workout supplement permission check failed',
+        error,
+        stackTrace,
+      );
+      return false;
+    }
+  }
+
+  Future<bool> requestWorkoutSupplementReadPermission() async {
+    try {
+      return await _health.requestAuthorization(
+        _workoutSupplementReadTypes,
+        permissions: _workoutSupplementPermissions,
+      );
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Health Connect workout supplement permission request failed',
+        error,
+        stackTrace,
+      );
       return false;
     }
   }
@@ -172,26 +248,42 @@ class HealthConnectSleepDataSource {
       return null;
     }
     final value = point.value;
-    if (value is! WorkoutHealthValue) {
-      _log.fine('Skipping workout with unexpected value type: ${point.value}');
-      return null;
-    }
-
-    final burnedKcal =
-        value.totalEnergyBurned ?? point.workoutSummary?.totalEnergyBurned.toInt();
-    if (burnedKcal == null || burnedKcal <= 0) {
-      _log.fine(
-        'Skipping workout without calories: '
-        'type=${value.workoutActivityType.name}, source=${point.sourceName}',
+    HealthWorkoutActivityType? activityType;
+    int? burnedKcal;
+    if (value is WorkoutHealthValue) {
+      activityType = value.workoutActivityType;
+      burnedKcal = value.totalEnergyBurned ??
+          point.workoutSummary?.totalEnergyBurned.toInt();
+    } else {
+      activityType = _resolveWorkoutActivityType(
+        point.workoutSummary?.workoutType,
       );
-      return null;
+      burnedKcal = point.workoutSummary?.totalEnergyBurned.toInt();
+      if (activityType == null) {
+        _log.fine(
+          'Skipping workout without activity type: ${point.value}',
+        );
+        return null;
+      }
     }
 
-    final externalId = _resolveWorkoutExternalId(point, value, burnedKcal);
-    final displayName = _workoutDisplayName(value.workoutActivityType);
+    final normalizedBurnedKcal = burnedKcal ?? 0;
+    if (normalizedBurnedKcal <= 0) {
+      _log.fine(
+        'Workout missing calories, defaulting to 0: '
+        'type=${activityType.name}, source=${point.sourceName}',
+      );
+    }
+
+    final externalId = _resolveWorkoutExternalId(
+      point,
+      activityType.name,
+      normalizedBurnedKcal,
+    );
+    final displayName = _workoutDisplayName(activityType);
     return HealthConnectWorkoutEntity(
       externalId: externalId,
-      activityCode: 'hc:${value.workoutActivityType.name.toLowerCase()}',
+      activityCode: 'hc:${activityType.name.toLowerCase()}',
       displayName: displayName,
       description: point.sourceName.isEmpty
           ? displayName
@@ -202,13 +294,13 @@ class HealthConnectSleepDataSource {
           .difference(point.dateFrom)
           .inMinutes
           .toDouble(),
-      burnedKcal: burnedKcal.toDouble(),
+      burnedKcal: normalizedBurnedKcal.toDouble(),
     );
   }
 
   String _resolveWorkoutExternalId(
     HealthDataPoint point,
-    WorkoutHealthValue value,
+    String activityTypeName,
     int burnedKcal,
   ) {
     if (point.uuid.isNotEmpty) {
@@ -218,7 +310,7 @@ class HealthConnectSleepDataSource {
     final sourceId = point.sourceId.isNotEmpty ? point.sourceId : point.sourceName;
     return [
       'hc',
-      value.workoutActivityType.name,
+      activityTypeName,
       sourceId,
       point.dateFrom.millisecondsSinceEpoch,
       point.dateTo.millisecondsSinceEpoch,
@@ -233,5 +325,23 @@ class HealthConnectSleepDataSource {
         .where((part) => part.isNotEmpty)
         .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
         .join(' ');
+  }
+
+  HealthWorkoutActivityType? _resolveWorkoutActivityType(String? workoutType) {
+    if (workoutType == null || workoutType.trim().isEmpty) {
+      return null;
+    }
+
+    final normalized = workoutType.trim().toUpperCase();
+    if (normalized == 'CYCLING') {
+      return HealthWorkoutActivityType.BIKING;
+    }
+
+    for (final type in HealthWorkoutActivityType.values) {
+      if (type.name == normalized) {
+        return type;
+      }
+    }
+    return null;
   }
 }

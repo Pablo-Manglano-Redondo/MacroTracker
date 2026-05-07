@@ -6,12 +6,18 @@ import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
+import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/features/daily_habits/data/data_source/health_connect_sleep_data_source.dart';
 import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_sleep_session_entity.dart';
+import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_workout_entity.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/health_connect_workout_sync_helper.dart';
 
 class SyncSleepFromHealthConnectUsecase {
   final _log = Logger('SyncSleepFromHealthConnectUsecase');
@@ -22,9 +28,14 @@ class SyncSleepFromHealthConnectUsecase {
   final ConfigRepository _configRepository;
   final AddUserActivityUsecase _addUserActivityUsecase;
   final GetUserActivityUsecase _getUserActivityUsecase;
+  final AddTrackedDayUsecase _addTrackedDayUsecase;
+  final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final GetKcalGoalUsecase _getKcalGoalUsecase;
 
   bool _authorizationRequestedThisLaunch = false;
   bool _activityPermissionRequestedThisLaunch = false;
+  bool _stepsPermissionRequestedThisLaunch = false;
+  bool _workoutSupplementPermissionRequestedThisLaunch = false;
 
   SyncSleepFromHealthConnectUsecase(
     this._healthConnectSleepDataSource,
@@ -32,14 +43,30 @@ class SyncSleepFromHealthConnectUsecase {
     this._configRepository,
     this._addUserActivityUsecase,
     this._getUserActivityUsecase,
+    this._addTrackedDayUsecase,
+    this._getMacroGoalUsecase,
+    this._getKcalGoalUsecase,
   );
 
   Future<bool> syncToday({
     bool requestPermissionsIfNeeded = true,
     bool ignoreAutoSyncSetting = false,
   }) async {
-    return syncDay(
+    final report = await syncDayWithReport(
       DateTime.now(),
+      requestPermissionsIfNeeded: requestPermissionsIfNeeded,
+      ignoreAutoSyncSetting: ignoreAutoSyncSetting,
+    );
+    return report.didUpdate;
+  }
+
+  Future<HealthConnectSyncReport> syncDayWithReport(
+    DateTime day, {
+    bool requestPermissionsIfNeeded = true,
+    bool ignoreAutoSyncSetting = false,
+  }) async {
+    return _syncDayWithReport(
+      day,
       requestPermissionsIfNeeded: requestPermissionsIfNeeded,
       ignoreAutoSyncSetting: ignoreAutoSyncSetting,
     );
@@ -50,15 +77,34 @@ class SyncSleepFromHealthConnectUsecase {
     bool requestPermissionsIfNeeded = true,
     bool ignoreAutoSyncSetting = false,
   }) async {
+    final report = await _syncDayWithReport(
+      day,
+      requestPermissionsIfNeeded: requestPermissionsIfNeeded,
+      ignoreAutoSyncSetting: ignoreAutoSyncSetting,
+    );
+    return report.didUpdate;
+  }
+
+  Future<HealthConnectSyncReport> _syncDayWithReport(
+    DateTime day, {
+    required bool requestPermissionsIfNeeded,
+    required bool ignoreAutoSyncSetting,
+  }) async {
     try {
       if (!Platform.isAndroid) {
-        return false;
+        return HealthConnectSyncReport(
+          didUpdate: false,
+          reason: HealthConnectSyncSkipReason.notAndroid,
+        );
       }
 
       final config = await _configRepository.getConfig();
       if (!ignoreAutoSyncSetting && !config.healthConnectAutoSyncEnabled) {
         _log.fine('Health Connect auto sync disabled by user');
-        return false;
+        return HealthConnectSyncReport(
+          didUpdate: false,
+          reason: HealthConnectSyncSkipReason.autoSyncDisabled,
+        );
       }
 
       final normalizedDay = DateTime(day.year, day.month, day.day);
@@ -68,7 +114,10 @@ class SyncSleepFromHealthConnectUsecase {
 
       if (!await _healthConnectSleepDataSource.isAvailable()) {
         _log.fine('Health Connect is not available on this device');
-        return false;
+        return HealthConnectSyncReport(
+          didUpdate: false,
+          reason: HealthConnectSyncSkipReason.notAvailable,
+        );
       }
 
       var hasPermission =
@@ -83,7 +132,10 @@ class SyncSleepFromHealthConnectUsecase {
 
       if (!hasPermission) {
         _log.fine('Health Connect read permissions not granted');
-        return false;
+        return HealthConnectSyncReport(
+          didUpdate: false,
+          reason: HealthConnectSyncSkipReason.permissionsMissing,
+        );
       }
 
       var hasActivityRecognition = await _healthConnectSleepDataSource
@@ -96,6 +148,26 @@ class SyncSleepFromHealthConnectUsecase {
             .requestActivityRecognitionPermission();
       }
 
+      var hasStepsPermission =
+          await _healthConnectSleepDataSource.hasStepsReadPermission();
+      if (!hasStepsPermission &&
+          requestPermissionsIfNeeded &&
+          !_stepsPermissionRequestedThisLaunch) {
+        _stepsPermissionRequestedThisLaunch = true;
+        hasStepsPermission =
+            await _healthConnectSleepDataSource.requestStepsReadPermission();
+      }
+
+      var hasWorkoutSupplementPermission = await _healthConnectSleepDataSource
+          .hasWorkoutSupplementReadPermission();
+      if (!hasWorkoutSupplementPermission &&
+          requestPermissionsIfNeeded &&
+          !_workoutSupplementPermissionRequestedThisLaunch) {
+        _workoutSupplementPermissionRequestedThisLaunch = true;
+        hasWorkoutSupplementPermission = await _healthConnectSleepDataSource
+            .requestWorkoutSupplementReadPermission();
+      }
+
       final sessions = await _healthConnectSleepDataSource.readSleepSessions(
         normalizedDay.subtract(const Duration(days: 1)),
         dayEnd,
@@ -106,16 +178,19 @@ class SyncSleepFromHealthConnectUsecase {
           : _roundHours(selectedSession.duration);
       final currentLog = await _dailyHabitLogRepository.getLog(normalizedDay) ??
           DailyHabitLogEntity.empty(normalizedDay);
-      final syncedSteps = hasActivityRecognition
+      final syncedSteps = hasActivityRecognition && hasStepsPermission
           ? await _healthConnectSleepDataSource.readStepCount(
               normalizedDay,
               dayEnd,
             )
           : currentLog.steps;
-      final workouts = await _healthConnectSleepDataSource.readWorkouts(
-        normalizedDay.subtract(const Duration(days: _workoutSyncLookbackDays)),
-        dayEnd,
-      );
+      final workouts = hasWorkoutSupplementPermission
+          ? await _healthConnectSleepDataSource.readWorkouts(
+              normalizedDay
+                  .subtract(const Duration(days: _workoutSyncLookbackDays)),
+              dayEnd,
+            )
+          : const <HealthConnectWorkoutEntity>[];
       final discardedIds =
           await _configRepository.getDiscardedHealthConnectActivityIds();
       final existingActivities = await _getUserActivityUsecase.getAllUserActivity();
@@ -127,12 +202,19 @@ class SyncSleepFromHealthConnectUsecase {
           )
           .map((activity) => activity.externalId!)
           .toSet();
+      final workoutsToImport = filterHealthConnectWorkoutsToImport(
+        workouts,
+        existingExternalIds: existingExternalIds,
+        discardedExternalIds: discardedIds,
+        windowStart: normalizedDay.subtract(const Duration(days: _workoutSyncLookbackDays)),
+        windowEnd: dayEnd,
+      );
 
       final forceSync = ignoreAutoSyncSetting;
       final sleepChanged = syncedSleepHours != null &&
           ((currentLog.sleepHours - syncedSleepHours).abs() >= 0.01 ||
               (forceSync && currentLog.sleepSyncedFromHealthConnect != true));
-      final stepsChanged = hasActivityRecognition &&
+      final stepsChanged = hasActivityRecognition && hasStepsPermission &&
           (currentLog.steps != syncedSteps ||
               (forceSync && currentLog.stepsSyncedFromHealthConnect != true));
 
@@ -141,10 +223,32 @@ class SyncSleepFromHealthConnectUsecase {
           'Activity recognition permission not granted. '
           'Skipping steps sync but continuing with sleep/workouts.',
         );
+      } else if (!hasStepsPermission) {
+        _log.fine(
+          'Health Connect steps permission missing. '
+          'Skipping steps sync but continuing with sleep/workouts.',
+        );
+      }
+      if (!hasWorkoutSupplementPermission) {
+        _log.fine(
+          'Health Connect workout supplement permissions missing. '
+          'Skipping workouts sync but continuing with sleep/steps.',
+        );
       }
 
-      if (!sleepChanged && !stepsChanged && workouts.isEmpty) {
-        return false;
+      if (!sleepChanged && !stepsChanged && workoutsToImport.isEmpty) {
+        return HealthConnectSyncReport(
+          didUpdate: false,
+          reason: HealthConnectSyncSkipReason.noChanges,
+          workoutsRead: workouts.length,
+          workoutsFiltered: workoutsToImport.length,
+          workoutsImported: 0,
+          sleepChanged: sleepChanged,
+          stepsChanged: stepsChanged,
+          hasActivityRecognition: hasActivityRecognition,
+          hasStepsPermission: hasStepsPermission,
+          hasWorkoutSupplementPermission: hasWorkoutSupplementPermission,
+        );
       }
 
       await _dailyHabitLogRepository.saveLog(
@@ -160,15 +264,10 @@ class SyncSleepFromHealthConnectUsecase {
         'Synced Health Connect daily habits for $normalizedDay: '
         'sleep=${sleepChanged ? syncedSleepHours : currentLog.sleepHours}, '
         'steps=${stepsChanged ? syncedSteps : currentLog.steps}, '
-        'workoutsRead=${workouts.length}',
+        'workoutsRead=${workouts.length}, workoutsToImport=${workoutsToImport.length}',
       );
       var importedWorkouts = 0;
-      for (final workout in workouts) {
-        if (existingExternalIds.contains(workout.externalId) ||
-            discardedIds.contains(workout.externalId)) {
-          continue;
-        }
-
+      for (final workout in workoutsToImport) {
         final workoutDay = DateTime(
           workout.startTime.year,
           workout.startTime.month,
@@ -191,14 +290,29 @@ class SyncSleepFromHealthConnectUsecase {
           externalId: workout.externalId,
         );
         await _addUserActivityUsecase.addUserActivity(activity);
+        await _updateTrackedDay(workoutDay, workout.burnedKcal);
         existingExternalIds.add(workout.externalId);
         importedWorkouts++;
       }
       _log.info('Imported $importedWorkouts Health Connect workouts');
-      return sleepChanged || stepsChanged || importedWorkouts > 0;
+      return HealthConnectSyncReport(
+        didUpdate: sleepChanged || stepsChanged || importedWorkouts > 0,
+        reason: HealthConnectSyncSkipReason.none,
+        workoutsRead: workouts.length,
+        workoutsFiltered: workoutsToImport.length,
+        workoutsImported: importedWorkouts,
+        sleepChanged: sleepChanged,
+        stepsChanged: stepsChanged,
+        hasActivityRecognition: hasActivityRecognition,
+        hasStepsPermission: hasStepsPermission,
+        hasWorkoutSupplementPermission: hasWorkoutSupplementPermission,
+      );
     } catch (error, stackTrace) {
       _log.warning('Health Connect sync failed', error, stackTrace);
-      return false;
+      return HealthConnectSyncReport(
+        didUpdate: false,
+        reason: HealthConnectSyncSkipReason.error,
+      );
     }
   }
 
@@ -285,9 +399,25 @@ class SyncSleepFromHealthConnectUsecase {
             await _healthConnectSleepDataSource.requestReadPermission();
       }
 
+      var hasStepsPermission =
+          await _healthConnectSleepDataSource.hasStepsReadPermission();
+      if (!hasStepsPermission) {
+        hasStepsPermission =
+            await _healthConnectSleepDataSource.requestStepsReadPermission();
+      }
+
+      var hasWorkoutSupplementPermission = await _healthConnectSleepDataSource
+          .hasWorkoutSupplementReadPermission();
+      if (!hasWorkoutSupplementPermission) {
+        hasWorkoutSupplementPermission = await _healthConnectSleepDataSource
+            .requestWorkoutSupplementReadPermission();
+      }
+
       return HealthConnectSyncStatusEntity(
         isAvailable: true,
-        hasHealthPermissions: hasHealthPermissions,
+        hasHealthPermissions: hasHealthPermissions &&
+            hasStepsPermission &&
+            hasWorkoutSupplementPermission,
         hasActivityRecognitionPermission: hasActivityRecognition,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
@@ -356,4 +486,67 @@ class SyncSleepFromHealthConnectUsecase {
     }
     return PhysicalActivityTypeEntity.conditioningExercise;
   }
+
+  Future<void> _updateTrackedDay(DateTime day, double caloriesBurned) async {
+    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+    if (!hasTrackedDay) {
+      final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
+          totalKcalActivitiesParam: 0); // Exclude persisted activities
+      final totalCarbsGoal =
+          await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+      final totalFatGoal =
+          await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+      final totalProteinGoal =
+          await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
+
+      await _addTrackedDayUsecase.addNewTrackedDay(
+          day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
+    }
+
+    final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
+    final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
+    final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
+
+    await _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
+    await _addTrackedDayUsecase.increaseDayMacroGoals(day,
+        carbsAmount: carbsIncrease,
+        fatAmount: fatIncrease,
+        proteinAmount: proteinIncrease);
+  }
+}
+
+enum HealthConnectSyncSkipReason {
+  none,
+  notAndroid,
+  autoSyncDisabled,
+  notAvailable,
+  permissionsMissing,
+  noChanges,
+  error,
+}
+
+class HealthConnectSyncReport {
+  final bool didUpdate;
+  final HealthConnectSyncSkipReason reason;
+  final int workoutsRead;
+  final int workoutsFiltered;
+  final int workoutsImported;
+  final bool sleepChanged;
+  final bool stepsChanged;
+  final bool hasActivityRecognition;
+  final bool hasStepsPermission;
+  final bool hasWorkoutSupplementPermission;
+
+  const HealthConnectSyncReport({
+    required this.didUpdate,
+    required this.reason,
+    this.workoutsRead = 0,
+    this.workoutsFiltered = 0,
+    this.workoutsImported = 0,
+    this.sleepChanged = false,
+    this.stepsChanged = false,
+    this.hasActivityRecognition = false,
+    this.hasStepsPermission = false,
+    this.hasWorkoutSupplementPermission = false,
+  });
 }

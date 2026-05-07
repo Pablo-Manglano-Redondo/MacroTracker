@@ -1706,7 +1706,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String homeDashboardBurnedChip(Object count) {
-    return '$count cals';
+    return '$count kcals';
   }
 
   @override

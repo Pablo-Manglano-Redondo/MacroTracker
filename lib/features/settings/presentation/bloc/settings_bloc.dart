@@ -130,6 +130,14 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     );
   }
 
+  Future<HealthConnectSyncReport> syncHealthConnectNowWithReport() async {
+    return _syncSleepFromHealthConnectUsecase.syncDayWithReport(
+      DateTime.now(),
+      requestPermissionsIfNeeded: true,
+      ignoreAutoSyncSetting: true,
+    );
+  }
+
   void updateTrackedDay(DateTime day) async {
     final config = await _getConfigUsecase.getConfig();
     final user = await _getUserUsecase.getUserData();

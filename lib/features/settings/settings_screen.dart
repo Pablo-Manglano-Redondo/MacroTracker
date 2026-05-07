@@ -11,6 +11,7 @@ import 'package:macrotracker/core/utils/url_const.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -30,6 +31,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  static const _showHealthConnectDiagnostics = true;
   late SettingsBloc _settingsBloc;
   late ProfileBloc _profileBloc;
   late HomeBloc _homeBloc;
@@ -604,7 +606,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _syncHealthConnectNow(BuildContext context) async {
-    final didUpdate = await _settingsBloc.syncHealthConnectNow();
+    final report = _showHealthConnectDiagnostics
+        ? await _settingsBloc.syncHealthConnectNowWithReport()
+        : null;
+    final didUpdate = report?.didUpdate ??
+        await _settingsBloc.syncHealthConnectNow();
     if (!context.mounted) {
       return;
     }
@@ -618,7 +624,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+    if (_showHealthConnectDiagnostics && report != null && context.mounted) {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Health Connect sync debug'),
+          content: Text(_buildHealthConnectDebugMessage(report)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        ),
+      );
+    }
     setState(() {});
+  }
+
+  String _buildHealthConnectDebugMessage(HealthConnectSyncReport report) {
+    return [
+      'didUpdate: ${report.didUpdate}',
+      'reason: ${report.reason}',
+      'sleepChanged: ${report.sleepChanged}',
+      'stepsChanged: ${report.stepsChanged}',
+      'hasActivityRecognition: ${report.hasActivityRecognition}',
+      'hasStepsPermission: ${report.hasStepsPermission}',
+      'workoutsRead: ${report.workoutsRead}',
+      'workoutsFiltered: ${report.workoutsFiltered}',
+      'workoutsImported: ${report.workoutsImported}',
+    ].join('\n');
   }
 
   void _refreshHealthConnectStatus() {

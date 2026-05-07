@@ -529,7 +529,7 @@
   "homeDashboardGoalLabel": "Objetivo",
   "homeDashboardFocusLabel": "Enfoque",
   "homeDashboardMealsChip": "{count} comidas",
-  "homeDashboardBurnedChip": "{count} cals",
+  "homeDashboardBurnedChip": "{count} kcals",
   "homeDashboardSessionsChip": "{count} sesión",
   "homeDashboardProteinRemaining": "Proteina restante",
   "homeDashboardKcalRemaining": "Kcal restantes",
