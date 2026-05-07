@@ -7,6 +7,7 @@ import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/main_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/styles/color_schemes.dart';
 import 'package:macrotracker/core/styles/fonts.dart';
 import 'package:macrotracker/core/utils/env.dart';
@@ -37,6 +38,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
   await initLocator();
+  final log = Logger('main');
+  try {
+    await locator<MealReminderService>().syncFromConfig();
+  } catch (error, stackTrace) {
+    log.severe('Meal reminder startup sync failed', error, stackTrace);
+  }
   final isUserInitialized = await locator<UserDataSource>().hasUserData();
   final configRepo = locator<ConfigRepository>();
   final hasAcceptedAnonymousData =
@@ -44,7 +51,6 @@ Future<void> main() async {
   final savedAppTheme = await configRepo.getConfigAppTheme();
   final savedLocale = await configRepo.getConfigLocale();
   final locale = savedLocale != null ? Locale(savedLocale) : null;
-  final log = Logger('main');
 
   // If the user has accepted anonymous data collection, run the app with
   // sentry enabled, else run without it

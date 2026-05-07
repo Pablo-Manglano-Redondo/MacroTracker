@@ -20,7 +20,6 @@ import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
-import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -69,6 +68,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final showDisclaimerDialog = !configData.hasAcceptedDisclaimer;
       final dailyFocus = configData.dailyFocus;
       final nutritionPhase = user.goal;
+      await _syncTodayTrackedDay(
+        phase: nutritionPhase,
+        dailyFocus: dailyFocus,
+        user: user,
+        refreshDiary: false,
+      );
 
       final breakfastIntakeList =
           await _getIntakeUsecase.getTodayBreakfastIntake();
@@ -245,18 +250,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> deleteUserActivityItem(UserActivityEntity activityEntity) async {
     final dateTime = DateTime.now();
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
-    _addTrackedDayUseCase.reduceDayCalorieGoal(
-        dateTime, activityEntity.burnedKcal);
-
-    final carbsAmount = MacroCalc.getTotalCarbsGoal(activityEntity.burnedKcal);
-    final fatAmount = MacroCalc.getTotalFatsGoal(activityEntity.burnedKcal);
-    final proteinAmount =
-        MacroCalc.getTotalProteinsGoal(activityEntity.burnedKcal);
-
-    _addTrackedDayUseCase.reduceDayMacroGoals(dateTime,
-        carbsAmount: carbsAmount,
-        fatAmount: fatAmount,
-        proteinAmount: proteinAmount);
+    await _syncTodayTrackedDay();
     _updateDiaryPage(dateTime);
   }
 
@@ -269,6 +263,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     UserWeightGoalEntity? phase,
     DailyFocusEntity? dailyFocus,
     UserEntity? user,
+    bool refreshDiary = true,
   }) async {
     final day = DateTime.now();
     final hasTrackedDay = await _addTrackedDayUseCase.hasTrackedDay(day);
@@ -310,6 +305,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       fatGoal: targets.fatGoal,
       proteinGoal: targets.proteinGoal,
     );
-    await _updateDiaryPage(day);
+    if (refreshDiary) {
+      await _updateDiaryPage(day);
+    }
   }
 }

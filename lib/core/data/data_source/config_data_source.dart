@@ -123,6 +123,25 @@ class ConfigDataSource {
     await config?.save();
   }
 
+  Future<void> setMealReminderConfig({
+    required bool enabled,
+    required int morningMinutes,
+    required int lunchMinutes,
+    required int afternoonMinutes,
+    required int eveningMinutes,
+  }) async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+    config.mealRemindersEnabled = enabled;
+    config.mealReminderMorningMinutes = morningMinutes;
+    config.mealReminderLunchMinutes = lunchMinutes;
+    config.mealReminderAfternoonMinutes = afternoonMinutes;
+    config.mealReminderEveningMinutes = eveningMinutes;
+    await config.save();
+  }
+
   Future<List<String>> getDiscardedHealthConnectActivityIds() async {
     final config = _configBox.get(_configKey);
     return List<String>.from(

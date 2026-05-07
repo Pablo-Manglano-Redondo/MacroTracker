@@ -8,6 +8,7 @@ import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
+import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
@@ -27,6 +28,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final GetMacroGoalUsecase _getMacroGoalUsecase;
   final GetUserUsecase _getUserUsecase;
   final SyncSleepFromHealthConnectUsecase _syncSleepFromHealthConnectUsecase;
+  final MealReminderService _mealReminderService;
 
   SettingsBloc(
       this._getConfigUsecase,
@@ -35,7 +37,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       this._getKcalGoalUsecase,
       this._getMacroGoalUsecase,
       this._getUserUsecase,
-      this._syncSleepFromHealthConnectUsecase)
+      this._syncSleepFromHealthConnectUsecase,
+      this._mealReminderService)
       : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -56,7 +59,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal,
           currentLocale: userConfig.selectedLocale,
           healthConnectAutoSyncEnabled:
-              userConfig.healthConnectAutoSyncEnabled));
+              userConfig.healthConnectAutoSyncEnabled,
+          mealRemindersEnabled: userConfig.mealRemindersEnabled,
+          mealReminderMorningMinutes: userConfig.mealReminderMorningMinutes,
+          mealReminderLunchMinutes: userConfig.mealReminderLunchMinutes,
+          mealReminderAfternoonMinutes:
+              userConfig.mealReminderAfternoonMinutes,
+          mealReminderEveningMinutes: userConfig.mealReminderEveningMinutes));
     });
   }
 
@@ -113,6 +122,38 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
   Future<void> setHealthConnectAutoSyncEnabled(bool enabled) async {
     await _addConfigUsecase.setHealthConnectAutoSyncEnabled(enabled);
+  }
+
+  Future<bool> setMealReminderConfig({
+    required bool enabled,
+    required int morningMinutes,
+    required int lunchMinutes,
+    required int afternoonMinutes,
+    required int eveningMinutes,
+  }) async {
+    await _addConfigUsecase.setMealReminderConfig(
+      enabled: enabled,
+      morningMinutes: morningMinutes,
+      lunchMinutes: lunchMinutes,
+      afternoonMinutes: afternoonMinutes,
+      eveningMinutes: eveningMinutes,
+    );
+
+    final synced = await _mealReminderService.syncFromConfig(
+      requestPermissionIfNeeded: enabled,
+    );
+
+    if (!synced && enabled) {
+      await _addConfigUsecase.setMealReminderConfig(
+        enabled: false,
+        morningMinutes: morningMinutes,
+        lunchMinutes: lunchMinutes,
+        afternoonMinutes: afternoonMinutes,
+        eveningMinutes: eveningMinutes,
+      );
+    }
+
+    return synced;
   }
 
   Future<HealthConnectSyncStatusEntity> getHealthConnectStatus() async {

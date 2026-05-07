@@ -29,6 +29,7 @@ import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
+import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/utils/env.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/ont_image_cache_manager.dart';
@@ -132,7 +133,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
-      locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -155,6 +156,8 @@ Future<void> initLocator() async {
       () => GetConfigUsecase(locator()));
   locator.registerLazySingleton<AddConfigUsecase>(
       () => AddConfigUsecase(locator()));
+  locator.registerLazySingleton<MealReminderService>(
+      () => MealReminderService(locator()));
   locator
       .registerLazySingleton<GetUserUsecase>(() => GetUserUsecase(locator()));
   locator
@@ -214,8 +217,7 @@ Future<void> initLocator() async {
           locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(
       () => AddTrackedDayUsecase(locator(), locator()));
-  locator.registerLazySingleton(
-      () => GetKcalGoalUsecase(locator(), locator(), locator()));
+  locator.registerLazySingleton(() => GetKcalGoalUsecase(locator(), locator()));
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
   locator.registerLazySingleton<GetGymTargetsUsecase>(() =>
       GetGymTargetsUsecase(

@@ -9,7 +9,6 @@ import 'package:macrotracker/core/domain/usecase/add_user_activity_usercase.dart
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/calc/met_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 
@@ -61,10 +60,10 @@ class ActivityDetailBloc
         duration, totalKcalBurned, day, activityEntity);
 
     await _addUserActivityUsecase.addUserActivity(userActivityEntity);
-    _updateTrackedDay(day, totalKcalBurned);
+    _updateTrackedDay(day);
   }
 
-  void _updateTrackedDay(DateTime day, double caloriesBurned) async {
+  void _updateTrackedDay(DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       // If the tracked day does not exist, create a new one
@@ -81,14 +80,20 @@ class ActivityDetailBloc
           day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
     }
 
-    final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
-    final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
-    final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
+    final totalKcalGoal =
+        await _getKcalGoalUsecase.getKcalGoal(totalKcalActivitiesParam: 0);
+    final totalCarbsGoal =
+        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+    final totalProteinGoal =
+        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
-    _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
-    _addTrackedDayUsecase.increaseDayMacroGoals(day,
-        carbsAmount: carbsIncrease,
-        fatAmount: fatIncrease,
-        proteinAmount: proteinIncrease);
+    await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+    await _addTrackedDayUsecase.updateDayMacroGoals(
+      day,
+      carbsGoal: totalCarbsGoal,
+      fatGoal: totalFatGoal,
+      proteinGoal: totalProteinGoal,
+    );
   }
 }

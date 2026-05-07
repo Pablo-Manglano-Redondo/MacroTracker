@@ -84,7 +84,6 @@ class _AddMealScreenState extends State<AddMealScreen>
               ),
               const SizedBox(height: 12.0),
               _AddMealQuickActions(
-                onScannerTap: _onBarcodeIconPressed,
                 onTextTap: _openTextCapture,
                 onPhotoTap: _openPhotoCapture,
                 onLibraryTap: _openRecipeLibrary,
@@ -284,13 +283,11 @@ class _AddMealScreenState extends State<AddMealScreen>
 }
 
 class _AddMealQuickActions extends StatelessWidget {
-  final VoidCallback onScannerTap;
   final VoidCallback onTextTap;
   final VoidCallback onPhotoTap;
   final VoidCallback onLibraryTap;
 
   const _AddMealQuickActions({
-    required this.onScannerTap,
     required this.onTextTap,
     required this.onPhotoTap,
     required this.onLibraryTap,
@@ -302,12 +299,6 @@ class _AddMealQuickActions extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _QuickActionChip(
-            icon: Icons.qr_code_scanner_outlined,
-            label: 'QR',
-            onTap: onScannerTap,
-          ),
-          const SizedBox(width: 8),
           _QuickActionChip(
             icon: Icons.edit_note_outlined,
             label: Localizations.localeOf(context).languageCode == 'es'

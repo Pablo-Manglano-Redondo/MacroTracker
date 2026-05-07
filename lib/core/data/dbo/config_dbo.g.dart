@@ -39,13 +39,18 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..aiCostMonthKey = fields[16] as String?
       ..trainingDayTemplate = fields[17] as String?
       ..discardedHealthConnectActivityIds =
-          (fields[20] as List?)?.cast<String>();
+          (fields[20] as List?)?.cast<String>()
+      ..mealRemindersEnabled = fields[21] as bool?
+      ..mealReminderMorningMinutes = fields[22] as int?
+      ..mealReminderLunchMinutes = fields[23] as int?
+      ..mealReminderAfternoonMinutes = fields[24] as int?
+      ..mealReminderEveningMinutes = fields[25] as int?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(21)
+      ..writeByte(26)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -87,7 +92,17 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(19)
       ..write(obj.healthConnectAutoSyncEnabled)
       ..writeByte(20)
-      ..write(obj.discardedHealthConnectActivityIds);
+      ..write(obj.discardedHealthConnectActivityIds)
+      ..writeByte(21)
+      ..write(obj.mealRemindersEnabled)
+      ..writeByte(22)
+      ..write(obj.mealReminderMorningMinutes)
+      ..writeByte(23)
+      ..write(obj.mealReminderLunchMinutes)
+      ..writeByte(24)
+      ..write(obj.mealReminderAfternoonMinutes)
+      ..writeByte(25)
+      ..write(obj.mealReminderEveningMinutes);
   }
 
   @override
@@ -134,7 +149,18 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..discardedHealthConnectActivityIds =
           (json['discardedHealthConnectActivityIds'] as List<dynamic>?)
               ?.map((e) => e as String)
-              .toList();
+              .toList()
+      ..mealRemindersEnabled = json['mealRemindersEnabled'] as bool? ?? false
+      ..mealReminderMorningMinutes =
+          (json['mealReminderMorningMinutes'] as num?)?.toInt() ?? 9 * 60
+      ..mealReminderLunchMinutes =
+          (json['mealReminderLunchMinutes'] as num?)?.toInt() ??
+              15 * 60 + 30
+      ..mealReminderAfternoonMinutes =
+          (json['mealReminderAfternoonMinutes'] as num?)?.toInt() ?? 18 * 60
+      ..mealReminderEveningMinutes =
+          (json['mealReminderEveningMinutes'] as num?)?.toInt() ??
+              21 * 60 + 30;
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -159,6 +185,11 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'healthConnectAutoSyncEnabled': instance.healthConnectAutoSyncEnabled,
       'discardedHealthConnectActivityIds':
           instance.discardedHealthConnectActivityIds,
+      'mealRemindersEnabled': instance.mealRemindersEnabled,
+      'mealReminderMorningMinutes': instance.mealReminderMorningMinutes,
+      'mealReminderLunchMinutes': instance.mealReminderLunchMinutes,
+      'mealReminderAfternoonMinutes': instance.mealReminderAfternoonMinutes,
+      'mealReminderEveningMinutes': instance.mealReminderEveningMinutes,
     };
 
 const _$AppThemeDBOEnumMap = {

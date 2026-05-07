@@ -15,12 +15,11 @@ class CalorieGoalCalc {
       TDEECalc.getTDEEKcalIOM2005(userEntity);
 
   static double getTotalKcalGoal(
-          UserEntity userEntity, double totalKcalActivities,
+          UserEntity userEntity, double _,
           {double? kcalUserAdjustment}) =>
       getTdee(userEntity) +
       getKcalGoalAdjustment(userEntity.goal) +
-      (kcalUserAdjustment ?? 0) +
-      totalKcalActivities;
+      (kcalUserAdjustment ?? 0);
 
   static double getKcalGoalAdjustment(UserWeightGoalEntity goal) {
     double kcalAdjustment;

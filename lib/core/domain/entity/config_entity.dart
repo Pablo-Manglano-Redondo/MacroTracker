@@ -26,6 +26,11 @@ class ConfigEntity extends Equatable {
   final String? selectedLocale;
   final bool healthConnectAutoSyncEnabled;
   final List<String> discardedHealthConnectActivityIds;
+  final bool mealRemindersEnabled;
+  final int mealReminderMorningMinutes;
+  final int mealReminderLunchMinutes;
+  final int mealReminderAfternoonMinutes;
+  final int mealReminderEveningMinutes;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
@@ -45,7 +50,12 @@ class ConfigEntity extends Equatable {
       this.trainingDayTemplate = TrainingDayTemplateEntity.rest,
       this.selectedLocale,
       this.healthConnectAutoSyncEnabled = true,
-      this.discardedHealthConnectActivityIds = const []});
+      this.discardedHealthConnectActivityIds = const [],
+      this.mealRemindersEnabled = false,
+      this.mealReminderMorningMinutes = 9 * 60,
+      this.mealReminderLunchMinutes = 15 * 60 + 30,
+      this.mealReminderAfternoonMinutes = 18 * 60,
+      this.mealReminderEveningMinutes = 21 * 60 + 30});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -71,6 +81,14 @@ class ConfigEntity extends Equatable {
         healthConnectAutoSyncEnabled: dbo.healthConnectAutoSyncEnabled ?? true,
         discardedHealthConnectActivityIds:
             dbo.discardedHealthConnectActivityIds ?? const [],
+        mealRemindersEnabled: dbo.mealRemindersEnabled ?? false,
+        mealReminderMorningMinutes: dbo.mealReminderMorningMinutes ?? 9 * 60,
+        mealReminderLunchMinutes:
+            dbo.mealReminderLunchMinutes ?? 15 * 60 + 30,
+        mealReminderAfternoonMinutes:
+            dbo.mealReminderAfternoonMinutes ?? 18 * 60,
+        mealReminderEveningMinutes:
+            dbo.mealReminderEveningMinutes ?? 21 * 60 + 30,
       );
 
   @override
@@ -95,5 +113,10 @@ class ConfigEntity extends Equatable {
         selectedLocale,
         healthConnectAutoSyncEnabled,
         discardedHealthConnectActivityIds,
+        mealRemindersEnabled,
+        mealReminderMorningMinutes,
+        mealReminderLunchMinutes,
+        mealReminderAfternoonMinutes,
+        mealReminderEveningMinutes,
       ];
 }

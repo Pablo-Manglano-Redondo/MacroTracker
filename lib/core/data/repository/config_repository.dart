@@ -89,6 +89,22 @@ class ConfigRepository {
     await _configDataSource.setHealthConnectAutoSyncEnabled(enabled);
   }
 
+  Future<void> setMealReminderConfig({
+    required bool enabled,
+    required int morningMinutes,
+    required int lunchMinutes,
+    required int afternoonMinutes,
+    required int eveningMinutes,
+  }) async {
+    await _configDataSource.setMealReminderConfig(
+      enabled: enabled,
+      morningMinutes: morningMinutes,
+      lunchMinutes: lunchMinutes,
+      afternoonMinutes: afternoonMinutes,
+      eveningMinutes: eveningMinutes,
+    );
+  }
+
   Future<List<String>> getDiscardedHealthConnectActivityIds() async {
     return _configDataSource.getDiscardedHealthConnectActivityIds();
   }

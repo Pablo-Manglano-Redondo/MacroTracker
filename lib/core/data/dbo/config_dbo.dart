@@ -51,6 +51,16 @@ class ConfigDBO extends HiveObject {
   bool? healthConnectAutoSyncEnabled;
   @HiveField(20)
   List<String>? discardedHealthConnectActivityIds;
+  @HiveField(21)
+  bool? mealRemindersEnabled;
+  @HiveField(22)
+  int? mealReminderMorningMinutes;
+  @HiveField(23)
+  int? mealReminderLunchMinutes;
+  @HiveField(24)
+  int? mealReminderAfternoonMinutes;
+  @HiveField(25)
+  int? mealReminderEveningMinutes;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
@@ -85,7 +95,12 @@ class ConfigDBO extends HiveObject {
     ..trainingDayTemplate = entity.trainingDayTemplate.storageValue
     ..healthConnectAutoSyncEnabled = entity.healthConnectAutoSyncEnabled
     ..discardedHealthConnectActivityIds =
-        entity.discardedHealthConnectActivityIds;
+        entity.discardedHealthConnectActivityIds
+    ..mealRemindersEnabled = entity.mealRemindersEnabled
+    ..mealReminderMorningMinutes = entity.mealReminderMorningMinutes
+    ..mealReminderLunchMinutes = entity.mealReminderLunchMinutes
+    ..mealReminderAfternoonMinutes = entity.mealReminderAfternoonMinutes
+    ..mealReminderEveningMinutes = entity.mealReminderEveningMinutes;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

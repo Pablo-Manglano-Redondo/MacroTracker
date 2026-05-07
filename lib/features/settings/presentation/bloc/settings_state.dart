@@ -26,6 +26,11 @@ class SettingsLoadedState extends SettingsState {
   final int aiPhotoCallsTotal;
   final String? currentLocale;
   final bool healthConnectAutoSyncEnabled;
+  final bool mealRemindersEnabled;
+  final int mealReminderMorningMinutes;
+  final int mealReminderLunchMinutes;
+  final int mealReminderAfternoonMinutes;
+  final int mealReminderEveningMinutes;
 
   const SettingsLoadedState(this.versionNumber, this.sendAnonymousData,
       this.appTheme, this.usesImperialUnits,
@@ -35,7 +40,12 @@ class SettingsLoadedState extends SettingsState {
       this.aiTextCallsTotal = 0,
       this.aiPhotoCallsTotal = 0,
       this.currentLocale,
-      this.healthConnectAutoSyncEnabled = true});
+      this.healthConnectAutoSyncEnabled = true,
+      this.mealRemindersEnabled = false,
+      this.mealReminderMorningMinutes = 9 * 60,
+      this.mealReminderLunchMinutes = 15 * 60 + 30,
+      this.mealReminderAfternoonMinutes = 18 * 60,
+      this.mealReminderEveningMinutes = 21 * 60 + 30});
 
   @override
   List<Object?> get props => [
@@ -50,5 +60,10 @@ class SettingsLoadedState extends SettingsState {
         aiPhotoCallsTotal,
         currentLocale,
         healthConnectAutoSyncEnabled,
+        mealRemindersEnabled,
+        mealReminderMorningMinutes,
+        mealReminderLunchMinutes,
+        mealReminderAfternoonMinutes,
+        mealReminderEveningMinutes,
       ];
 }

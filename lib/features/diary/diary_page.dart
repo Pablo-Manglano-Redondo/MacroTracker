@@ -11,7 +11,6 @@ import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:macrotracker/core/utils/locator.dart';
-import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -261,17 +260,8 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
         source: UserActivitySourceEntity.manual,
       );
       await _addUserActivityUsecase.addUserActivity(copied);
-      await _addTrackedDayUsecase.increaseDayCalorieGoal(
-        today,
-        copied.burnedKcal,
-      );
-      await _addTrackedDayUsecase.increaseDayMacroGoals(
-        today,
-        carbsAmount: MacroCalc.getTotalCarbsGoal(copied.burnedKcal),
-        fatAmount: MacroCalc.getTotalFatsGoal(copied.burnedKcal),
-        proteinAmount: MacroCalc.getTotalProteinsGoal(copied.burnedKcal),
-      );
     }
+    await _syncTrackedDayTargets(today);
 
     _setSelectedDate(today);
     _diaryBloc.add(const LoadDiaryYearEvent());
@@ -296,6 +286,22 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       targets.carbsGoal,
       targets.fatGoal,
       targets.proteinGoal,
+    );
+  }
+
+  Future<void> _syncTrackedDayTargets(DateTime day) async {
+    final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
+    if (!hasTrackedDay) {
+      return;
+    }
+
+    final targets = await _getGymTargetsUsecase.getTargetsForDay(day);
+    await _addTrackedDayUsecase.updateDayCalorieGoal(day, targets.kcalGoal);
+    await _addTrackedDayUsecase.updateDayMacroGoals(
+      day,
+      carbsGoal: targets.carbsGoal,
+      fatGoal: targets.fatGoal,
+      proteinGoal: targets.proteinGoal,
     );
   }
 

@@ -9,7 +9,6 @@ import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart'
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/features/daily_habits/data/data_source/health_connect_sleep_data_source.dart';
 import 'package:macrotracker/features/daily_habits/data/repository/daily_habit_log_repository.dart';
@@ -290,7 +289,7 @@ class SyncSleepFromHealthConnectUsecase {
           externalId: workout.externalId,
         );
         await _addUserActivityUsecase.addUserActivity(activity);
-        await _updateTrackedDay(workoutDay, workout.burnedKcal);
+        await _updateTrackedDay(workoutDay);
         existingExternalIds.add(workout.externalId);
         importedWorkouts++;
       }
@@ -487,7 +486,7 @@ class SyncSleepFromHealthConnectUsecase {
     return PhysicalActivityTypeEntity.conditioningExercise;
   }
 
-  Future<void> _updateTrackedDay(DateTime day, double caloriesBurned) async {
+  Future<void> _updateTrackedDay(DateTime day) async {
     final hasTrackedDay = await _addTrackedDayUsecase.hasTrackedDay(day);
     if (!hasTrackedDay) {
       final totalKcalGoal = await _getKcalGoalUsecase.getKcalGoal(
@@ -503,15 +502,21 @@ class SyncSleepFromHealthConnectUsecase {
           day, totalKcalGoal, totalCarbsGoal, totalFatGoal, totalProteinGoal);
     }
 
-    final carbsIncrease = MacroCalc.getTotalCarbsGoal(caloriesBurned);
-    final fatIncrease = MacroCalc.getTotalFatsGoal(caloriesBurned);
-    final proteinIncrease = MacroCalc.getTotalProteinsGoal(caloriesBurned);
+    final totalKcalGoal =
+        await _getKcalGoalUsecase.getKcalGoal(totalKcalActivitiesParam: 0);
+    final totalCarbsGoal =
+        await _getMacroGoalUsecase.getCarbsGoal(totalKcalGoal);
+    final totalFatGoal = await _getMacroGoalUsecase.getFatsGoal(totalKcalGoal);
+    final totalProteinGoal =
+        await _getMacroGoalUsecase.getProteinsGoal(totalKcalGoal);
 
-    await _addTrackedDayUsecase.increaseDayCalorieGoal(day, caloriesBurned);
-    await _addTrackedDayUsecase.increaseDayMacroGoals(day,
-        carbsAmount: carbsIncrease,
-        fatAmount: fatIncrease,
-        proteinAmount: proteinIncrease);
+    await _addTrackedDayUsecase.updateDayCalorieGoal(day, totalKcalGoal);
+    await _addTrackedDayUsecase.updateDayMacroGoals(
+      day,
+      carbsGoal: totalCarbsGoal,
+      fatGoal: totalFatGoal,
+      proteinGoal: totalProteinGoal,
+    );
   }
 }
 
