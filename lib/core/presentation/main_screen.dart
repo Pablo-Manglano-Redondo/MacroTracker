@@ -40,7 +40,10 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _appbarPages[_selectedPageIndex],
-      body: _bodyPages[_selectedPageIndex],
+      body: IndexedStack(
+        index: _selectedPageIndex,
+        children: _bodyPages,
+      ),
       floatingActionButton: _selectedPageIndex == 0
           ? FloatingActionButton(
               onPressed: () => _onFabPressed(context),

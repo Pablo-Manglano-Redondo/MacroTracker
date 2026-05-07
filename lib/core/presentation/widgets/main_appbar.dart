@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 
 class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -34,8 +38,11 @@ class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-            onPressed: () {
-              Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+            onPressed: () async {
+              await Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+              locator<HomeBloc>().add(const LoadItemsEvent());
+              locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+              locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
             },
             icon: const Icon(Icons.settings_outlined))
       ],

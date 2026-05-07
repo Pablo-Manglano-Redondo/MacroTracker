@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
-import 'package:macrotracker/core/domain/entity/user_bmi_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
@@ -14,7 +13,6 @@ import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
-import 'package:macrotracker/features/profile/presentation/widgets/bmi_overview.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_gender_dialog.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_goal_dialog.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_height_dialog.dart';
@@ -51,7 +49,6 @@ class _ProfilePageState extends State<ProfilePage> {
         } else if (state is ProfileLoadedState) {
           return _getLoadedContent(
             context,
-            state.userBMI,
             state.userEntity,
             state.usesImperialUnits,
             state.dailyFocus,
@@ -70,7 +67,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _getLoadedContent(BuildContext context, UserBMIEntity userBMIEntity,
+  Widget _getLoadedContent(
+      BuildContext context,
       UserEntity user,
       bool usesImperialUnits,
       DailyFocusEntity dailyFocus,
@@ -133,10 +131,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           const SizedBox(height: 10),
                           Text(
                             S.of(context).profileCalculationBase,
-                            style:
-                                Theme.of(context).textTheme.labelMedium?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                           ),
                         ],
                       ),
@@ -256,11 +256,6 @@ class _ProfilePageState extends State<ProfilePage> {
               },
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        BMIOverview(
-          bmiValue: userBMIEntity.bmiValue,
-          nutritionalStatus: userBMIEntity.nutritionalStatus,
         ),
       ],
     );
@@ -459,7 +454,7 @@ class _ProfileAvatar extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: hasImage
           ? Image.file(
-              File(path!),
+              File(path),
               fit: BoxFit.cover,
               gaplessPlayback: true,
               filterQuality: FilterQuality.medium,
@@ -680,9 +675,10 @@ class _CurrentTargetsCard extends StatelessWidget {
                     children: [
                       Text(
                         goalLabel,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -780,24 +776,6 @@ class _CurrentTargetsCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _FooterBadge(
-                    icon: Icons.flag_outlined,
-                    label: goalLabel.replaceFirst(S.of(context).profileCurrentPhase('').split(':')[0], '').replaceFirst(': ', ''),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _FooterBadge(
-                    icon: Icons.today_outlined,
-                    label: focusLabel,
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -824,7 +802,8 @@ class _MacroMetricTile extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         color: colorScheme.surfaceContainerHighest,
-        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.7)),
+        border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.7)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -850,44 +829,6 @@ class _MacroMetricTile extends StatelessWidget {
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FooterBadge extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _FooterBadge({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: colorScheme.surfaceContainerHighest,
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-            ),
           ),
         ],
       ),

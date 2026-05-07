@@ -75,30 +75,30 @@ class ActivityVerticalList extends StatelessWidget {
           ),
         SizedBox(
           height: sectionHeight + 24,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 12),
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            itemCount:
-                userActivityList.length + 1, // List length + placeholder card
-            itemBuilder: (BuildContext context, int index) {
-              final firstListElement = index == 0 ? true : false;
-              if (index == userActivityList.length) {
-                return PlaceholderCard(
-                    day: day,
-                    onTap: () => _onPlaceholderCardTapped(context),
-                    firstListElement: firstListElement,
-                    compact: compact);
-              } else {
-                final userActivity = userActivityList[index];
-                return ActivityCard(
-                  activityEntity: userActivity,
-                  onItemLongPressed: onItemLongPressedCallback,
-                  onItemTapped: onItemTappedCallback,
-                  firstListElement: firstListElement,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...List.generate(userActivityList.length, (index) {
+                  final userActivity = userActivityList[index];
+                  return ActivityCard(
+                    activityEntity: userActivity,
+                    onItemLongPressed: onItemLongPressedCallback,
+                    onItemTapped: onItemTappedCallback,
+                    firstListElement: index == 0,
+                    compact: compact,
+                  );
+                }),
+                PlaceholderCard(
+                  day: day,
+                  onTap: () => _onPlaceholderCardTapped(context),
+                  firstListElement: userActivityList.isEmpty,
                   compact: compact,
-                );
-              }
-            },
+                ),
+              ],
+            ),
           ),
         )
       ],

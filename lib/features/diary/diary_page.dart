@@ -45,6 +45,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   static const _calendarDurationDays = Duration(days: 356);
   final _currentDate = DateTime.now();
+  final ScrollController _scrollController = ScrollController();
   var _selectedDate = DateTime.now();
   var _focusedDate = DateTime.now();
 
@@ -66,6 +67,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -104,6 +106,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     final isToday = DateUtils.isSameDay(_selectedDate, DateTime.now());
 
     return ListView(
+      controller: _scrollController,
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
       children: [
         _DiaryWeeklyStrip(
@@ -335,7 +338,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   }
 }
 
-class _DiaryWeeklyStrip extends StatelessWidget {
+class _DiaryWeeklyStrip extends StatefulWidget {
   final BuildWeeklyInsightsUsecase buildWeeklyInsightsUsecase;
   final DateTime focusedDate;
 
@@ -345,10 +348,36 @@ class _DiaryWeeklyStrip extends StatelessWidget {
   });
 
   @override
+  State<_DiaryWeeklyStrip> createState() => _DiaryWeeklyStripState();
+}
+
+class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
+    with AutomaticKeepAliveClientMixin {
+  late Future<WeeklyInsightsEntity> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.buildWeeklyInsightsUsecase.build(widget.focusedDate);
+  }
+
+  @override
+  void didUpdateWidget(covariant _DiaryWeeklyStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!DateUtils.isSameDay(oldWidget.focusedDate, widget.focusedDate)) {
+      _future = widget.buildWeeklyInsightsUsecase.build(widget.focusedDate);
+    }
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colorScheme = Theme.of(context).colorScheme;
     return FutureBuilder<WeeklyInsightsEntity>(
-      future: buildWeeklyInsightsUsecase.build(focusedDate),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
           return const SizedBox.shrink();

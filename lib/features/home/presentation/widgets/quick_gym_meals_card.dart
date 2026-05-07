@@ -33,10 +33,13 @@ class QuickGymMealsCard extends StatefulWidget {
 
 enum _QuickGymMealsFilter {
   all,
+  breakfast,
+  lunch,
+  dinner,
   preWorkout,
   postWorkout,
   shake,
-  leanMeal,
+  snack,
 }
 
 class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
@@ -143,11 +146,27 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                 scrollDirection: Axis.horizontal,
                 child: SegmentedButton<_QuickGymMealsFilter>(
                   showSelectedIcon: false,
+                  multiSelectionEnabled: false,
+                  style: ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const WidgetStatePropertyAll(
+                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
                   segments: _QuickGymMealsFilter.values
                       .map(
                         (filter) => ButtonSegment<_QuickGymMealsFilter>(
                           value: filter,
-                          label: Text(_labelForFilter(context, filter)),
+                          label: SizedBox(
+                            width: _segmentWidthForFilter(filter),
+                            child: Text(
+                              _labelForFilter(context, filter),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ),
                       )
                       .toList(),
@@ -290,11 +309,12 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
 
   Future<List<QuickRecipePresetEntity>> _loadPresets(
     _QuickGymMealsFilter filter,
-  ) {
-    return locator<GetQuickRecipePresetsUsecase>().getPresets(
-      category: _categoryForFilter(filter),
-      limit: 3,
+  ) async {
+    final presets = await locator<GetQuickRecipePresetsUsecase>().getPresets(
+      limit: 24,
     );
+    final filtered = _applyFilter(presets, filter);
+    return filtered.take(3).toList(growable: false);
   }
 
   _QuickGymMealsFilter _defaultFilter(
@@ -302,7 +322,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     UserWeightGoalEntity nutritionPhase,
   ) {
     if (nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return _QuickGymMealsFilter.leanMeal;
+      return _QuickGymMealsFilter.snack;
     }
     switch (dailyFocus) {
       case DailyFocusEntity.lowerBody:
@@ -311,22 +331,64 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       case DailyFocusEntity.cardio:
         return _QuickGymMealsFilter.shake;
       case DailyFocusEntity.rest:
-        return _QuickGymMealsFilter.leanMeal;
+        return _QuickGymMealsFilter.snack;
     }
   }
 
-  QuickRecipeCategoryEntity? _categoryForFilter(_QuickGymMealsFilter filter) {
+  List<QuickRecipePresetEntity> _applyFilter(
+    List<QuickRecipePresetEntity> presets,
+    _QuickGymMealsFilter filter,
+  ) {
     switch (filter) {
       case _QuickGymMealsFilter.all:
-        return null;
+        return presets;
+      case _QuickGymMealsFilter.breakfast:
+        return presets
+            .where(
+              (preset) =>
+                  preset.defaultIntakeType == IntakeTypeEntity.breakfast,
+            )
+            .toList(growable: false);
+      case _QuickGymMealsFilter.lunch:
+        return presets
+            .where(
+              (preset) => preset.defaultIntakeType == IntakeTypeEntity.lunch,
+            )
+            .toList(growable: false);
+      case _QuickGymMealsFilter.dinner:
+        return presets
+            .where(
+              (preset) => preset.defaultIntakeType == IntakeTypeEntity.dinner,
+            )
+            .toList(growable: false);
       case _QuickGymMealsFilter.preWorkout:
-        return QuickRecipeCategoryEntity.preWorkout;
+        return presets
+            .where(
+              (preset) =>
+                  preset.category == QuickRecipeCategoryEntity.preWorkout,
+            )
+            .toList(growable: false);
       case _QuickGymMealsFilter.postWorkout:
-        return QuickRecipeCategoryEntity.postWorkout;
+        return presets
+            .where(
+              (preset) =>
+                  preset.category == QuickRecipeCategoryEntity.postWorkout,
+            )
+            .toList(growable: false);
       case _QuickGymMealsFilter.shake:
-        return QuickRecipeCategoryEntity.shake;
-      case _QuickGymMealsFilter.leanMeal:
-        return QuickRecipeCategoryEntity.leanMeal;
+        return presets
+            .where(
+              (preset) => preset.category == QuickRecipeCategoryEntity.shake,
+            )
+            .toList(growable: false);
+      case _QuickGymMealsFilter.snack:
+        return presets
+            .where(
+              (preset) =>
+                  preset.defaultIntakeType == IntakeTypeEntity.snack ||
+                  preset.category == QuickRecipeCategoryEntity.leanMeal,
+            )
+            .toList(growable: false);
     }
   }
 
@@ -334,14 +396,20 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     switch (filter) {
       case _QuickGymMealsFilter.all:
         return _isEs(context) ? 'Todo' : 'All';
+      case _QuickGymMealsFilter.breakfast:
+        return _isEs(context) ? 'Desayuno' : 'Breakfast';
+      case _QuickGymMealsFilter.lunch:
+        return _isEs(context) ? 'Comida' : 'Lunch';
+      case _QuickGymMealsFilter.dinner:
+        return _isEs(context) ? 'Cena' : 'Dinner';
       case _QuickGymMealsFilter.preWorkout:
         return _isEs(context) ? 'Preentreno' : 'Pre-workout';
       case _QuickGymMealsFilter.postWorkout:
         return _isEs(context) ? 'Postentreno' : 'Post-workout';
       case _QuickGymMealsFilter.shake:
         return _isEs(context) ? 'Batido' : 'Shake';
-      case _QuickGymMealsFilter.leanMeal:
-        return _isEs(context) ? 'Ligera' : 'Light meal';
+      case _QuickGymMealsFilter.snack:
+        return 'Snack';
     }
   }
 
@@ -383,6 +451,26 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
 
   String _addedTo(BuildContext context, String recipe, String slot) =>
       _isEs(context) ? '$recipe añadida a $slot' : '$recipe added to $slot';
+  double _segmentWidthForFilter(_QuickGymMealsFilter filter) {
+    switch (filter) {
+      case _QuickGymMealsFilter.all:
+        return 52;
+      case _QuickGymMealsFilter.breakfast:
+        return 86;
+      case _QuickGymMealsFilter.lunch:
+        return 72;
+      case _QuickGymMealsFilter.dinner:
+        return 56;
+      case _QuickGymMealsFilter.preWorkout:
+        return 96;
+      case _QuickGymMealsFilter.postWorkout:
+        return 102;
+      case _QuickGymMealsFilter.shake:
+        return 60;
+      case _QuickGymMealsFilter.snack:
+        return 62;
+    }
+  }
 }
 
 class _QuickRecipeTile extends StatelessWidget {
@@ -422,6 +510,8 @@ class _QuickRecipeTile extends StatelessWidget {
                   Expanded(
                     child: Text(
                       preset.recipe.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),

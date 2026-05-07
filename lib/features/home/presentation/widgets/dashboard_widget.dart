@@ -260,42 +260,47 @@ class DashboardWidget extends StatelessWidget {
                     ? colorScheme.tertiary.withValues(alpha: 0.14)
                     : colorScheme.error.withValues(alpha: 0.14),
                 compact: true,
+                pinMetricToBottom: true,
               ),
-            ] else
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _PrimaryMetric(
-                      label: _proteinRemainingLabel(context),
-                      value: proteinRemaining.toInt(),
-                      suffix: 'g',
-                      textColor: bodyColor,
-                      accentColor: colorScheme.primary,
-                      background: colorScheme.primary.withValues(alpha: 0.14),
-                      compact: false,
+            ] else ...[
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: _PrimaryMetric(
+                        label: _proteinRemainingLabel(context),
+                        value: proteinRemaining.toInt(),
+                        suffix: 'g',
+                        textColor: bodyColor,
+                        accentColor: colorScheme.primary,
+                        background: colorScheme.primary.withValues(alpha: 0.14),
+                        compact: false,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _PrimaryMetric(
-                      label: totalKcalLeft >= 0
-                          ? _kcalRemainingLabel(context)
-                          : _overGoalLabel(context),
-                      value: totalKcalLeft.abs().toInt(),
-                      suffix: 'kcal',
-                      textColor: bodyColor,
-                      accentColor: totalKcalLeft >= 0
-                          ? colorScheme.tertiary
-                          : colorScheme.error,
-                      background: totalKcalLeft >= 0
-                          ? colorScheme.tertiary.withValues(alpha: 0.14)
-                          : colorScheme.error.withValues(alpha: 0.14),
-                      compact: false,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _PrimaryMetric(
+                        label: totalKcalLeft >= 0
+                            ? _kcalRemainingLabel(context)
+                            : _overGoalLabel(context),
+                        value: totalKcalLeft.abs().toInt(),
+                        suffix: 'kcal',
+                        textColor: bodyColor,
+                        accentColor: totalKcalLeft >= 0
+                            ? colorScheme.tertiary
+                            : colorScheme.error,
+                        background: totalKcalLeft >= 0
+                            ? colorScheme.tertiary.withValues(alpha: 0.14)
+                            : colorScheme.error.withValues(alpha: 0.14),
+                        compact: false,
+                        pinMetricToBottom: true,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+            ],
             const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(999),
@@ -556,14 +561,22 @@ class DashboardWidget extends StatelessWidget {
   String _focusSelectorLabel(BuildContext context) =>
       _isEs(context) ? 'Enfoque' : 'Focus';
 
-  String _mealsChip(BuildContext context, int count) =>
-      _isEs(context) ? '$count comidas' : '$count meals';
+  String _mealsChip(BuildContext context, int count) {
+    if (_isEs(context)) {
+      return count == 1 ? '1 comida' : '$count comidas';
+    }
+    return count == 1 ? '1 meal' : '$count meals';
+  }
 
-  String _sessionsChip(BuildContext context, int count) =>
-      _isEs(context) ? '$count sesión' : '$count sessions';
+  String _sessionsChip(BuildContext context, int count) {
+    if (_isEs(context)) {
+      return count == 1 ? '1 sesión' : '$count sesiones';
+    }
+    return count == 1 ? '1 session' : '$count sessions';
+  }
 
   String _burnedChip(BuildContext context, int count) =>
-      _isEs(context) ? '$count cals' : '$count burned';
+      _isEs(context) ? '$count kcals' : '$count burned';
 
   String _proteinRemainingLabel(BuildContext context) =>
       _isEs(context) ? 'Proteína restante' : 'Protein left';
@@ -704,6 +717,7 @@ class _PrimaryMetric extends StatelessWidget {
   final Color accentColor;
   final Color background;
   final bool compact;
+  final bool pinMetricToBottom;
 
   const _PrimaryMetric({
     required this.label,
@@ -713,6 +727,7 @@ class _PrimaryMetric extends StatelessWidget {
     required this.accentColor,
     required this.background,
     required this.compact,
+    this.pinMetricToBottom = false,
   });
 
   @override
@@ -728,7 +743,7 @@ class _PrimaryMetric extends StatelessWidget {
         ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
@@ -739,6 +754,7 @@ class _PrimaryMetric extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 8),
+          if (pinMetricToBottom && !compact) const Spacer(),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [

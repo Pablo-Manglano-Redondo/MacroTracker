@@ -46,7 +46,7 @@ void main() {
 
     expect(find.text('Nutrición de gimnasio'), findsOneWidget);
     expect(find.text('4 comidas'), findsOneWidget);
-    expect(find.text('500 cals'), findsOneWidget);
+    expect(find.text('500 kcals'), findsOneWidget);
     expect(find.text('1 sesión'), findsOneWidget);
     expect(find.text('Proteína restante'), findsOneWidget);
     expect(find.text('Kcal restantes'), findsOneWidget);

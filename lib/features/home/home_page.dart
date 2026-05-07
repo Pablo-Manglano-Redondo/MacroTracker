@@ -235,7 +235,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       final didUpdate =
           await locator<SyncSleepFromHealthConnectUsecase>().syncToday(
-        requestPermissionsIfNeeded: true,
+        requestPermissionsIfNeeded: false,
       );
       if (didUpdate && mounted) {
         _gymHabitsCardController.refresh();

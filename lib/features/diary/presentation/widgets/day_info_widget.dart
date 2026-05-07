@@ -55,7 +55,7 @@ class DayInfoWidget extends StatefulWidget {
   State<DayInfoWidget> createState() => _DayInfoWidgetState();
 }
 
-class _DayInfoWidgetState extends State<DayInfoWidget> {
+class _DayInfoWidgetState extends State<DayInfoWidget> with AutomaticKeepAliveClientMixin {
   late bool _showActivity;
   late bool _showBreakfast;
   late bool _showLunch;
@@ -73,6 +73,12 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     super.didUpdateWidget(oldWidget);
     if (!DateUtils.isSameDay(oldWidget.selectedDay, widget.selectedDay)) {
       _syncSectionState();
+    } else {
+      if (oldWidget.userActivities.isEmpty && widget.userActivities.isNotEmpty) _showActivity = true;
+      if (oldWidget.breakfastIntake.isEmpty && widget.breakfastIntake.isNotEmpty) _showBreakfast = true;
+      if (oldWidget.lunchIntake.isEmpty && widget.lunchIntake.isNotEmpty) _showLunch = true;
+      if (oldWidget.dinnerIntake.isEmpty && widget.dinnerIntake.isNotEmpty) _showDinner = true;
+      if (oldWidget.snackIntake.isEmpty && widget.snackIntake.isNotEmpty) _showSnack = true;
     }
   }
 
@@ -85,7 +91,11 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final trackedDay = widget.trackedDayEntity;
     final colorScheme = Theme.of(context).colorScheme;
     final mealCount = widget.breakfastIntake.length +
@@ -104,7 +114,12 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
               ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12.0),
-        if (trackedDay == null)
+        if (trackedDay == null &&
+            widget.userActivities.isEmpty &&
+            widget.breakfastIntake.isEmpty &&
+            widget.lunchIntake.isEmpty &&
+            widget.dinnerIntake.isEmpty &&
+            widget.snackIntake.isEmpty)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -137,15 +152,17 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             ),
           )
         else ...[
-          _DaySummaryCard(
-            trackedDay: trackedDay,
-            mealCount: mealCount,
-            activityCount: widget.userActivities.length,
-            canCopyDay:
-                !DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
-            onCopyDayToToday: widget.onCopyDayToToday,
-          ),
-          const SizedBox(height: 12),
+          if (trackedDay != null) ...[
+            _DaySummaryCard(
+              trackedDay: trackedDay,
+              mealCount: mealCount,
+              activityCount: widget.userActivities.length,
+              canCopyDay:
+                  !DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
+              onCopyDayToToday: widget.onCopyDayToToday,
+            ),
+            const SizedBox(height: 12),
+          ],
           _DiaryExpandableSection(
             title: S.of(context).activityLabel,
             icon: UserActivityEntity.getIconData(),
@@ -606,6 +623,7 @@ class _DiaryExpandableSection extends StatelessWidget {
         child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           childrenPadding: const EdgeInsets.only(bottom: 12),
+          maintainState: true,
           initiallyExpanded: initiallyExpanded,
           onExpansionChanged: onExpansionChanged,
           leading: Icon(icon, color: colorScheme.primary),

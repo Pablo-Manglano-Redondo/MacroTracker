@@ -27,16 +27,45 @@ class DiaryTableCalendar extends StatefulWidget {
   State<DiaryTableCalendar> createState() => _DiaryTableCalendarState();
 }
 
-class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
+class _DiaryTableCalendarState extends State<DiaryTableCalendar> with AutomaticKeepAliveClientMixin {
+  late DateTime _visibleFocusedDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _visibleFocusedDate = _normalized(widget.focusedDate);
+  }
+
+  @override
+  void didUpdateWidget(covariant DiaryTableCalendar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextFocused = _normalized(widget.focusedDate);
+    if (!_isSameMonth(_visibleFocusedDate, nextFocused) ||
+        !isSameDay(oldWidget.selectedDate, widget.selectedDate)) {
+      _visibleFocusedDate = nextFocused;
+    }
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final firstDay =
+        _normalized(widget.currentDate.subtract(widget.calendarDurationDays));
+    final lastDay =
+        _normalized(widget.currentDate.add(widget.calendarDurationDays));
     return Card(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 12, 8, 10),
         child: Column(
           children: [
             TableCalendar(
+              key: ValueKey<String>(
+                'diary-calendar-${_visibleFocusedDate.year}-${_visibleFocusedDate.month}-${widget.selectedDate.year}-${widget.selectedDate.month}-${widget.selectedDate.day}',
+              ),
               headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
@@ -79,15 +108,21 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
               ),
               daysOfWeekHeight: 28,
               rowHeight: 46,
-              focusedDay: widget.focusedDate,
-              firstDay:
-                  widget.currentDate.subtract(widget.calendarDurationDays),
-              lastDay: widget.currentDate.add(widget.calendarDurationDays),
+              focusedDay: _clampToRange(_visibleFocusedDate, firstDay, lastDay),
+              firstDay: firstDay,
+              lastDay: lastDay,
               startingDayOfWeek: StartingDayOfWeek.monday,
               onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _visibleFocusedDate = _normalized(focusedDay);
+                });
                 widget.onDateSelected(selectedDay, widget.trackedDaysMap);
               },
               onPageChanged: (focusedDay) {
+                final normalized = _normalized(focusedDay);
+                setState(() {
+                  _visibleFocusedDate = normalized;
+                });
                 widget.onPageChanged?.call(focusedDay);
               },
               calendarStyle: const CalendarStyle(
@@ -224,6 +259,22 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> {
         ),
       ),
     );
+  }
+
+  DateTime _normalized(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  DateTime _clampToRange(DateTime value, DateTime firstDay, DateTime lastDay) {
+    if (value.isBefore(firstDay)) {
+      return firstDay;
+    }
+    if (value.isAfter(lastDay)) {
+      return lastDay;
+    }
+    return value;
+  }
+
+  bool _isSameMonth(DateTime left, DateTime right) {
+    return left.year == right.year && left.month == right.month;
   }
 }
 

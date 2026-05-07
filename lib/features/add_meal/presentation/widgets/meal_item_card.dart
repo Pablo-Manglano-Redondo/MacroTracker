@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -28,10 +27,14 @@ class MealItemCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Card(
         elevation: 2,
-        shadowColor: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
+        shadowColor:
+            Theme.of(context).colorScheme.shadow.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           side: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+            color: Theme.of(context)
+                .colorScheme
+                .outlineVariant
+                .withValues(alpha: 0.5),
           ),
           borderRadius: const BorderRadius.all(Radius.circular(16)),
         ),
@@ -48,14 +51,20 @@ class MealItemCard extends StatelessWidget {
                   child: Container(
                     width: 64,
                     height: 64,
-                    color: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.4),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .secondaryContainer
+                        .withValues(alpha: 0.4),
                     child: mealEntity.thumbnailImageUrl != null
                         ? CachedNetworkImage(
                             cacheManager: locator<CacheManager>(),
                             fit: BoxFit.cover,
                             imageUrl: mealEntity.thumbnailImageUrl!,
-                            placeholder: (context, url) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                            errorWidget: (context, url, error) => const Icon(Icons.restaurant_outlined),
+                            placeholder: (context, url) => const Center(
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2)),
+                            errorWidget: (context, url, error) =>
+                                const Icon(Icons.restaurant_outlined),
                           )
                         : const Icon(Icons.restaurant_outlined),
                   ),
@@ -70,16 +79,25 @@ class MealItemCard extends StatelessWidget {
                       Text.rich(
                         TextSpan(
                           text: mealEntity.name ?? "?",
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                           children: [
-                            if (mealEntity.brands != null && mealEntity.brands!.isNotEmpty)
+                            if (mealEntity.brands != null &&
+                                mealEntity.brands!.isNotEmpty)
                               TextSpan(
                                 text: ' ${mealEntity.brands}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurfaceVariant,
                                       fontWeight: FontWeight.w400,
                                     ),
                               ),
@@ -94,7 +112,7 @@ class MealItemCard extends StatelessWidget {
                           value: double.parse(mealEntity.mealQuantity ?? "0"),
                           meal: mealEntity,
                           usesImperialUnits: usesImperialUnits,
-                          // No pass style if the widget doesn't support it, 
+                          // No pass style if the widget doesn't support it,
                           // let's assume it follows theme.
                         ),
                       ],
@@ -105,7 +123,10 @@ class MealItemCard extends StatelessWidget {
                 // Add button
                 Icon(
                   Icons.add_circle_outline_rounded,
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.7),
                 ),
                 const SizedBox(width: 4),
               ],

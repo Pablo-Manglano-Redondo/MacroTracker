@@ -259,10 +259,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                       ? _sourceLabel(context,
                                           log.sleepSyncedFromHealthConnect)
                                       : null,
-                                  sourceDetail: log.sleepHours > 0
-                                      ? _sourceDetail(context,
-                                          log.sleepSyncedFromHealthConnect)
-                                      : null,
                                   onDecrease: () => _adjustSleep(-0.5),
                                   onIncrease: () => _adjustSleep(0.5),
                                   accentColor: _goalTone(
@@ -279,10 +275,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                   target: _stepsTarget(context, stepGoal),
                                   sourceLabel: log.steps > 0
                                       ? _sourceLabel(context,
-                                          log.stepsSyncedFromHealthConnect)
-                                      : null,
-                                  sourceDetail: log.steps > 0
-                                      ? _sourceDetail(context,
                                           log.stepsSyncedFromHealthConnect)
                                       : null,
                                   onDecrease: () => _adjustSteps(-1000),
@@ -612,13 +604,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     return S.of(context).habitSourceManualAdjust;
   }
 
-  String _sourceDetail(BuildContext context, bool synced) {
-    if (synced) {
-      return S.of(context).gymHabitsSourceHealthConnectDetail;
-    }
-    return S.of(context).gymHabitsSourceManualDetail;
-  }
-
   bool _isEs(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'es';
   }
@@ -698,7 +683,6 @@ class _MetricAdjuster extends StatelessWidget {
   final String value;
   final String target;
   final String? sourceLabel;
-  final String? sourceDetail;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
   final Color accentColor;
@@ -708,7 +692,6 @@ class _MetricAdjuster extends StatelessWidget {
     required this.value,
     required this.target,
     this.sourceLabel,
-    this.sourceDetail,
     required this.onDecrease,
     required this.onIncrease,
     required this.accentColor,
@@ -740,7 +723,7 @@ class _MetricAdjuster extends StatelessWidget {
           Text(target, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 8),
           ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 56),
+            constraints: const BoxConstraints(minHeight: 36),
             child: sourceLabel == null
                 ? const SizedBox.shrink()
                 : Container(
@@ -764,23 +747,9 @@ class _MetricAdjuster extends StatelessWidget {
                                     fontWeight: FontWeight.w700,
                                   ),
                         ),
-                        if (sourceDetail != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            sourceDetail!,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
                       ],
                     ),
                   ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            S.of(context).gymHabitsManualAdjustHint,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
           ),
           const SizedBox(height: 6),
           Row(

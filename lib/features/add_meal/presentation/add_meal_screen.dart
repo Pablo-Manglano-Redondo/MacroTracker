@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
@@ -82,6 +81,13 @@ class _AddMealScreenState extends State<AddMealScreen>
                 searchStringListener: _searchStringListener,
                 onSearchSubmit: _onSearchSubmit,
                 onBarcodePressed: _onBarcodeIconPressed,
+              ),
+              const SizedBox(height: 12.0),
+              _AddMealQuickActions(
+                onScannerTap: _onBarcodeIconPressed,
+                onTextTap: _openTextCapture,
+                onPhotoTap: _openPhotoCapture,
+                onLibraryTap: _openRecipeLibrary,
               ),
               const SizedBox(height: 16.0),
               TabBar(
@@ -273,6 +279,96 @@ class _AddMealScreenState extends State<AddMealScreen>
     Navigator.of(context).pushNamed(
       NavigationOptions.recipeLibraryRoute,
       arguments: RecipeLibraryScreenArguments(_day, _mealType.getIntakeType()),
+    );
+  }
+}
+
+class _AddMealQuickActions extends StatelessWidget {
+  final VoidCallback onScannerTap;
+  final VoidCallback onTextTap;
+  final VoidCallback onPhotoTap;
+  final VoidCallback onLibraryTap;
+
+  const _AddMealQuickActions({
+    required this.onScannerTap,
+    required this.onTextTap,
+    required this.onPhotoTap,
+    required this.onLibraryTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _QuickActionChip(
+            icon: Icons.qr_code_scanner_outlined,
+            label: 'QR',
+            onTap: onScannerTap,
+          ),
+          const SizedBox(width: 8),
+          _QuickActionChip(
+            icon: Icons.edit_note_outlined,
+            label: Localizations.localeOf(context).languageCode == 'es'
+                ? 'Texto'
+                : 'Text',
+            onTap: onTextTap,
+          ),
+          const SizedBox(width: 8),
+          _QuickActionChip(
+            icon: Icons.add_a_photo_outlined,
+            label: Localizations.localeOf(context).languageCode == 'es'
+                ? 'Foto'
+                : 'Photo',
+            onTap: onPhotoTap,
+          ),
+          const SizedBox(width: 8),
+          _QuickActionChip(
+            icon: Icons.bookmarks_outlined,
+            label: Localizations.localeOf(context).languageCode == 'es'
+                ? 'Guardadas'
+                : 'Saved',
+            onTap: onLibraryTap,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _QuickActionChip({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ActionChip(
+      avatar: Icon(
+        icon,
+        size: 18,
+        color: colorScheme.primary,
+      ),
+      label: Text(label),
+      onPressed: onTap,
+      backgroundColor: colorScheme.surfaceContainerHighest,
+      side: BorderSide(
+        color: colorScheme.outlineVariant,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(999),
+      ),
+      labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
     );
   }
 }
