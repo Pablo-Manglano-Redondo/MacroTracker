@@ -583,7 +583,7 @@ class _QuickRecipeTile extends StatelessWidget {
       case QuickRecipeCategoryEntity.shake:
         return _isEs(context) ? 'Batido' : 'Shake';
       case QuickRecipeCategoryEntity.leanMeal:
-        return _isEs(context) ? 'Ligera' : 'Light meal';
+        return 'Snack';
     }
   }
 

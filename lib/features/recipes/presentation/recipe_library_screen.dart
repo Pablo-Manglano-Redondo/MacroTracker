@@ -34,7 +34,6 @@ enum _RecipeLibraryFilter {
   preWorkout,
   postWorkout,
   shake,
-  leanMeal,
 }
 
 class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
@@ -227,7 +226,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         ],
       ),
       trailing: SizedBox(
-        width: 96,
+        width: 88,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -242,18 +241,10 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                   ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
                   : (_isEs(context) ? 'Fijar' : 'Pin'),
             ),
-            PopupMenuButton<_RecipeAction>(
-              onSelected: (action) => _onRecipeAction(recipe, action),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: _RecipeAction.edit,
-                  child: Text(_isEs(context) ? 'Editar' : 'Edit'),
-                ),
-                PopupMenuItem(
-                  value: _RecipeAction.toggleSaved,
-                  child: Text(_removeSavedLabel(context)),
-                ),
-              ],
+            IconButton(
+              onPressed: () => _showRecipeActions(recipe),
+              icon: const Icon(Icons.more_horiz),
+              tooltip: _isEs(context) ? 'Acciones' : 'Actions',
             ),
           ],
         ),
@@ -358,6 +349,42 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     }
   }
 
+  Future<void> _showRecipeActions(RecipeEntity recipe) async {
+    final action = await showModalBottomSheet<_RecipeAction>(
+      context: context,
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: Text(_isEs(context) ? 'Editar' : 'Edit'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_RecipeAction.edit),
+              ),
+              ListTile(
+                leading: const Icon(Icons.bookmark_remove_outlined),
+                title: Text(_removeSavedLabel(context)),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_RecipeAction.toggleSaved),
+              ),
+              ListTile(
+                leading: const Icon(Icons.close),
+                title: Text(S.of(context).dialogCancelLabel),
+                onTap: () => Navigator.of(sheetContext).pop(),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (action == null) {
+      return;
+    }
+    await _onRecipeAction(recipe, action);
+  }
+
   Future<void> _onRecipeAction(RecipeEntity recipe, _RecipeAction action) async {
     switch (action) {
       case _RecipeAction.edit:
@@ -450,8 +477,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         return RecipeSaveCategoryEntity.postWorkout;
       case _RecipeLibraryFilter.shake:
         return RecipeSaveCategoryEntity.shake;
-      case _RecipeLibraryFilter.leanMeal:
-        return RecipeSaveCategoryEntity.leanMeal;
     }
   }
 
@@ -473,8 +498,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         return S.of(context).quickCategoryPostWorkout;
       case _RecipeLibraryFilter.shake:
         return S.of(context).quickCategoryShake;
-      case _RecipeLibraryFilter.leanMeal:
-        return S.of(context).quickCategoryLeanMeal;
     }
   }
 
@@ -494,8 +517,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         return S.of(context).quickCategoryPostWorkout;
       case RecipeSaveCategoryEntity.shake:
         return S.of(context).quickCategoryShake;
-      case RecipeSaveCategoryEntity.leanMeal:
-        return S.of(context).quickCategoryLeanMeal;
     }
   }
 
@@ -515,8 +536,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         return QuickRecipeCategoryEntity.postWorkout.icon;
       case RecipeSaveCategoryEntity.shake:
         return QuickRecipeCategoryEntity.shake.icon;
-      case RecipeSaveCategoryEntity.leanMeal:
-        return QuickRecipeCategoryEntity.leanMeal.icon;
     }
   }
 

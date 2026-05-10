@@ -228,8 +228,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
         return S.of(context).quickCategoryPostWorkout;
       case RecipeSaveCategoryEntity.shake:
         return S.of(context).quickCategoryShake;
-      case RecipeSaveCategoryEntity.leanMeal:
-        return S.of(context).quickCategoryLeanMeal;
     }
   }
 

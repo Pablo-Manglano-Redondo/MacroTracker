@@ -1007,8 +1007,6 @@ class _MealInterpretationReviewScreenState
         );
       case RecipeSaveCategoryEntity.shake:
         return _quickCategoryLabel(context, QuickRecipeCategoryEntity.shake);
-      case RecipeSaveCategoryEntity.leanMeal:
-        return _quickCategoryLabel(context, QuickRecipeCategoryEntity.leanMeal);
     }
   }
 }

@@ -160,7 +160,8 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
             return SizedBox(
               height: sectionHeight + 24,
               child: ListView.builder(
-                physics: const NeverScrollableScrollPhysics(),
+                primary: false,
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 scrollDirection: Axis.horizontal,
                 itemCount: widget.intakeList.length + 1,

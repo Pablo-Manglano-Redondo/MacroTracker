@@ -17,7 +17,6 @@ enum RecipeSaveCategoryEntity {
   preWorkout,
   postWorkout,
   shake,
-  leanMeal,
 }
 
 extension RecipeSaveCategoryEntityX on RecipeSaveCategoryEntity {
@@ -27,7 +26,6 @@ extension RecipeSaveCategoryEntityX on RecipeSaveCategoryEntity {
       case RecipeSaveCategoryEntity.lunch:
       case RecipeSaveCategoryEntity.dinner:
       case RecipeSaveCategoryEntity.snack:
-      case RecipeSaveCategoryEntity.leanMeal:
         return QuickRecipeCategoryEntity.leanMeal;
       case RecipeSaveCategoryEntity.preWorkout:
         return QuickRecipeCategoryEntity.preWorkout;
@@ -51,7 +49,6 @@ extension RecipeSaveCategoryEntityX on RecipeSaveCategoryEntity {
       case RecipeSaveCategoryEntity.preWorkout:
       case RecipeSaveCategoryEntity.postWorkout:
       case RecipeSaveCategoryEntity.shake:
-      case RecipeSaveCategoryEntity.leanMeal:
         return null;
     }
   }
@@ -112,7 +109,7 @@ extension RecipeSaveCategoryEntityX on RecipeSaveCategoryEntity {
       case QuickRecipeCategoryEntity.shake:
         return RecipeSaveCategoryEntity.shake;
       case QuickRecipeCategoryEntity.leanMeal:
-        return RecipeSaveCategoryEntity.leanMeal;
+        return RecipeSaveCategoryEntity.snack;
     }
   }
 }
@@ -127,7 +124,7 @@ extension QuickRecipeCategoryEntityX on QuickRecipeCategoryEntity {
       case QuickRecipeCategoryEntity.shake:
         return 'Shake';
       case QuickRecipeCategoryEntity.leanMeal:
-        return 'Lean';
+        return 'Snack';
     }
   }
 
