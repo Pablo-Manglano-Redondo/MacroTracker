@@ -1385,7 +1385,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Usa nombres como avena pre, pollo arroz post o batido.';
 
   @override
-  String get aiFavoriteQuickAccess => 'Favorita para acceso rápido';
+  String get aiFavoriteQuickAccess => 'Guardada para acceso rápido';
 
   @override
   String get aiCaptureByPhotoTitle => 'Registro por foto';
@@ -1891,13 +1891,13 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get recipeLibraryFavorite => 'Favorita';
+  String get recipeLibraryFavorite => 'Guardada';
 
   @override
-  String get recipeLibraryRemoveFavorite => 'Quitar favorita';
+  String get recipeLibraryRemoveFavorite => 'Quitar guardada';
 
   @override
-  String get recipeLibraryMarkFavorite => 'Marcar favorita';
+  String get recipeLibraryMarkFavorite => 'Guardar';
 
   @override
   String recipeLibraryAddedSnackbar(Object name) {

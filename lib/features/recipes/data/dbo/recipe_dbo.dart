@@ -22,7 +22,16 @@ class RecipeDBO extends HiveObject {
   @HiveField(5)
   final String? yieldUnit;
   @HiveField(6)
-  bool favorite;
+  @JsonKey(name: 'favorite')
+  bool saved;
+  @HiveField(11)
+  @JsonKey(defaultValue: false)
+  bool pinned;
+  @HiveField(12)
+  @JsonKey(defaultValue: 0)
+  int timesUsed;
+  @HiveField(13)
+  DateTime? lastUsedAt;
   @HiveField(7)
   final DateTime createdAt;
   @HiveField(8)
@@ -39,7 +48,10 @@ class RecipeDBO extends HiveObject {
     required this.defaultServings,
     required this.yieldQuantity,
     required this.yieldUnit,
-    required this.favorite,
+    required this.saved,
+    required this.pinned,
+    required this.timesUsed,
+    required this.lastUsedAt,
     required this.createdAt,
     required this.updatedAt,
     required this.ingredients,
@@ -54,7 +66,10 @@ class RecipeDBO extends HiveObject {
       defaultServings: entity.defaultServings,
       yieldQuantity: entity.yieldQuantity,
       yieldUnit: entity.yieldUnit,
-      favorite: entity.favorite,
+      saved: entity.saved,
+      pinned: entity.pinned,
+      timesUsed: entity.timesUsed,
+      lastUsedAt: entity.lastUsedAt,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
       ingredients:

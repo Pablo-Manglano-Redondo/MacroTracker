@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
-import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -13,7 +12,11 @@ import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
-import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_pinned_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_saved_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
+
+import 'recipe_editor_screen.dart';
 
 class RecipeLibraryScreen extends StatefulWidget {
   const RecipeLibraryScreen({super.key});
@@ -22,10 +25,23 @@ class RecipeLibraryScreen extends StatefulWidget {
   State<RecipeLibraryScreen> createState() => _RecipeLibraryScreenState();
 }
 
+enum _RecipeLibraryFilter {
+  all,
+  breakfast,
+  lunch,
+  dinner,
+  snack,
+  preWorkout,
+  postWorkout,
+  shake,
+  leanMeal,
+}
+
 class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   late DateTime _day;
   late IntakeTypeEntity _intakeTypeEntity;
   final _searchController = TextEditingController();
+  _RecipeLibraryFilter _selectedFilter = _RecipeLibraryFilter.all;
 
   @override
   void didChangeDependencies() {
@@ -45,13 +61,19 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).recipeLibraryTitle)),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -62,6 +84,29 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
               onChanged: (_) => setState(() {}),
             ),
           ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: _RecipeLibraryFilter.values
+                  .map(
+                    (filter) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(_filterLabel(filter)),
+                        selected: _selectedFilter == filter,
+                        onSelected: (_) {
+                          setState(() {
+                            _selectedFilter = filter;
+                          });
+                        },
+                      ),
+                    ),
+                  )
+                  .toList(growable: false),
+            ),
+          ),
+          const SizedBox(height: 8),
           Expanded(
             child: FutureBuilder<List<RecipeEntity>>(
               future: locator<GetRecipeLibraryUsecase>().getAllRecipes(),
@@ -129,30 +174,24 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
   List<RecipeEntity> _filterRecipes(List<RecipeEntity> recipes) {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) {
-      return recipes;
-    }
-
-    return recipes
-        .where((recipe) => recipe.name.toLowerCase().contains(query))
-        .toList();
+    return recipes.where((recipe) {
+      final matchesText = query.isEmpty || recipe.name.toLowerCase().contains(query);
+      return matchesText && _matchesRecipeFilter(recipe, _selectedFilter);
+    }).toList(growable: false);
   }
 
   List<FrequentIntakePresetEntity> _filterFrequentPresets(
     List<FrequentIntakePresetEntity> presets,
   ) {
     final query = _searchController.text.trim().toLowerCase();
-    if (query.isEmpty) {
-      return presets;
-    }
-
-    return presets
-        .where((preset) => preset.title.toLowerCase().contains(query))
-        .toList();
+    return presets.where((preset) {
+      final matchesText = query.isEmpty || preset.title.toLowerCase().contains(query);
+      return matchesText && _matchesFrequentFilter(preset, _selectedFilter);
+    }).toList(growable: false);
   }
 
   Widget _buildRecipeTile(RecipeEntity recipe) {
-    final category = QuickRecipeCategoryEntityX.inferFromRecipe(recipe);
+    final category = RecipeSaveCategoryEntityX.fromRecipe(recipe);
     return ListTile(
       title: Text(recipe.name),
       subtitle: Column(
@@ -168,27 +207,56 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             runSpacing: 8,
             children: [
               _RecipeMetaChip(
-                icon: category.icon,
+                icon: _filterIcon(category),
                 label: _categoryLabel(category),
               ),
-              if (recipe.favorite)
+              if (recipe.pinned)
                 _RecipeMetaChip(
-                  icon: Icons.favorite,
-                  label: S.of(context).recipeLibraryFavorite,
+                  icon: Icons.push_pin_outlined,
+                  label: _isEs(context) ? 'Fijada' : 'Pinned',
+                ),
+              if (recipe.timesUsed > 0)
+                _RecipeMetaChip(
+                  icon: Icons.repeat_outlined,
+                  label: _isEs(context)
+                      ? '${recipe.timesUsed} usos'
+                      : '${recipe.timesUsed} uses',
                 ),
             ],
           ),
         ],
       ),
-      trailing: IconButton(
-        onPressed: () => _toggleFavorite(recipe),
-        icon: Icon(
-          recipe.favorite ? Icons.favorite : Icons.favorite_border_outlined,
-          color: recipe.favorite ? Colors.redAccent : null,
+      trailing: SizedBox(
+        width: 96,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            IconButton(
+              onPressed: () => _togglePinned(recipe),
+              icon: Icon(
+                recipe.pinned
+                    ? Icons.push_pin
+                    : Icons.push_pin_outlined,
+              ),
+              tooltip: recipe.pinned
+                  ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
+                  : (_isEs(context) ? 'Fijar' : 'Pin'),
+            ),
+            PopupMenuButton<_RecipeAction>(
+              onSelected: (action) => _onRecipeAction(recipe, action),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: _RecipeAction.edit,
+                  child: Text(_isEs(context) ? 'Editar' : 'Edit'),
+                ),
+                PopupMenuItem(
+                  value: _RecipeAction.toggleSaved,
+                  child: Text(_removeSavedLabel(context)),
+                ),
+              ],
+            ),
+          ],
         ),
-        tooltip: recipe.favorite
-            ? S.of(context).recipeLibraryRemoveFavorite
-            : S.of(context).recipeLibraryMarkFavorite,
       ),
       onTap: () => _showAddRecipeDialog(recipe),
     );
@@ -210,7 +278,10 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   }
 
   Future<void> _showAddRecipeDialog(RecipeEntity recipe) async {
-    final controller = TextEditingController(text: '1');
+    final controller =
+        TextEditingController(text: recipe.defaultServings.toStringAsFixed(
+      recipe.defaultServings % 1 == 0 ? 0 : 1,
+    ));
     final confirmed = await showDialog<double>(
       context: context,
       builder: (dialogContext) {
@@ -254,19 +325,47 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name))),
+          content: Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name)),
+        ),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
     }
   }
 
-  Future<void> _toggleFavorite(RecipeEntity recipe) async {
-    await locator<SetRecipeFavoriteUsecase>()
-        .setFavorite(recipe.id, !recipe.favorite);
+  Future<void> _togglePinned(RecipeEntity recipe) async {
+    await locator<SetRecipePinnedUsecase>()
+        .setPinned(recipe.id, !recipe.pinned);
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  Future<void> _toggleSaved(RecipeEntity recipe) async {
+    await locator<SetRecipeSavedUsecase>().setSaved(recipe.id, !recipe.saved);
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _openEditor(RecipeEntity recipe) async {
+    final didSave = await Navigator.of(context).pushNamed(
+      NavigationOptions.recipeEditorRoute,
+      arguments: RecipeEditorScreenArguments(recipe),
+    );
+    if (didSave == true && mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _onRecipeAction(RecipeEntity recipe, _RecipeAction action) async {
+    switch (action) {
+      case _RecipeAction.edit:
+        await _openEditor(recipe);
+        break;
+      case _RecipeAction.toggleSaved:
+        await _toggleSaved(recipe);
+        break;
     }
   }
 
@@ -280,24 +379,144 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content:
-                Text(S.of(context).recipeLibraryAddedSnackbar(preset.title))),
+          content: Text(S.of(context).recipeLibraryAddedSnackbar(preset.title)),
+        ),
       );
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
     }
   }
 
-  String _categoryLabel(QuickRecipeCategoryEntity category) {
+  bool _matchesRecipeFilter(
+    RecipeEntity recipe,
+    _RecipeLibraryFilter filter,
+  ) {
+    if (filter == _RecipeLibraryFilter.all) {
+      return true;
+    }
+    return _mapFilterToCategory(filter) == RecipeSaveCategoryEntityX.fromRecipe(recipe);
+  }
+
+  bool _matchesFrequentFilter(
+    FrequentIntakePresetEntity preset,
+    _RecipeLibraryFilter filter,
+  ) {
+    if (filter == _RecipeLibraryFilter.all) {
+      return true;
+    }
+
+    final presetCategory = _inferPresetCategory(preset);
+    return presetCategory == _mapFilterToCategory(filter);
+  }
+
+  RecipeSaveCategoryEntity _inferPresetCategory(FrequentIntakePresetEntity preset) {
+    switch (preset.intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return RecipeSaveCategoryEntity.breakfast;
+      case IntakeTypeEntity.lunch:
+        return RecipeSaveCategoryEntity.lunch;
+      case IntakeTypeEntity.dinner:
+        return RecipeSaveCategoryEntity.dinner;
+      case IntakeTypeEntity.snack:
+        final text = preset.title.toLowerCase();
+        if (text.contains('pre')) {
+          return RecipeSaveCategoryEntity.preWorkout;
+        }
+        if (text.contains('post')) {
+          return RecipeSaveCategoryEntity.postWorkout;
+        }
+        if (text.contains('shake') || text.contains('batido')) {
+          return RecipeSaveCategoryEntity.shake;
+        }
+        return RecipeSaveCategoryEntity.snack;
+    }
+  }
+
+  RecipeSaveCategoryEntity _mapFilterToCategory(_RecipeLibraryFilter filter) {
+    switch (filter) {
+      case _RecipeLibraryFilter.all:
+        return RecipeSaveCategoryEntity.snack;
+      case _RecipeLibraryFilter.breakfast:
+        return RecipeSaveCategoryEntity.breakfast;
+      case _RecipeLibraryFilter.lunch:
+        return RecipeSaveCategoryEntity.lunch;
+      case _RecipeLibraryFilter.dinner:
+        return RecipeSaveCategoryEntity.dinner;
+      case _RecipeLibraryFilter.snack:
+        return RecipeSaveCategoryEntity.snack;
+      case _RecipeLibraryFilter.preWorkout:
+        return RecipeSaveCategoryEntity.preWorkout;
+      case _RecipeLibraryFilter.postWorkout:
+        return RecipeSaveCategoryEntity.postWorkout;
+      case _RecipeLibraryFilter.shake:
+        return RecipeSaveCategoryEntity.shake;
+      case _RecipeLibraryFilter.leanMeal:
+        return RecipeSaveCategoryEntity.leanMeal;
+    }
+  }
+
+  String _filterLabel(_RecipeLibraryFilter filter) {
+    switch (filter) {
+      case _RecipeLibraryFilter.all:
+        return _isEs(context) ? 'Todo' : 'All';
+      case _RecipeLibraryFilter.breakfast:
+        return S.of(context).breakfastLabel;
+      case _RecipeLibraryFilter.lunch:
+        return S.of(context).lunchLabel;
+      case _RecipeLibraryFilter.dinner:
+        return S.of(context).dinnerLabel;
+      case _RecipeLibraryFilter.snack:
+        return S.of(context).snackLabel;
+      case _RecipeLibraryFilter.preWorkout:
+        return S.of(context).quickCategoryPreWorkout;
+      case _RecipeLibraryFilter.postWorkout:
+        return S.of(context).quickCategoryPostWorkout;
+      case _RecipeLibraryFilter.shake:
+        return S.of(context).quickCategoryShake;
+      case _RecipeLibraryFilter.leanMeal:
+        return S.of(context).quickCategoryLeanMeal;
+    }
+  }
+
+  String _categoryLabel(RecipeSaveCategoryEntity category) {
     switch (category) {
-      case QuickRecipeCategoryEntity.preWorkout:
-        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
-      case QuickRecipeCategoryEntity.postWorkout:
-        return _isEs(context) ? 'Postentreno' : 'Post-workout';
-      case QuickRecipeCategoryEntity.shake:
-        return _isEs(context) ? 'Batido' : 'Shake';
-      case QuickRecipeCategoryEntity.leanMeal:
-        return _isEs(context) ? 'Ligera' : 'Light meal';
+      case RecipeSaveCategoryEntity.breakfast:
+        return S.of(context).breakfastLabel;
+      case RecipeSaveCategoryEntity.lunch:
+        return S.of(context).lunchLabel;
+      case RecipeSaveCategoryEntity.dinner:
+        return S.of(context).dinnerLabel;
+      case RecipeSaveCategoryEntity.snack:
+        return S.of(context).snackLabel;
+      case RecipeSaveCategoryEntity.preWorkout:
+        return S.of(context).quickCategoryPreWorkout;
+      case RecipeSaveCategoryEntity.postWorkout:
+        return S.of(context).quickCategoryPostWorkout;
+      case RecipeSaveCategoryEntity.shake:
+        return S.of(context).quickCategoryShake;
+      case RecipeSaveCategoryEntity.leanMeal:
+        return S.of(context).quickCategoryLeanMeal;
+    }
+  }
+
+  IconData _filterIcon(RecipeSaveCategoryEntity category) {
+    switch (category) {
+      case RecipeSaveCategoryEntity.breakfast:
+        return IntakeTypeEntity.breakfast.getIconData();
+      case RecipeSaveCategoryEntity.lunch:
+        return IntakeTypeEntity.lunch.getIconData();
+      case RecipeSaveCategoryEntity.dinner:
+        return IntakeTypeEntity.dinner.getIconData();
+      case RecipeSaveCategoryEntity.snack:
+        return IntakeTypeEntity.snack.getIconData();
+      case RecipeSaveCategoryEntity.preWorkout:
+        return QuickRecipeCategoryEntity.preWorkout.icon;
+      case RecipeSaveCategoryEntity.postWorkout:
+        return QuickRecipeCategoryEntity.postWorkout.icon;
+      case RecipeSaveCategoryEntity.shake:
+        return QuickRecipeCategoryEntity.shake.icon;
+      case RecipeSaveCategoryEntity.leanMeal:
+        return QuickRecipeCategoryEntity.leanMeal.icon;
     }
   }
 
@@ -308,9 +527,15 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   String _manualSectionTitle(BuildContext context) =>
       _isEs(context) ? 'Recetas guardadas' : 'Saved recipes';
 
+  String _savedLabel(BuildContext context) =>
+      _isEs(context) ? 'Guardada' : 'Saved';
+
+  String _removeSavedLabel(BuildContext context) =>
+      _isEs(context) ? 'Quitar guardada' : 'Remove saved';
+
   String _manualSectionSubtitle(BuildContext context) => _isEs(context)
-      ? 'Las guardas a propósito para reutilizarlas cuando quieras.'
-      : 'You save these on purpose to reuse them whenever you want.';
+      ? 'Se ordenan por pin y por uso reciente para que tengas primero las que más repites.'
+      : 'They are ordered by pin and recent usage so the ones you repeat most stay first.';
 
   String _frequentSectionTitle(BuildContext context) =>
       _isEs(context) ? 'Sugeridas por repetición' : 'Repeated suggestions';
@@ -321,6 +546,11 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
   String _frequentUses(BuildContext context, int count) =>
       _isEs(context) ? '$count usos' : '$count times';
+}
+
+enum _RecipeAction {
+  edit,
+  toggleSaved,
 }
 
 class RecipeLibraryScreenArguments {
@@ -368,6 +598,7 @@ class _LibraryIntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
@@ -377,17 +608,13 @@ class _LibraryIntroCard extends StatelessWidget {
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         ),
         child: Text(
-          _isEs(context)
-              ? 'Una sola librería, dos fuentes: recetas que guardas a mano y comidas repetidas detectadas automáticamente.'
-              : 'One library, two sources: meals you save manually and repeated meals detected automatically.',
+          isEs
+              ? 'Filtra por bloque real, fija tus recetas clave y edítalas sin salir de la librería.'
+              : 'Filter by real category, pin key recipes, and edit them directly from the library.',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),
     );
-  }
-
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
   }
 }
 

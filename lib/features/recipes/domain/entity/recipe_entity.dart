@@ -9,7 +9,10 @@ class RecipeEntity extends Equatable {
   final double defaultServings;
   final double? yieldQuantity;
   final String? yieldUnit;
-  final bool favorite;
+  final bool saved;
+  final bool pinned;
+  final int timesUsed;
+  final DateTime? lastUsedAt;
   final QuickRecipeCategoryEntity? quickCategory;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -22,7 +25,10 @@ class RecipeEntity extends Equatable {
     required this.defaultServings,
     required this.yieldQuantity,
     required this.yieldUnit,
-    required this.favorite,
+    required this.saved,
+    required this.pinned,
+    required this.timesUsed,
+    required this.lastUsedAt,
     required this.quickCategory,
     required this.createdAt,
     required this.updatedAt,
@@ -36,7 +42,10 @@ class RecipeEntity extends Equatable {
     double? defaultServings,
     double? yieldQuantity,
     String? yieldUnit,
-    bool? favorite,
+    bool? saved,
+    bool? pinned,
+    int? timesUsed,
+    DateTime? lastUsedAt,
     QuickRecipeCategoryEntity? quickCategory,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -49,7 +58,10 @@ class RecipeEntity extends Equatable {
       defaultServings: defaultServings ?? this.defaultServings,
       yieldQuantity: yieldQuantity ?? this.yieldQuantity,
       yieldUnit: yieldUnit ?? this.yieldUnit,
-      favorite: favorite ?? this.favorite,
+      saved: saved ?? this.saved,
+      pinned: pinned ?? this.pinned,
+      timesUsed: timesUsed ?? this.timesUsed,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
       quickCategory: quickCategory ?? this.quickCategory,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -65,7 +77,10 @@ class RecipeEntity extends Equatable {
         defaultServings,
         yieldQuantity,
         yieldUnit,
-        favorite,
+        saved,
+        pinned,
+        timesUsed,
+        lastUsedAt,
         quickCategory,
         createdAt,
         updatedAt,

@@ -27,14 +27,37 @@ class RecipeDataSource {
     await _recipeBox.delete(recipeId);
   }
 
-  Future<void> setRecipeFavorite(String recipeId, bool isFavorite) async {
+  Future<void> setRecipeSaved(String recipeId, bool isSaved) async {
     final recipe = _recipeBox.get(recipeId);
     if (recipe == null) {
       return;
     }
 
-    recipe.favorite = isFavorite;
+    recipe.saved = isSaved;
     recipe.updatedAt = DateTime.now();
+    await recipe.save();
+  }
+
+  Future<void> setRecipePinned(String recipeId, bool isPinned) async {
+    final recipe = _recipeBox.get(recipeId);
+    if (recipe == null) {
+      return;
+    }
+
+    recipe.pinned = isPinned;
+    recipe.updatedAt = DateTime.now();
+    await recipe.save();
+  }
+
+  Future<void> markRecipeUsed(String recipeId, DateTime usedAt) async {
+    final recipe = _recipeBox.get(recipeId);
+    if (recipe == null) {
+      return;
+    }
+
+    recipe.lastUsedAt = usedAt;
+    recipe.timesUsed += 1;
+    recipe.updatedAt = usedAt;
     await recipe.save();
   }
 }

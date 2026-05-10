@@ -4422,10 +4422,10 @@ class S {
     );
   }
 
-  /// `Favorite for quick access`
+  /// `Saved for quick access`
   String get aiFavoriteQuickAccess {
     return Intl.message(
-      'Favorite for quick access',
+      'Saved for quick access',
       name: 'aiFavoriteQuickAccess',
       desc: '',
       args: [],
@@ -5852,30 +5852,30 @@ class S {
     );
   }
 
-  /// `Favorite`
+  /// `Saved`
   String get recipeLibraryFavorite {
     return Intl.message(
-      'Favorite',
+      'Saved',
       name: 'recipeLibraryFavorite',
       desc: '',
       args: [],
     );
   }
 
-  /// `Remove favorite`
+  /// `Remove saved`
   String get recipeLibraryRemoveFavorite {
     return Intl.message(
-      'Remove favorite',
+      'Remove saved',
       name: 'recipeLibraryRemoveFavorite',
       desc: '',
       args: [],
     );
   }
 
-  /// `Mark favorite`
+  /// `Save`
   String get recipeLibraryMarkFavorite {
     return Intl.message(
-      'Mark favorite',
+      'Save',
       name: 'recipeLibraryMarkFavorite',
       desc: '',
       args: [],

@@ -465,13 +465,13 @@ class MealInterpretationPersonalizationUsecase {
         _MealCandidate(
           id: 'recipe:${recipe.id}',
           title: recipe.name,
-          sourceLabel: recipe.favorite ? 'Receta favorita' : 'Receta guardada',
+          sourceLabel: 'Receta guardada',
           meal: MealAggregateFactory.fromRecipe(recipe),
           defaultAmount: 1,
           defaultUnit: 'serving',
           searchTerms: [recipe.name, recipe.notes ?? ''],
           preferStoredPortion: true,
-          sourcePriority: recipe.favorite ? 0.9 : 0.7,
+          sourcePriority: 0.9,
         ),
       );
     }

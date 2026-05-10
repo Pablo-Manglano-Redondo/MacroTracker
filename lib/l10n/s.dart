@@ -2730,7 +2730,7 @@ abstract class AppLocalizations {
   /// No description provided for @aiFavoriteQuickAccess.
   ///
   /// In en, this message translates to:
-  /// **'Favorite for quick access'**
+  /// **'Saved for quick access'**
   String get aiFavoriteQuickAccess;
 
   /// No description provided for @aiCaptureByPhotoTitle.
@@ -3588,19 +3588,19 @@ abstract class AppLocalizations {
   /// No description provided for @recipeLibraryFavorite.
   ///
   /// In en, this message translates to:
-  /// **'Favorite'**
+  /// **'Saved'**
   String get recipeLibraryFavorite;
 
   /// No description provided for @recipeLibraryRemoveFavorite.
   ///
   /// In en, this message translates to:
-  /// **'Remove favorite'**
+  /// **'Remove saved'**
   String get recipeLibraryRemoveFavorite;
 
   /// No description provided for @recipeLibraryMarkFavorite.
   ///
   /// In en, this message translates to:
-  /// **'Mark favorite'**
+  /// **'Save'**
   String get recipeLibraryMarkFavorite;
 
   /// No description provided for @recipeLibraryAddedSnackbar.

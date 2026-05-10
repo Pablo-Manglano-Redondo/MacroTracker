@@ -81,7 +81,8 @@ import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_
 import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_frequent_intake_preset_usecase.dart';
-import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_pinned_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_saved_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
@@ -176,10 +177,12 @@ Future<void> initLocator() async {
       () => GetQuickRecipePresetsUsecase(locator()));
   locator.registerLazySingleton<SaveRecipeUsecase>(
       () => SaveRecipeUsecase(locator()));
-  locator.registerLazySingleton<SetRecipeFavoriteUsecase>(
-      () => SetRecipeFavoriteUsecase(locator()));
+  locator.registerLazySingleton<SetRecipeSavedUsecase>(
+      () => SetRecipeSavedUsecase(locator()));
+  locator.registerLazySingleton<SetRecipePinnedUsecase>(
+      () => SetRecipePinnedUsecase(locator()));
   locator.registerLazySingleton<LogRecipeUsecase>(
-      () => LogRecipeUsecase(locator(), locator(), locator()));
+      () => LogRecipeUsecase(locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<GetFrequentIntakePresetsUsecase>(
       () => GetFrequentIntakePresetsUsecase(locator()));
   locator.registerLazySingleton<LogFrequentIntakePresetUsecase>(

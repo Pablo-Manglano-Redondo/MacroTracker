@@ -5,17 +5,20 @@ import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
+import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 
 class LogRecipeUsecase {
   final AddIntakeUsecase _addIntakeUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetGymTargetsUsecase _getGymTargetsUsecase;
+  final RecipeRepository _recipeRepository;
 
   LogRecipeUsecase(
     this._addIntakeUsecase,
     this._addTrackedDayUsecase,
     this._getGymTargetsUsecase,
+    this._recipeRepository,
   );
 
   Future<void> logRecipe(
@@ -36,6 +39,7 @@ class LogRecipeUsecase {
 
     await _addIntakeUsecase.addIntake(intake);
     await _updateTrackedDay(intake, day);
+    await _recipeRepository.markRecipeUsed(recipe.id, DateTime.now());
   }
 
   Future<void> _updateTrackedDay(IntakeEntity intake, DateTime day) async {

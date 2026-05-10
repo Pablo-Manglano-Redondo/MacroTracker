@@ -6,7 +6,7 @@ class GetRecipeLibraryUsecase {
 
   GetRecipeLibraryUsecase(this._recipeRepository);
 
-  Future<List<RecipeEntity>> getAllRecipes() async {
-    return _recipeRepository.getAllRecipes();
+  Future<List<RecipeEntity>> getAllRecipes({bool savedOnly = true}) async {
+    return _recipeRepository.getAllRecipes(savedOnly: savedOnly);
   }
 }

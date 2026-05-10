@@ -353,17 +353,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
 
   void _showSaveRecipeDialog(BuildContext context, String selectedUnit) {
     final controller = TextEditingController(text: meal.name ?? '');
-    bool favorite = true;
-    var quickCategory = QuickRecipeCategoryEntityX.inferLegacyFromRecipe(
-      RecipeFactory.fromSingleMeal(
-        name: meal.name ?? '',
-        meal: meal,
-        amount:
-            double.tryParse(quantityTextController.text.replaceAll(',', '.')) ??
-                1,
-        unit: selectedUnit,
-        quickCategory: QuickRecipeCategoryEntity.leanMeal,
-      ),
+    final baseRecipe = RecipeFactory.fromSingleMeal(
+      name: meal.name ?? '',
+      meal: meal,
+      amount:
+          double.tryParse(quantityTextController.text.replaceAll(',', '.')) ?? 1,
+      unit: selectedUnit,
+      quickCategory: QuickRecipeCategoryEntity.leanMeal,
+    );
+    var saveCategory = RecipeSaveCategoryEntityX.inferDefault(
+      recipe: baseRecipe,
+      fallbackIntakeType: intakeTypeEntity,
     );
     showDialog<void>(
       context: context,
@@ -384,28 +384,17 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: favorite,
-                    onChanged: (value) {
-                      setDialogState(() {
-                        favorite = value ?? true;
-                      });
-                    },
-                    title: Text(S.of(context).aiFavoriteQuickAccess),
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<QuickRecipeCategoryEntity>(
-                    initialValue: quickCategory,
+                  DropdownButtonFormField<RecipeSaveCategoryEntity>(
+                    initialValue: saveCategory,
                     decoration: InputDecoration(
                       labelText: S.of(context).recipeQuickCategoryLabel,
                       border: const OutlineInputBorder(),
                     ),
-                    items: QuickRecipeCategoryEntity.values
+                    items: RecipeSaveCategoryEntity.values
                         .map(
                           (category) => DropdownMenuItem(
                             value: category,
-                            child: Text(_quickCategoryLabel(context, category)),
+                            child: Text(_saveCategoryLabel(context, category)),
                           ),
                         )
                         .toList(),
@@ -414,7 +403,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                         return;
                       }
                       setDialogState(() {
-                        quickCategory = value;
+                        saveCategory = value;
                       });
                     },
                   ),
@@ -439,8 +428,14 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                               .replaceAll(',', '.')) ??
                           1,
                       unit: selectedUnit,
-                      quickCategory: quickCategory,
-                    ).copyWith(favorite: favorite);
+                      quickCategory: saveCategory.quickCategory,
+                    ).copyWith(
+                      saved: true,
+                      notes: QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+                        null,
+                        saveCategory.explicitIntakeType,
+                      ),
+                    );
 
                     await locator<SaveRecipeUsecase>().saveRecipe(recipe);
                     if (!dialogContext.mounted) {
@@ -484,6 +479,36 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         return S.of(context).quickCategoryShake;
       case QuickRecipeCategoryEntity.leanMeal:
         return S.of(context).quickCategoryLeanMeal;
+    }
+  }
+
+  String _saveCategoryLabel(
+    BuildContext context,
+    RecipeSaveCategoryEntity category,
+  ) {
+    switch (category) {
+      case RecipeSaveCategoryEntity.breakfast:
+        return S.of(context).breakfastLabel;
+      case RecipeSaveCategoryEntity.lunch:
+        return S.of(context).lunchLabel;
+      case RecipeSaveCategoryEntity.dinner:
+        return S.of(context).dinnerLabel;
+      case RecipeSaveCategoryEntity.snack:
+        return S.of(context).snackLabel;
+      case RecipeSaveCategoryEntity.preWorkout:
+        return _quickCategoryLabel(
+          context,
+          QuickRecipeCategoryEntity.preWorkout,
+        );
+      case RecipeSaveCategoryEntity.postWorkout:
+        return _quickCategoryLabel(
+          context,
+          QuickRecipeCategoryEntity.postWorkout,
+        );
+      case RecipeSaveCategoryEntity.shake:
+        return _quickCategoryLabel(context, QuickRecipeCategoryEntity.shake);
+      case RecipeSaveCategoryEntity.leanMeal:
+        return _quickCategoryLabel(context, QuickRecipeCategoryEntity.leanMeal);
     }
   }
 }

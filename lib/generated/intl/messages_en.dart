@@ -253,7 +253,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "aiExcludeFromMeal": MessageLookupByLibrary.simpleMessage(
             "Excluded from the final meal."),
         "aiFavoriteQuickAccess":
-            MessageLookupByLibrary.simpleMessage("Favorite for quick access"),
+            MessageLookupByLibrary.simpleMessage("Saved for quick access"),
         "aiFitLabel": MessageLookupByLibrary.simpleMessage("Fit"),
         "aiGymLabelBalanced": MessageLookupByLibrary.simpleMessage("Balanced"),
         "aiGymLabelHighProtein":
@@ -1245,7 +1245,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Repeated suggestions"),
         "recipeLibraryFrequentUses": m47,
         "recipeLibraryFavorite":
-            MessageLookupByLibrary.simpleMessage("Favorite"),
+            MessageLookupByLibrary.simpleMessage("Saved"),
         "recipeLibraryIngredientsCount": m28,
         "recipeLibraryIntro": MessageLookupByLibrary.simpleMessage(
             "One library, two sources: meals you save manually and repeated meals detected automatically."),
@@ -1255,9 +1255,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "recipeLibraryManualSectionTitle":
             MessageLookupByLibrary.simpleMessage("Saved recipes"),
         "recipeLibraryMarkFavorite":
-            MessageLookupByLibrary.simpleMessage("Mark favorite"),
+            MessageLookupByLibrary.simpleMessage("Save"),
         "recipeLibraryRemoveFavorite":
-            MessageLookupByLibrary.simpleMessage("Remove favorite"),
+            MessageLookupByLibrary.simpleMessage("Remove saved"),
         "recipeLibrarySearchHint":
             MessageLookupByLibrary.simpleMessage("Search saved meals"),
         "recipeLibraryServingsCount": m29,

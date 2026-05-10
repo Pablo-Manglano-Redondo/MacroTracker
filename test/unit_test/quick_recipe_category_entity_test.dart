@@ -48,6 +48,13 @@ void main() {
         ),
         IntakeTypeEntity.dinner,
       );
+      expect(
+        QuickRecipeCategoryEntityX.inferIntakeType(
+          _recipe('Yogur natural', notes: '#snack'),
+          QuickRecipeCategoryEntity.leanMeal,
+        ),
+        IntakeTypeEntity.snack,
+      );
     });
 
     test('prefers persisted category over name heuristics', () {
@@ -59,6 +66,30 @@ void main() {
           ),
         ),
         QuickRecipeCategoryEntity.postWorkout,
+      );
+    });
+
+    test('applies and replaces explicit intake type tags in notes', () {
+      expect(
+        QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+          'rica en proteina',
+          IntakeTypeEntity.breakfast,
+        ),
+        '#breakfast rica en proteina',
+      );
+      expect(
+        QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+          '#lunch bowl de arroz',
+          IntakeTypeEntity.dinner,
+        ),
+        '#dinner bowl de arroz',
+      );
+      expect(
+        QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+          '#snack algo rapido',
+          null,
+        ),
+        'algo rapido',
       );
     });
   });
@@ -77,7 +108,10 @@ RecipeEntity _recipe(
     defaultServings: 1,
     yieldQuantity: null,
     yieldUnit: null,
-    favorite: false,
+    saved: false,
+    pinned: false,
+    timesUsed: 0,
+    lastUsedAt: null,
     quickCategory: quickCategory,
     createdAt: now,
     updatedAt: now,

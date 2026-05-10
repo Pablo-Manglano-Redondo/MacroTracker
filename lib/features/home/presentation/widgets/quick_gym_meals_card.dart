@@ -11,7 +11,7 @@ import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_categor
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_preset_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.dart';
-import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_favorite_usecase.dart';
+import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_saved_usecase.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -219,8 +219,8 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                             child: _QuickRecipeTile(
                               preset: preset,
                               onAddPressed: () => _logPreset(context, preset),
-                              onLongPress: () =>
-                                  _handlePresetLongPress(context, preset),
+                              onRemoveSavedPressed: () =>
+                                  _removeSavedPreset(context, preset),
                             ),
                           ),
                         )
@@ -264,11 +264,11 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     }
   }
 
-  Future<void> _handlePresetLongPress(
+  Future<void> _removeSavedPreset(
     BuildContext context,
     QuickRecipePresetEntity preset,
   ) async {
-    if (!preset.recipe.favorite) {
+    if (!preset.recipe.saved) {
       return;
     }
 
@@ -280,7 +280,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.heart_broken_outlined),
+                leading: const Icon(Icons.bookmark_remove_outlined),
                 title: Text(S.of(context).recipeLibraryRemoveFavorite),
                 onTap: () => Navigator.of(sheetContext).pop(true),
               ),
@@ -299,11 +299,12 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
       return;
     }
 
-    await locator<SetRecipeFavoriteUsecase>()
-        .setFavorite(preset.recipe.id, false);
+    await locator<SetRecipeSavedUsecase>().setSaved(preset.recipe.id, false);
 
     if (mounted) {
-      setState(() {});
+      setState(() {
+        _presetsFuture = _loadPresets(_selectedFilter);
+      });
     }
   }
 
@@ -476,22 +477,24 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
 class _QuickRecipeTile extends StatelessWidget {
   final QuickRecipePresetEntity preset;
   final VoidCallback onAddPressed;
-  final VoidCallback onLongPress;
+  final VoidCallback onRemoveSavedPressed;
 
   const _QuickRecipeTile({
     required this.preset,
     required this.onAddPressed,
-    required this.onLongPress,
+    required this.onRemoveSavedPressed,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final taggedIntakeType = QuickRecipeCategoryEntityX.inferTaggedIntakeType(
+      preset.recipe,
+    );
     return Material(
       color: Colors.transparent,
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onLongPress: onLongPress,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.all(14),
@@ -517,6 +520,13 @@ class _QuickRecipeTile extends StatelessWidget {
                           ),
                     ),
                   ),
+                  IconButton(
+                    onPressed: onRemoveSavedPressed,
+                    icon: const Icon(Icons.bookmark_remove_outlined),
+                    tooltip: _isEs(context)
+                        ? 'Quitar guardada'
+                        : 'Remove saved',
+                  ),
                   IconButton.filledTonal(
                     onPressed: onAddPressed,
                     icon: const Icon(Icons.add),
@@ -532,8 +542,10 @@ class _QuickRecipeTile extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _InfoChip(
-                    icon: preset.category.icon,
-                    label: _categoryLabel(context, preset.category),
+                    icon: taggedIntakeType?.getIconData() ?? preset.category.icon,
+                    label: taggedIntakeType == null
+                        ? _categoryLabel(context, preset.category)
+                        : _intakeTypeLabel(context, taggedIntakeType),
                   ),
                   _InfoChip(
                     icon: Icons.local_fire_department_outlined,
@@ -579,6 +591,22 @@ class _QuickRecipeTile extends StatelessWidget {
     return _isEs(context)
         ? 'P ${amount.toStringAsFixed(1)}'
         : 'P ${amount.toStringAsFixed(1)}';
+  }
+
+  String _intakeTypeLabel(
+    BuildContext context,
+    IntakeTypeEntity intakeType,
+  ) {
+    switch (intakeType) {
+      case IntakeTypeEntity.breakfast:
+        return _isEs(context) ? 'Desayuno' : 'Breakfast';
+      case IntakeTypeEntity.lunch:
+        return _isEs(context) ? 'Comida' : 'Lunch';
+      case IntakeTypeEntity.dinner:
+        return _isEs(context) ? 'Cena' : 'Dinner';
+      case IntakeTypeEntity.snack:
+        return 'Snack';
+    }
   }
 
   String _macrosSummary(BuildContext context) {

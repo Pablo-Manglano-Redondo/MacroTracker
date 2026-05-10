@@ -37,16 +37,38 @@ class GetQuickRecipePresetsUsecase {
     final matching = category == null
         ? presets
         : presets.where((preset) => preset.category == category).toList();
-    final favorites =
-        matching.where((preset) => preset.recipe.favorite).toList();
-    final prioritized = favorites.isNotEmpty ? favorites : matching;
+    final savedRecipes = matching.where((preset) => preset.recipe.saved).toList();
+    final prioritized = savedRecipes.isNotEmpty ? savedRecipes : matching;
 
     prioritized.sort((a, b) {
-      final favoriteCompare =
-          (b.recipe.favorite ? 1 : 0) - (a.recipe.favorite ? 1 : 0);
-      if (favoriteCompare != 0) {
-        return favoriteCompare;
+      final pinnedCompare =
+          (b.recipe.pinned ? 1 : 0) - (a.recipe.pinned ? 1 : 0);
+      if (pinnedCompare != 0) {
+        return pinnedCompare;
       }
+
+      final savedCompare =
+          (b.recipe.saved ? 1 : 0) - (a.recipe.saved ? 1 : 0);
+      if (savedCompare != 0) {
+        return savedCompare;
+      }
+
+      final aUsed = a.recipe.lastUsedAt;
+      final bUsed = b.recipe.lastUsedAt;
+      if (aUsed != null && bUsed != null) {
+        final usedCompare = bUsed.compareTo(aUsed);
+        if (usedCompare != 0) {
+          return usedCompare;
+        }
+      } else if (aUsed != null || bUsed != null) {
+        return bUsed == null ? -1 : 1;
+      }
+
+      final usageCompare = b.recipe.timesUsed.compareTo(a.recipe.timesUsed);
+      if (usageCompare != 0) {
+        return usageCompare;
+      }
+
       return b.recipe.updatedAt.compareTo(a.recipe.updatedAt);
     });
 

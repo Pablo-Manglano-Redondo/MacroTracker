@@ -23,7 +23,10 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       defaultServings: fields[3] as double,
       yieldQuantity: fields[4] as double?,
       yieldUnit: fields[5] as String?,
-      favorite: fields[6] as bool,
+      saved: fields[6] as bool,
+      pinned: fields[11] as bool? ?? false,
+      timesUsed: fields[12] as int? ?? 0,
+      lastUsedAt: fields[13] as DateTime?,
       createdAt: fields[7] as DateTime,
       updatedAt: fields[8] as DateTime,
       ingredients: (fields[9] as List).cast<RecipeIngredientDBO>(),
@@ -34,7 +37,7 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
   @override
   void write(BinaryWriter writer, RecipeDBO obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -48,7 +51,13 @@ class RecipeDBOAdapter extends TypeAdapter<RecipeDBO> {
       ..writeByte(5)
       ..write(obj.yieldUnit)
       ..writeByte(6)
-      ..write(obj.favorite)
+      ..write(obj.saved)
+      ..writeByte(11)
+      ..write(obj.pinned)
+      ..writeByte(12)
+      ..write(obj.timesUsed)
+      ..writeByte(13)
+      ..write(obj.lastUsedAt)
       ..writeByte(7)
       ..write(obj.createdAt)
       ..writeByte(8)
@@ -81,7 +90,12 @@ RecipeDBO _$RecipeDBOFromJson(Map<String, dynamic> json) => RecipeDBO(
       defaultServings: (json['defaultServings'] as num).toDouble(),
       yieldQuantity: (json['yieldQuantity'] as num?)?.toDouble(),
       yieldUnit: json['yieldUnit'] as String?,
-      favorite: json['favorite'] as bool,
+      saved: json['favorite'] as bool,
+      pinned: json['pinned'] as bool? ?? false,
+      timesUsed: json['timesUsed'] as int? ?? 0,
+      lastUsedAt: json['lastUsedAt'] == null
+          ? null
+          : DateTime.parse(json['lastUsedAt'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
       ingredients: (json['ingredients'] as List<dynamic>)
@@ -97,7 +111,10 @@ Map<String, dynamic> _$RecipeDBOToJson(RecipeDBO instance) => <String, dynamic>{
       'defaultServings': instance.defaultServings,
       'yieldQuantity': instance.yieldQuantity,
       'yieldUnit': instance.yieldUnit,
-      'favorite': instance.favorite,
+      'favorite': instance.saved,
+      'pinned': instance.pinned,
+      'timesUsed': instance.timesUsed,
+      'lastUsedAt': instance.lastUsedAt?.toIso8601String(),
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': instance.updatedAt.toIso8601String(),
       'ingredients': instance.ingredients,

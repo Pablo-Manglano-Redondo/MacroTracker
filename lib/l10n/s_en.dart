@@ -1376,7 +1376,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Use names like pre-workout oats, post-workout chicken rice, or shake.';
 
   @override
-  String get aiFavoriteQuickAccess => 'Favorite for quick access';
+  String get aiFavoriteQuickAccess => 'Saved for quick access';
 
   @override
   String get aiCaptureByPhotoTitle => 'Capture by photo';
@@ -1880,13 +1880,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get recipeLibraryFavorite => 'Favorite';
+  String get recipeLibraryFavorite => 'Saved';
 
   @override
-  String get recipeLibraryRemoveFavorite => 'Remove favorite';
+  String get recipeLibraryRemoveFavorite => 'Remove saved';
 
   @override
-  String get recipeLibraryMarkFavorite => 'Mark favorite';
+  String get recipeLibraryMarkFavorite => 'Save';
 
   @override
   String recipeLibraryAddedSnackbar(Object name) {

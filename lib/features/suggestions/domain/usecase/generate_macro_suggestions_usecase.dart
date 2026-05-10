@@ -44,7 +44,10 @@ class GenerateMacroSuggestionsUsecase {
       defaultServings: 1.0,
       yieldQuantity: 1.0,
       yieldUnit: 'serving',
-      favorite: false,
+      saved: false,
+      pinned: false,
+      timesUsed: 0,
+      lastUsedAt: null,
       quickCategory: null,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -99,7 +102,7 @@ class GenerateMacroSuggestionsUsecase {
         remainingCarbs: remainingCarbs,
         remainingFat: remainingFat,
         remainingProtein: remainingProtein,
-        favorite: recipe.favorite,
+        saved: recipe.saved,
       );
       if (score < -0.35) {
         continue;
@@ -159,7 +162,7 @@ class GenerateMacroSuggestionsUsecase {
     required double remainingCarbs,
     required double remainingFat,
     required double remainingProtein,
-    required bool favorite,
+    required bool saved,
   }) {
     final kcalGap =
         (remainingKcal - predictedKcal).abs() / max(remainingKcal, 1);
@@ -192,7 +195,7 @@ class GenerateMacroSuggestionsUsecase {
         (carbsOvershoot * 0.4) -
         (fatOvershoot * 0.4) +
         focusBonus +
-        (favorite ? 0.3 : 0);
+        (saved ? 0.3 : 0);
   }
 
   String _buildRationale({
