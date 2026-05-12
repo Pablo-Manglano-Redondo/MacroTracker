@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
+import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
+import 'package:macrotracker/features/weekly_insights/domain/usecase/apply_weekly_kcal_adjustment_usecase.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -19,12 +24,16 @@ class WeeklyInsightsScreen extends StatefulWidget {
 
 class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
   late Future<WeeklyInsightsEntity> _insightsFuture;
+  WeeklyInsightsScreenArguments? _args;
+  bool _isApplyingAdjustment = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments as WeeklyInsightsScreenArguments;
-    _insightsFuture = locator<BuildWeeklyInsightsUsecase>().build(args.focusedDate);
+    _args ??=
+        ModalRoute.of(context)!.settings.arguments as WeeklyInsightsScreenArguments;
+    _insightsFuture =
+        locator<BuildWeeklyInsightsUsecase>().build(_args!.focusedDate);
   }
 
   @override
@@ -42,7 +51,12 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
           if (snapshot.hasError) {
             return Center(child: Text(S.of(context).weeklyInsightsError));
           }
+
           final insights = snapshot.data!;
+          final locale = Localizations.localeOf(context).toLanguageTag();
+          final weekStart = DateFormat.MMMd(locale).format(insights.weekStart);
+          final weekEnd = DateFormat.MMMd(locale).format(insights.weekEnd);
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -53,6 +67,13 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
+                        '$weekStart - $weekEnd',
+                        style: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(insights.summaryLabel),
+                      const SizedBox(height: 10),
+                      Text(
                         S.of(context).weeklyInsightsTrend(
                               '${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)}',
                             ),
@@ -62,14 +83,26 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                       const SizedBox(height: 10),
                       if (insights.recommendedKcalAdjustmentDelta != 0)
                         FilledButton.icon(
-                          onPressed: () =>
-                              _applyRecommendedAdjustment(context, insights),
+                          onPressed: _isApplyingAdjustment
+                              ? null
+                              : () => _applyRecommendedAdjustment(
+                                    context,
+                                    insights,
+                                  ),
                           icon: const Icon(Icons.auto_fix_high_outlined),
-                          label: Text(
-                            S.of(context).weeklyInsightsApplyAdjustment(
-                                  '${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta}',
+                          label: _isApplyingAdjustment
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  S.of(context).weeklyInsightsApplyAdjustment(
+                                        '${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta}',
+                                      ),
                                 ),
-                          ),
                         ),
                     ],
                   ),
@@ -80,12 +113,17 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                          '${insights.averageCalories.toStringAsFixed(0)} kcal / ${S.of(context).dayLabel.toLowerCase()}'),
+                        '${insights.averageCalories.toStringAsFixed(0)} kcal / ${S.of(context).dayLabel.toLowerCase()}',
+                      ),
                       Text(
-                          '${S.of(context).carbohydrateLabel} ${insights.averageCarbs.toStringAsFixed(1)} g'),
-                      Text('${S.of(context).fatLabel} ${insights.averageFat.toStringAsFixed(1)} g'),
+                        '${S.of(context).carbohydrateLabel} ${insights.averageCarbs.toStringAsFixed(1)} g',
+                      ),
                       Text(
-                          '${S.of(context).proteinLabel} ${insights.averageProtein.toStringAsFixed(1)} g'),
+                        '${S.of(context).fatLabel} ${insights.averageFat.toStringAsFixed(1)} g',
+                      ),
+                      Text(
+                        '${S.of(context).proteinLabel} ${insights.averageProtein.toStringAsFixed(1)} g',
+                      ),
                     ],
                   ),
                 ),
@@ -93,17 +131,43 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                   children: [
                     Expanded(
                       child: _InfoCard(
+                        title: S.of(context).weeklyInsightsCoverage,
+                        child: Text(
+                          S.of(context)
+                              .weeklyInsightsTrackedDays(insights.trackedDays),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: _InfoCard(
+                        title: S.of(context).weeklyInsightsOvereatingPattern,
+                        child: Text(insights.overeatingTimeSlotLabel),
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _InfoCard(
                         title: S.of(context).weeklyInsightsAdherence,
-                        child: Text(S.of(context).weeklyInsightsRegisteredDays(
-                            (insights.goalAdherenceRate * 100).round())),
+                        child: Text(
+                          S.of(context).weeklyInsightsRegisteredDays(
+                                (insights.goalAdherenceRate * 100).round(),
+                              ),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12.0),
                     Expanded(
                       child: _InfoCard(
                         title: S.of(context).weeklyInsightsProteinConsistency,
-                        child: Text(S.of(context).weeklyInsightsRegisteredDays(
-                            (insights.proteinConsistencyRate * 100).round())),
+                        child: Text(
+                          S.of(context).weeklyInsightsRegisteredDays(
+                                (insights.proteinConsistencyRate * 100).round(),
+                              ),
+                        ),
                       ),
                     ),
                   ],
@@ -115,10 +179,15 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: insights.topMeals
-                              .map((meal) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 4.0),
-                                    child: Text('• ${meal.label} (${meal.count})'),
-                                  ))
+                              .map(
+                                (meal) => Padding(
+                                  padding:
+                                      const EdgeInsets.only(bottom: 4.0),
+                                  child: Text(
+                                    '- ${meal.label} (${meal.count})',
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                 ),
@@ -130,14 +199,58 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
     );
   }
 
-  void _applyRecommendedAdjustment(
-      BuildContext context, WeeklyInsightsEntity insights) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(S.of(context).weeklyInsightsAdjustmentSuccess(
-            insights.recommendedKcalAdjustmentDelta.toString())),
-      ),
-    );
+  Future<void> _applyRecommendedAdjustment(
+    BuildContext context,
+    WeeklyInsightsEntity insights,
+  ) async {
+    setState(() {
+      _isApplyingAdjustment = true;
+    });
+
+    try {
+      final updatedAdjustment =
+          await locator<ApplyWeeklyKcalAdjustmentUsecase>().apply(
+        day: DateTime.now(),
+        deltaKcal: insights.recommendedKcalAdjustmentDelta,
+      );
+
+      locator<HomeBloc>().add(const LoadItemsEvent());
+      locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+      locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+
+      if (!mounted) {
+        return;
+      }
+
+      _reloadInsights();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            S.of(context).weeklyInsightsAdjustmentSuccess(
+                  updatedAdjustment.toStringAsFixed(0),
+                ),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isApplyingAdjustment = false;
+        });
+      }
+    }
+  }
+
+  void _reloadInsights() {
+    final args = _args;
+    if (args == null) {
+      return;
+    }
+
+    setState(() {
+      _insightsFuture =
+          locator<BuildWeeklyInsightsUsecase>().build(args.focusedDate);
+    });
   }
 }
 

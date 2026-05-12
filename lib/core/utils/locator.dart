@@ -92,6 +92,7 @@ import 'package:macrotracker/features/settings/presentation/bloc/export_import_b
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
+import 'package:macrotracker/features/weekly_insights/domain/usecase/apply_weekly_kcal_adjustment_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 final locator = GetIt.instance;
@@ -254,6 +255,13 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(
       () => BuildWeeklyInsightsUsecase(
             locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+          ));
+  locator.registerLazySingleton<ApplyWeeklyKcalAdjustmentUsecase>(
+      () => ApplyWeeklyKcalAdjustmentUsecase(
             locator(),
             locator(),
             locator(),

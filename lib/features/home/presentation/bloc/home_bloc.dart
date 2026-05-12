@@ -59,7 +59,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._getMacroGoalUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
-      emit(HomeLoadingState());
+      final shouldShowBlockingLoader = state is! HomeLoadedState;
+      if (shouldShowBlockingLoader) {
+        emit(HomeLoadingState());
+      }
 
       currentDay = DateTime.now();
       final configData = await _getConfigUsecase.getConfig();
