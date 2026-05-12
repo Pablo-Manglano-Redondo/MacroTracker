@@ -18,6 +18,12 @@ import 'package:macrotracker/features/recipes/data/dbo/recipe_dbo.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
+import 'package:macrotracker/core/data/repository/user_repository.dart';
+import 'package:macrotracker/core/data/repository/config_repository.dart';
+import 'package:macrotracker/core/domain/entity/user_entity.dart';
+import 'package:macrotracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/core/data/dbo/user_dbo.dart';
+import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 
 class ImportDataUsecase {
   final UserActivityRepository _userActivityRepository;
@@ -26,6 +32,8 @@ class ImportDataUsecase {
   final RecipeRepository _recipeRepository;
   final BodyMeasurementRepository _bodyMeasurementRepository;
   final DailyHabitLogRepository _dailyHabitLogRepository;
+  final UserRepository _userRepository;
+  final ConfigRepository _configRepository;
 
   ImportDataUsecase(
       this._userActivityRepository,
@@ -33,7 +41,9 @@ class ImportDataUsecase {
       this._trackedDayRepository,
       this._recipeRepository,
       this._bodyMeasurementRepository,
-      this._dailyHabitLogRepository);
+      this._dailyHabitLogRepository,
+      this._userRepository,
+      this._configRepository);
 
   /// Imports user activity, intake, and tracked day data from a zip file
   /// containing JSON files.
@@ -45,7 +55,9 @@ class ImportDataUsecase {
       String trackedDayJsonFileName,
       String recipeJsonFileName,
       String bodyMeasurementJsonFileName,
-      String dailyHabitJsonFileName) async {
+      String dailyHabitJsonFileName,
+      String userJsonFileName,
+      String configJsonFileName) async {
     // Allow user to pick a zip file
     final result = await FilePicker.platform.pickFiles(
       type: FileType.any,
@@ -146,6 +158,22 @@ class ImportDataUsecase {
           .map((json) => DailyHabitLogDBO.fromJson(json))
           .toList();
       await _dailyHabitLogRepository.addAllLogs(dailyHabitDBOs);
+    }
+
+    final userFile = archive.findFile(userJsonFileName);
+    if (userFile != null) {
+      final userJsonString = utf8.decode(userFile.content as List<int>);
+      final userJson = jsonDecode(userJsonString) as Map<String, dynamic>;
+      final userDBO = UserDBO.fromJson(userJson);
+      await _userRepository.updateUserData(UserEntity.fromUserDBO(userDBO));
+    }
+
+    final configFile = archive.findFile(configJsonFileName);
+    if (configFile != null) {
+      final configJsonString = utf8.decode(configFile.content as List<int>);
+      final configJson = jsonDecode(configJsonString) as Map<String, dynamic>;
+      final configDBO = ConfigDBO.fromJson(configJson);
+      await _configRepository.updateConfig(ConfigEntity.fromConfigDBO(configDBO));
     }
 
     return true;

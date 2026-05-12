@@ -131,11 +131,11 @@ Future<void> initLocator() async {
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -247,9 +247,9 @@ Future<void> initLocator() async {
             locator(),
           ));
   locator.registerLazySingleton(() => ExportDataUsecase(
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => ImportDataUsecase(
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
       () => GenerateMacroSuggestionsUsecase(locator(), locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(

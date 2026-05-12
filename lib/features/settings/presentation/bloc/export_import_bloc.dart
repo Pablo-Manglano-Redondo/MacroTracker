@@ -15,6 +15,8 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
   static const recipeJsonFileName = 'recipes.json';
   static const bodyMeasurementJsonFileName = 'body_measurements.json';
   static const dailyHabitJsonFileName = 'daily_habits.json';
+  static const userJsonFileName = 'user.json';
+  static const configJsonFileName = 'config.json';
 
   final ExportDataUsecase _exportDataUsecase;
   final ImportDataUsecase _importDataUsecase;
@@ -33,9 +35,11 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
           recipeJsonFileName,
           bodyMeasurementJsonFileName,
           dailyHabitJsonFileName,
+          userJsonFileName,
+          configJsonFileName,
         );
 
-        if (result) {
+        if (result != null && result.isNotEmpty) {
           emit(ExportImportSuccess());
         } else {
           emit(ExportImportInitial());
@@ -55,7 +59,10 @@ class ExportImportBloc extends Bloc<ExportImportEvent, ExportImportState> {
             trackedDayJsonFileName,
             recipeJsonFileName,
             bodyMeasurementJsonFileName,
-            dailyHabitJsonFileName);
+            dailyHabitJsonFileName,
+            userJsonFileName,
+            configJsonFileName,
+        );
         if (result) {
           emit(ExportImportSuccess());
         } else {
