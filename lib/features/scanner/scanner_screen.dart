@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter/services.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/error_dialog.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -124,6 +125,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   barcode.type == BarcodeType.product) {
                 final barcodeResult = barcode.rawValue;
                 if (barcodeResult != null) {
+                  HapticFeedback.lightImpact();
                   _scannedBarcode = barcodeResult;
                   log.fine('Barcode found: $barcodeResult');
                   _scannerBloc

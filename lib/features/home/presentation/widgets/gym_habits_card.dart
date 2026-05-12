@@ -4,6 +4,7 @@ import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
+import 'package:flutter/services.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -358,6 +359,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     bool? wheyTaken,
     bool? caffeineTaken,
   }) async {
+    HapticFeedback.selectionClick();
     final current = _log ?? DailyHabitLogEntity.empty(DateTime.now());
     setState(() {
       _log = current.copyWith(
@@ -377,6 +379,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   }
 
   Future<void> _adjustWater(double deltaLiters) async {
+    HapticFeedback.lightImpact();
     final current = _log ?? DailyHabitLogEntity.empty(DateTime.now());
     setState(() {
       _log = current.copyWith(
@@ -392,6 +395,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   }
 
   Future<void> _adjustSleep(double deltaHours) async {
+    HapticFeedback.lightImpact();
     final current = _log ?? DailyHabitLogEntity.empty(DateTime.now());
     setState(() {
       _log = current.copyWith(
@@ -408,6 +412,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   }
 
   Future<void> _adjustSteps(int deltaSteps) async {
+    HapticFeedback.lightImpact();
     final current = _log ?? DailyHabitLogEntity.empty(DateTime.now());
     setState(() {
       _log = current.copyWith(
@@ -424,6 +429,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   }
 
   Future<void> _setEnergy(int energyLevel) async {
+    HapticFeedback.selectionClick();
     final current = _log ?? DailyHabitLogEntity.empty(DateTime.now());
     setState(() {
       _log = current.copyWith(

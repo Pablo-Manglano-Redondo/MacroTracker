@@ -16,6 +16,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpret
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
+import 'package:macrotracker/core/presentation/widgets/shimmer_loading.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MealPhotoCaptureScreen extends StatefulWidget {
@@ -52,8 +53,10 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).aiMealPhotoTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+      body: _isLoading
+          ? _buildLoadingSkeleton(context)
+          : ListView(
+              padding: const EdgeInsets.all(16),
         children: [
           Container(
             padding: const EdgeInsets.all(18),
@@ -182,6 +185,36 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        const SizedBox(height: 32),
+        Center(
+          child: Column(
+            children: [
+              const SkeletonBox(width: 72, height: 72, borderRadius: 24),
+              const SizedBox(height: 24),
+              Text(
+                _loadingStatus ?? '',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 48),
+        const SkeletonBox(width: double.infinity, height: 160, borderRadius: 20),
+        const SizedBox(height: 16),
+        const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
+        const SizedBox(height: 16),
+        const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
+      ],
     );
   }
 
