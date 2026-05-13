@@ -18,16 +18,13 @@ class BackupToDriveUsecase {
 
   BackupToDriveUsecase(this._exportDataUsecase, this._driveBackupService);
 
-  /// Performs a daily background backup to Google Drive.
-  /// 
-  /// This should be called by a background worker (e.g. Workmanager) periodically.
-  Future<void> performDailyBackup() async {
+  Future<void> performBackup() async {
     // 1. Ensure the user has authenticated with Google Drive
     if (!await _driveBackupService.isAuthenticated()) {
       // Note: In a background isolate, we cannot prompt for authentication UI.
       // The user must have authenticated in the foreground previously.
       // If the token is expired and cannot be refreshed, the backup fails.
-      return; 
+      return;
     }
 
     // 2. Determine a temporary path to save the zip file without UI prompt
@@ -61,5 +58,12 @@ class BackupToDriveUsecase {
         await backupFile.delete();
       }
     }
+  }
+
+  /// Performs a daily background backup to Google Drive.
+  ///
+  /// This should be called by a background worker (e.g. Workmanager) periodically.
+  Future<void> performDailyBackup() async {
+    await performBackup();
   }
 }

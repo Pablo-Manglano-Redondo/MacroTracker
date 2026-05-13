@@ -117,6 +117,8 @@ class MealInterpretationRemoteDataSource {
       totalCarbs: _toDouble(totals['carbs']),
       totalFat: _toDouble(totals['fat']),
       totalProtein: _toDouble(totals['protein']),
+      totalFiber: _toDoubleNullable(totals['fiber']),
+      totalSugar: _toDoubleNullable(totals['sugar']),
       confidenceBand:
           _mapConfidence(data['confidenceBand'] as String? ?? 'medium'),
       status: DraftStatusEntity.ready,
@@ -155,6 +157,8 @@ class MealInterpretationRemoteDataSource {
       carbs: _toDouble(item['carbs']),
       fat: _toDouble(item['fat']),
       protein: _toDouble(item['protein']),
+      fiber: _toDoubleNullable(item['fiber']),
+      sugar: _toDoubleNullable(item['sugar']),
       confidenceBand:
           _mapConfidence(item['confidenceBand'] as String? ?? 'medium'),
       editable: item['editable'] as bool? ?? true,
@@ -197,6 +201,22 @@ class MealInterpretationRemoteDataSource {
       return parsed;
     }
     return 0;
+  }
+
+  double? _toDoubleNullable(dynamic value) {
+    if (value == null) return null;
+    if (value is num) {
+      final parsed = value.toDouble();
+      return parsed < 0 ? 0 : parsed;
+    }
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      if (parsed == null || parsed < 0) {
+        return null;
+      }
+      return parsed;
+    }
+    return null;
   }
 }
 

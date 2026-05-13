@@ -72,23 +72,37 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(InterpretationDraftDBOAdapter());
 
     configBox =
-        await Hive.openBox(configBoxName, encryptionCipher: encryptionCypher);
+        await _openEncryptedBox(configBoxName, encryptionCypher);
     intakeBox =
-        await Hive.openBox(intakeBoxName, encryptionCipher: encryptionCypher);
-    userActivityBox = await Hive.openBox(userActivityBoxName,
-        encryptionCipher: encryptionCypher);
+        await _openEncryptedBox(intakeBoxName, encryptionCypher);
+    userActivityBox =
+        await _openEncryptedBox(userActivityBoxName, encryptionCypher);
     userBox =
-        await Hive.openBox(userBoxName, encryptionCipher: encryptionCypher);
-    trackedDayBox = await Hive.openBox(trackedDayBoxName,
-        encryptionCipher: encryptionCypher);
+        await _openEncryptedBox(userBoxName, encryptionCypher);
+    trackedDayBox =
+        await _openEncryptedBox(trackedDayBoxName, encryptionCypher);
     recipeBox =
-        await Hive.openBox(recipeBoxName, encryptionCipher: encryptionCypher);
-    interpretationDraftBox = await Hive.openBox(interpretationDraftBoxName,
-        encryptionCipher: encryptionCypher);
-    bodyMeasurementBox = await Hive.openBox(bodyMeasurementBoxName,
-        encryptionCipher: encryptionCypher);
-    dailyHabitLogBox = await Hive.openBox(dailyHabitLogBoxName,
-        encryptionCipher: encryptionCypher);
+        await _openEncryptedBox(recipeBoxName, encryptionCypher);
+    interpretationDraftBox =
+        await _openEncryptedBox(interpretationDraftBoxName, encryptionCypher);
+    bodyMeasurementBox =
+        await _openEncryptedBox(bodyMeasurementBoxName, encryptionCypher);
+    dailyHabitLogBox =
+        await _openEncryptedBox(dailyHabitLogBoxName, encryptionCypher);
+  }
+
+  Future<Box<T>> _openEncryptedBox<T>(
+    String boxName,
+    HiveAesCipher encryptionCypher,
+  ) async {
+    try {
+      return await Hive.openBox<T>(
+        boxName,
+        encryptionCipher: encryptionCypher,
+      );
+    } catch (error) {
+      throw HiveError('Failed to open $boxName: $error');
+    }
   }
 
   static generateNewHiveEncryptionKey() => Hive.generateSecureKey();

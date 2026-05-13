@@ -80,6 +80,10 @@ class InterpretationDraftDBO extends HiveObject {
   final DateTime expiresAt;
   @HiveField(14)
   final List<InterpretationDraftItemDBO> items;
+  @HiveField(15)
+  final double? totalFiber;
+  @HiveField(16)
+  final double? totalSugar;
 
   InterpretationDraftDBO({
     required this.id,
@@ -97,6 +101,8 @@ class InterpretationDraftDBO extends HiveObject {
     required this.createdAt,
     required this.expiresAt,
     required this.items,
+    this.totalFiber,
+    this.totalSugar,
   });
 
   factory InterpretationDraftDBO.fromEntity(InterpretationDraftEntity entity) {
@@ -116,6 +122,8 @@ class InterpretationDraftDBO extends HiveObject {
       createdAt: entity.createdAt,
       expiresAt: entity.expiresAt,
       items: entity.items.map(InterpretationDraftItemDBO.fromEntity).toList(),
+      totalFiber: entity.totalFiber,
+      totalSugar: entity.totalSugar,
     );
   }
 

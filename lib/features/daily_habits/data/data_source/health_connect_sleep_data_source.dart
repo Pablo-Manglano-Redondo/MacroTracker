@@ -18,7 +18,7 @@ class HealthConnectSleepDataSource {
     HealthDataAccess.READ,
   ];
   static const _workoutSupplementReadTypes = [
-    HealthDataType.TOTAL_CALORIES_BURNED,
+    HealthDataType.ACTIVE_ENERGY_BURNED,
   ];
   static const _workoutSupplementPermissions = [
     HealthDataAccess.READ,

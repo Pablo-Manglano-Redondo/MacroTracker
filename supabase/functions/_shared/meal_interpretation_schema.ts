@@ -26,6 +26,8 @@ export const mealInterpretationSchema = {
         carbs: { type: "number", minimum: 0 },
         fat: { type: "number", minimum: 0 },
         protein: { type: "number", minimum: 0 },
+        fiber: { type: "number", minimum: 0 },
+        sugar: { type: "number", minimum: 0 },
       },
     },
     items: {
@@ -70,6 +72,8 @@ export const mealInterpretationSchema = {
           carbs: { type: "number", minimum: 0 },
           fat: { type: "number", minimum: 0 },
           protein: { type: "number", minimum: 0 },
+          fiber: { type: "number", minimum: 0 },
+          sugar: { type: "number", minimum: 0 },
           confidenceBand: {
             type: "string",
             enum: ["low", "medium", "high"],

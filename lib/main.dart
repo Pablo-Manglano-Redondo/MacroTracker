@@ -37,40 +37,67 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
-  await initLocator();
-  final log = Logger('main');
   try {
-    await locator<MealReminderService>().syncFromConfig();
-  } catch (error, stackTrace) {
-    log.severe('Meal reminder startup sync failed', error, stackTrace);
-  }
-  final isUserInitialized = await locator<UserDataSource>().hasUserData();
-  final configRepo = locator<ConfigRepository>();
-  final hasAcceptedAnonymousData =
-      await configRepo.getConfigHasAcceptedAnonymousData();
-  final savedAppTheme = await configRepo.getConfigAppTheme();
-  final savedLocale = await configRepo.getConfigLocale();
-  final locale = savedLocale != null ? Locale(savedLocale) : null;
+    await initLocator();
+    final log = Logger('main');
+    try {
+      await locator<MealReminderService>().syncFromConfig();
+    } catch (error, stackTrace) {
+      log.severe('Meal reminder startup sync failed', error, stackTrace);
+    }
+    final isUserInitialized = await locator<UserDataSource>().hasUserData();
+    final configRepo = locator<ConfigRepository>();
+    final hasAcceptedAnonymousData =
+        await configRepo.getConfigHasAcceptedAnonymousData();
+    final savedAppTheme = await configRepo.getConfigAppTheme();
+    final savedLocale = await configRepo.getConfigLocale();
+    final locale = savedLocale != null ? Locale(savedLocale) : null;
 
-  // If the user has accepted anonymous data collection, run the app with
-  // sentry enabled, else run without it
-  if (kReleaseMode && hasAcceptedAnonymousData) {
-    log.info('Starting App with Sentry enabled ...');
-    _runAppWithSentryReporting(isUserInitialized, savedAppTheme, locale);
-  } else {
-    log.info('Starting App ...');
-    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
+    // If the user has accepted anonymous data collection, run the app with
+    // sentry enabled, else run without it
+    if (kReleaseMode && hasAcceptedAnonymousData) {
+      log.info('Starting App with Sentry enabled ...');
+      await _runAppWithSentryReporting(isUserInitialized, savedAppTheme, locale);
+    } else {
+      log.info('Starting App ...');
+      runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
+    }
+  } catch (e, stackTrace) {
+    runApp(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Scaffold(
+          backgroundColor: Colors.black,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'FATAL ERROR ON STARTUP:\n\n$e\n\n$stackTrace',
+                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontFamily: 'monospace'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
-void _runAppWithSentryReporting(
+Future<void> _runAppWithSentryReporting(
     bool isUserInitialized, AppThemeEntity savedAppTheme, Locale? locale) async {
-  await SentryFlutter.init((options) {
-    options.dsn = Env.sentryDns;
-    options.tracesSampleRate = 1.0;
-  },
-      appRunner: () =>
-          runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale));
+  try {
+    await SentryFlutter.init((options) {
+      options.dsn = Env.sentryDns.startsWith('http') ? Env.sentryDns : '';
+      options.tracesSampleRate = 1.0;
+    },
+        appRunner: () =>
+            runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale));
+  } catch (e, stackTrace) {
+    Logger('main').severe('Failed to initialize Sentry', e, stackTrace);
+    runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
+  }
 }
 
 void runAppWithChangeNotifiers(

@@ -25,7 +25,7 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       userKcalAdjustment: fields[5] as double?,
       dailyFocus: fields[9] as String?,
       selectedLocale: fields[18] as String?,
-      healthConnectAutoSyncEnabled: fields[19] as bool? ?? true,
+      healthConnectAutoSyncEnabled: fields[19] as bool?,
     )
       ..userCarbGoalPct = fields[6] as double?
       ..userProteinGoalPct = fields[7] as double?
@@ -150,17 +150,15 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
           (json['discardedHealthConnectActivityIds'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList()
-      ..mealRemindersEnabled = json['mealRemindersEnabled'] as bool? ?? false
+      ..mealRemindersEnabled = json['mealRemindersEnabled'] as bool?
       ..mealReminderMorningMinutes =
-          (json['mealReminderMorningMinutes'] as num?)?.toInt() ?? 9 * 60
+          (json['mealReminderMorningMinutes'] as num?)?.toInt()
       ..mealReminderLunchMinutes =
-          (json['mealReminderLunchMinutes'] as num?)?.toInt() ??
-              15 * 60 + 30
+          (json['mealReminderLunchMinutes'] as num?)?.toInt()
       ..mealReminderAfternoonMinutes =
-          (json['mealReminderAfternoonMinutes'] as num?)?.toInt() ?? 18 * 60
+          (json['mealReminderAfternoonMinutes'] as num?)?.toInt()
       ..mealReminderEveningMinutes =
-          (json['mealReminderEveningMinutes'] as num?)?.toInt() ??
-              21 * 60 + 30;
+          (json['mealReminderEveningMinutes'] as num?)?.toInt();
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,

@@ -33,13 +33,15 @@ class InterpretationDraftDBOAdapter
       createdAt: fields[12] as DateTime,
       expiresAt: fields[13] as DateTime,
       items: (fields[14] as List).cast<InterpretationDraftItemDBO>(),
+      totalFiber: fields[15] as double?,
+      totalSugar: fields[16] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, InterpretationDraftDBO obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -69,7 +71,11 @@ class InterpretationDraftDBOAdapter
       ..writeByte(13)
       ..write(obj.expiresAt)
       ..writeByte(14)
-      ..write(obj.items);
+      ..write(obj.items)
+      ..writeByte(15)
+      ..write(obj.totalFiber)
+      ..writeByte(16)
+      ..write(obj.totalSugar);
   }
 
   @override
@@ -197,6 +203,8 @@ InterpretationDraftDBO _$InterpretationDraftDBOFromJson(
           .map((e) =>
               InterpretationDraftItemDBO.fromJson(e as Map<String, dynamic>))
           .toList(),
+      totalFiber: (json['totalFiber'] as num?)?.toDouble(),
+      totalSugar: (json['totalSugar'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$InterpretationDraftDBOToJson(
@@ -217,6 +225,8 @@ Map<String, dynamic> _$InterpretationDraftDBOToJson(
       'createdAt': instance.createdAt.toIso8601String(),
       'expiresAt': instance.expiresAt.toIso8601String(),
       'items': instance.items,
+      'totalFiber': instance.totalFiber,
+      'totalSugar': instance.totalSugar,
     };
 
 const _$DraftSourceDBOEnumMap = {

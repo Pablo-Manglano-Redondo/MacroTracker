@@ -16,6 +16,7 @@ import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/calculations_dialog.dart';
+import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -183,14 +184,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _SettingsSection(
-                  title:
-                      _isEs(context) ? 'Datos y privacidad' : 'Data and privacy',
+                  title: _isEs(context)
+                      ? 'Datos y privacidad'
+                      : 'Data and privacy',
                   child: Column(
                     children: [
                       ListTile(
                         leading: const Icon(Icons.import_export),
                         title: Text(S.of(context).exportImportLabel),
                         onTap: () => _showExportImportDialog(context),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.cloud_upload_outlined),
+                        title: Text(
+                          _isEs(context)
+                              ? 'Backup en Google Drive'
+                              : 'Google Drive backup',
+                        ),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? 'Copia manual cifrada en tu Drive'
+                              : 'Manual encrypted backup to your Drive',
+                        ),
+                        onTap: () => _showDriveBackupDialog(context),
                       ),
                       ListTile(
                         leading: const Icon(Icons.policy_outlined),
@@ -315,6 +331,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showDialog(
       context: context,
       builder: (context) => ExportImportDialog(),
+    );
+  }
+
+  void _showDriveBackupDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const DriveBackupDialog(),
     );
   }
 
@@ -897,8 +920,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(24),
               ),
-              backgroundColor:
-                  isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+              backgroundColor: isDark
+                  ? colorScheme.surfaceContainerLow
+                  : colorScheme.surface,
               hourMinuteShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -955,10 +979,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       : 'Android will remind you to log breakfast, lunch, snack and dinner.';
 
   String _morningReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Manana' : 'Morning';
+      _isEs(context) ? 'Mañana' : 'Morning';
 
   String _afterLunchReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Despues de comer' : 'After lunch';
+      _isEs(context) ? 'Después de comer' : 'After lunch';
 
   String _afternoonReminderLabel(BuildContext context) =>
       _isEs(context) ? 'Tarde' : 'Afternoon';

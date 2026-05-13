@@ -42,4 +42,26 @@ class UserDBO extends HiveObject {
         goal: UserWeightGoalDBO.fromUserWeightGoalEntity(entity.goal),
         pal: UserPALDBO.fromUserPALEntity(entity.pal));
   }
+
+  factory UserDBO.fromJson(Map<String, dynamic> json) {
+    return UserDBO(
+      birthday: DateTime.parse(json['birthday'] as String),
+      heightCM: (json['heightCM'] as num).toDouble(),
+      weightKG: (json['weightKG'] as num).toDouble(),
+      profileImagePath: json['profileImagePath'] as String?,
+      gender: UserGenderDBO.values.byName(json['gender'] as String),
+      goal: UserWeightGoalDBO.values.byName(json['goal'] as String),
+      pal: UserPALDBO.values.byName(json['pal'] as String),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'birthday': birthday.toIso8601String(),
+        'heightCM': heightCM,
+        'weightKG': weightKG,
+        'profileImagePath': profileImagePath,
+        'gender': gender.name,
+        'goal': goal.name,
+        'pal': pal.name,
+      };
 }

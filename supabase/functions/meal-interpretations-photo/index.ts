@@ -20,7 +20,7 @@ Deno.serve(async (request) => {
     if (imageBase64.length < 32) {
       return jsonResponse({ error: "imageBase64 payload is missing" }, 400);
     }
-    if (imageBase64.length > 14_000_000) {
+    if (imageBase64.length > 20_000_000) {
       return jsonResponse({ error: "image payload is too large" }, 400);
     }
 

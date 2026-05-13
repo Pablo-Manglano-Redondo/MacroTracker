@@ -88,6 +88,8 @@ import 'package:macrotracker/features/scanner/domain/usecase/search_product_by_b
 import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:macrotracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:macrotracker/features/settings/domain/usecase/import_data_usecase.dart';
+import 'package:macrotracker/features/settings/domain/usecase/backup_to_drive_usecase.dart';
+import 'package:macrotracker/features/settings/data/services/google_drive_backup_service.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_suggestions_usecase.dart';
@@ -131,11 +133,11 @@ Future<void> initLocator() async {
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(
-      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
-      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
-      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -250,6 +252,12 @@ Future<void> initLocator() async {
       locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => ImportDataUsecase(
       locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton<GoogleDriveBackupService>(
+      () => GoogleDriveBackupService());
+  locator.registerLazySingleton<DriveBackupService>(
+      () => locator<GoogleDriveBackupService>());
+  locator.registerLazySingleton<BackupToDriveUsecase>(
+      () => BackupToDriveUsecase(locator(), locator()));
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
       () => GenerateMacroSuggestionsUsecase(locator(), locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(

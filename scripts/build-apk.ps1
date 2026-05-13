@@ -13,6 +13,7 @@ $repoRoot = Split-Path -Parent $PSScriptRoot
 $flutterBin = "C:\Users\pxblx\Documents\flutter\bin"
 $flutterCmd = Join-Path $flutterBin "flutter.bat"
 $keyPropertiesPath = Join-Path $repoRoot "android\key.properties"
+$flutterGitConfigPath = Join-Path $repoRoot ".gitconfig-flutter"
 
 function Assert-FlutterAvailable {
     if (-not (Test-Path -LiteralPath $flutterCmd)) {
@@ -41,6 +42,22 @@ function Resolve-BuildMode {
     return "debug"
 }
 
+function Ensure-FlutterGitSafeDirectory {
+    $flutterRoot = Split-Path -Parent $flutterBin
+    $env:GIT_CONFIG_GLOBAL = $flutterGitConfigPath
+    if (-not (Test-Path -LiteralPath $flutterGitConfigPath)) {
+        New-Item -ItemType File -Path $flutterGitConfigPath -Force | Out-Null
+    }
+
+    $existingEntries = @(
+        git config --file $flutterGitConfigPath --get-all safe.directory 2>$null
+    ) | Where-Object { $_ }
+
+    if ($existingEntries -notcontains $flutterRoot) {
+        git config --file $flutterGitConfigPath --add safe.directory $flutterRoot
+    }
+}
+
 function Invoke-Flutter {
     param(
         [Parameter(Mandatory = $true)]
@@ -54,7 +71,22 @@ function Invoke-Flutter {
     }
 }
 
+function Get-GoogleDriveDartDefines {
+    $defines = @()
+
+    if ($env:GOOGLE_DRIVE_SERVER_CLIENT_ID) {
+        $defines += "--dart-define=GOOGLE_DRIVE_SERVER_CLIENT_ID=$($env:GOOGLE_DRIVE_SERVER_CLIENT_ID)"
+    }
+
+    if ($env:GOOGLE_DRIVE_IOS_CLIENT_ID) {
+        $defines += "--dart-define=GOOGLE_DRIVE_IOS_CLIENT_ID=$($env:GOOGLE_DRIVE_IOS_CLIENT_ID)"
+    }
+
+    return $defines
+}
+
 Assert-FlutterAvailable
+Ensure-FlutterGitSafeDirectory
 
 $resolvedMode = Resolve-BuildMode -RequestedMode $Mode
 
@@ -66,6 +98,7 @@ $buildArgs = @("build", "apk", "--$resolvedMode")
 if ($SplitPerAbi) {
     $buildArgs += "--split-per-abi"
 }
+$buildArgs += Get-GoogleDriveDartDefines
 
 Invoke-Flutter -Arguments $buildArgs
 

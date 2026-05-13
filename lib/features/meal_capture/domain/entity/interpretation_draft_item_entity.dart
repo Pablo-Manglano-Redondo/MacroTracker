@@ -12,6 +12,8 @@ class InterpretationDraftItemEntity extends Equatable {
   final double carbs;
   final double fat;
   final double protein;
+  final double? fiber;
+  final double? sugar;
   final ConfidenceBandEntity confidenceBand;
   final bool editable;
   final bool removed;
@@ -26,6 +28,8 @@ class InterpretationDraftItemEntity extends Equatable {
     required this.carbs,
     required this.fat,
     required this.protein,
+    this.fiber,
+    this.sugar,
     required this.confidenceBand,
     required this.editable,
     required this.removed,
@@ -41,6 +45,8 @@ class InterpretationDraftItemEntity extends Equatable {
     double? carbs,
     double? fat,
     double? protein,
+    double? fiber,
+    double? sugar,
     ConfidenceBandEntity? confidenceBand,
     bool? editable,
     bool? removed,
@@ -55,6 +61,8 @@ class InterpretationDraftItemEntity extends Equatable {
       carbs: carbs ?? this.carbs,
       fat: fat ?? this.fat,
       protein: protein ?? this.protein,
+      fiber: fiber ?? this.fiber,
+      sugar: sugar ?? this.sugar,
       confidenceBand: confidenceBand ?? this.confidenceBand,
       editable: editable ?? this.editable,
       removed: removed ?? this.removed,
@@ -72,6 +80,8 @@ class InterpretationDraftItemEntity extends Equatable {
         carbs,
         fat,
         protein,
+        fiber,
+        sugar,
         confidenceBand,
         editable,
         removed,

@@ -54,6 +54,10 @@ class InterpretationDraftItemDBO extends HiveObject {
   final bool editable;
   @HiveField(11)
   bool removed;
+  @HiveField(12)
+  final double? fiber;
+  @HiveField(13)
+  final double? sugar;
 
   InterpretationDraftItemDBO({
     required this.id,
@@ -68,6 +72,8 @@ class InterpretationDraftItemDBO extends HiveObject {
     required this.confidenceBand,
     required this.editable,
     required this.removed,
+    this.fiber,
+    this.sugar,
   });
 
   factory InterpretationDraftItemDBO.fromEntity(
@@ -87,6 +93,8 @@ class InterpretationDraftItemDBO extends HiveObject {
       confidenceBand: ConfidenceBandDBO.fromEntity(entity.confidenceBand),
       editable: entity.editable,
       removed: entity.removed,
+      fiber: entity.fiber,
+      sugar: entity.sugar,
     );
   }
 

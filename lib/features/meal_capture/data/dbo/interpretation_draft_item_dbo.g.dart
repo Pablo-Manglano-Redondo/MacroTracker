@@ -30,13 +30,15 @@ class InterpretationDraftItemDBOAdapter
       confidenceBand: fields[9] as ConfidenceBandDBO,
       editable: fields[10] as bool,
       removed: fields[11] as bool,
+      fiber: fields[12] as double?,
+      sugar: fields[13] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, InterpretationDraftItemDBO obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -60,7 +62,11 @@ class InterpretationDraftItemDBOAdapter
       ..writeByte(10)
       ..write(obj.editable)
       ..writeByte(11)
-      ..write(obj.removed);
+      ..write(obj.removed)
+      ..writeByte(12)
+      ..write(obj.fiber)
+      ..writeByte(13)
+      ..write(obj.sugar);
   }
 
   @override
@@ -141,6 +147,8 @@ InterpretationDraftItemDBO _$InterpretationDraftItemDBOFromJson(
           $enumDecode(_$ConfidenceBandDBOEnumMap, json['confidenceBand']),
       editable: json['editable'] as bool,
       removed: json['removed'] as bool,
+      fiber: (json['fiber'] as num?)?.toDouble(),
+      sugar: (json['sugar'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$InterpretationDraftItemDBOToJson(
@@ -158,6 +166,8 @@ Map<String, dynamic> _$InterpretationDraftItemDBOToJson(
       'confidenceBand': _$ConfidenceBandDBOEnumMap[instance.confidenceBand]!,
       'editable': instance.editable,
       'removed': instance.removed,
+      'fiber': instance.fiber,
+      'sugar': instance.sugar,
     };
 
 const _$ConfidenceBandDBOEnumMap = {

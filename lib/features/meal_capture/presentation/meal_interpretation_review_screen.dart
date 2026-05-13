@@ -388,6 +388,8 @@ class _MealInterpretationReviewScreenState
         carbs: nutrition.carbs,
         fat: nutrition.fat,
         protein: nutrition.protein,
+        fiber: nutrition.fiber,
+        sugar: nutrition.sugar,
       );
     } else {
       updatedItem = item.copyWith(unit: updatedUnit);
@@ -420,6 +422,8 @@ class _MealInterpretationReviewScreenState
         carbs: nutrition.carbs,
         fat: nutrition.fat,
         protein: nutrition.protein,
+        fiber: nutrition.fiber,
+        sugar: nutrition.sugar,
       );
     } else {
       updatedItem = item.copyWith(
@@ -455,6 +459,8 @@ class _MealInterpretationReviewScreenState
       carbs: nutrition.carbs,
       fat: nutrition.fat,
       protein: nutrition.protein,
+      fiber: nutrition.fiber,
+      sugar: nutrition.sugar,
       removed: false,
     );
     await _saveCorrection(updatedItem);

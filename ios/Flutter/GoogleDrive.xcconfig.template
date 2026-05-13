@@ -1,0 +1,6 @@
+// Copy this file to ios/Flutter/GoogleDrive.xcconfig and fill the values locally.
+// Do not commit the populated file.
+
+GOOGLE_DRIVE_IOS_CLIENT_ID =
+GOOGLE_DRIVE_IOS_REVERSED_CLIENT_ID =
+GOOGLE_DRIVE_SERVER_CLIENT_ID =

@@ -63,20 +63,20 @@ class MealInterpretationPersonalizationUsecase {
         ).compareTo(_scoreCandidate(mealQuery, a, intakeType: intakeType)),
       );
 
-    final topCandidates = sortedCandidates.take(6).toList(growable: false);
+    final topCandidates = sortedCandidates.take(10).toList(growable: false);
     final promptContext = _buildPromptContext(
       user: user,
       dailyFocus: config.dailyFocus,
       intakeType: intakeType,
       candidates: topCandidates,
-      memories: foodMemories.take(5).toList(growable: false),
-      mealMemories: mealMemories.take(4).toList(growable: false),
+      memories: foodMemories.take(8).toList(growable: false),
+      mealMemories: mealMemories.take(6).toList(growable: false),
     );
 
     return MealInterpretationPersonalizationContext(
       promptContext: promptContext,
       remoteExamples: topCandidates
-          .take(4)
+          .take(6)
           .map((candidate) => candidate.toRemoteMap())
           .toList(growable: false),
       candidates: candidates,
@@ -88,7 +88,125 @@ class MealInterpretationPersonalizationUsecase {
     required IntakeTypeEntity intakeType,
     MealInterpretationPersonalizationContext? context,
   }) async {
-    return draft;
+    final foodMemories = await loadFoodMemories();
+    if (foodMemories.isEmpty) {
+      return _validateMacroCoherence(draft);
+    }
+
+    final correctionMap = <String, AiFoodMemoryEntry>{};
+    for (final memory in foodMemories) {
+      correctionMap.putIfAbsent(
+        _normalize(memory.displayLabel),
+        () => memory,
+      );
+    }
+
+    var hasChanges = false;
+    final updatedItems = <InterpretationDraftItemEntity>[];
+    for (final item in draft.items) {
+      final bestCorrection = _findReliableCorrection(item, correctionMap);
+      if (bestCorrection != null && bestCorrection.uses >= 2) {
+        final meal = item.matchedMealSnapshot ?? bestCorrection.mealSnapshot;
+        if (meal != null) {
+          final nutrition = MealPortionCalculator.calculate(
+            meal,
+            bestCorrection.amount,
+            bestCorrection.unit,
+          );
+          updatedItems.add(item.copyWith(
+            amount: bestCorrection.amount,
+            unit: bestCorrection.unit,
+            kcal: nutrition.kcal,
+            carbs: nutrition.carbs,
+            fat: nutrition.fat,
+            protein: nutrition.protein,
+            fiber: nutrition.fiber,
+            sugar: nutrition.sugar,
+            matchedMealSnapshot: meal,
+            confidenceBand: ConfidenceBandEntity.medium,
+          ));
+          hasChanges = true;
+        } else {
+          updatedItems.add(item.copyWith(
+            amount: bestCorrection.amount,
+            unit: bestCorrection.unit,
+            kcal: bestCorrection.kcal,
+            carbs: bestCorrection.carbs,
+            fat: bestCorrection.fat,
+            protein: bestCorrection.protein,
+            fiber: null,
+            sugar: null,
+            confidenceBand: ConfidenceBandEntity.medium,
+          ));
+          hasChanges = true;
+        }
+      } else {
+        updatedItems.add(item);
+      }
+    }
+
+    if (!hasChanges) {
+      return _validateMacroCoherence(draft);
+    }
+
+    final activeItems = updatedItems.where((item) => !item.removed);
+    final updatedDraft = draft.copyWith(
+      items: updatedItems,
+      totalKcal:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
+      totalCarbs:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.carbs),
+      totalFat:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
+      totalProtein:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.protein),
+      totalFiber: activeItems.any((i) => i.fiber != null)
+          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.fiber ?? 0))
+          : null,
+      totalSugar: activeItems.any((i) => i.sugar != null)
+          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.sugar ?? 0))
+          : null,
+    );
+    return _validateMacroCoherence(updatedDraft);
+  }
+
+  InterpretationDraftEntity _validateMacroCoherence(
+      InterpretationDraftEntity draft) {
+    final updatedItems = draft.items.map((item) {
+      if (item.removed) return item;
+      final derivedKcal =
+          (item.carbs * 4) + (item.protein * 4) + (item.fat * 9);
+      if (derivedKcal <= 0) return item;
+      final ratio = item.kcal / derivedKcal;
+      if (ratio < 0.85 || ratio > 1.15) {
+        return item.copyWith(
+          kcal: derivedKcal,
+          confidenceBand: item.confidenceBand == ConfidenceBandEntity.high
+              ? ConfidenceBandEntity.medium
+              : item.confidenceBand,
+        );
+      }
+      return item;
+    }).toList();
+
+    final activeItems = updatedItems.where((item) => !item.removed);
+    return draft.copyWith(
+      items: updatedItems,
+      totalKcal:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
+      totalCarbs:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.carbs),
+      totalFat:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
+      totalProtein:
+          activeItems.fold<double>(0.0, (sum, item) => sum + item.protein),
+      totalFiber: activeItems.any((i) => i.fiber != null)
+          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.fiber ?? 0))
+          : null,
+      totalSugar: activeItems.any((i) => i.sugar != null)
+          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.sugar ?? 0))
+          : null,
+    );
   }
 
   Future<List<MealInterpretationSuggestion>> suggestMealsForDraft({
@@ -146,40 +264,6 @@ class MealInterpretationPersonalizationUsecase {
     String? inputText,
     String? localImagePath,
   }) async {
-    return InterpretationDraftEntity(
-      id: IdGenerator.getUniqueID(),
-      sourceType: sourceType,
-      inputText: inputText,
-      localImagePath: localImagePath,
-      title: title,
-      summary:
-          'Interpretación remota no disponible. Revisa el borrador y usa tus sugerencias guardadas como referencia.',
-      totalKcal: 0,
-      totalCarbs: 0,
-      totalFat: 0,
-      totalProtein: 0,
-      confidenceBand: ConfidenceBandEntity.low,
-      status: DraftStatusEntity.ready,
-      createdAt: DateTime.now(),
-      expiresAt: DateTime.now().add(const Duration(days: 1)),
-      items: [
-        InterpretationDraftItemEntity(
-          id: IdGenerator.getUniqueID(),
-          label: title,
-          matchedMealSnapshot: null,
-          amount: 1,
-          unit: 'serving',
-          kcal: 0,
-          carbs: 0,
-          fat: 0,
-          protein: 0,
-          confidenceBand: ConfidenceBandEntity.low,
-          editable: true,
-          removed: false,
-        ),
-      ],
-    );
-
     final context = await buildContext(
       intakeType: intakeType,
       freeText: inputText ?? title,
@@ -204,6 +288,8 @@ class MealInterpretationPersonalizationUsecase {
         carbs: nutrition.carbs,
         fat: nutrition.fat,
         protein: nutrition.protein,
+        fiber: nutrition.fiber,
+        sugar: nutrition.sugar,
         confidenceBand: ConfidenceBandEntity.medium,
         editable: true,
         removed: false,
@@ -215,11 +301,13 @@ class MealInterpretationPersonalizationUsecase {
         localImagePath: localImagePath,
         title: bestMatch.candidate.title,
         summary:
-            'Interpretación remota no disponible. Se propuso una comida tuya parecida para acelerar la corrección.',
+            'Interpretaci\u00f3n remota no disponible. Se propuso una comida tuya parecida para acelerar la correcci\u00f3n.',
         totalKcal: nutrition.kcal,
         totalCarbs: nutrition.carbs,
         totalFat: nutrition.fat,
         totalProtein: nutrition.protein,
+        totalFiber: nutrition.fiber,
+        totalSugar: nutrition.sugar,
         confidenceBand: ConfidenceBandEntity.medium,
         status: DraftStatusEntity.ready,
         createdAt: DateTime.now(),
@@ -235,7 +323,7 @@ class MealInterpretationPersonalizationUsecase {
       localImagePath: localImagePath,
       title: title,
       summary:
-          'Interpretación remota no disponible. Revisa el borrador y usa tus sugerencias guardadas para ajustarlo rápido.',
+          'Interpretaci\u00f3n remota no disponible. Revisa el borrador y usa tus sugerencias guardadas para ajustarlo r\u00e1pido.',
       totalKcal: 0,
       totalCarbs: 0,
       totalFat: 0,
@@ -346,7 +434,7 @@ class MealInterpretationPersonalizationUsecase {
     required UserEntity user,
     required DailyFocusEntity dailyFocus,
     required IntakeTypeEntity intakeType,
-    required List<_MealCandidate> candidates,
+    required List<MealInterpretationCandidate> candidates,
     required List<AiFoodMemoryEntry> memories,
     required List<AiMealMemoryEntry> mealMemories,
   }) {
@@ -360,7 +448,7 @@ class MealInterpretationPersonalizationUsecase {
 
     if (candidates.isNotEmpty) {
       buffer.writeln('Personal meal examples:');
-      for (final candidate in candidates.take(4)) {
+      for (final candidate in candidates.take(6)) {
         final nutrition = MealPortionCalculator.calculate(
           candidate.meal,
           candidate.defaultAmount,
@@ -374,7 +462,7 @@ class MealInterpretationPersonalizationUsecase {
 
     if (mealMemories.isNotEmpty) {
       buffer.writeln('Repeated full meals from this user:');
-      for (final memory in mealMemories.take(3)) {
+      for (final memory in mealMemories.take(5)) {
         final nutrition = MealPortionCalculator.calculate(
           memory.mealSnapshot,
           memory.defaultAmount,
@@ -388,9 +476,9 @@ class MealInterpretationPersonalizationUsecase {
 
     if (memories.isNotEmpty) {
       buffer.writeln('Frequent ingredient corrections:');
-      for (final memory in memories.take(4)) {
+      for (final memory in memories.take(6)) {
         buffer.writeln(
-          '- ${memory.displayLabel}: usually ${memory.amount.toStringAsFixed(memory.amount % 1 == 0 ? 0 : 1)} ${memory.unit}',
+          '- ${memory.displayLabel}: usually ${memory.amount.toStringAsFixed(memory.amount % 1 == 0 ? 0 : 1)} ${memory.unit} (${memory.kcal.toStringAsFixed(0)} kcal, corrected ${memory.uses}x)',
         );
       }
     }
@@ -398,17 +486,17 @@ class MealInterpretationPersonalizationUsecase {
     return buffer.toString().trim();
   }
 
-  List<_MealCandidate> _buildCandidates({
+  List<MealInterpretationCandidate> _buildCandidates({
     required List<FrequentIntakePresetEntity> frequentMeals,
     required List<RecipeEntity> recipes,
     required List<AiFoodMemoryEntry> memories,
     required List<AiMealMemoryEntry> mealMemories,
   }) {
-    final candidates = <_MealCandidate>[];
+    final candidates = <MealInterpretationCandidate>[];
 
     for (final memory in mealMemories) {
       candidates.add(
-        _MealCandidate(
+        MealInterpretationCandidate(
           id: 'meal-memory:${memory.key}',
           title: memory.title,
           sourceLabel:
@@ -429,11 +517,11 @@ class MealInterpretationPersonalizationUsecase {
         continue;
       }
       candidates.add(
-        _MealCandidate(
+        MealInterpretationCandidate(
           id: 'memory:${memory.key}',
           title: memory.displayLabel,
           sourceLabel:
-              memory.uses > 1 ? 'Tu corrección frecuente' : 'Tu corrección',
+              memory.uses > 1 ? 'Tu correcci\u00f3n frecuente' : 'Tu correcci\u00f3n',
           meal: meal,
           defaultAmount: memory.amount,
           defaultUnit: memory.unit,
@@ -446,7 +534,7 @@ class MealInterpretationPersonalizationUsecase {
 
     for (final preset in frequentMeals) {
       candidates.add(
-        _MealCandidate(
+        MealInterpretationCandidate(
           id: 'preset:${preset.key}',
           title: preset.title,
           sourceLabel: 'Comida frecuente (${preset.uses}x)',
@@ -462,7 +550,7 @@ class MealInterpretationPersonalizationUsecase {
 
     for (final recipe in recipes) {
       candidates.add(
-        _MealCandidate(
+        MealInterpretationCandidate(
           id: 'recipe:${recipe.id}',
           title: recipe.name,
           sourceLabel: 'Receta guardada',
@@ -476,7 +564,7 @@ class MealInterpretationPersonalizationUsecase {
       );
     }
 
-    final unique = <String, _MealCandidate>{};
+    final unique = <String, MealInterpretationCandidate>{};
     for (final candidate in candidates) {
       final key = '${_normalize(candidate.title)}|${candidate.defaultUnit}';
       final current = unique[key];
@@ -489,7 +577,7 @@ class MealInterpretationPersonalizationUsecase {
 
   _CandidateMatch? _findBestCandidate(
     String label,
-    List<_MealCandidate> candidates, {
+    List<MealInterpretationCandidate> candidates, {
     required IntakeTypeEntity intakeType,
   }) {
     _CandidateMatch? bestMatch;
@@ -502,9 +590,76 @@ class MealInterpretationPersonalizationUsecase {
     return bestMatch;
   }
 
+  AiFoodMemoryEntry? _findReliableCorrection(
+    InterpretationDraftItemEntity item,
+    Map<String, AiFoodMemoryEntry> correctionMap,
+  ) {
+    final normalizedLabel = _normalize(item.label);
+    if (normalizedLabel.isEmpty) {
+      return null;
+    }
+
+    final exact = correctionMap[normalizedLabel];
+    if (exact != null) {
+      return exact;
+    }
+
+    final itemTokens = _tokens(item.label);
+    AiFoodMemoryEntry? bestCorrection;
+    double bestScore = 0;
+    for (final entry in correctionMap.entries) {
+      final candidate = entry.value;
+      if (candidate.uses < 3) {
+        continue;
+      }
+
+      final candidateTokens = _tokens(candidate.displayLabel);
+      final sharedTokens = itemTokens.intersection(candidateTokens).length;
+      if (sharedTokens == 0) {
+        continue;
+      }
+
+      final score = _textSimilarity(normalizedLabel, entry.key);
+      final hasStrongTokenOverlap =
+          sharedTokens >= 2 || itemTokens.difference(candidateTokens).isEmpty;
+      if (score >= 0.9 &&
+          hasStrongTokenOverlap &&
+          _isCompatibleCorrection(item, candidate) &&
+          score > bestScore) {
+        bestScore = score;
+        bestCorrection = candidate;
+      }
+    }
+
+    return bestCorrection;
+  }
+
+  bool _isCompatibleCorrection(
+    InterpretationDraftItemEntity item,
+    AiFoodMemoryEntry candidate,
+  ) {
+    final itemUnit = item.unit.trim().toLowerCase();
+    final candidateUnit = candidate.unit.trim().toLowerCase();
+    if (itemUnit.isNotEmpty &&
+        candidateUnit.isNotEmpty &&
+        itemUnit == candidateUnit) {
+      return true;
+    }
+
+    final itemMealName = _normalize(item.matchedMealSnapshot?.name ?? '');
+    final candidateMealName = _normalize(candidate.mealSnapshot?.name ?? '');
+    if (itemMealName.isNotEmpty &&
+        candidateMealName.isNotEmpty &&
+        itemMealName == candidateMealName) {
+      return true;
+    }
+
+    return item.matchedMealSnapshot == null || candidate.mealSnapshot == null;
+  }
+
   double _scoreCandidate(
     String? query,
-    _MealCandidate candidate, {
+    MealInterpretationCandidate candidate, {
     required IntakeTypeEntity intakeType,
   }) {
     if (query == null || query.trim().isEmpty) {
@@ -591,27 +746,75 @@ class MealInterpretationPersonalizationUsecase {
 
   String _normalize(String input) {
     const replacements = {
-      'á': 'a',
-      'à': 'a',
-      'ä': 'a',
-      'â': 'a',
-      'é': 'e',
-      'è': 'e',
-      'ë': 'e',
-      'ê': 'e',
-      'í': 'i',
-      'ì': 'i',
-      'ï': 'i',
-      'î': 'i',
-      'ó': 'o',
-      'ò': 'o',
-      'ö': 'o',
-      'ô': 'o',
-      'ú': 'u',
-      'ù': 'u',
-      'ü': 'u',
-      'û': 'u',
-      'ñ': 'n',
+      '\u00e1': 'a',
+      '\u00e0': 'a',
+      '\u00e4': 'a',
+      '\u00e2': 'a',
+      '\u00e3': 'a',
+      '\u00e9': 'e',
+      '\u00e8': 'e',
+      '\u00eb': 'e',
+      '\u00ea': 'e',
+      '\u00ed': 'i',
+      '\u00ec': 'i',
+      '\u00ef': 'i',
+      '\u00ee': 'i',
+      '\u00f3': 'o',
+      '\u00f2': 'o',
+      '\u00f6': 'o',
+      '\u00f4': 'o',
+      '\u00f5': 'o',
+      '\u00fa': 'u',
+      '\u00f9': 'u',
+      '\u00fc': 'u',
+      '\u00fb': 'u',
+      '\u00f1': 'n',
+      'ÃƒÂ¡': 'a',
+      'ÃƒÂ ': 'a',
+      'ÃƒÂ¤': 'a',
+      'ÃƒÂ¢': 'a',
+      'ÃƒÂ£': 'a',
+      'ÃƒÂ©': 'e',
+      'ÃƒÂ¨': 'e',
+      'ÃƒÂ«': 'e',
+      'ÃƒÂª': 'e',
+      'ÃƒÂ­': 'i',
+      'ÃƒÂ¬': 'i',
+      'ÃƒÂ¯': 'i',
+      'ÃƒÂ®': 'i',
+      'ÃƒÂ³': 'o',
+      'ÃƒÂ²': 'o',
+      'ÃƒÂ¶': 'o',
+      'ÃƒÂ´': 'o',
+      'ÃƒÂµ': 'o',
+      'ÃƒÂº': 'u',
+      'ÃƒÂ¹': 'u',
+      'ÃƒÂ¼': 'u',
+      'ÃƒÂ»': 'u',
+      'ÃƒÂ±': 'n',
+      'ÃƒÆ’Ã‚Â¡': 'a',
+      'ÃƒÆ’Ã‚Â ': 'a',
+      'ÃƒÆ’Ã‚Â¤': 'a',
+      'ÃƒÆ’Ã‚Â¢': 'a',
+      'ÃƒÆ’Ã‚Â£': 'a',
+      'ÃƒÆ’Ã‚Â©': 'e',
+      'ÃƒÆ’Ã‚Â¨': 'e',
+      'ÃƒÆ’Ã‚Â«': 'e',
+      'ÃƒÆ’Ã‚Âª': 'e',
+      'ÃƒÆ’Ã‚Â­': 'i',
+      'ÃƒÆ’Ã‚Â¬': 'i',
+      'ÃƒÆ’Ã‚Â¯': 'i',
+      'ÃƒÆ’Ã‚Â®': 'i',
+      'ÃƒÆ’Ã‚Â³': 'o',
+      'ÃƒÆ’Ã‚Â²': 'o',
+      'ÃƒÆ’Ã‚Â¶': 'o',
+      'ÃƒÆ’Ã‚Â´': 'o',
+      'ÃƒÆ’Ã‚Âµ': 'o',
+      'ÃƒÆ’Ã‚Âº': 'u',
+      'ÃƒÆ’Ã‚Â¹': 'u',
+      'ÃƒÆ’Ã‚Â¼': 'u',
+      'ÃƒÆ’Ã‚Â»': 'u',
+      'ÃƒÆ’Ã‚Â±': 'n',
     };
 
     var normalized = input.toLowerCase();
@@ -659,7 +862,7 @@ class MealInterpretationPersonalizationUsecase {
 class MealInterpretationPersonalizationContext {
   final String promptContext;
   final List<Map<String, dynamic>> remoteExamples;
-  final List<_MealCandidate> candidates;
+  final List<MealInterpretationCandidate> candidates;
 
   const MealInterpretationPersonalizationContext({
     required this.promptContext,
@@ -688,7 +891,7 @@ class MealInterpretationSuggestion {
   });
 }
 
-class _MealCandidate {
+class MealInterpretationCandidate {
   final String id;
   final String title;
   final String sourceLabel;
@@ -699,7 +902,7 @@ class _MealCandidate {
   final bool preferStoredPortion;
   final double sourcePriority;
 
-  const _MealCandidate({
+  const MealInterpretationCandidate({
     required this.id,
     required this.title,
     required this.sourceLabel,
@@ -731,7 +934,7 @@ class _MealCandidate {
 }
 
 class _CandidateMatch {
-  final _MealCandidate candidate;
+  final MealInterpretationCandidate candidate;
   final double score;
 
   const _CandidateMatch({

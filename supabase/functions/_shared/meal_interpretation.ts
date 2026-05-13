@@ -32,6 +32,8 @@ export type MealInterpretationItem = {
   carbs: number;
   fat: number;
   protein: number;
+  fiber?: number;
+  sugar?: number;
   confidenceBand: "low" | "medium" | "high";
   editable: boolean;
 };
@@ -45,6 +47,8 @@ export type MealInterpretationResponse = {
     carbs: number;
     fat: number;
     protein: number;
+    fiber?: number;
+    sugar?: number;
   };
   items: MealInterpretationItem[];
 };
@@ -75,15 +79,19 @@ export async function buildMealInterpretationDraft(
       "x-goog-api-key": apiKey,
     },
     body: JSON.stringify({
+      systemInstruction: {
+        parts: [{ text: buildSystemPrompt(request.mode, request.locale) }],
+      },
       contents: [
         {
           role: "user",
-          parts: buildUserParts(request),
+          parts: buildUserContentParts(request),
         },
       ],
       generationConfig: {
-        temperature: 0.2,
-        topK: 20,
+        temperature: 0.15,
+        topP: 0.8,
+        topK: 40,
         maxOutputTokens: 8192,
         responseMimeType: "application/json",
         responseJsonSchema: mealInterpretationSchema,
@@ -101,46 +109,142 @@ export async function buildMealInterpretationDraft(
   return normalizeDraftResponse(parsed, request, model, payload?.usageMetadata);
 }
 
-function buildSystemPrompt(mode: InterpretationMode): string {
-  return [
-    "You are a nutrition estimation engine for a privacy-first macro tracking app.",
-    "Return valid JSON only and follow the provided schema exactly.",
-    "Your job is to estimate a practical meal breakdown that the user can edit before saving.",
-    "Use only these units: g, ml, serving, oz, fl oz, g/ml.",
-    "Prefer g or ml when reasonably inferable. If portion is ambiguous, use serving.",
-    "Estimate calories, carbs, fat and protein for each item and for the total meal.",
-    "Use confidenceBand conservatively. If unsure about portion size or hidden ingredients, choose low or medium.",
-    "Do not invent brands unless the user explicitly names one.",
-    "If personal context or repeated meal examples are provided, prefer them when they plausibly match the observed meal.",
-    "Treat oils, dressings, sauces, cheese, nut butters and toppings conservatively unless they are clearly visible or explicitly mentioned.",
-    "When a dish appears to match a saved user meal, align portions and macros to that example instead of returning a generic alternative.",
-    mode === "photo"
-      ? "For photos, describe the dish and visible ingredients only. Do not claim certainty about hidden ingredients."
-      : "For text input, parse the foods the user actually described and choose reasonable defaults for ambiguous portions.",
-    "summary should be a short natural sentence describing the interpretation.",
-  ].join(" ");
+function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
+  const responseLanguage = inferResponseLanguage(locale);
+
+  const base = [
+    "You are an expert nutrition estimation engine for a macro tracking app.",
+    "Return valid JSON following the provided schema exactly.",
+    "Your goal is to produce the most accurate practical estimate so the user needs minimal corrections.",
+    "",
+    "## Core Rules",
+    "1. Use units: g, ml, serving, oz, fl oz, g/ml. Prefer g or ml when the food has a clear weight/volume. Use 'serving' only when portion is truly ambiguous.",
+    "2. Estimate kcal, carbs, fat, protein per item. Totals MUST equal the sum of all items.",
+    "3. Ensure macro-calorie coherence: kcal \u2248 (carbs \u00d7 4) + (protein \u00d7 4) + (fat \u00d7 9). Tolerance: \u00b110%.",
+    "4. Do NOT invent brands unless the user names one explicitly.",
+    `5. Respond with all text fields (title, summary, labels) in ${responseLanguage}.`,
+    "",
+    "## Portion Estimation Guidelines",
+    "Before estimating, mentally reason about the likely portion size:",
+    "- A standard home-cooked chicken breast: 120-180g cooked",
+    "- A restaurant chicken breast: 180-250g cooked",
+    "- A cup of cooked white rice: ~185g (\u2248240 kcal)",
+    "- A standard plate of pasta (cooked): 180-250g",
+    "- One large egg: ~60g (\u224878 kcal, 6g protein, 5g fat, 0.6g carbs)",
+    "- A tablespoon of olive oil: ~13ml (\u2248120 kcal, 14g fat)",
+    "- A slice of white bread: ~30g (\u224880 kcal)",
+    "- A medium banana: ~120g edible (\u2248105 kcal)",
+    "- A standard protein shake scoop: ~30g powder",
+    "",
+    "## Conservative Estimation for Hidden Calories",
+    "- Cooking oil (unless specified): assume 5-10ml per cooked item (45-90 kcal)",
+    "- Salad dressings: assume 15-20ml per serving unless visible/stated",
+    "- Cheese toppings: assume 15-25g unless clearly visible as more",
+    "- Sauces (mayo, ketchup, etc.): assume 15g per serving",
+    "- Nut butters: assume 15-20g (1 tablespoon) unless stated otherwise",
+    "- Butter on toast: assume 7-10g per slice",
+    "If the user's personal context shows they typically use different amounts, prefer their pattern.",
+    "",
+    "## Confidence Bands",
+    "- 'high': standard foods with clear portions (e.g., '2 eggs', '100g chicken breast', packaged foods)",
+    "- 'medium': recognizable foods with estimated portions (e.g., 'a plate of rice', 'some chicken')",
+    "- 'low': complex/mixed dishes, restaurant food, or heavily processed meals where ingredients are uncertain",
+    "",
+    "## Personal Context Usage",
+    "When personal meal examples or correction history are provided:",
+    "- If a food matches a user's saved meal (>70% name similarity), USE their portions and macros as the baseline",
+    "- If the user has corrected a food before, apply their preferred portion size",
+    "- Personal examples take priority over generic database estimates",
+    "",
+  ];
+
+  if (mode === "photo") {
+    base.push(
+      "## Photo-Specific Rules",
+      "- Identify ONLY visible ingredients. Do not guess hidden ingredients.",
+      "- Estimate plate/bowl size to calibrate portion sizes (standard dinner plate \u2248 26cm)",
+      "- If multiple items share a plate, estimate each separately",
+      "- Account for visible oil sheen, sauce coverage, cheese melting as hidden calorie sources",
+      "- If the photo is unclear or partially obscured, set confidenceBand to 'low'",
+    );
+  } else {
+    base.push(
+      "## Text-Specific Rules",
+      "- Parse exactly what the user described \u2014 do not add ingredients they didn't mention",
+      "- For ambiguous quantities ('some rice', 'a bit of cheese'), use moderate defaults",
+      "- If the user says 'homemade', assume standard home portions (not restaurant-sized)",
+      "- If the user specifies a brand, use that brand's actual nutritional values if known",
+    );
+  }
+
+  base.push(
+    "",
+    "## Output",
+    "- 'title': concise name for the meal (2-6 words)",
+    "- 'summary': one natural sentence describing what was detected and the estimation approach",
+    "- Each item should be a distinct ingredient or food component",
+    "- Avoid duplicating the same ingredient as separate items",
+  );
+
+  return base.join("\n");
 }
 
-function buildUserParts(request: MealInterpretationRequest) {
+function inferResponseLanguage(locale?: string): string {
+  const lang = (locale || "").split(/[-_]/)[0]?.toLowerCase();
+  switch (lang) {
+    case "es":
+      return "Spanish (espa\u00f1ol)";
+    case "fr":
+      return "French (fran\u00e7ais)";
+    case "de":
+      return "German (Deutsch)";
+    case "it":
+      return "Italian (italiano)";
+    case "pt":
+      return "Portuguese (portugu\u00eas)";
+    case "ja":
+      return "Japanese (\u65e5\u672c\u8a9e)";
+    case "ko":
+      return "Korean (\ud55c\uad6d\uc5b4)";
+    case "zh":
+      return "Chinese (\u4e2d\u6587)";
+    default:
+      return "English";
+  }
+}
+
+function buildUserContentParts(request: MealInterpretationRequest) {
   const metadataLines = [
-    buildSystemPrompt(request.mode),
     `Locale: ${request.locale || "unknown"}`,
     `Unit system: ${request.unitSystem || "metric"}`,
     `Meal type hint: ${request.mealTypeHint || "none"}`,
-    "Output JSON only.",
   ];
 
   const analysisContext = request.analysisContext?.trim();
   if (analysisContext) {
-    metadataLines.push(`User context:\n${analysisContext}`);
+    metadataLines.push(`\nUser nutrition profile and personal data:\n${analysisContext}`);
   }
 
   const personalExamples = request.personalExamples
-    ?.filter((example) => typeof example?.title === "string" && example.title.trim().length > 0)
-    .slice(0, 4) ?? [];
+    ?.filter((example) =>
+      typeof example?.title === "string" &&
+      example.title.trim().length > 0 &&
+      !isCorrectionExample(example)
+    )
+    .slice(0, 6) ?? [];
   if (personalExamples.length > 0) {
-    metadataLines.push("Repeated personal meal examples:");
+    metadataLines.push("\nUser's saved/repeated meals (use as reference when they match):");
     for (const example of personalExamples) {
+      metadataLines.push(formatPersonalExample(example));
+    }
+  }
+
+  const correctionExamples = request.personalExamples
+    ?.filter((example) => isCorrectionExample(example))
+    .slice(0, 4) ?? [];
+  if (correctionExamples.length > 0) {
+    metadataLines.push("\nPrevious corrections by this user (apply these preferred portions):");
+    for (const example of correctionExamples) {
       metadataLines.push(formatPersonalExample(example));
     }
   }
@@ -154,7 +258,7 @@ function buildUserParts(request: MealInterpretationRequest) {
 
     return [
       {
-        text: `${metadata}\nEstimate the meal from this photo.`,
+        text: `${metadata}\n\nAnalyze this meal photo and estimate its nutritional content.`,
       },
       {
         inlineData: {
@@ -171,11 +275,45 @@ function buildUserParts(request: MealInterpretationRequest) {
 
   return [
     {
-      text: `${metadata}\nUser meal description: ${request.text}`,
+      text: `${metadata}\n\nMeal description: ${request.text}`,
     },
   ];
 }
 
+function isCorrectionExample(
+  example: NonNullable<MealInterpretationRequest["personalExamples"]>[number],
+): boolean {
+  if (typeof example?.sourceLabel !== "string") {
+    return false;
+  }
+
+  const normalizedSource = normalizePromptText(example.sourceLabel);
+  return normalizedSource.includes("correction") ||
+    normalizedSource.includes("correccion");
+}
+
+function normalizePromptText(input: string): string {
+  return input
+    .toLowerCase()
+    .replaceAll("\u00e1", "a")
+    .replaceAll("\u00e9", "e")
+    .replaceAll("\u00ed", "i")
+    .replaceAll("\u00f3", "o")
+    .replaceAll("\u00fa", "u")
+    .replaceAll("\u00f1", "n")
+    .replaceAll("Ã¡", "a")
+    .replaceAll("Ã©", "e")
+    .replaceAll("Ã­", "i")
+    .replaceAll("Ã³", "o")
+    .replaceAll("Ãº", "u")
+    .replaceAll("Ã±", "n")
+    .replaceAll("ÃƒÂ¡", "a")
+    .replaceAll("ÃƒÂ©", "e")
+    .replaceAll("ÃƒÂ­", "i")
+    .replaceAll("ÃƒÂ³", "o")
+    .replaceAll("ÃƒÂº", "u")
+    .replaceAll("ÃƒÂ±", "n");
+}
 function formatPersonalExample(
   example: NonNullable<MealInterpretationRequest["personalExamples"]>[number],
 ): string {
@@ -251,7 +389,39 @@ export function normalizeDraftResponse(
   const usage = normalizeUsageMetadata(usageMetadata);
   const estimatedCostUsd = estimateGeminiCostUsd(model, usage);
 
-  const items = data.items.map((item, index) => ({
+  // Deduplicate items based on semantic label similarity
+  const deduplicatedItems = data.items.reduce((acc, item) => {
+    const normalizedItemLabel = normalizePromptText(item.label);
+    const existingIndex = acc.findIndex((e) =>
+      normalizePromptText(e.label) === normalizedItemLabel ||
+      normalizePromptText(e.label).includes(normalizedItemLabel) ||
+      normalizedItemLabel.includes(normalizePromptText(e.label))
+    );
+
+    if (existingIndex >= 0) {
+      const existing = acc[existingIndex];
+      existing.amount += toPositiveNumber(item.amount, 0);
+      existing.kcal += toPositiveNumber(item.kcal, 0);
+      existing.carbs += toPositiveNumber(item.carbs, 0);
+      existing.fat += toPositiveNumber(item.fat, 0);
+      existing.protein += toPositiveNumber(item.protein, 0);
+      if (item.fiber != null) {
+        existing.fiber = (existing.fiber || 0) + toPositiveNumber(item.fiber, 0);
+      }
+      if (item.sugar != null) {
+        existing.sugar = (existing.sugar || 0) + toPositiveNumber(item.sugar, 0);
+      }
+      // If the label is more descriptive, keep the longer one
+      if (item.label.length > existing.label.length) {
+        existing.label = item.label;
+      }
+    } else {
+      acc.push({ ...item });
+    }
+    return acc;
+  }, [] as MealInterpretationItem[]);
+
+  const items = deduplicatedItems.map((item, index) => ({
     id: item.id || `item_${index + 1}`,
     label: item.label,
     amount: toPositiveNumber(item.amount, 1),
@@ -260,6 +430,8 @@ export function normalizeDraftResponse(
     carbs: toPositiveNumber(item.carbs, 0),
     fat: toPositiveNumber(item.fat, 0),
     protein: toPositiveNumber(item.protein, 0),
+    fiber: item.fiber != null ? toPositiveNumber(item.fiber, 0) : null,
+    sugar: item.sugar != null ? toPositiveNumber(item.sugar, 0) : null,
     confidenceBand: normalizeConfidence(item.confidenceBand),
     editable: item.editable ?? true,
   }));
@@ -271,6 +443,10 @@ export function normalizeDraftResponse(
     protein: round1(
       data.totals?.protein ?? sum(items.map((item) => item.protein)),
     ),
+    fiber: data.totals?.fiber != null ? round1(data.totals.fiber) :
+           (items.some(i => i.fiber != null) ? round1(sum(items.map((item) => item.fiber || 0))) : null),
+    sugar: data.totals?.sugar != null ? round1(data.totals.sugar) :
+           (items.some(i => i.sugar != null) ? round1(sum(items.map((item) => item.sugar || 0))) : null),
   };
 
   return {

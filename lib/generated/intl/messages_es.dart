@@ -49,7 +49,7 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m12(count) => "${count} actividades";
 
-  static String m13(percent) => "${percent}% adherencia";
+  static String m13(percent) => "${percent}%";
 
   static String m14(count) => "${count}/7 días";
 

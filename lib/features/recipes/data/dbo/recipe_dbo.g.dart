@@ -92,7 +92,7 @@ RecipeDBO _$RecipeDBOFromJson(Map<String, dynamic> json) => RecipeDBO(
       yieldUnit: json['yieldUnit'] as String?,
       saved: json['favorite'] as bool,
       pinned: json['pinned'] as bool? ?? false,
-      timesUsed: json['timesUsed'] as int? ?? 0,
+      timesUsed: (json['timesUsed'] as num?)?.toInt() ?? 0,
       lastUsedAt: json['lastUsedAt'] == null
           ? null
           : DateTime.parse(json['lastUsedAt'] as String),

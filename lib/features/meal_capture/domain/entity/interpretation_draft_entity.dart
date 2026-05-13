@@ -25,6 +25,8 @@ class InterpretationDraftEntity extends Equatable {
   final double totalCarbs;
   final double totalFat;
   final double totalProtein;
+  final double? totalFiber;
+  final double? totalSugar;
   final ConfidenceBandEntity confidenceBand;
   final DraftStatusEntity status;
   final DateTime createdAt;
@@ -42,6 +44,8 @@ class InterpretationDraftEntity extends Equatable {
     required this.totalCarbs,
     required this.totalFat,
     required this.totalProtein,
+    this.totalFiber,
+    this.totalSugar,
     required this.confidenceBand,
     required this.status,
     required this.createdAt,
@@ -60,6 +64,8 @@ class InterpretationDraftEntity extends Equatable {
     double? totalCarbs,
     double? totalFat,
     double? totalProtein,
+    double? totalFiber,
+    double? totalSugar,
     ConfidenceBandEntity? confidenceBand,
     DraftStatusEntity? status,
     DateTime? createdAt,
@@ -77,6 +83,8 @@ class InterpretationDraftEntity extends Equatable {
       totalCarbs: totalCarbs ?? this.totalCarbs,
       totalFat: totalFat ?? this.totalFat,
       totalProtein: totalProtein ?? this.totalProtein,
+      totalFiber: totalFiber ?? this.totalFiber,
+      totalSugar: totalSugar ?? this.totalSugar,
       confidenceBand: confidenceBand ?? this.confidenceBand,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -97,6 +105,8 @@ class InterpretationDraftEntity extends Equatable {
         totalCarbs,
         totalFat,
         totalProtein,
+        totalFiber,
+        totalSugar,
         confidenceBand,
         status,
         createdAt,

@@ -27,8 +27,8 @@ class MealPhotoCaptureScreen extends StatefulWidget {
 }
 
 class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
-  static const _maxUploadBytes = 4 * 1024 * 1024;
-  static const _maxImageDimension = 1600;
+  static const _maxUploadBytes = 8 * 1024 * 1024;
+  static const _maxImageDimension = 2048;
 
   final ImagePicker _imagePicker = ImagePicker();
   late MealPhotoCaptureScreenArguments _args;
@@ -382,7 +382,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           )
         : decoded;
 
-    final encoded = Uint8List.fromList(img.encodeJpg(resized, quality: 84));
+    final encoded = Uint8List.fromList(img.encodeJpg(resized, quality: 92));
     return _PreparedUploadImage(
       bytes: encoded,
       fileName: _replaceExtension(fileName, 'jpg'),
@@ -467,14 +467,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       // Keep raw error when payload is not valid JSON.
     }
     return rawError;
-  }
-
-  String _truncateError(String error) {
-    final compact = error.replaceAll('\n', ' ').trim();
-    if (compact.length <= 90) {
-      return compact;
-    }
-    return '${compact.substring(0, 87)}...';
   }
 
   void _openTextFlow() {

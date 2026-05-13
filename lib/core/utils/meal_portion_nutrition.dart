@@ -6,12 +6,16 @@ class MealPortionNutrition {
   final double carbs;
   final double fat;
   final double protein;
+  final double? fiber;
+  final double? sugar;
 
   const MealPortionNutrition({
     required this.kcal,
     required this.carbs,
     required this.fat,
     required this.protein,
+    this.fiber,
+    this.sugar,
   });
 }
 
@@ -27,6 +31,8 @@ class MealPortionCalculator {
       carbs: convertedAmount * (meal.nutriments.carbohydratesPerUnit ?? 0),
       fat: convertedAmount * (meal.nutriments.fatPerUnit ?? 0),
       protein: convertedAmount * (meal.nutriments.proteinsPerUnit ?? 0),
+      fiber: _scaledOptionalValue(convertedAmount, meal.nutriments.fiber100),
+      sugar: _scaledOptionalValue(convertedAmount, meal.nutriments.sugars100),
     );
   }
 
@@ -42,5 +48,12 @@ class MealPortionCalculator {
       default:
         return amount;
     }
+  }
+
+  static double? _scaledOptionalValue(double amount, double? valuePer100) {
+    if (valuePer100 == null) {
+      return null;
+    }
+    return amount * (valuePer100 / 100);
   }
 }
