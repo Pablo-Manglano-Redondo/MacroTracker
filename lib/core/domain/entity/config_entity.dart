@@ -31,6 +31,10 @@ class ConfigEntity extends Equatable {
   final int mealReminderLunchMinutes;
   final int mealReminderAfternoonMinutes;
   final int mealReminderEveningMinutes;
+  final bool googleDriveAutoBackupEnabled;
+  final String? googleDriveLastBackupAttemptAt;
+  final String? googleDriveLastBackupSuccessAt;
+  final String? googleDriveLastBackupError;
 
   const ConfigEntity(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.appTheme,
@@ -55,7 +59,11 @@ class ConfigEntity extends Equatable {
       this.mealReminderMorningMinutes = 9 * 60,
       this.mealReminderLunchMinutes = 15 * 60 + 30,
       this.mealReminderAfternoonMinutes = 18 * 60,
-      this.mealReminderEveningMinutes = 21 * 60 + 30});
+      this.mealReminderEveningMinutes = 21 * 60 + 30,
+      this.googleDriveAutoBackupEnabled = false,
+      this.googleDriveLastBackupAttemptAt,
+      this.googleDriveLastBackupSuccessAt,
+      this.googleDriveLastBackupError});
 
   factory ConfigEntity.fromConfigDBO(ConfigDBO dbo) => ConfigEntity(
         dbo.hasAcceptedDisclaimer,
@@ -83,12 +91,15 @@ class ConfigEntity extends Equatable {
             dbo.discardedHealthConnectActivityIds ?? const [],
         mealRemindersEnabled: dbo.mealRemindersEnabled ?? false,
         mealReminderMorningMinutes: dbo.mealReminderMorningMinutes ?? 9 * 60,
-        mealReminderLunchMinutes:
-            dbo.mealReminderLunchMinutes ?? 15 * 60 + 30,
+        mealReminderLunchMinutes: dbo.mealReminderLunchMinutes ?? 15 * 60 + 30,
         mealReminderAfternoonMinutes:
             dbo.mealReminderAfternoonMinutes ?? 18 * 60,
         mealReminderEveningMinutes:
             dbo.mealReminderEveningMinutes ?? 21 * 60 + 30,
+        googleDriveAutoBackupEnabled: dbo.googleDriveAutoBackupEnabled ?? false,
+        googleDriveLastBackupAttemptAt: dbo.googleDriveLastBackupAttemptAt,
+        googleDriveLastBackupSuccessAt: dbo.googleDriveLastBackupSuccessAt,
+        googleDriveLastBackupError: dbo.googleDriveLastBackupError,
       );
 
   @override
@@ -118,5 +129,9 @@ class ConfigEntity extends Equatable {
         mealReminderLunchMinutes,
         mealReminderAfternoonMinutes,
         mealReminderEveningMinutes,
+        googleDriveAutoBackupEnabled,
+        googleDriveLastBackupAttemptAt,
+        googleDriveLastBackupSuccessAt,
+        googleDriveLastBackupError,
       ];
 }

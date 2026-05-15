@@ -61,6 +61,14 @@ class ConfigDBO extends HiveObject {
   int? mealReminderAfternoonMinutes;
   @HiveField(25)
   int? mealReminderEveningMinutes;
+  @HiveField(26)
+  bool? googleDriveAutoBackupEnabled;
+  @HiveField(27)
+  String? googleDriveLastBackupAttemptAt;
+  @HiveField(28)
+  String? googleDriveLastBackupSuccessAt;
+  @HiveField(29)
+  String? googleDriveLastBackupError;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
@@ -100,7 +108,11 @@ class ConfigDBO extends HiveObject {
     ..mealReminderMorningMinutes = entity.mealReminderMorningMinutes
     ..mealReminderLunchMinutes = entity.mealReminderLunchMinutes
     ..mealReminderAfternoonMinutes = entity.mealReminderAfternoonMinutes
-    ..mealReminderEveningMinutes = entity.mealReminderEveningMinutes;
+    ..mealReminderEveningMinutes = entity.mealReminderEveningMinutes
+    ..googleDriveAutoBackupEnabled = entity.googleDriveAutoBackupEnabled
+    ..googleDriveLastBackupAttemptAt = entity.googleDriveLastBackupAttemptAt
+    ..googleDriveLastBackupSuccessAt = entity.googleDriveLastBackupSuccessAt
+    ..googleDriveLastBackupError = entity.googleDriveLastBackupError;
 
   factory ConfigDBO.fromJson(Map<String, dynamic> json) =>
       _$ConfigDBOFromJson(json);

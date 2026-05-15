@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,52 +10,93 @@ import 'package:path_provider/path_provider.dart';
 abstract class DriveBackupService {
   Future<bool> isAuthenticated();
   Future<void> authenticate();
-  Future<void> uploadBackupFile(File file, String fileName);
+  Future<DriveBackupUploadResult> uploadBackupFile(
+    File file,
+    String fileName, {
+    bool allowInteractiveAuthentication = true,
+  });
+}
+
+class DriveBackupUploadResult {
+  final String? fileId;
+  final String? fileName;
+  final String? webViewLink;
+
+  const DriveBackupUploadResult({
+    this.fileId,
+    this.fileName,
+    this.webViewLink,
+  });
 }
 
 class BackupToDriveUsecase {
   final ExportDataUsecase _exportDataUsecase;
   final DriveBackupService _driveBackupService;
+  final ConfigRepository _configRepository;
 
-  BackupToDriveUsecase(this._exportDataUsecase, this._driveBackupService);
+  BackupToDriveUsecase(
+    this._exportDataUsecase,
+    this._driveBackupService,
+    this._configRepository,
+  );
 
-  Future<void> performBackup() async {
-    // 1. Ensure the user has authenticated with Google Drive
-    if (!await _driveBackupService.isAuthenticated()) {
-      // Note: In a background isolate, we cannot prompt for authentication UI.
-      // The user must have authenticated in the foreground previously.
-      // If the token is expired and cannot be refreshed, the backup fails.
-      return;
-    }
+  Future<DriveBackupUploadResult> performBackup({
+    bool allowInteractiveAuthentication = true,
+  }) async {
+    final attemptIso = DateTime.now().toIso8601String();
+    File? backupFile;
 
-    // 2. Determine a temporary path to save the zip file without UI prompt
-    final tempDir = await getTemporaryDirectory();
-    final backupPath = '${tempDir.path}/MacroTracker_DailyBackup.zip';
+    try {
+      if (!await _driveBackupService.isAuthenticated()) {
+        if (!allowInteractiveAuthentication) {
+          throw StateError('Google Drive account is not connected.');
+        }
+        await _driveBackupService.authenticate();
+      }
 
-    // 3. Export data directly to the file system
-    final savedPath = await _exportDataUsecase.exportData(
-      ExportImportBloc.exportZipFileName,
-      ExportImportBloc.userActivityJsonFileName,
-      ExportImportBloc.userIntakeJsonFileName,
-      ExportImportBloc.trackedDayJsonFileName,
-      ExportImportBloc.recipeJsonFileName,
-      ExportImportBloc.bodyMeasurementJsonFileName,
-      ExportImportBloc.dailyHabitJsonFileName,
-      ExportImportBloc.userJsonFileName,
-      ExportImportBloc.configJsonFileName,
-      customOutputPath: backupPath,
-    );
+      final tempDir = await getTemporaryDirectory();
+      final backupPath = '${tempDir.path}/MacroTracker_DailyBackup.zip';
 
-    if (savedPath != null) {
-      final backupFile = File(savedPath);
-      if (await backupFile.exists()) {
-        // 4. Upload the generated zip to Google Drive
-        await _driveBackupService.uploadBackupFile(
-          backupFile,
-          'MacroTracker_Backup_${DateTime.now().toIso8601String().split('T').first}.zip',
-        );
+      final savedPath = await _exportDataUsecase.exportData(
+        ExportImportBloc.exportZipFileName,
+        ExportImportBloc.userActivityJsonFileName,
+        ExportImportBloc.userIntakeJsonFileName,
+        ExportImportBloc.trackedDayJsonFileName,
+        ExportImportBloc.recipeJsonFileName,
+        ExportImportBloc.bodyMeasurementJsonFileName,
+        ExportImportBloc.dailyHabitJsonFileName,
+        ExportImportBloc.userJsonFileName,
+        ExportImportBloc.configJsonFileName,
+        customOutputPath: backupPath,
+      );
 
-        // 5. Clean up the local temporary file
+      if (savedPath == null) {
+        throw StateError('Backup export did not produce a file.');
+      }
+
+      backupFile = File(savedPath);
+      if (!await backupFile.exists()) {
+        throw StateError('Backup file was not created on disk.');
+      }
+
+      final result = await _driveBackupService.uploadBackupFile(
+        backupFile,
+        'MacroTracker_Backup_${DateTime.now().toIso8601String().split('T').first}.zip',
+        allowInteractiveAuthentication: allowInteractiveAuthentication,
+      );
+      await _configRepository.setGoogleDriveBackupStatus(
+        attemptedAtIso: attemptIso,
+        successAtIso: DateTime.now().toIso8601String(),
+      );
+      return result;
+    } catch (error) {
+      await _configRepository.setGoogleDriveBackupStatus(
+        attemptedAtIso: attemptIso,
+        errorMessage: error.toString(),
+      );
+      rethrow;
+    } finally {
+      if (backupFile != null && await backupFile.exists()) {
         await backupFile.delete();
       }
     }
@@ -64,6 +106,6 @@ class BackupToDriveUsecase {
   ///
   /// This should be called by a background worker (e.g. Workmanager) periodically.
   Future<void> performDailyBackup() async {
-    await performBackup();
+    await performBackup(allowInteractiveAuthentication: false);
   }
 }

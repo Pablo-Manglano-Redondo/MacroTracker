@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
-    as commons;
+import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -52,12 +51,20 @@ class GoogleDriveBackupService implements DriveBackupService {
         'Missing GOOGLE_DRIVE_SERVER_CLIENT_ID for Android Google Drive sign-in.',
       );
     }
+    if (Platform.isIOS && !_hasIosClientId) {
+      throw StateError(
+        'Missing GOOGLE_DRIVE_IOS_CLIENT_ID for iOS Google Drive sign-in.',
+      );
+    }
   }
+
+  bool get _hasIosClientId =>
+      _iosClientId.isNotEmpty && !_iosClientId.contains('YOUR_IOS_CLIENT_ID');
 
   Future<GoogleSignInAccount?> _restoreAccount() async {
     await _ensureInitialized();
-    _activeAccount ??=
-        await _googleSignIn.attemptLightweightAuthentication() ?? _activeAccount;
+    _activeAccount ??= await _googleSignIn.attemptLightweightAuthentication() ??
+        _activeAccount;
     return _activeAccount;
   }
 
@@ -102,6 +109,9 @@ class GoogleDriveBackupService implements DriveBackupService {
     if (Platform.isAndroid && _serverClientId.isEmpty) {
       return false;
     }
+    if (Platform.isIOS && !_hasIosClientId) {
+      return false;
+    }
     final headers = await _authorizationHeaders(interactive: false);
     return headers != null && headers['Authorization']?.isNotEmpty == true;
   }
@@ -128,10 +138,13 @@ class GoogleDriveBackupService implements DriveBackupService {
         return DriveBackupStatus(
           isSignedIn: false,
           requiresManualConfiguration:
-              Platform.isAndroid && _serverClientId.isEmpty,
+              (Platform.isAndroid && _serverClientId.isEmpty) ||
+                  (Platform.isIOS && !_hasIosClientId),
           errorMessage: Platform.isAndroid && _serverClientId.isEmpty
               ? 'Set GOOGLE_DRIVE_SERVER_CLIENT_ID before using Google Drive backup on Android.'
-              : null,
+              : Platform.isIOS && !_hasIosClientId
+                  ? 'Set GOOGLE_DRIVE_IOS_CLIENT_ID and GOOGLE_DRIVE_IOS_REVERSED_CLIENT_ID before using Google Drive backup on iOS.'
+                  : null,
         );
       }
 
@@ -140,22 +153,30 @@ class GoogleDriveBackupService implements DriveBackupService {
         accountEmail: account.email,
         accountName: account.displayName,
         requiresManualConfiguration:
-            Platform.isAndroid && _serverClientId.isEmpty,
+            (Platform.isAndroid && _serverClientId.isEmpty) ||
+                (Platform.isIOS && !_hasIosClientId),
       );
     } catch (error) {
       return DriveBackupStatus(
         isSignedIn: false,
         errorMessage: error.toString(),
         requiresManualConfiguration:
-            Platform.isAndroid && _serverClientId.isEmpty,
+            (Platform.isAndroid && _serverClientId.isEmpty) ||
+                (Platform.isIOS && !_hasIosClientId),
       );
     }
   }
 
   @override
-  Future<void> uploadBackupFile(File file, String fileName) async {
+  Future<DriveBackupUploadResult> uploadBackupFile(
+    File file,
+    String fileName, {
+    bool allowInteractiveAuthentication = true,
+  }) async {
     _assertPlatformConfiguration();
-    final headers = await _authorizationHeaders(interactive: true);
+    final headers = await _authorizationHeaders(
+      interactive: allowInteractiveAuthentication,
+    );
     if (headers == null) {
       throw StateError('Google Drive authorization was not granted.');
     }
@@ -169,10 +190,15 @@ class GoogleDriveBackupService implements DriveBackupService {
         ..description =
             'MacroTracker backup created on ${DateTime.now().toIso8601String()}';
 
-      await driveApi.files.create(
+      final uploadedFile = await driveApi.files.create(
         metadata,
         uploadMedia: media,
         $fields: 'id,name,webViewLink',
+      );
+      return DriveBackupUploadResult(
+        fileId: uploadedFile.id,
+        fileName: uploadedFile.name,
+        webViewLink: uploadedFile.webViewLink,
       );
     } finally {
       client.close();

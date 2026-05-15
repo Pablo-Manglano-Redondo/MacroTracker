@@ -89,6 +89,7 @@ import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:macrotracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:macrotracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:macrotracker/features/settings/domain/usecase/backup_to_drive_usecase.dart';
+import 'package:macrotracker/features/settings/data/services/android_drive_backup_scheduler.dart';
 import 'package:macrotracker/features/settings/data/services/google_drive_backup_service.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -100,6 +101,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 final locator = GetIt.instance;
 
 Future<void> initLocator() async {
+  if (locator.isRegistered<ConfigRepository>()) {
+    return;
+  }
+
   // Init secure storage and Hive database;
   final secureAppStorageProvider = SecureAppStorageProvider();
   final hiveDBProvider = HiveDBProvider();
@@ -219,8 +224,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<GetTrackedDayUsecase>(
       () => GetTrackedDayUsecase(locator()));
   locator.registerLazySingleton<UpdateHomeWidgetUsecase>(() =>
-      UpdateHomeWidgetUsecase(
-          locator(), locator(), locator(), locator()));
+      UpdateHomeWidgetUsecase(locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(
       () => AddTrackedDayUsecase(locator(), locator()));
   locator.registerLazySingleton(() => GetKcalGoalUsecase(locator(), locator()));
@@ -248,16 +252,18 @@ Future<void> initLocator() async {
             locator(),
             locator(),
           ));
-  locator.registerLazySingleton(() => ExportDataUsecase(
-      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(() => ImportDataUsecase(
-      locator(), locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => ExportDataUsecase(locator(), locator(),
+      locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => ImportDataUsecase(locator(), locator(),
+      locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<GoogleDriveBackupService>(
       () => GoogleDriveBackupService());
+  locator.registerLazySingleton<AndroidDriveBackupScheduler>(
+      () => AndroidDriveBackupScheduler());
   locator.registerLazySingleton<DriveBackupService>(
       () => locator<GoogleDriveBackupService>());
   locator.registerLazySingleton<BackupToDriveUsecase>(
-      () => BackupToDriveUsecase(locator(), locator()));
+      () => BackupToDriveUsecase(locator(), locator(), locator()));
   locator.registerLazySingleton<GenerateMacroSuggestionsUsecase>(
       () => GenerateMacroSuggestionsUsecase(locator(), locator()));
   locator.registerLazySingleton<BuildWeeklyInsightsUsecase>(

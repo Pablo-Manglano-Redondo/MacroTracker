@@ -44,13 +44,17 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..mealReminderMorningMinutes = fields[22] as int?
       ..mealReminderLunchMinutes = fields[23] as int?
       ..mealReminderAfternoonMinutes = fields[24] as int?
-      ..mealReminderEveningMinutes = fields[25] as int?;
+      ..mealReminderEveningMinutes = fields[25] as int?
+      ..googleDriveAutoBackupEnabled = fields[26] as bool?
+      ..googleDriveLastBackupAttemptAt = fields[27] as String?
+      ..googleDriveLastBackupSuccessAt = fields[28] as String?
+      ..googleDriveLastBackupError = fields[29] as String?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(26)
+      ..writeByte(30)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -102,7 +106,15 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(24)
       ..write(obj.mealReminderAfternoonMinutes)
       ..writeByte(25)
-      ..write(obj.mealReminderEveningMinutes);
+      ..write(obj.mealReminderEveningMinutes)
+      ..writeByte(26)
+      ..write(obj.googleDriveAutoBackupEnabled)
+      ..writeByte(27)
+      ..write(obj.googleDriveLastBackupAttemptAt)
+      ..writeByte(28)
+      ..write(obj.googleDriveLastBackupSuccessAt)
+      ..writeByte(29)
+      ..write(obj.googleDriveLastBackupError);
   }
 
   @override
@@ -158,7 +170,15 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..mealReminderAfternoonMinutes =
           (json['mealReminderAfternoonMinutes'] as num?)?.toInt()
       ..mealReminderEveningMinutes =
-          (json['mealReminderEveningMinutes'] as num?)?.toInt();
+          (json['mealReminderEveningMinutes'] as num?)?.toInt()
+      ..googleDriveAutoBackupEnabled =
+          json['googleDriveAutoBackupEnabled'] as bool?
+      ..googleDriveLastBackupAttemptAt =
+          json['googleDriveLastBackupAttemptAt'] as String?
+      ..googleDriveLastBackupSuccessAt =
+          json['googleDriveLastBackupSuccessAt'] as String?
+      ..googleDriveLastBackupError =
+          json['googleDriveLastBackupError'] as String?;
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -188,6 +208,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'mealReminderLunchMinutes': instance.mealReminderLunchMinutes,
       'mealReminderAfternoonMinutes': instance.mealReminderAfternoonMinutes,
       'mealReminderEveningMinutes': instance.mealReminderEveningMinutes,
+      'googleDriveAutoBackupEnabled': instance.googleDriveAutoBackupEnabled,
+      'googleDriveLastBackupAttemptAt': instance.googleDriveLastBackupAttemptAt,
+      'googleDriveLastBackupSuccessAt': instance.googleDriveLastBackupSuccessAt,
+      'googleDriveLastBackupError': instance.googleDriveLastBackupError,
     };
 
 const _$AppThemeDBOEnumMap = {

@@ -203,8 +203,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                         subtitle: Text(
                           _isEs(context)
-                              ? 'Copia manual cifrada en tu Drive'
-                              : 'Manual encrypted backup to your Drive',
+                              ? 'Copia cifrada manual o diaria en tu Drive'
+                              : 'Manual or daily encrypted backup to your Drive',
                         ),
                         onTap: () => _showDriveBackupDialog(context),
                       ),

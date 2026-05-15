@@ -73,6 +73,22 @@ class AddConfigUsecase {
     );
   }
 
+  Future<void> setGoogleDriveAutoBackupEnabled(bool enabled) async {
+    await _configRepository.setGoogleDriveAutoBackupEnabled(enabled);
+  }
+
+  Future<void> setGoogleDriveBackupStatus({
+    required String attemptedAtIso,
+    String? successAtIso,
+    String? errorMessage,
+  }) async {
+    await _configRepository.setGoogleDriveBackupStatus(
+      attemptedAtIso: attemptedAtIso,
+      successAtIso: successAtIso,
+      errorMessage: errorMessage,
+    );
+  }
+
   Future<void> addDiscardedHealthConnectActivityId(String externalId) async {
     await _configRepository.addDiscardedHealthConnectActivityId(externalId);
   }

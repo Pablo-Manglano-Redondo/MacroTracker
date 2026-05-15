@@ -105,6 +105,22 @@ class ConfigRepository {
     );
   }
 
+  Future<void> setGoogleDriveAutoBackupEnabled(bool enabled) async {
+    await _configDataSource.setGoogleDriveAutoBackupEnabled(enabled);
+  }
+
+  Future<void> setGoogleDriveBackupStatus({
+    required String attemptedAtIso,
+    String? successAtIso,
+    String? errorMessage,
+  }) async {
+    await _configDataSource.setGoogleDriveBackupStatus(
+      attemptedAtIso: attemptedAtIso,
+      successAtIso: successAtIso,
+      errorMessage: errorMessage,
+    );
+  }
+
   Future<List<String>> getDiscardedHealthConnectActivityIds() async {
     return _configDataSource.getDiscardedHealthConnectActivityIds();
   }

@@ -29,6 +29,7 @@ import 'package:macrotracker/features/recipes/presentation/recipe_library_screen
 import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:macrotracker/features/settings/settings_screen.dart';
+import 'package:macrotracker/features/settings/data/services/android_drive_backup_scheduler.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
@@ -38,8 +39,25 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
   try {
+    try {
+      await initializeDriveBackupWorker();
+    } catch (error, stackTrace) {
+      Logger('main').warning(
+        'Google Drive background worker initialization failed',
+        error,
+        stackTrace,
+      );
+    }
     await initLocator();
     final log = Logger('main');
+    try {
+      final config = await locator<ConfigRepository>().getConfig();
+      await locator<AndroidDriveBackupScheduler>()
+          .syncFromConfig(config.googleDriveAutoBackupEnabled);
+    } catch (error, stackTrace) {
+      log.warning(
+          'Google Drive backup scheduler sync failed', error, stackTrace);
+    }
     try {
       await locator<MealReminderService>().syncFromConfig();
     } catch (error, stackTrace) {
@@ -57,7 +75,8 @@ Future<void> main() async {
     // sentry enabled, else run without it
     if (kReleaseMode && hasAcceptedAnonymousData) {
       log.info('Starting App with Sentry enabled ...');
-      await _runAppWithSentryReporting(isUserInitialized, savedAppTheme, locale);
+      await _runAppWithSentryReporting(
+          isUserInitialized, savedAppTheme, locale);
     } else {
       log.info('Starting App ...');
       runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
@@ -74,7 +93,10 @@ Future<void> main() async {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   'FATAL ERROR ON STARTUP:\n\n$e\n\n$stackTrace',
-                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontFamily: 'monospace'),
+                  style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 13,
+                      fontFamily: 'monospace'),
                 ),
               ),
             ),
@@ -85,15 +107,15 @@ Future<void> main() async {
   }
 }
 
-Future<void> _runAppWithSentryReporting(
-    bool isUserInitialized, AppThemeEntity savedAppTheme, Locale? locale) async {
+Future<void> _runAppWithSentryReporting(bool isUserInitialized,
+    AppThemeEntity savedAppTheme, Locale? locale) async {
   try {
     await SentryFlutter.init((options) {
       options.dsn = Env.sentryDns.startsWith('http') ? Env.sentryDns : '';
       options.tracesSampleRate = 1.0;
     },
-        appRunner: () =>
-            runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale));
+        appRunner: () => runAppWithChangeNotifiers(
+            isUserInitialized, savedAppTheme, locale));
   } catch (e, stackTrace) {
     Logger('main').severe('Failed to initialize Sentry', e, stackTrace);
     runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
@@ -103,7 +125,8 @@ Future<void> _runAppWithSentryReporting(
 void runAppWithChangeNotifiers(
         bool userInitialized, AppThemeEntity savedAppTheme, Locale? locale) =>
     runApp(ChangeNotifierProvider(
-        create: (_) => ThemeModeProvider(appTheme: savedAppTheme, locale: locale),
+        create: (_) =>
+            ThemeModeProvider(appTheme: savedAppTheme, locale: locale),
         child: MacroTrackerApp(userInitialized: userInitialized)));
 
 class MacroTrackerApp extends StatelessWidget {

@@ -25,8 +25,8 @@ class DailyHabitLogDBOAdapter extends TypeAdapter<DailyHabitLogDBO> {
       sleepHours: fields[5] as double,
       steps: fields[6] as int,
       energyLevel: fields[7] as int,
-      sleepSyncedFromHealthConnect: fields[8] as bool? ?? false,
-      stepsSyncedFromHealthConnect: fields[9] as bool? ?? false,
+      sleepSyncedFromHealthConnect: fields[8] as bool,
+      stepsSyncedFromHealthConnect: fields[9] as bool,
     );
   }
 

@@ -142,6 +142,35 @@ class ConfigDataSource {
     await config.save();
   }
 
+  Future<void> setGoogleDriveAutoBackupEnabled(bool enabled) async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+    config.googleDriveAutoBackupEnabled = enabled;
+    if (!enabled) {
+      config.googleDriveLastBackupError = null;
+    }
+    await config.save();
+  }
+
+  Future<void> setGoogleDriveBackupStatus({
+    required String attemptedAtIso,
+    String? successAtIso,
+    String? errorMessage,
+  }) async {
+    final config = _configBox.get(_configKey);
+    if (config == null) {
+      return;
+    }
+    config.googleDriveLastBackupAttemptAt = attemptedAtIso;
+    if (successAtIso != null) {
+      config.googleDriveLastBackupSuccessAt = successAtIso;
+    }
+    config.googleDriveLastBackupError = errorMessage;
+    await config.save();
+  }
+
   Future<List<String>> getDiscardedHealthConnectActivityIds() async {
     final config = _configBox.get(_configKey);
     return List<String>.from(
