@@ -4221,6 +4221,30 @@ abstract class AppLocalizations {
   /// **'{count} items'**
   String diaryElementsSection(Object count);
 
+  /// No description provided for @diaryQuickAmountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Meal actions'**
+  String get diaryQuickAmountTitle;
+
+  /// No description provided for @diaryQuickAmountSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust the logged amount in steps of {step} {unit}.'**
+  String diaryQuickAmountSubtitle(Object step, Object unit);
+
+  /// No description provided for @diaryQuickAmountDecrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Reduce amount'**
+  String get diaryQuickAmountDecrease;
+
+  /// No description provided for @diaryQuickAmountIncrease.
+  ///
+  /// In en, this message translates to:
+  /// **'Increase amount'**
+  String get diaryQuickAmountIncrease;
+
   /// No description provided for @profileSportsProfile.
   ///
   /// In en, this message translates to:

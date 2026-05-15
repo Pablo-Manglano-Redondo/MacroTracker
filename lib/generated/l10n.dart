@@ -190,7 +190,7 @@ class S {
     );
   }
 
-  /// `Start with barcode, photo, text, or saved meals. If you search, choose the source below.`
+  /// `Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history.`
   String get addMealQuickActionsSubtitle {
     return Intl.message(
       'Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history.',
@@ -290,8 +290,7 @@ class S {
     );
   }
 
-  /// `No recent meals yet.
-  /// Log a meal once and it will appear here.`
+  /// `No recent meals yet.\nLog a meal once and it will appear here.`
   String get addMealRecentEmpty {
     return Intl.message(
       'No recent meals yet.\nLog a meal once and it will appear here.',
@@ -316,6 +315,16 @@ class S {
     return Intl.message(
       'Search a generic food like rice, eggs, or yogurt.',
       name: 'addMealSearchPromptGeneric',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search your recent history or open saved meals.`
+  String get addMealSearchPromptRecent {
+    return Intl.message(
+      'Search your recent history or open saved meals.',
+      name: 'addMealSearchPromptRecent',
       desc: '',
       args: [],
     );
@@ -6192,7 +6201,7 @@ class S {
     );
   }
 
-  /// `Health Connect data synced.`
+  /// `Health Connect data synced, including workouts.`
   String get healthConnectSyncSuccess {
     return Intl.message(
       'Health Connect data synced, including workouts.',
@@ -6202,7 +6211,7 @@ class S {
     );
   }
 
-  /// `No new Health Connect data was imported.`
+  /// `No new Health Connect data or workouts were imported.`
   String get healthConnectSyncNoChanges {
     return Intl.message(
       'No new Health Connect data or workouts were imported.',
@@ -6352,6 +6361,56 @@ class S {
     );
   }
 
+  /// `Quick category`
+  String get recipeQuickCategoryLabel {
+    return Intl.message(
+      'Quick category',
+      name: 'recipeQuickCategoryLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pre-workout`
+  String get quickCategoryPreWorkout {
+    return Intl.message(
+      'Pre-workout',
+      name: 'quickCategoryPreWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Post-workout`
+  String get quickCategoryPostWorkout {
+    return Intl.message(
+      'Post-workout',
+      name: 'quickCategoryPostWorkout',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shake`
+  String get quickCategoryShake {
+    return Intl.message(
+      'Shake',
+      name: 'quickCategoryShake',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light meal`
+  String get quickCategoryLeanMeal {
+    return Intl.message(
+      'Light meal',
+      name: 'quickCategoryLeanMeal',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Leg day`
   String get gymHabitsFocusLowerBody {
     return Intl.message(
@@ -6477,56 +6536,6 @@ class S {
     return Intl.message(
       'Saved',
       name: 'addMealSaved',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Quick category`
-  String get recipeQuickCategoryLabel {
-    return Intl.message(
-      'Quick category',
-      name: 'recipeQuickCategoryLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Pre-workout`
-  String get quickCategoryPreWorkout {
-    return Intl.message(
-      'Pre-workout',
-      name: 'quickCategoryPreWorkout',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Post-workout`
-  String get quickCategoryPostWorkout {
-    return Intl.message(
-      'Post-workout',
-      name: 'quickCategoryPostWorkout',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Shake`
-  String get quickCategoryShake {
-    return Intl.message(
-      'Shake',
-      name: 'quickCategoryShake',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Light meal`
-  String get quickCategoryLeanMeal {
-    return Intl.message(
-      'Light meal',
-      name: 'quickCategoryLeanMeal',
       desc: '',
       args: [],
     );
@@ -6912,6 +6921,46 @@ class S {
       name: 'diaryElementsSection',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `Meal actions`
+  String get diaryQuickAmountTitle {
+    return Intl.message(
+      'Meal actions',
+      name: 'diaryQuickAmountTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Adjust the logged amount in steps of {step} {unit}.`
+  String diaryQuickAmountSubtitle(Object step, Object unit) {
+    return Intl.message(
+      'Adjust the logged amount in steps of $step $unit.',
+      name: 'diaryQuickAmountSubtitle',
+      desc: '',
+      args: [step, unit],
+    );
+  }
+
+  /// `Reduce amount`
+  String get diaryQuickAmountDecrease {
+    return Intl.message(
+      'Reduce amount',
+      name: 'diaryQuickAmountDecrease',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Increase amount`
+  String get diaryQuickAmountIncrease {
+    return Intl.message(
+      'Increase amount',
+      name: 'diaryQuickAmountIncrease',
+      desc: '',
+      args: [],
     );
   }
 

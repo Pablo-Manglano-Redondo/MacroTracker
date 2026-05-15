@@ -49,7 +49,8 @@ class MealReminderService {
       _log.warning('Unable to resolve device timezone', error, stackTrace);
     }
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     await _notificationsPlugin.initialize(
       settings: const InitializationSettings(android: androidSettings),
     );
@@ -72,8 +73,8 @@ class MealReminderService {
     if (!Platform.isAndroid) {
       return true;
     }
-    final androidPlugin = _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
+    final androidPlugin =
+        _notificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
     final status = await Permission.notification.status;
@@ -148,7 +149,7 @@ class MealReminderService {
       id: _afternoonId,
       title: _isEs(config) ? 'Snack pendiente' : 'Snack reminder',
       body: _isEs(config)
-          ? 'Aun puedes registrar tu snack o merienda.'
+          ? 'Aún puedes registrar tu snack o merienda.'
           : 'You can still log your snack.',
       minutesOfDay: config.mealReminderAfternoonMinutes,
     );
@@ -156,7 +157,7 @@ class MealReminderService {
       id: _eveningId,
       title: _isEs(config) ? 'Cena pendiente' : 'Dinner reminder',
       body: _isEs(config)
-          ? 'Cierra el dia registrando la cena.'
+          ? 'Cierra el día registrando la cena.'
           : 'Close the day by logging dinner.',
       minutesOfDay: config.mealReminderEveningMinutes,
     );

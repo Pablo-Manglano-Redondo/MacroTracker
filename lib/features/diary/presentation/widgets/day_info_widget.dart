@@ -5,7 +5,6 @@ import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
-import 'package:macrotracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
@@ -30,6 +29,10 @@ class DayInfoWidget extends StatefulWidget {
       TrackedDayEntity? trackedDayEntity) onDeleteActivity;
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity,
       AddMealType? type) onCopyIntake;
+  final Future<void> Function(
+      IntakeEntity intake,
+      TrackedDayEntity? trackedDayEntity,
+      double newAmount) onAdjustIntakeAmount;
   final Function(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) onCopyActivity;
   final VoidCallback? onCopyDayToToday;
@@ -47,6 +50,7 @@ class DayInfoWidget extends StatefulWidget {
     required this.onDeleteIntake,
     required this.onDeleteActivity,
     required this.onCopyIntake,
+    required this.onAdjustIntakeAmount,
     required this.onCopyActivity,
     this.onCopyDayToToday,
   });
@@ -55,7 +59,8 @@ class DayInfoWidget extends StatefulWidget {
   State<DayInfoWidget> createState() => _DayInfoWidgetState();
 }
 
-class _DayInfoWidgetState extends State<DayInfoWidget> with AutomaticKeepAliveClientMixin {
+class _DayInfoWidgetState extends State<DayInfoWidget>
+    with AutomaticKeepAliveClientMixin {
   late bool _showActivity;
   late bool _showBreakfast;
   late bool _showLunch;
@@ -74,11 +79,16 @@ class _DayInfoWidgetState extends State<DayInfoWidget> with AutomaticKeepAliveCl
     if (!DateUtils.isSameDay(oldWidget.selectedDay, widget.selectedDay)) {
       _syncSectionState();
     } else {
-      if (oldWidget.userActivities.isEmpty && widget.userActivities.isNotEmpty) _showActivity = true;
-      if (oldWidget.breakfastIntake.isEmpty && widget.breakfastIntake.isNotEmpty) _showBreakfast = true;
-      if (oldWidget.lunchIntake.isEmpty && widget.lunchIntake.isNotEmpty) _showLunch = true;
-      if (oldWidget.dinnerIntake.isEmpty && widget.dinnerIntake.isNotEmpty) _showDinner = true;
-      if (oldWidget.snackIntake.isEmpty && widget.snackIntake.isNotEmpty) _showSnack = true;
+      if (oldWidget.userActivities.isEmpty && widget.userActivities.isNotEmpty)
+        _showActivity = true;
+      if (oldWidget.breakfastIntake.isEmpty &&
+          widget.breakfastIntake.isNotEmpty) _showBreakfast = true;
+      if (oldWidget.lunchIntake.isEmpty && widget.lunchIntake.isNotEmpty)
+        _showLunch = true;
+      if (oldWidget.dinnerIntake.isEmpty && widget.dinnerIntake.isNotEmpty)
+        _showDinner = true;
+      if (oldWidget.snackIntake.isEmpty && widget.snackIntake.isNotEmpty)
+        _showSnack = true;
     }
   }
 
@@ -306,20 +316,6 @@ class _DayInfoWidgetState extends State<DayInfoWidget> with AutomaticKeepAliveCl
     );
   }
 
-  void _showCopyOrDeleteIntakeDialog(
-      BuildContext context, IntakeEntity intakeEntity) async {
-    final copyOrDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) => const CopyOrDeleteDialog(),
-    );
-    if (!context.mounted) return;
-    if (copyOrDelete != null && !copyOrDelete) {
-      _showDeleteIntakeDialog(context, intakeEntity);
-    } else if (copyOrDelete != null && copyOrDelete) {
-      _showCopyDialog(context, intakeEntity);
-    }
-  }
-
   void _showCopyDialog(BuildContext context, IntakeEntity intakeEntity) async {
     const copyDialog = CopyDialog();
     final selectedMealType = await showDialog<AddMealType>(
@@ -344,10 +340,31 @@ class _DayInfoWidgetState extends State<DayInfoWidget> with AutomaticKeepAliveCl
 
   void _onIntakeItemLongPressed(
       BuildContext context, IntakeEntity intakeEntity) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
-      _showDeleteIntakeDialog(context, intakeEntity);
-    } else {
-      _showCopyOrDeleteIntakeDialog(context, intakeEntity);
+    final result = await showDialog<_IntakeQuickActionResult>(
+      context: context,
+      builder: (context) => _IntakeQuickActionDialog(
+        intakeEntity: intakeEntity,
+        isToday: DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
+      ),
+    );
+    if (!context.mounted || result == null) {
+      return;
+    }
+
+    switch (result.action) {
+      case _IntakeQuickAction.delete:
+        _showDeleteIntakeDialog(context, intakeEntity);
+        break;
+      case _IntakeQuickAction.copy:
+        _showCopyDialog(context, intakeEntity);
+        break;
+      case _IntakeQuickAction.updateAmount:
+        await widget.onAdjustIntakeAmount(
+          intakeEntity,
+          widget.trackedDayEntity,
+          result.amount ?? intakeEntity.amount,
+        );
+        break;
     }
   }
 
@@ -488,7 +505,8 @@ class _DaySummaryCard extends StatelessWidget {
                     value: '$proteinTracked/$proteinGoal g',
                     helper: proteinGoal > 0 && proteinTracked >= proteinGoal
                         ? S.of(context).diaryGoalReached
-                        : S.of(context).diaryGramsRemaining((proteinGoal - proteinTracked).clamp(0, 9999)),
+                        : S.of(context).diaryGramsRemaining(
+                            (proteinGoal - proteinTracked).clamp(0, 9999)),
                     accent: colorScheme.tertiary,
                   ),
                 ),
@@ -537,7 +555,8 @@ class _DaySummaryCard extends StatelessWidget {
     final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
     final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
 
-    return S.of(context).diaryMacrosSummary(carbsTracked, carbsGoal, fatTracked, fatGoal, proteinTracked, proteinGoal);
+    return S.of(context).diaryMacrosSummary(carbsTracked, carbsGoal, fatTracked,
+        fatGoal, proteinTracked, proteinGoal);
   }
 }
 
@@ -634,7 +653,9 @@ class _DiaryExpandableSection extends StatelessWidget {
                 ),
           ),
           subtitle: Text(
-            count == 0 ? S.of(context).diaryEmptySection : S.of(context).diaryElementsSection(count),
+            count == 0
+                ? S.of(context).diaryEmptySection
+                : S.of(context).diaryElementsSection(count),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -692,5 +713,197 @@ class _Pill extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+enum _IntakeQuickAction {
+  updateAmount,
+  copy,
+  delete,
+}
+
+class _IntakeQuickActionResult {
+  final _IntakeQuickAction action;
+  final double? amount;
+
+  const _IntakeQuickActionResult(this.action, {this.amount});
+}
+
+class _IntakeQuickActionDialog extends StatefulWidget {
+  final IntakeEntity intakeEntity;
+  final bool isToday;
+
+  const _IntakeQuickActionDialog({
+    required this.intakeEntity,
+    required this.isToday,
+  });
+
+  @override
+  State<_IntakeQuickActionDialog> createState() =>
+      _IntakeQuickActionDialogState();
+}
+
+class _IntakeQuickActionDialogState extends State<_IntakeQuickActionDialog> {
+  late double _amount;
+  late final double _step;
+
+  @override
+  void initState() {
+    super.initState();
+    _amount = widget.intakeEntity.amount;
+    _step = _stepForUnit(widget.intakeEntity.unit);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return AlertDialog(
+      title: Text(S.of(context).diaryQuickAmountTitle),
+      content: SizedBox(
+        width: 360,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.intakeEntity.meal.name ?? '',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              S.of(context).diaryQuickAmountSubtitle(
+                    _formatAmount(_step),
+                    widget.intakeEntity.unit,
+                  ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color:
+                    colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  IconButton.outlined(
+                    onPressed: _decrease,
+                    icon: const Icon(Icons.remove),
+                    tooltip: S.of(context).diaryQuickAmountDecrease,
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          _formatAmount(_amount),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.intakeEntity.unit,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: _increase,
+                    icon: const Icon(Icons.add),
+                    tooltip: S.of(context).diaryQuickAmountIncrease,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        if (!widget.isToday)
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(
+              const _IntakeQuickActionResult(_IntakeQuickAction.copy),
+            ),
+            child: Text(S.of(context).dialogCopyLabel),
+          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(
+            const _IntakeQuickActionResult(_IntakeQuickAction.delete),
+          ),
+          child: Text(S.of(context).dialogDeleteLabel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(
+            _IntakeQuickActionResult(
+              _IntakeQuickAction.updateAmount,
+              amount: _amount,
+            ),
+          ),
+          child: Text(S.of(context).buttonSaveLabel),
+        ),
+      ],
+    );
+  }
+
+  void _increase() {
+    setState(() {
+      _amount += _step;
+    });
+  }
+
+  void _decrease() {
+    setState(() {
+      final minAmount = _minimumAmountForUnit(widget.intakeEntity.unit);
+      final next = _amount - _step;
+      _amount = next < minAmount ? minAmount : next;
+    });
+  }
+
+  double _stepForUnit(String unit) {
+    switch (unit) {
+      case 'serving':
+      case 'oz':
+      case 'fl.oz':
+      case 'fl oz':
+        return 0.5;
+      case 'g':
+      case 'ml':
+      case 'g/ml':
+      default:
+        return 25;
+    }
+  }
+
+  double _minimumAmountForUnit(String unit) {
+    switch (unit) {
+      case 'serving':
+      case 'oz':
+      case 'fl.oz':
+      case 'fl oz':
+        return 0.5;
+      case 'g':
+      case 'ml':
+      case 'g/ml':
+      default:
+        return 25;
+    }
+  }
+
+  String _formatAmount(double value) {
+    if (value % 1 == 0) {
+      return value.toStringAsFixed(0);
+    }
+    return value.toStringAsFixed(1);
   }
 }

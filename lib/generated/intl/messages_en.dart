@@ -68,79 +68,82 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m21(amount) => "${amount}g avg protein";
 
-  static String m22(recipe, slot) => "${recipe} added to ${slot}";
+  static String m22(step, unit) =>
+      "Adjust the logged amount in steps of ${step} ${unit}.";
 
-  static String m23(count) => "${count} portions";
+  static String m23(count) => "${count}/7 today";
 
-  static String m24(amount) =>
+  static String m24(goal) => "Prioritize fluids today: ${goal}.";
+
+  static String m25(goal) => "Higher hydration target for leg day: ${goal}.";
+
+  static String m26(goal) => "Keep hydration steady today: ${goal}.";
+
+  static String m27(goal) => "Keep hydration high today: ${goal}.";
+
+  static String m28(amount) => "Goal ${amount} h";
+
+  static String m29(amount) => "Goal ${amount}";
+
+  static String m30(count) => "${count} burned";
+
+  static String m31(current, goal) => "${current} of ${goal} kcal";
+
+  static String m32(count) => "${count} meals";
+
+  static String m33(count) => "${count} sessions";
+
+  static String m34(recipe, slot) => "${recipe} added to ${slot}";
+
+  static String m35(count) => "${count} portions";
+
+  static String m36(amount) =>
       "You have ${amount}g of protein left. Prioritize a high protein meal.";
 
-  static String m25(riskValue) => "Risk of comorbidities: ${riskValue}";
+  static String m37(riskValue) => "Risk of comorbidities: ${riskValue}";
 
-  static String m26(phase) => "Current phase: ${phase}";
+  static String m38(phase) => "Current phase: ${phase}";
 
-  static String m27(name) => "${name} added";
+  static String m39(recipe, slot) => "${recipe} added to ${slot}";
 
-  static String m28(count) => "${count} ingredients";
-
-  static String m29(count) => "${count} servings";
-
-  static String m30(count) => "Photo calls: ${count}";
-
-  static String m31(count) => "Text calls: ${count}";
-
-  static String m32(count) => "Total calls: ${count}";
-
-  static String m33(cost) => "This month: ${cost}";
-
-  static String m34(cost) => "Today: ${cost}";
-
-  static String m35(cost) => "Total estimated: ${cost}";
-
-  static String m36(kcal) => "Daily adjustment updated to ${kcal} kcal.";
-
-  static String m37(delta) => "Apply ${delta} kcal/day";
-
-  static String m38(kcal) => "Current adjustment: ${kcal} kcal.";
-
-  static String m39(percent) => "${percent}% of registered days";
-
-  static String m40(count) => "${count} days registered this week";
-
-  static String m41(delta) => "Weight trend: ${delta} kg/week";
-
-  static String m42(age) => "${age} years";
-
-  static String m43(count) => "${count} meals";
-
-  static String m44(count) => "${count} burned";
-
-  static String m45(count) => "${count} sessions";
-
-  static String m46(current, goal) => "${current} of ${goal} kcal";
-
-  static String m47(count) => "${count} times";
-
-  static String m48(count) => "${count}/7 today";
-
-  static String m49(amount) => "Goal ${amount} h";
-
-  static String m50(amount) => "Goal ${amount}";
-
-  static String m51(goal) => "Higher hydration target for leg day: ${goal}.";
-
-  static String m52(goal) => "Keep hydration high today: ${goal}.";
-
-  static String m53(goal) => "Prioritize fluids today: ${goal}.";
-
-  static String m54(goal) => "Keep hydration steady today: ${goal}.";
-
-  static String m55(recipe, slot) => "${recipe} added to ${slot}";
-
-  static String m56(amount) => "P ${amount}";
-
-  static String m57(carbs, fat, protein) =>
+  static String m40(carbs, fat, protein) =>
       "C ${carbs} | F ${fat} | P ${protein}";
+
+  static String m41(amount) => "P ${amount}";
+
+  static String m42(name) => "${name} added";
+
+  static String m43(count) => "${count} times";
+
+  static String m44(count) => "${count} ingredients";
+
+  static String m45(count) => "${count} servings";
+
+  static String m46(count) => "Photo calls: ${count}";
+
+  static String m47(count) => "Text calls: ${count}";
+
+  static String m48(count) => "Total calls: ${count}";
+
+  static String m49(cost) => "This month: ${cost}";
+
+  static String m50(cost) => "Today: ${cost}";
+
+  static String m51(cost) => "Total estimated: ${cost}";
+
+  static String m52(kcal) => "Daily adjustment updated to ${kcal} kcal.";
+
+  static String m53(delta) => "Apply ${delta} kcal/day";
+
+  static String m54(kcal) => "Current adjustment: ${kcal} kcal.";
+
+  static String m55(percent) => "${percent}% of registered days";
+
+  static String m56(count) => "${count} days registered this week";
+
+  static String m57(delta) => "Weight trend: ${delta} kg/week";
+
+  static String m58(age) => "${age} years";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -149,29 +152,21 @@ class MessageLookup extends MessageLookupByLibrary {
         "activityLabel": MessageLookupByLibrary.simpleMessage("Activity"),
         "addItemLabel": MessageLookupByLibrary.simpleMessage("Add new Item:"),
         "addLabel": MessageLookupByLibrary.simpleMessage("Add"),
+        "addMealBarcode": MessageLookupByLibrary.simpleMessage("Barcode"),
+        "addMealPhoto": MessageLookupByLibrary.simpleMessage("Photo"),
         "addMealQuickActionsSubtitle": MessageLookupByLibrary.simpleMessage(
             "Start with barcode, photo, text, or saved meals. If you search, use Food or Recent history."),
         "addMealQuickActionsTitle":
             MessageLookupByLibrary.simpleMessage("Quick shortcuts"),
         "addMealRecentEmpty": MessageLookupByLibrary.simpleMessage(
             "No recent meals yet.\nLog a meal once and it will appear here."),
-        "addMealBarcode": MessageLookupByLibrary.simpleMessage("Barcode"),
-        "addMealPhoto": MessageLookupByLibrary.simpleMessage("Photo"),
         "addMealSaved": MessageLookupByLibrary.simpleMessage("Saved"),
-        "recipeQuickCategoryLabel":
-            MessageLookupByLibrary.simpleMessage("Quick category"),
-        "quickCategoryLeanMeal":
-            MessageLookupByLibrary.simpleMessage("Light meal"),
-        "quickCategoryPostWorkout":
-            MessageLookupByLibrary.simpleMessage("Post-workout"),
-        "quickCategoryPreWorkout":
-            MessageLookupByLibrary.simpleMessage("Pre-workout"),
-        "quickCategoryShake":
-            MessageLookupByLibrary.simpleMessage("Shake"),
         "addMealSearchPromptGeneric": MessageLookupByLibrary.simpleMessage(
             "Search a generic food like rice, eggs, or yogurt."),
         "addMealSearchPromptPackaged": MessageLookupByLibrary.simpleMessage(
             "Search any food or use barcode."),
+        "addMealSearchPromptRecent": MessageLookupByLibrary.simpleMessage(
+            "Search your recent history or open saved meals."),
         "addMealSectionGenericResults":
             MessageLookupByLibrary.simpleMessage("Generic food results"),
         "addMealSectionPackagedResults":
@@ -518,6 +513,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "diaryPreviousDayTooltip":
             MessageLookupByLibrary.simpleMessage("Previous day"),
         "diaryProteinPill": m21,
+        "diaryQuickAmountDecrease":
+            MessageLookupByLibrary.simpleMessage("Reduce amount"),
+        "diaryQuickAmountIncrease":
+            MessageLookupByLibrary.simpleMessage("Increase amount"),
+        "diaryQuickAmountSubtitle": m22,
+        "diaryQuickAmountTitle":
+            MessageLookupByLibrary.simpleMessage("Meal actions"),
         "diarySelectedDayLabel":
             MessageLookupByLibrary.simpleMessage("Selected day"),
         "diaryStatusAbove": MessageLookupByLibrary.simpleMessage("Above"),
@@ -569,7 +571,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Maintain Weight"),
         "gramMilliliterUnit": MessageLookupByLibrary.simpleMessage("g/ml"),
         "gramUnit": MessageLookupByLibrary.simpleMessage("g"),
-        "gymHabitsCompletedToday": m48,
+        "gymHabitsCompletedToday": m23,
         "gymHabitsEnergyTitle": MessageLookupByLibrary.simpleMessage("Energy"),
         "gymHabitsFocusCardio":
             MessageLookupByLibrary.simpleMessage("Cardio day"),
@@ -578,28 +580,28 @@ class MessageLookup extends MessageLookupByLibrary {
         "gymHabitsFocusRest": MessageLookupByLibrary.simpleMessage("Rest day"),
         "gymHabitsFocusUpperBody":
             MessageLookupByLibrary.simpleMessage("Upper body day"),
-        "gymHabitsHydrationHintCardio": m53,
-        "gymHabitsHydrationHintLowerBody": m51,
-        "gymHabitsHydrationHintRest": m54,
-        "gymHabitsHydrationHintUpperBody": m52,
+        "gymHabitsHydrationHintCardio": m24,
+        "gymHabitsHydrationHintLowerBody": m25,
+        "gymHabitsHydrationHintRest": m26,
+        "gymHabitsHydrationHintUpperBody": m27,
         "gymHabitsManualAdjustHint": MessageLookupByLibrary.simpleMessage(
             "Use +/- only if you need to correct the value."),
-        "gymHabitsSleepTarget": m49,
+        "gymHabitsSleepTarget": m28,
         "gymHabitsSleepTitle": MessageLookupByLibrary.simpleMessage("Sleep"),
         "gymHabitsSourceHealthConnectDetail":
             MessageLookupByLibrary.simpleMessage(
                 "Main value from Health Connect"),
         "gymHabitsSourceManualDetail":
             MessageLookupByLibrary.simpleMessage("Main value entered manually"),
-        "gymHabitsStepsTarget": m50,
+        "gymHabitsStepsTarget": m29,
         "gymHabitsStepsTitle": MessageLookupByLibrary.simpleMessage("Steps"),
         "gymHabitsTitle":
             MessageLookupByLibrary.simpleMessage("Habits and recovery"),
         "habitSourceHealthConnect":
             MessageLookupByLibrary.simpleMessage("Health Connect"),
+        "habitSourceManual": MessageLookupByLibrary.simpleMessage("Manual"),
         "habitSourceManualAdjust":
             MessageLookupByLibrary.simpleMessage("Manual adjustment"),
-        "habitSourceManual": MessageLookupByLibrary.simpleMessage("Manual"),
         "habitSourceSynced":
             MessageLookupByLibrary.simpleMessage("Synced source"),
         "healthConnectAutoSyncDisabledMessage":
@@ -641,29 +643,27 @@ class MessageLookup extends MessageLookupByLibrary {
             "No new Health Connect data or workouts were imported."),
         "healthConnectSyncNowTitle":
             MessageLookupByLibrary.simpleMessage("Sync Health Connect now"),
-        "healthConnectSyncSuccess":
-            MessageLookupByLibrary.simpleMessage(
-                "Health Connect data synced, including workouts."),
+        "healthConnectSyncSuccess": MessageLookupByLibrary.simpleMessage(
+            "Health Connect data synced, including workouts."),
         "heightLabel": MessageLookupByLibrary.simpleMessage("Height"),
         "historyLabel": MessageLookupByLibrary.simpleMessage("History"),
-        "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
-        "homeDashboardBurnedChip": m44,
+        "homeDashboardBurnedChip": m30,
         "homeDashboardEmpty": MessageLookupByLibrary.simpleMessage(
             "Log a meal or workout to unlock better guidance."),
         "homeDashboardFocusLabel":
             MessageLookupByLibrary.simpleMessage("Focus"),
         "homeDashboardGoalLabel": MessageLookupByLibrary.simpleMessage("Goal"),
-        "homeDashboardKcalProgress": m46,
+        "homeDashboardKcalProgress": m31,
         "homeDashboardKcalRemaining":
             MessageLookupByLibrary.simpleMessage("Kcal left"),
         "homeDashboardMacroDone":
             MessageLookupByLibrary.simpleMessage("Goal reached"),
-        "homeDashboardMealsChip": m43,
+        "homeDashboardMealsChip": m32,
         "homeDashboardOverGoal":
             MessageLookupByLibrary.simpleMessage("Over goal"),
         "homeDashboardProteinRemaining":
             MessageLookupByLibrary.simpleMessage("Protein left"),
-        "homeDashboardSessionsChip": m45,
+        "homeDashboardSessionsChip": m33,
         "homeDashboardStatusBulkOpen": MessageLookupByLibrary.simpleMessage(
             "You still have room. Add easy carbs and protein."),
         "homeDashboardStatusCarbWindow": MessageLookupByLibrary.simpleMessage(
@@ -682,6 +682,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Today at a glance."),
         "homeDashboardTitle":
             MessageLookupByLibrary.simpleMessage("Gym nutrition"),
+        "homeLabel": MessageLookupByLibrary.simpleMessage("Home"),
         "homePerformanceSummary":
             MessageLookupByLibrary.simpleMessage("Performance Summary"),
         "homeWeeklyInsightsSubtitle": MessageLookupByLibrary.simpleMessage(
@@ -711,10 +712,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "lunchLabel": MessageLookupByLibrary.simpleMessage("Lunch"),
         "macroDistributionLabel":
             MessageLookupByLibrary.simpleMessage("Macronutrient Distribution:"),
-        "macroSuggestionsAddedTo": m22,
+        "macroSuggestionsAddedTo": m34,
         "macroSuggestionsEmpty": MessageLookupByLibrary.simpleMessage(
             "Save some recipes and this section will start suggesting based on your training day."),
-        "macroSuggestionsServingsPortions": m23,
+        "macroSuggestionsServingsPortions": m35,
         "macroSuggestionsSubtitleDefault": MessageLookupByLibrary.simpleMessage(
             "Saved meals based on what you are still missing today."),
         "macroSuggestionsSubtitleGym": MessageLookupByLibrary.simpleMessage(
@@ -769,7 +770,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("No pending actions for now."),
         "nudgeNoReminders": MessageLookupByLibrary.simpleMessage(
             "No pending reminders. Doing great today."),
-        "nudgeProteinLeft": m24,
+        "nudgeProteinLeft": m36,
         "nudgeSmartReminders":
             MessageLookupByLibrary.simpleMessage("Smart reminders"),
         "nutritionInfoLabel":
@@ -788,7 +789,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Average"),
         "nutritionalStatusRiskIncreased":
             MessageLookupByLibrary.simpleMessage("Increased"),
-        "nutritionalStatusRiskLabel": m25,
+        "nutritionalStatusRiskLabel": m37,
         "nutritionalStatusRiskLow": MessageLookupByLibrary.simpleMessage(
             "Low \n(but risk of other \nclinical problems increased)"),
         "nutritionalStatusRiskModerate":
@@ -1174,7 +1175,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Calculation base for goals, tracking and suggestions."),
         "profileChangePhoto":
             MessageLookupByLibrary.simpleMessage("Change photo"),
-        "profileCurrentPhase": m26,
+        "profileCurrentPhase": m38,
         "profileFocusCardio": MessageLookupByLibrary.simpleMessage(
             "Today the distribution seeks enough energy without adding extra carbs."),
         "profileFocusLowerBody": MessageLookupByLibrary.simpleMessage(
@@ -1209,7 +1210,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "profileYourProfileSubtitle": MessageLookupByLibrary.simpleMessage(
             "Adjust your base data so that calories, macros and recommendations are consistent."),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
-        "quickMealsAddedTo": m55,
+        "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
+        "quickCategoryLeanMeal":
+            MessageLookupByLibrary.simpleMessage("Light meal"),
+        "quickCategoryPostWorkout":
+            MessageLookupByLibrary.simpleMessage("Post-workout"),
+        "quickCategoryPreWorkout":
+            MessageLookupByLibrary.simpleMessage("Pre-workout"),
+        "quickCategoryShake": MessageLookupByLibrary.simpleMessage("Shake"),
+        "quickMealsAddedTo": m39,
         "quickMealsEmptyAll": MessageLookupByLibrary.simpleMessage(
             "Save meals as recipes to keep them one tap away here."),
         "quickMealsEmptyFiltered": MessageLookupByLibrary.simpleMessage(
@@ -1224,29 +1233,27 @@ class MessageLookup extends MessageLookupByLibrary {
         "quickMealsFilterShake": MessageLookupByLibrary.simpleMessage("Shake"),
         "quickMealsLogServing":
             MessageLookupByLibrary.simpleMessage("Log one serving"),
-        "quickMealsMacrosSummary": m57,
-        "quickMealsProteinShort": m56,
+        "quickMealsMacrosSummary": m40,
+        "quickMealsProteinShort": m41,
         "quickMealsSavedTooltip":
             MessageLookupByLibrary.simpleMessage("Open saved meals"),
         "quickMealsSubtitle": MessageLookupByLibrary.simpleMessage(
             "Use your saved recipes first. One tap logs a serving fast."),
         "quickMealsTitle": MessageLookupByLibrary.simpleMessage("Quick meals"),
-        "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "readLabel": MessageLookupByLibrary.simpleMessage(
             "I have read and accept the privacy policy."),
         "recentlyAddedLabel": MessageLookupByLibrary.simpleMessage("Recently"),
-        "recipeLibraryAddedSnackbar": m27,
+        "recipeLibraryAddedSnackbar": m42,
         "recipeLibraryEmpty": MessageLookupByLibrary.simpleMessage(
             "No saved meals yet.\nSave meals as recipes to reuse them."),
+        "recipeLibraryFavorite": MessageLookupByLibrary.simpleMessage("Saved"),
         "recipeLibraryFrequentSectionSubtitle":
             MessageLookupByLibrary.simpleMessage(
                 "Detected from your history so you can repeat them faster."),
         "recipeLibraryFrequentSectionTitle":
             MessageLookupByLibrary.simpleMessage("Repeated suggestions"),
-        "recipeLibraryFrequentUses": m47,
-        "recipeLibraryFavorite":
-            MessageLookupByLibrary.simpleMessage("Saved"),
-        "recipeLibraryIngredientsCount": m28,
+        "recipeLibraryFrequentUses": m43,
+        "recipeLibraryIngredientsCount": m44,
         "recipeLibraryIntro": MessageLookupByLibrary.simpleMessage(
             "One library, two sources: meals you save manually and repeated meals detected automatically."),
         "recipeLibraryManualSectionSubtitle":
@@ -1260,9 +1267,11 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Remove saved"),
         "recipeLibrarySearchHint":
             MessageLookupByLibrary.simpleMessage("Search saved meals"),
-        "recipeLibraryServingsCount": m29,
+        "recipeLibraryServingsCount": m45,
         "recipeLibraryTitle":
             MessageLookupByLibrary.simpleMessage("Saved meals"),
+        "recipeQuickCategoryLabel":
+            MessageLookupByLibrary.simpleMessage("Quick category"),
         "recipeSavedSnackbar":
             MessageLookupByLibrary.simpleMessage("Recipe saved"),
         "reportErrorDialogText": MessageLookupByLibrary.simpleMessage(
@@ -1298,15 +1307,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingAboutLabel": MessageLookupByLibrary.simpleMessage("About"),
         "settingFeedbackLabel":
             MessageLookupByLibrary.simpleMessage("Feedback"),
-        "settingsAiCallsPhoto": m30,
-        "settingsAiCallsText": m31,
-        "settingsAiCallsTotal": m32,
+        "settingsAiCallsPhoto": m46,
+        "settingsAiCallsText": m47,
+        "settingsAiCallsTotal": m48,
         "settingsAiCostDescription": MessageLookupByLibrary.simpleMessage(
             "Based on real token usage per backend request."),
         "settingsAiCostLabel": MessageLookupByLibrary.simpleMessage("AI Cost"),
-        "settingsAiCostMonth": m33,
-        "settingsAiCostToday": m34,
-        "settingsAiCostTotal": m35,
+        "settingsAiCostMonth": m49,
+        "settingsAiCostToday": m50,
+        "settingsAiCostTotal": m51,
         "settingsCalculationsLabel":
             MessageLookupByLibrary.simpleMessage("Calculations"),
         "settingsDisclaimerLabel":
@@ -1356,15 +1365,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
         "weeklyInsightsAdherence":
             MessageLookupByLibrary.simpleMessage("Adherence"),
-        "weeklyInsightsAdjustmentSuccess": m36,
-        "weeklyInsightsApplyAdjustment": m37,
+        "weeklyInsightsAdjustmentSuccess": m52,
+        "weeklyInsightsApplyAdjustment": m53,
         "weeklyInsightsAverages":
             MessageLookupByLibrary.simpleMessage("Weekly Averages"),
         "weeklyInsightsCheckup":
             MessageLookupByLibrary.simpleMessage("Smart Weekly Checkup"),
         "weeklyInsightsCoverage":
             MessageLookupByLibrary.simpleMessage("Coverage"),
-        "weeklyInsightsCurrentAdjustment": m38,
+        "weeklyInsightsCurrentAdjustment": m54,
         "weeklyInsightsError": MessageLookupByLibrary.simpleMessage(
             "Could not load weekly insights."),
         "weeklyInsightsNoFrequentMeals": MessageLookupByLibrary.simpleMessage(
@@ -1401,7 +1410,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Stable maintenance. No kcal change."),
         "weeklyInsightsRecMaintainUp": MessageLookupByLibrary.simpleMessage(
             "Weight trending up: suggestion -50 kcal/day."),
-        "weeklyInsightsRegisteredDays": m39,
+        "weeklyInsightsRegisteredDays": m55,
         "weeklyInsightsSlotAfternoon":
             MessageLookupByLibrary.simpleMessage("Afternoon"),
         "weeklyInsightsSlotEvening":
@@ -1426,9 +1435,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Weekly Insights"),
         "weeklyInsightsTopMeals":
             MessageLookupByLibrary.simpleMessage("Most Frequent Meals"),
-        "weeklyInsightsTrackedDays": m40,
-        "weeklyInsightsTrend": m41,
+        "weeklyInsightsTrackedDays": m56,
+        "weeklyInsightsTrend": m57,
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
-        "yearsLabel": m42
+        "yearsLabel": m58
       };
 }

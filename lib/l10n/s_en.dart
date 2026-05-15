@@ -2281,6 +2281,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diaryQuickAmountTitle => 'Meal actions';
+
+  @override
+  String diaryQuickAmountSubtitle(Object step, Object unit) {
+    return 'Adjust the logged amount in steps of $step $unit.';
+  }
+
+  @override
+  String get diaryQuickAmountDecrease => 'Reduce amount';
+
+  @override
+  String get diaryQuickAmountIncrease => 'Increase amount';
+
+  @override
   String get profileSportsProfile => 'Sports profile';
 
   @override

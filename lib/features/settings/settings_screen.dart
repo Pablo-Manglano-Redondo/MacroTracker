@@ -21,7 +21,6 @@ import 'package:macrotracker/features/settings/presentation/widgets/export_impor
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -209,14 +208,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () => _showDriveBackupDialog(context),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.policy_outlined),
-                        title: Text(S.of(context).settingsPrivacySettings),
-                        onTap: () => _showPrivacyDialog(
-                          context,
-                          state.sendAnonymousData,
-                        ),
-                      ),
-                      ListTile(
                         leading: const Icon(Icons.description_outlined),
                         title: Text(S.of(context).settingsDisclaimerLabel),
                         onTap: () => _showDisclaimerDialog(context),
@@ -238,12 +229,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () => _showAiCostDialog(context, state),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.bug_report_outlined),
-                        title: Text(S.of(context).settingsReportErrorLabel),
-                        onTap: () => _showReportErrorDialog(context),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.error_outline_outlined),
+                        leading: const Icon(Icons.info_outline),
                         title: Text(S.of(context).settingAboutLabel),
                         onTap: () => _showAboutDialog(context),
                       ),
@@ -622,119 +608,108 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
   }
 
-  void _showReportErrorDialog(BuildContext context) {
-    showDialog(
+  void _showAboutDialog(BuildContext context) async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final versionLabel = packageInfo.buildNumber.isNotEmpty
+        ? '${packageInfo.version} (${packageInfo.buildNumber})'
+        : packageInfo.version;
+
+    if (context.mounted) {
+      showDialog<void>(
         context: context,
         builder: (context) {
+          final theme = Theme.of(context);
           return AlertDialog(
-            title: Text(S.of(context).settingsReportErrorLabel),
-            content: Text(S.of(context).reportErrorDialogText),
-            actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(S.of(context).dialogCancelLabel)),
-              TextButton(
-                  onPressed: () async {
-                    _reportError(context);
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(S.of(context).dialogOKLabel))
-            ],
-          );
-        });
-  }
-
-  Future<void> _reportError(BuildContext context) async {
-    final reportUri =
-        Uri.parse("mailto:${AppConst.reportErrorEmail}?subject=Report_Error");
-
-    if (await canLaunchUrl(reportUri)) {
-      launchUrl(reportUri);
-    } else {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(S.of(context).errorOpeningEmail)));
-      }
-    }
-  }
-
-  void _showPrivacyDialog(
-      BuildContext context, bool hasAcceptedAnonymousData) async {
-    bool switchActive = hasAcceptedAnonymousData;
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(S.of(context).settingsPrivacySettings),
-            content: StatefulBuilder(
-              builder: (BuildContext context,
-                  void Function(void Function()) setState) {
-                return SwitchListTile(
-                  title: Text(S.of(context).sendAnonymousUserData),
-                  value: switchActive,
-                  onChanged: (bool value) {
-                    setState(() {
-                      switchActive = value;
-                    });
-                  },
-                );
-              },
+            titlePadding: const EdgeInsets.fromLTRB(24, 22, 24, 8),
+            contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
+            actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            title: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.asset(
+                    'assets/icon/ont_logo_square.png',
+                    width: 40,
+                    height: 40,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(S.of(context).appTitle),
+                      const SizedBox(height: 2),
+                      Text(
+                        versionLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 420,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      S.of(context).appDescription,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    _AboutInfoRow(
+                      label: _isEs(context) ? 'Proyecto' : 'Project',
+                      value: _isEs(context)
+                          ? 'Seguimiento de calorías, macros, hábitos, actividad y backups locales/Drive.'
+                          : 'Calorie, macro, habit, activity, and local/Drive backup tracking.',
+                    ),
+                    _AboutInfoRow(
+                      label: _isEs(context) ? 'Licencia' : 'License',
+                      value: S.of(context).appLicenseLabel,
+                    ),
+                    _AboutInfoRow(
+                      label: _isEs(context) ? 'Modelo' : 'Model',
+                      value: _isEs(context)
+                          ? 'App local-first con sincronización opcional y funciones de IA para interpretar comidas.'
+                          : 'Local-first app with optional sync and AI-assisted meal interpretation.',
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      S.of(context).disclaimerText,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             actions: [
-              TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(S.of(context).dialogCancelLabel)),
-              TextButton(
-                  onPressed: () async {
-                    _settingsBloc.setHasAcceptedAnonymousData(switchActive);
-                    if (!switchActive) Sentry.close();
-                    _settingsBloc.add(LoadSettingsEvent());
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(S.of(context).dialogOKLabel))
+              TextButton.icon(
+                onPressed: () => _launchSourceCodeUrl(context),
+                icon: const Icon(Icons.code_outlined),
+                label: Text(S.of(context).settingsSourceCodeLabel),
+              ),
+              TextButton.icon(
+                onPressed: () => _launchPrivacyPolicyUrl(context),
+                icon: const Icon(Icons.policy_outlined),
+                label: Text(S.of(context).privacyPolicyLabel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(S.of(context).dialogOKLabel),
+              ),
             ],
           );
-        });
-  }
-
-  void _showAboutDialog(BuildContext context) async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    if (context.mounted) {
-      showAboutDialog(
-          context: context,
-          applicationName: S.of(context).appTitle,
-          applicationIcon: SizedBox(
-              width: 40, child: Image.asset('assets/icon/ont_logo_square.png')),
-          applicationVersion: packageInfo.version,
-          applicationLegalese: S.of(context).appLicenseLabel,
-          children: [
-            TextButton(
-                onPressed: () {
-                  _launchSourceCodeUrl(context);
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.code_outlined),
-                    const SizedBox(width: 8.0),
-                    Text(S.of(context).settingsSourceCodeLabel),
-                  ],
-                )),
-            TextButton(
-                onPressed: () {
-                  _launchPrivacyPolicyUrl(context);
-                },
-                child: Row(
-                  children: [
-                    const Icon(Icons.policy_outlined),
-                    const SizedBox(width: 8.0),
-                    Text(S.of(context).privacyPolicyLabel),
-                  ],
-                ))
-          ]);
+        },
+      );
     }
   }
 
@@ -1023,6 +998,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   bool _isEs(BuildContext context) =>
       Localizations.localeOf(context).languageCode == 'es';
+}
+
+class _AboutInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _AboutInfoRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SettingsSection extends StatelessWidget {

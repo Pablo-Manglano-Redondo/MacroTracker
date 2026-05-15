@@ -151,6 +151,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
                 onDeleteActivity: _onDeleteActivityItem,
                 onCopyIntake: _onCopyIntakeItem,
                 onCopyActivity: _onCopyActivityItem,
+                onAdjustIntakeAmount: _onAdjustIntakeAmount,
                 onCopyDayToToday: _copySelectedDayToToday,
                 usesImperialUnits: usesImperialUnits,
               );
@@ -209,6 +210,27 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   void _onCopyActivityItem(UserActivityEntity userActivityEntity,
       TrackedDayEntity? trackedDayEntity) async {
     log.info("Should copy activity");
+  }
+
+  Future<void> _onAdjustIntakeAmount(
+    IntakeEntity intakeEntity,
+    TrackedDayEntity? trackedDayEntity,
+    double newAmount,
+  ) async {
+    final targetDay = trackedDayEntity?.day ?? _selectedDate;
+    await _calendarDayBloc.updateIntakeAmount(
+      intakeEntity,
+      targetDay,
+      newAmount,
+    );
+    _diaryBloc.add(const LoadDiaryYearEvent());
+    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
+    _diaryBloc.updateHomePage();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)),
+      );
+    }
   }
 
   Future<void> _copySelectedDayToToday() async {
@@ -411,12 +433,14 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
                   children: [
                     _WeeklyPill(
                       icon: Icons.track_changes_outlined,
-                      label: S.of(context).diaryAdherencePill((weekly.goalAdherenceRate * 100).round()),
+                      label: S.of(context).diaryAdherencePill(
+                          (weekly.goalAdherenceRate * 100).round()),
                       color: colorScheme.primary,
                     ),
                     _WeeklyPill(
                       icon: Icons.egg_alt_outlined,
-                      label: S.of(context).diaryProteinPill(weekly.averageProtein.toStringAsFixed(0)),
+                      label: S.of(context).diaryProteinPill(
+                          weekly.averageProtein.toStringAsFixed(0)),
                       color: colorScheme.tertiary,
                     ),
                     _WeeklyPill(

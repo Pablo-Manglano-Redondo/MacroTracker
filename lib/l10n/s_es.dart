@@ -62,7 +62,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addMealTabPackaged => 'Comida';
 
   @override
-  String get addMealTabGeneric => 'Genericos';
+  String get addMealTabGeneric => 'Genéricos';
 
   @override
   String get addMealTabRecent => 'Historial';
@@ -73,7 +73,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealTabGenericHelper =>
-      'Usalo para alimentos simples como arroz, pollo, fruta o avena.';
+      'Úsalo para alimentos simples como arroz, pollo, fruta o avena.';
 
   @override
   String get addMealTabRecentHelper =>
@@ -83,14 +83,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addMealSectionPackagedResults => 'Resultados de comida';
 
   @override
-  String get addMealSectionGenericResults => 'Resultados genericos';
+  String get addMealSectionGenericResults => 'Resultados genéricos';
 
   @override
   String get addMealSectionRecentResults => 'Comidas recientes';
 
   @override
   String get addMealRecentEmpty =>
-      'Aun no hay comidas recientes.\nRegistra una y aparecera aqui.';
+      'Aún no hay comidas recientes.\nRegistra una y aparecerá aquí.';
 
   @override
   String get addMealSearchPromptPackaged =>
@@ -98,7 +98,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get addMealSearchPromptGeneric =>
-      'Busca un alimento generico como arroz, huevos o yogur.';
+      'Busca un alimento genérico como arroz, huevos o yogur.';
 
   @override
   String get addMealSearchPromptRecent =>
@@ -1715,7 +1715,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get homeDashboardProteinRemaining => 'Proteina restante';
+  String get homeDashboardProteinRemaining => 'Proteína restante';
 
   @override
   String get homeDashboardKcalRemaining => 'Kcal restantes';
@@ -1733,11 +1733,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeDashboardStatusDefClosing =>
-      'La definicion va en ritmo. Cierra con proteina alta.';
+      'La definición va en ritmo. Cierra con proteína alta.';
 
   @override
   String get homeDashboardStatusBulkOpen =>
-      'Aun tienes margen. Mete carbohidrato facil y proteina.';
+      'Aún tienes margen. Mete carbohidrato fácil y proteina.';
 
   @override
   String get homeDashboardStatusProteinGap =>
@@ -1745,7 +1745,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeDashboardStatusCarbWindow =>
-      'Aun tienes margen de carbohidratos. Buen momento para meter energia de entreno.';
+      'Aún tienes margen de carbohidratos. Buen momento para meter energia de entreno.';
 
   @override
   String get homeDashboardStatusRestClosing =>
@@ -1753,7 +1753,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeDashboardStatusOverGoal =>
-      'Vas por encima del objetivo. Manten el resto del dia mas controlado.';
+      'Vas por encima del objetivo. Manten el resto del día mas controlado.';
 
   @override
   String get homeDashboardStatusDefault =>
@@ -1878,7 +1878,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get recipeLibraryEmpty =>
-      'Aun no hay comidas guardadas.\nGuarda comidas como recetas para reutilizarlas.';
+      'Aún no hay comidas guardadas.\nGuarda comidas como recetas para reutilizarlas.';
 
   @override
   String recipeLibraryIngredientsCount(Object count) {
@@ -2100,35 +2100,35 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickCategoryLeanMeal => 'Ligera';
 
   @override
-  String get gymHabitsFocusLowerBody => 'Dia de pierna';
+  String get gymHabitsFocusLowerBody => 'Día de pierna';
 
   @override
-  String get gymHabitsFocusUpperBody => 'Dia de torso';
+  String get gymHabitsFocusUpperBody => 'Día de torso';
 
   @override
-  String get gymHabitsFocusCardio => 'Dia de cardio';
+  String get gymHabitsFocusCardio => 'Día de cardio';
 
   @override
-  String get gymHabitsFocusRest => 'Dia de descanso';
+  String get gymHabitsFocusRest => 'Día de descanso';
 
   @override
   String gymHabitsHydrationHintLowerBody(Object goal) {
-    return 'En pierna sube hidratacion: objetivo $goal.';
+    return 'En pierna sube hidratación: objetivo $goal.';
   }
 
   @override
   String gymHabitsHydrationHintUpperBody(Object goal) {
-    return 'En torso manten hidratacion alta: objetivo $goal.';
+    return 'En torso manten hidratación alta: objetivo $goal.';
   }
 
   @override
   String gymHabitsHydrationHintCardio(Object goal) {
-    return 'En cardio prioriza liquidos: objetivo $goal.';
+    return 'En cardio prioriza líquidos: objetivo $goal.';
   }
 
   @override
   String gymHabitsHydrationHintRest(Object goal) {
-    return 'En descanso manten hidratacion: objetivo $goal.';
+    return 'En descanso manten hidratación: objetivo $goal.';
   }
 
   @override
@@ -2148,11 +2148,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addMealSaved => 'Guardadas';
 
   @override
-  String get quickMealsTitle => 'Comidas rapidas';
+  String get quickMealsTitle => 'Comidas rápidas';
 
   @override
   String get quickMealsSubtitle =>
-      'Tira primero de tus recetas guardadas. Un toque registra una racion.';
+      'Tira primero de tus recetas guardadas. Un toque registra una ración.';
 
   @override
   String get quickMealsSavedTooltip => 'Abrir comidas guardadas';
@@ -2164,7 +2164,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get quickMealsFilterPreWorkout => 'Antes de entrenar';
 
   @override
-  String get quickMealsFilterPostWorkout => 'Despues de entrenar';
+  String get quickMealsFilterPostWorkout => 'Después de entrenar';
 
   @override
   String get quickMealsFilterShake => 'Batido';
@@ -2174,11 +2174,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get quickMealsEmptyAll =>
-      'Guarda comidas como recetas para tenerlas a un toque aqui.';
+      'Guarda comidas como recetas para tenerlas a un toque aquí.';
 
   @override
   String get quickMealsEmptyFiltered =>
-      'Aun no hay comidas rapidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor despues.';
+      'Aún no hay comidas rápidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor después.';
 
   @override
   String quickMealsAddedTo(Object recipe, Object slot) {
@@ -2186,7 +2186,7 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get quickMealsLogServing => 'Registrar una racion';
+  String get quickMealsLogServing => 'Registrar una ración';
 
   @override
   String quickMealsProteinShort(Object amount) {
@@ -2292,6 +2292,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String diaryElementsSection(Object count) {
     return '$count elementos';
   }
+
+  @override
+  String get diaryQuickAmountTitle => 'Acciones de la comida';
+
+  @override
+  String diaryQuickAmountSubtitle(Object step, Object unit) {
+    return 'Ajusta la cantidad registrada en pasos de $step $unit.';
+  }
+
+  @override
+  String get diaryQuickAmountDecrease => 'Reducir cantidad';
+
+  @override
+  String get diaryQuickAmountIncrease => 'Aumentar cantidad';
 
   @override
   String get profileSportsProfile => 'Perfil deportivo';

@@ -5,12 +5,13 @@ import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 
@@ -23,6 +24,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
   final GetIntakeUsecase _getIntakeUsecase;
   final DeleteIntakeUsecase _deleteIntakeUsecase;
   final DeleteUserActivityUsecase _deleteUserActivityUsecase;
+  final UpdateIntakeUsecase _updateIntakeUsecase;
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
 
@@ -33,6 +35,7 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       this._getIntakeUsecase,
       this._deleteIntakeUsecase,
       this._deleteUserActivityUsecase,
+      this._updateIntakeUsecase,
       this._getTrackedDayUsecase,
       this._addTrackedDayUsecase)
       : super(CalendarDayInitial()) {
@@ -88,6 +91,49 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
       UserActivityEntity activityEntity, DateTime day) async {
     await _deleteUserActivityUsecase.deleteUserActivity(activityEntity);
     await _syncTrackedDayTargets(day);
+    _updateDiaryPage(day);
+  }
+
+  Future<void> updateIntakeAmount(
+    IntakeEntity intakeEntity,
+    DateTime day,
+    double newAmount,
+  ) async {
+    final sanitizedAmount = newAmount <= 0 ? 0.1 : newAmount;
+    final updatedIntake = await _updateIntakeUsecase.updateIntake(
+      intakeEntity.id,
+      {'amount': sanitizedAmount},
+    );
+
+    if (updatedIntake == null) {
+      return;
+    }
+
+    final kcalDelta = updatedIntake.totalKcal - intakeEntity.totalKcal;
+    final carbsDelta =
+        updatedIntake.totalCarbsGram - intakeEntity.totalCarbsGram;
+    final fatDelta = updatedIntake.totalFatsGram - intakeEntity.totalFatsGram;
+    final proteinDelta =
+        updatedIntake.totalProteinsGram - intakeEntity.totalProteinsGram;
+
+    if (kcalDelta < 0) {
+      await _addTrackedDayUsecase.removeDayCaloriesTracked(day, -kcalDelta);
+      await _addTrackedDayUsecase.removeDayMacrosTracked(
+        day,
+        carbsTracked: -carbsDelta,
+        fatTracked: -fatDelta,
+        proteinTracked: -proteinDelta,
+      );
+    } else if (kcalDelta > 0) {
+      await _addTrackedDayUsecase.addDayCaloriesTracked(day, kcalDelta);
+      await _addTrackedDayUsecase.addDayMacrosTracked(
+        day,
+        carbsTracked: carbsDelta,
+        fatTracked: fatDelta,
+        proteinTracked: proteinDelta,
+      );
+    }
+
     _updateDiaryPage(day);
   }
 

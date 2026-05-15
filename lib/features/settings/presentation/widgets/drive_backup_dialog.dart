@@ -482,7 +482,7 @@ class _BackupSummaryPanel extends StatelessWidget {
                               fallback: isEs ? 'Sin fecha' : 'No timestamp')
                           : _formatTimestamp(context, lastSuccess,
                               fallback: isEs
-                                  ? 'Aun no se ha subido ninguna copia.'
+                                  ? 'Aún no se ha subido ninguna copia.'
                                   : 'No backup has been uploaded yet.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -555,7 +555,7 @@ class _AutomationPanel extends StatelessWidget {
                     Text(
                       signedIn
                           ? (isEs
-                              ? 'Android programara una copia al dia cuando el sistema permita ejecutar trabajo en segundo plano.'
+                              ? 'Android programara una copia al día cuando el sistema permita ejecutar trabajo en segundo plano.'
                               : 'Android will schedule one backup per day when the system allows background work to run.')
                           : (isEs
                               ? 'Conecta primero tu cuenta de Google para activar el backup diario.'
