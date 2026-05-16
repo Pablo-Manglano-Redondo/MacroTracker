@@ -12,6 +12,9 @@ class MealAggregateFactory {
     final totalCarbs = _getRecipeTotalCarbs(recipe);
     final totalFat = _getRecipeTotalFat(recipe);
     final totalProtein = _getRecipeTotalProtein(recipe);
+    final totalFiber = _getRecipeTotalFiber(recipe);
+    final totalSugar = _getRecipeTotalSugar(recipe);
+    final totalSaturatedFat = _getRecipeTotalSaturatedFat(recipe);
     final perServingDivisor =
         recipe.defaultServings <= 0 ? 1.0 : recipe.defaultServings;
 
@@ -19,6 +22,9 @@ class MealAggregateFactory {
     final carbsPerServing = totalCarbs / perServingDivisor;
     final fatPerServing = totalFat / perServingDivisor;
     final proteinPerServing = totalProtein / perServingDivisor;
+    final fiberPerServing = totalFiber / perServingDivisor;
+    final sugarPerServing = totalSugar / perServingDivisor;
+    final saturatedFatPerServing = totalSaturatedFat / perServingDivisor;
 
     return MealEntity(
       code: recipe.id,
@@ -37,9 +43,9 @@ class MealAggregateFactory {
         carbohydrates100: carbsPerServing * 100,
         fat100: fatPerServing * 100,
         proteins100: proteinPerServing * 100,
-        sugars100: null,
-        saturatedFat100: null,
-        fiber100: null,
+        sugars100: sugarPerServing * 100,
+        saturatedFat100: saturatedFatPerServing * 100,
+        fiber100: fiberPerServing * 100,
       ),
       source: MealSourceEntity.custom,
     );
@@ -63,9 +69,9 @@ class MealAggregateFactory {
         carbohydrates100: draft.totalCarbs * 100,
         fat100: draft.totalFat * 100,
         proteins100: draft.totalProtein * 100,
-        sugars100: null,
+        sugars100: draft.totalSugar == null ? null : draft.totalSugar! * 100,
         saturatedFat100: null,
-        fiber100: null,
+        fiber100: draft.totalFiber == null ? null : draft.totalFiber! * 100,
       ),
       source: MealSourceEntity.custom,
     );
@@ -120,6 +126,48 @@ class MealAggregateFactory {
             ingredient.amount,
             ingredient.unit,
           ).protein,
+    );
+  }
+
+  static double _getRecipeTotalFiber(RecipeEntity recipe) {
+    return recipe.ingredients.fold(
+      0,
+      (sum, ingredient) =>
+          sum +
+          (MealPortionCalculator.calculate(
+                    ingredient.mealSnapshot,
+                    ingredient.amount,
+                    ingredient.unit,
+                  ).fiber ??
+              0),
+    );
+  }
+
+  static double _getRecipeTotalSugar(RecipeEntity recipe) {
+    return recipe.ingredients.fold(
+      0,
+      (sum, ingredient) =>
+          sum +
+          (MealPortionCalculator.calculate(
+                    ingredient.mealSnapshot,
+                    ingredient.amount,
+                    ingredient.unit,
+                  ).sugar ??
+              0),
+    );
+  }
+
+  static double _getRecipeTotalSaturatedFat(RecipeEntity recipe) {
+    return recipe.ingredients.fold(
+      0,
+      (sum, ingredient) =>
+          sum +
+          (MealPortionCalculator.calculate(
+                    ingredient.mealSnapshot,
+                    ingredient.amount,
+                    ingredient.unit,
+                  ).saturatedFat ??
+              0),
     );
   }
 }

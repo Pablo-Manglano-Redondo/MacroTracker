@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
+import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
@@ -43,6 +45,13 @@ class _MealInterpretationReviewScreenState
   bool _didLoadDraft = false;
   Map<String, AiFoodMemoryEntry> _savedCorrections = const {};
   List<MealInterpretationSuggestion> _mealSuggestions = const [];
+  late final CalculateFoodQualityScoreUsecase _foodQualityScorer;
+
+  @override
+  void initState() {
+    super.initState();
+    _foodQualityScorer = locator<CalculateFoodQualityScoreUsecase>();
+  }
 
   @override
   void didChangeDependencies() {
@@ -131,6 +140,7 @@ class _MealInterpretationReviewScreenState
     final adjustedFat = _draft!.totalFat * servings;
     final adjustedProtein = _draft!.totalProtein * servings;
     final gymLabel = _inferGymLabel(_draft!);
+    final foodQualityScore = _foodQualityScorer.scoreDraft(_draft!);
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -157,6 +167,10 @@ class _MealInterpretationReviewScreenState
           fat: adjustedFat,
           protein: adjustedProtein,
           servings: servings,
+        ),
+        const SizedBox(height: 16),
+        FoodQualityScoreCard(
+          score: foodQualityScore,
         ),
         if (_mealSuggestions.isNotEmpty) ...[
           const SizedBox(height: 16),

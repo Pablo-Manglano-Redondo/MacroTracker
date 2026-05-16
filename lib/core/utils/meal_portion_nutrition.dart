@@ -8,6 +8,7 @@ class MealPortionNutrition {
   final double protein;
   final double? fiber;
   final double? sugar;
+  final double? saturatedFat;
 
   const MealPortionNutrition({
     required this.kcal,
@@ -16,6 +17,7 @@ class MealPortionNutrition {
     required this.protein,
     this.fiber,
     this.sugar,
+    this.saturatedFat,
   });
 }
 
@@ -33,6 +35,8 @@ class MealPortionCalculator {
       protein: convertedAmount * (meal.nutriments.proteinsPerUnit ?? 0),
       fiber: _scaledOptionalValue(convertedAmount, meal.nutriments.fiber100),
       sugar: _scaledOptionalValue(convertedAmount, meal.nutriments.sugars100),
+      saturatedFat:
+          _scaledOptionalValue(convertedAmount, meal.nutriments.saturatedFat100),
     );
   }
 

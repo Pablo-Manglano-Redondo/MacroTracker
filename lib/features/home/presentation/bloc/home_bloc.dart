@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
@@ -9,6 +10,7 @@ import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
@@ -41,6 +43,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final AddTrackedDayUsecase _addTrackedDayUseCase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
+  final CalculateFoodQualityScoreUsecase _calculateFoodQualityScoreUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -56,7 +59,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._deleteUserActivityUsecase,
       this._addTrackedDayUseCase,
       this._getKcalGoalUsecase,
-      this._getMacroGoalUsecase)
+      this._getMacroGoalUsecase,
+      this._calculateFoodQualityScoreUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       final shouldShowBlockingLoader = state is! HomeLoadedState;
@@ -119,6 +123,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalLunchProteins +
           totalDinnerProteins +
           totalSnackProteins;
+      final allIntakes = [
+        ...breakfastIntakeList,
+        ...lunchIntakeList,
+        ...dinnerIntakeList,
+        ...snackIntakeList,
+      ];
+      final foodQualitySummary =
+          _calculateFoodQualityScoreUsecase.summarizeIntakes(allIntakes);
 
       final userActivities =
           await _getUserActivityUsecase.getTodayUserActivity();
@@ -163,6 +175,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           totalFatsGoal: targets.fatGoal,
           totalProteinsGoal: targets.proteinGoal,
           totalProteinsIntake: totalProteinsIntake,
+          dailyFoodQualityScore: foodQualitySummary.score,
+          dailyFoodQualityBand: foodQualitySummary.band,
+          dailyFoodQualityMealsCount: foodQualitySummary.mealsCount,
           breakfastIntakeList: breakfastIntakeList,
           lunchIntakeList: lunchIntakeList,
           dinnerIntakeList: dinnerIntakeList,

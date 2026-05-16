@@ -3,6 +3,7 @@ import 'package:macrotracker/generated/l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
@@ -77,6 +78,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.totalCarbsGoal,
               state.totalFatsGoal,
               state.totalProteinsGoal,
+              state.dailyFoodQualityScore,
+              state.dailyFoodQualityBand,
+              state.dailyFoodQualityMealsCount,
               state.breakfastIntakeList,
               state.lunchIntakeList,
               state.dinnerIntakeList,
@@ -122,6 +126,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       double totalCarbsGoal,
       double totalFatsGoal,
       double totalProteinsGoal,
+      double dailyFoodQualityScore,
+      FoodQualityBandEntity dailyFoodQualityBand,
+      int dailyFoodQualityMealsCount,
       List<IntakeEntity> breakfastIntakeList,
       List<IntakeEntity> lunchIntakeList,
       List<IntakeEntity> dinnerIntakeList,
@@ -149,54 +156,56 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: Column(
                 children: [
                   DashboardWidget(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-                  nutritionPhase: nutritionPhase,
-                  onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
-                  dailyFocus: dailyFocus,
-                  onDailyFocusChanged: _homeBloc.setDailyFocus,
-                  totalKcalDaily: totalKcalDaily,
-                  totalKcalLeft: totalKcalLeft,
-                  totalKcalSupplied: totalKcalSupplied,
-                  totalKcalBurned: totalKcalBurned,
-                  totalCarbsIntake: totalCarbsIntake,
-                  totalFatsIntake: totalFatsIntake,
-                  totalProteinsIntake: totalProteinsIntake,
-                  totalCarbsGoal: totalCarbsGoal,
-                  totalFatsGoal: totalFatsGoal,
-                  totalProteinsGoal: totalProteinsGoal,
-                  mealsLogged: breakfastIntakeList.length +
-                      lunchIntakeList.length +
-                      dinnerIntakeList.length +
-                      snackIntakeList.length,
-                  sessionsLogged: userActivities.length,
-                ),
-                QuickGymMealsCard(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                  dailyFocus: dailyFocus,
-                  nutritionPhase: nutritionPhase,
-                ),
-                AdherenceNudgesCard(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                  dailyFocus: dailyFocus,
-                  totalKcalDaily: totalKcalDaily,
-                  totalKcalSupplied: totalKcalSupplied,
-                  totalProteinsGoal: totalProteinsGoal,
-                  totalProteinsIntake: totalProteinsIntake,
-                ),
-                const NutritionKpiCard(
-                  padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
-                ),
-
-                _buildOverviewSection(
-                  context: context,
-                  overviewColumns: overviewColumns,
-                  overviewCardWidth: overviewCardWidth,
-                  usesImperialUnits: usesImperialUnits,
-                  dailyFocus: dailyFocus,
-                ),
-                const SizedBox(height: 48.0),
-              ],
-            ),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                    nutritionPhase: nutritionPhase,
+                    onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
+                    dailyFocus: dailyFocus,
+                    onDailyFocusChanged: _homeBloc.setDailyFocus,
+                    totalKcalDaily: totalKcalDaily,
+                    totalKcalLeft: totalKcalLeft,
+                    totalKcalSupplied: totalKcalSupplied,
+                    totalKcalBurned: totalKcalBurned,
+                    totalCarbsIntake: totalCarbsIntake,
+                    totalFatsIntake: totalFatsIntake,
+                    totalProteinsIntake: totalProteinsIntake,
+                    totalCarbsGoal: totalCarbsGoal,
+                    totalFatsGoal: totalFatsGoal,
+                    totalProteinsGoal: totalProteinsGoal,
+                    dailyFoodQualityScore: dailyFoodQualityScore,
+                    dailyFoodQualityBand: dailyFoodQualityBand,
+                    dailyFoodQualityMealsCount: dailyFoodQualityMealsCount,
+                    mealsLogged: breakfastIntakeList.length +
+                        lunchIntakeList.length +
+                        dinnerIntakeList.length +
+                        snackIntakeList.length,
+                    sessionsLogged: userActivities.length,
+                  ),
+                  QuickGymMealsCard(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                    dailyFocus: dailyFocus,
+                    nutritionPhase: nutritionPhase,
+                  ),
+                  AdherenceNudgesCard(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                    dailyFocus: dailyFocus,
+                    totalKcalDaily: totalKcalDaily,
+                    totalKcalSupplied: totalKcalSupplied,
+                    totalProteinsGoal: totalProteinsGoal,
+                    totalProteinsIntake: totalProteinsIntake,
+                  ),
+                  const NutritionKpiCard(
+                    padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  ),
+                  _buildOverviewSection(
+                    context: context,
+                    overviewColumns: overviewColumns,
+                    overviewCardWidth: overviewCardWidth,
+                    usesImperialUnits: usesImperialUnits,
+                    dailyFocus: dailyFocus,
+                  ),
+                  const SizedBox(height: 48.0),
+                ],
+              ),
             ),
           ),
         );

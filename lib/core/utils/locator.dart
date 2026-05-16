@@ -17,6 +17,7 @@ import 'package:macrotracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
@@ -135,6 +136,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(locator(), locator(),
@@ -177,6 +179,8 @@ Future<void> initLocator() async {
       () => SearchProductByBarcodeUseCase(locator()));
   locator.registerLazySingleton<GetIntakeUsecase>(
       () => GetIntakeUsecase(locator()));
+  locator.registerLazySingleton<CalculateFoodQualityScoreUsecase>(
+      () => CalculateFoodQualityScoreUsecase());
   locator.registerLazySingleton<AddIntakeUsecase>(
       () => AddIntakeUsecase(locator()));
   locator.registerLazySingleton<GetRecipeLibraryUsecase>(

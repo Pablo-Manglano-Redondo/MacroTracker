@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logging/logging.dart';
+import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_value_unit_text.dart';
 import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:macrotracker/core/utils/recipe_factory.dart';
@@ -39,6 +41,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   static const String _initialQuantityImperial = '1';
 
   final log = Logger('ItemDetailScreen');
+  late final CalculateFoodQualityScoreUsecase _foodQualityScorer;
 
   late MealDetailBloc _mealDetailBloc;
   final _scrollController = ScrollController();
@@ -57,6 +60,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
   @override
   void initState() {
     _mealDetailBloc = locator<MealDetailBloc>();
+    _foodQualityScorer = locator<CalculateFoodQualityScoreUsecase>();
 
     super.initState();
   }
@@ -241,6 +245,10 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                FoodQualityScoreCard(
+                  score: _foodQualityScorer.scoreMeal(meal),
+                ),
+                const SizedBox(height: 16),
                 if (_loggedIntake != null) ...[
                   _LoggedIntakeSummaryCard(
                     intake: _loggedIntake!,

@@ -1,6 +1,8 @@
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
+import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -20,6 +22,9 @@ class DashboardWidget extends StatelessWidget {
   final double totalCarbsGoal;
   final double totalFatsGoal;
   final double totalProteinsGoal;
+  final double dailyFoodQualityScore;
+  final FoodQualityBandEntity dailyFoodQualityBand;
+  final int dailyFoodQualityMealsCount;
   final int mealsLogged;
   final int sessionsLogged;
 
@@ -40,6 +45,9 @@ class DashboardWidget extends StatelessWidget {
     required this.totalCarbsGoal,
     required this.totalFatsGoal,
     required this.totalProteinsGoal,
+    required this.dailyFoodQualityScore,
+    required this.dailyFoodQualityBand,
+    required this.dailyFoodQualityMealsCount,
     required this.mealsLogged,
     required this.sessionsLogged,
   });
@@ -349,6 +357,12 @@ class DashboardWidget extends StatelessWidget {
               color: const Color(0xFFE7A83B),
             ),
             const SizedBox(height: 16),
+            _FoodQualityDailyStrip(
+              score: dailyFoodQualityScore,
+              band: dailyFoodQualityBand,
+              mealsCount: dailyFoodQualityMealsCount,
+            ),
+            const SizedBox(height: 16),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(14),
@@ -617,6 +631,103 @@ class DashboardWidget extends StatelessWidget {
   String _statusDefault(BuildContext context) => _isEs(context)
       ? 'Buen ritmo. Manténlo simple y cierra limpio.'
       : 'Good pace. Keep it simple and close the day clean.';
+}
+
+class _FoodQualityDailyStrip extends StatelessWidget {
+  final double score;
+  final FoodQualityBandEntity band;
+  final int mealsCount;
+
+  const _FoodQualityDailyStrip({
+    required this.score,
+    required this.band,
+    required this.mealsCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final accentColor = FoodQualityUiMeta.bandColor(context, band);
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: accentColor.withValues(alpha: 0.08),
+        border: Border.all(
+          color: accentColor.withValues(alpha: 0.20),
+        ),
+      ),
+      child: mealsCount == 0
+          ? Text(
+              isEs
+                  ? 'Aun no hay datos suficientes de calidad.'
+                  : 'No food quality data yet.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            )
+          : Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: accentColor.withValues(alpha: 0.14),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.eco_outlined, color: accentColor),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        FoodQualityUiMeta.title(context),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isEs
+                            ? 'Media diaria basada en $mealsCount comidas'
+                            : 'Daily average across $mealsCount meals',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      score.round().toString(),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                color: accentColor,
+                                fontWeight: FontWeight.w800,
+                              ),
+                    ),
+                    Text(
+                      FoodQualityUiMeta.bandLabel(context, band),
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: accentColor,
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+    );
+  }
 }
 
 class _SelectorBlock<T> extends StatelessWidget {
