@@ -251,6 +251,7 @@ Future<void> initLocator() async {
             locator(),
             locator(),
             locator(),
+            locator(),
           ));
   locator.registerLazySingleton(() => ExportDataUsecase(locator(), locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));

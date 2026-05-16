@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:logging/logging.dart';
+import 'package:macrotracker/core/data/repository/user_activity_repository.dart';
 import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
@@ -27,6 +28,7 @@ class SyncSleepFromHealthConnectUsecase {
   final ConfigRepository _configRepository;
   final AddUserActivityUsecase _addUserActivityUsecase;
   final GetUserActivityUsecase _getUserActivityUsecase;
+  final UserActivityRepository _userActivityRepository;
   final AddTrackedDayUsecase _addTrackedDayUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
   final GetKcalGoalUsecase _getKcalGoalUsecase;
@@ -42,6 +44,7 @@ class SyncSleepFromHealthConnectUsecase {
     this._configRepository,
     this._addUserActivityUsecase,
     this._getUserActivityUsecase,
+    this._userActivityRepository,
     this._addTrackedDayUsecase,
     this._getMacroGoalUsecase,
     this._getKcalGoalUsecase,
@@ -183,29 +186,28 @@ class SyncSleepFromHealthConnectUsecase {
               dayEnd,
             )
           : currentLog.steps;
-      final workouts = hasWorkoutSupplementPermission
-          ? await _healthConnectSleepDataSource.readWorkouts(
-              normalizedDay
-                  .subtract(const Duration(days: _workoutSyncLookbackDays)),
-              dayEnd,
-            )
-          : const <HealthConnectWorkoutEntity>[];
+      final workouts = await _healthConnectSleepDataSource.readWorkouts(
+        normalizedDay.subtract(const Duration(days: _workoutSyncLookbackDays)),
+        dayEnd,
+      );
       final discardedIds =
           await _configRepository.getDiscardedHealthConnectActivityIds();
-      final existingActivities = await _getUserActivityUsecase.getAllUserActivity();
-      final existingExternalIds = existingActivities
-          .where(
-            (activity) =>
-                activity.source == UserActivitySourceEntity.healthConnect &&
-                activity.externalId != null,
-          )
-          .map((activity) => activity.externalId!)
-          .toSet();
+      final existingActivities =
+          await _getUserActivityUsecase.getAllUserActivity();
+      final existingHealthConnectActivitiesByExternalId = {
+        for (final activity in existingActivities.where(
+          (activity) =>
+              activity.source == UserActivitySourceEntity.healthConnect &&
+              activity.externalId != null,
+        ))
+          activity.externalId!: activity,
+      };
       final workoutsToImport = filterHealthConnectWorkoutsToImport(
         workouts,
-        existingExternalIds: existingExternalIds,
+        existingExternalIds: const [],
         discardedExternalIds: discardedIds,
-        windowStart: normalizedDay.subtract(const Duration(days: _workoutSyncLookbackDays)),
+        windowStart: normalizedDay
+            .subtract(const Duration(days: _workoutSyncLookbackDays)),
         windowEnd: dayEnd,
       );
 
@@ -213,7 +215,8 @@ class SyncSleepFromHealthConnectUsecase {
       final sleepChanged = syncedSleepHours != null &&
           ((currentLog.sleepHours - syncedSleepHours).abs() >= 0.01 ||
               (forceSync && currentLog.sleepSyncedFromHealthConnect != true));
-      final stepsChanged = hasActivityRecognition && hasStepsPermission &&
+      final stepsChanged = hasActivityRecognition &&
+          hasStepsPermission &&
           (currentLog.steps != syncedSteps ||
               (forceSync && currentLog.stepsSyncedFromHealthConnect != true));
 
@@ -231,7 +234,7 @@ class SyncSleepFromHealthConnectUsecase {
       if (!hasWorkoutSupplementPermission) {
         _log.fine(
           'Health Connect workout supplement permissions missing. '
-          'Skipping workouts sync but continuing with sleep/steps.',
+          'Workouts will still sync, but some sessions may import with 0 kcal.',
         );
       }
 
@@ -242,6 +245,10 @@ class SyncSleepFromHealthConnectUsecase {
           workoutsRead: workouts.length,
           workoutsFiltered: workoutsToImport.length,
           workoutsImported: 0,
+          workoutsUpdated: 0,
+          discardedWorkoutIds: discardedIds.length,
+          existingHealthConnectActivities:
+              existingHealthConnectActivitiesByExternalId.length,
           sleepChanged: sleepChanged,
           stepsChanged: stepsChanged,
           hasActivityRecognition: hasActivityRecognition,
@@ -266,12 +273,24 @@ class SyncSleepFromHealthConnectUsecase {
         'workoutsRead=${workouts.length}, workoutsToImport=${workoutsToImport.length}',
       );
       var importedWorkouts = 0;
+      var updatedWorkouts = 0;
       for (final workout in workoutsToImport) {
         final workoutDay = DateTime(
           workout.startTime.year,
           workout.startTime.month,
           workout.startTime.day,
         );
+        final existingActivity =
+            existingHealthConnectActivitiesByExternalId[workout.externalId];
+        if (existingActivity != null &&
+            _matchesImportedWorkout(existingActivity, workout, workoutDay)) {
+          continue;
+        }
+        if (existingActivity != null) {
+          await _userActivityRepository.deleteUserActivity(existingActivity);
+          existingHealthConnectActivitiesByExternalId.remove(workout.externalId);
+          updatedWorkouts++;
+        }
         final activity = UserActivityEntity(
           IdGenerator.getUniqueID(),
           workout.durationMinutes,
@@ -290,16 +309,28 @@ class SyncSleepFromHealthConnectUsecase {
         );
         await _addUserActivityUsecase.addUserActivity(activity);
         await _updateTrackedDay(workoutDay);
-        existingExternalIds.add(workout.externalId);
+        existingHealthConnectActivitiesByExternalId[workout.externalId] =
+            activity;
         importedWorkouts++;
       }
-      _log.info('Imported $importedWorkouts Health Connect workouts');
+      _log.info(
+        'Imported $importedWorkouts Health Connect workouts '
+        'and repaired $updatedWorkouts existing entries',
+      );
       return HealthConnectSyncReport(
-        didUpdate: sleepChanged || stepsChanged || importedWorkouts > 0,
+        didUpdate:
+            sleepChanged ||
+            stepsChanged ||
+            importedWorkouts > 0 ||
+            updatedWorkouts > 0,
         reason: HealthConnectSyncSkipReason.none,
         workoutsRead: workouts.length,
         workoutsFiltered: workoutsToImport.length,
         workoutsImported: importedWorkouts,
+        workoutsUpdated: updatedWorkouts,
+        discardedWorkoutIds: discardedIds.length,
+        existingHealthConnectActivities:
+            existingHealthConnectActivitiesByExternalId.length,
         sleepChanged: sleepChanged,
         stepsChanged: stepsChanged,
         hasActivityRecognition: hasActivityRecognition,
@@ -338,10 +369,16 @@ class SyncSleepFromHealthConnectUsecase {
         );
       }
 
+      final hasCorePermissions =
+          await _healthConnectSleepDataSource.hasReadPermission();
+      final hasStepsPermission =
+          await _healthConnectSleepDataSource.hasStepsReadPermission();
+      final hasWorkoutSupplementPermission = await _healthConnectSleepDataSource
+          .hasWorkoutSupplementReadPermission();
+
       return HealthConnectSyncStatusEntity(
         isAvailable: true,
-        hasHealthPermissions:
-            await _healthConnectSleepDataSource.hasReadPermission(),
+        hasHealthPermissions: hasCorePermissions,
         hasActivityRecognitionPermission: await _healthConnectSleepDataSource
             .hasActivityRecognitionPermission(),
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
@@ -414,9 +451,7 @@ class SyncSleepFromHealthConnectUsecase {
 
       return HealthConnectSyncStatusEntity(
         isAvailable: true,
-        hasHealthPermissions: hasHealthPermissions &&
-            hasStepsPermission &&
-            hasWorkoutSupplementPermission,
+        hasHealthPermissions: hasHealthPermissions,
         hasActivityRecognitionPermission: hasActivityRecognition,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
@@ -468,6 +503,23 @@ class SyncSleepFromHealthConnectUsecase {
             ? 16.0
             : hours;
     return double.parse(normalizedHours.toStringAsFixed(1));
+  }
+
+  bool _matchesImportedWorkout(
+    UserActivityEntity existingActivity,
+    HealthConnectWorkoutEntity workout,
+    DateTime workoutDay,
+  ) {
+    return _isSameDay(existingActivity.date, workoutDay) &&
+        existingActivity.physicalActivityEntity.code == workout.activityCode &&
+        (existingActivity.duration - workout.durationMinutes).abs() < 0.01 &&
+        (existingActivity.burnedKcal - workout.burnedKcal).abs() < 0.01;
+  }
+
+  bool _isSameDay(DateTime left, DateTime right) {
+    return left.year == right.year &&
+        left.month == right.month &&
+        left.day == right.day;
   }
 
   PhysicalActivityTypeEntity _mapWorkoutType(String activityCode) {
@@ -536,6 +588,9 @@ class HealthConnectSyncReport {
   final int workoutsRead;
   final int workoutsFiltered;
   final int workoutsImported;
+  final int workoutsUpdated;
+  final int discardedWorkoutIds;
+  final int existingHealthConnectActivities;
   final bool sleepChanged;
   final bool stepsChanged;
   final bool hasActivityRecognition;
@@ -548,6 +603,9 @@ class HealthConnectSyncReport {
     this.workoutsRead = 0,
     this.workoutsFiltered = 0,
     this.workoutsImported = 0,
+    this.workoutsUpdated = 0,
+    this.discardedWorkoutIds = 0,
+    this.existingHealthConnectActivities = 0,
     this.sleepChanged = false,
     this.stepsChanged = false,
     this.hasActivityRecognition = false,

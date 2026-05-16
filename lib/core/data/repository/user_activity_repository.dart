@@ -10,7 +10,7 @@ class UserActivityRepository {
   Future<void> addUserActivity(UserActivityEntity activityEntity) async {
     final activityDBO = UserActivityDBO.fromUserActivityEntity(activityEntity);
 
-    _userActivityDataSource.addUserActivity(activityDBO);
+    await _userActivityDataSource.addUserActivity(activityDBO);
   }
 
   Future<void> addAllUserActivityDBOs(
@@ -47,7 +47,8 @@ class UserActivityRepository {
   }
 
   Future<List<UserActivityEntity>> getAllUserActivity() async {
-    final userActivityDBOList = await _userActivityDataSource.getAllUserActivities();
+    final userActivityDBOList =
+        await _userActivityDataSource.getAllUserActivities();
     return userActivityDBOList
         .map((userActivityDBO) =>
             UserActivityEntity.fromUserActivityDBO(userActivityDBO))

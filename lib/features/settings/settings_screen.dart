@@ -31,7 +31,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const _showHealthConnectDiagnostics = false;
   late SettingsBloc _settingsBloc;
   late ProfileBloc _profileBloc;
   late HomeBloc _homeBloc;
@@ -791,24 +790,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!status.isAvailable) {
       return S.of(context).healthConnectStatusUnavailable;
     }
-    if (!status.hasHealthPermissions) {
-      return S.of(context).healthConnectStatusPermissionsRequired;
+    if (!status.isAutoSyncEnabled) {
+      return S.of(context).healthConnectStatusAutoSyncDisabled;
     }
     if (!status.hasActivityRecognitionPermission) {
       return S.of(context).healthConnectStatusActivityPermissionRequired;
     }
-    if (!status.isAutoSyncEnabled) {
-      return S.of(context).healthConnectStatusAutoSyncDisabled;
+    if (!status.hasHealthPermissions) {
+      return _isEs(context)
+          ? 'Health Connect conectado. Si el sync falla, revisa los permisos.'
+          : 'Health Connect connected. If sync fails, review permissions.';
     }
     return S.of(context).healthConnectStatusReady;
   }
 
   Future<void> _syncHealthConnectNow(BuildContext context) async {
-    final report = _showHealthConnectDiagnostics
-        ? await _settingsBloc.syncHealthConnectNowWithReport()
-        : null;
-    final didUpdate =
-        report?.didUpdate ?? await _settingsBloc.syncHealthConnectNow();
+    final report = await _settingsBloc.syncHealthConnectNowWithReport();
+    final didUpdate = report.didUpdate;
+    if (didUpdate) {
+      _homeBloc.add(const LoadItemsEvent());
+      _diaryBloc.add(const LoadDiaryYearEvent());
+      _calendarDayBloc.add(RefreshCalendarDayEvent());
+    }
     if (!context.mounted) {
       return;
     }
@@ -816,42 +819,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          didUpdate
-              ? S.of(context).healthConnectSyncSuccess
-              : S.of(context).healthConnectSyncNoChanges,
+          _buildHealthConnectSyncMessage(report),
         ),
       ),
     );
-    if (_showHealthConnectDiagnostics && report != null && context.mounted) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Health Connect sync debug'),
-          content: Text(_buildHealthConnectDebugMessage(report)),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        ),
-      );
-    }
     setState(() {});
   }
 
-  String _buildHealthConnectDebugMessage(HealthConnectSyncReport report) {
-    return [
-      'didUpdate: ${report.didUpdate}',
-      'reason: ${report.reason}',
-      'sleepChanged: ${report.sleepChanged}',
-      'stepsChanged: ${report.stepsChanged}',
-      'hasActivityRecognition: ${report.hasActivityRecognition}',
-      'hasStepsPermission: ${report.hasStepsPermission}',
-      'workoutsRead: ${report.workoutsRead}',
-      'workoutsFiltered: ${report.workoutsFiltered}',
-      'workoutsImported: ${report.workoutsImported}',
-    ].join('\n');
+  String _buildHealthConnectSyncMessage(HealthConnectSyncReport report) {
+    if (!report.didUpdate) {
+      if (_isEs(context)) {
+        return 'Health Connect: 0 cambios. Leidos ${report.workoutsRead}, importables ${report.workoutsFiltered}, descartados ${report.discardedWorkoutIds}.';
+      }
+      return 'Health Connect: 0 changes. Read ${report.workoutsRead}, importable ${report.workoutsFiltered}, discarded ${report.discardedWorkoutIds}.';
+    }
+    if (report.workoutsImported > 0 || report.workoutsUpdated > 0) {
+      final imported = report.workoutsImported;
+      final updated = report.workoutsUpdated;
+      if (_isEs(context)) {
+        return 'Health Connect: $imported actividades nuevas y $updated reparadas.';
+      }
+      return 'Health Connect: $imported new workouts and $updated repaired.';
+    }
+    return S.of(context).healthConnectSyncSuccess;
   }
 
   void _refreshHealthConnectStatus() {

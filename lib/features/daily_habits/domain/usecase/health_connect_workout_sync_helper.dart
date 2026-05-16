@@ -12,8 +12,10 @@ List<HealthConnectWorkoutEntity> filterHealthConnectWorkoutsToImport(
   final importableWorkouts = <HealthConnectWorkoutEntity>[];
 
   for (final workout in workouts) {
-    if (workout.startTime.isBefore(windowStart) ||
-        !workout.startTime.isBefore(windowEnd)) {
+    final overlapsWindow =
+        workout.endTime.isAfter(windowStart) &&
+            workout.startTime.isBefore(windowEnd);
+    if (!overlapsWindow) {
       continue;
     }
 

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:health/health.dart';
+import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_workout_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_sleep_session_entity.dart';
@@ -8,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 class HealthConnectSleepDataSource {
   final _log = Logger('HealthConnectSleepDataSource');
+  static const _healthConnectChannel =
+      MethodChannel('macrotracker/health_connect');
 
   static const _coreReadTypes = [
     HealthDataType.SLEEP_SESSION,
@@ -18,9 +21,11 @@ class HealthConnectSleepDataSource {
     HealthDataAccess.READ,
   ];
   static const _workoutSupplementReadTypes = [
-    HealthDataType.ACTIVE_ENERGY_BURNED,
+    HealthDataType.TOTAL_CALORIES_BURNED,
+    HealthDataType.DISTANCE_DELTA,
   ];
   static const _workoutSupplementPermissions = [
+    HealthDataAccess.READ,
     HealthDataAccess.READ,
   ];
   static const _stepsReadTypes = [
@@ -222,6 +227,14 @@ class HealthConnectSleepDataSource {
     DateTime startTime,
     DateTime endTime,
   ) async {
+    final nativeWorkouts = await _readWorkoutsFromNativeChannel(
+      startTime,
+      endTime,
+    );
+    if (nativeWorkouts.isNotEmpty) {
+      return nativeWorkouts;
+    }
+
     try {
       final points = await _health.getHealthDataFromTypes(
         startTime: startTime,
@@ -229,16 +242,139 @@ class HealthConnectSleepDataSource {
         types: const [HealthDataType.WORKOUT],
       );
       final uniquePoints = _health.removeDuplicates(points);
-      final workouts = uniquePoints
-          .where((point) => point.type == HealthDataType.WORKOUT)
-          .map(_mapWorkout)
-          .whereType<HealthConnectWorkoutEntity>()
-          .toList();
+      final workouts = <HealthConnectWorkoutEntity>[];
+      for (final point
+          in uniquePoints.where((point) => point.type == HealthDataType.WORKOUT)) {
+        final workout = _tryMapWorkout(point);
+        if (workout != null) {
+          workouts.add(workout);
+        }
+      }
       workouts.sort((left, right) => left.startTime.compareTo(right.startTime));
       return workouts;
     } catch (error, stackTrace) {
       _log.warning('Reading workouts failed', error, stackTrace);
       return const [];
+    }
+  }
+
+  Future<List<HealthConnectWorkoutEntity>> _readWorkoutsFromNativeChannel(
+    DateTime startTime,
+    DateTime endTime,
+  ) async {
+    if (!Platform.isAndroid) {
+      return const [];
+    }
+
+    try {
+      final result = await _healthConnectChannel.invokeMethod<List<dynamic>>(
+        'readWorkouts',
+        {
+          'startTime': startTime.millisecondsSinceEpoch,
+          'endTime': endTime.millisecondsSinceEpoch,
+        },
+      );
+      if (result == null) {
+        return const [];
+      }
+
+      final workouts = result
+          .whereType<Map<dynamic, dynamic>>()
+          .map(_mapNativeWorkout)
+          .whereType<HealthConnectWorkoutEntity>()
+          .toList();
+      workouts.sort((left, right) => left.startTime.compareTo(right.startTime));
+      return workouts;
+    } on MissingPluginException {
+      return const [];
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Reading workouts through native channel failed',
+        error,
+        stackTrace,
+      );
+      return const [];
+    }
+  }
+
+  HealthConnectWorkoutEntity? _mapNativeWorkout(Map<dynamic, dynamic> raw) {
+    final startMillis = raw['date_from'];
+    final endMillis = raw['date_to'];
+    if (startMillis is! int || endMillis is! int) {
+      return null;
+    }
+
+    final startTime = DateTime.fromMillisecondsSinceEpoch(startMillis);
+    final endTime = DateTime.fromMillisecondsSinceEpoch(endMillis);
+    if (!endTime.isAfter(startTime)) {
+      return null;
+    }
+
+    final workoutType =
+        (raw['workoutActivityType'] as String?)?.trim().toUpperCase();
+    final normalizedWorkoutType =
+        workoutType == null || workoutType.isEmpty ? 'OTHER' : workoutType;
+    final burnedKcal = (raw['totalEnergyBurned'] as num?)?.toDouble() ?? 0.0;
+    final sourceName = (raw['source_name'] as String?)?.trim() ?? '';
+    final externalId = (raw['uuid'] as String?)?.trim().isNotEmpty == true
+        ? raw['uuid'] as String
+        : _buildNativeWorkoutFallbackId(
+            normalizedWorkoutType,
+            startTime,
+            endTime,
+            burnedKcal,
+            sourceName,
+          );
+    final displayName = _formatWorkoutTypeDisplayName(normalizedWorkoutType);
+
+    return HealthConnectWorkoutEntity(
+      externalId: externalId,
+      activityCode: 'hc:${normalizedWorkoutType.toLowerCase()}',
+      displayName: displayName,
+      description: sourceName.isEmpty ? displayName : '$displayName - $sourceName',
+      startTime: startTime,
+      endTime: endTime,
+      durationMinutes: endTime.difference(startTime).inMinutes.toDouble(),
+      burnedKcal: burnedKcal,
+    );
+  }
+
+  String _buildNativeWorkoutFallbackId(
+    String workoutType,
+    DateTime startTime,
+    DateTime endTime,
+    double burnedKcal,
+    String sourceName,
+  ) {
+    return [
+      'hc',
+      workoutType,
+      sourceName,
+      startTime.millisecondsSinceEpoch,
+      endTime.millisecondsSinceEpoch,
+      burnedKcal.toStringAsFixed(1),
+    ].join(':');
+  }
+
+  String _formatWorkoutTypeDisplayName(String workoutType) {
+    return workoutType
+        .toLowerCase()
+        .split('_')
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+        .join(' ');
+  }
+
+  HealthConnectWorkoutEntity? _tryMapWorkout(HealthDataPoint point) {
+    try {
+      return _mapWorkout(point);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Skipping workout due to mapping failure',
+        error,
+        stackTrace,
+      );
+      return null;
     }
   }
 
