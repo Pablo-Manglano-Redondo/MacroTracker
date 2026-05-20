@@ -94,6 +94,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final targets = GymTargetCalc.buildTargets(
         phase: user.goal,
         dailyFocus: config.dailyFocus,
+        macroGoalMode: config.macroGoalMode,
         baseKcalGoal: baseKcalGoal,
         baseCarbsGoal: baseCarbsGoal,
         baseFatGoal: baseFatGoal,

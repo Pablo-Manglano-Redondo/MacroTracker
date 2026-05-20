@@ -2,6 +2,7 @@ import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class AddConfigUsecase {
@@ -42,6 +43,21 @@ class AddConfigUsecase {
   Future<void> setConfigMacroGoalPct(
       double carbGoalPct, double proteinGoalPct, double fatPctGoal) async {
     _configRepository.setUserMacroPct(carbGoalPct, proteinGoalPct, fatPctGoal);
+  }
+
+  Future<void> setConfigMacroGoalGramPerKg(
+      double carbGoalGramPerKg,
+      double proteinGoalGramPerKg,
+      double fatGoalGramPerKg) async {
+    await _configRepository.setUserMacroGoalsGramPerKg(
+      carbGoalGramPerKg,
+      proteinGoalGramPerKg,
+      fatGoalGramPerKg,
+    );
+  }
+
+  Future<void> setMacroGoalMode(MacroGoalModeEntity macroGoalMode) async {
+    await _configRepository.setMacroGoalMode(macroGoalMode);
   }
 
   Future<void> setConfigDailyFocus(DailyFocusEntity dailyFocus) async {

@@ -3,9 +3,9 @@ import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/calc/tdee_calc.dart';
 
 class CalorieGoalCalc {
-  static const double loseWeightKcalAdjustment = -500;
+  static const double loseWeightKcalAdjustment = -250;
   static const double maintainWeightKcalAdjustment = 0;
-  static const double gainWeightKcalAdjustment = 500;
+  static const double gainWeightKcalAdjustment = 250;
 
   static double getDailyKcalLeft(
           double totalKcalGoal, double totalKcalIntake) =>

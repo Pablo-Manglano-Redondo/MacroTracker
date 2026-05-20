@@ -150,6 +150,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final targets = GymTargetCalc.buildTargets(
         phase: nutritionPhase,
         dailyFocus: dailyFocus,
+        macroGoalMode: configData.macroGoalMode,
         baseKcalGoal: baseKcalGoal,
         baseCarbsGoal: baseCarbsGoal,
         baseFatGoal: baseFatsGoal,
@@ -308,6 +309,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final targets = GymTargetCalc.buildTargets(
       phase: phase ?? currentUser.goal,
       dailyFocus: dailyFocus ?? config.dailyFocus,
+      macroGoalMode: config.macroGoalMode,
       baseKcalGoal: baseKcalGoal,
       baseCarbsGoal: baseCarbsGoal,
       baseFatGoal: baseFatGoal,

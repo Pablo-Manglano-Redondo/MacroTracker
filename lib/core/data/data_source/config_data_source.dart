@@ -102,6 +102,35 @@ class ConfigDataSource {
     config?.save();
   }
 
+  Future<void> setMacroGoalMode(String macroGoalMode) async {
+    _log.fine('Updating config macroGoalMode to $macroGoalMode');
+    final config = _configBox.get(_configKey);
+    config?.macroGoalMode = macroGoalMode;
+    await config?.save();
+  }
+
+  Future<void> setConfigCarbGoalGramPerKg(double carbGoalGramPerKg) async {
+    _log.fine('Updating config carbGoalGramPerKg to $carbGoalGramPerKg');
+    final config = _configBox.get(_configKey);
+    config?.userCarbGoalGramPerKg = carbGoalGramPerKg;
+    await config?.save();
+  }
+
+  Future<void> setConfigProteinGoalGramPerKg(
+      double proteinGoalGramPerKg) async {
+    _log.fine('Updating config proteinGoalGramPerKg to $proteinGoalGramPerKg');
+    final config = _configBox.get(_configKey);
+    config?.userProteinGoalGramPerKg = proteinGoalGramPerKg;
+    await config?.save();
+  }
+
+  Future<void> setConfigFatGoalGramPerKg(double fatGoalGramPerKg) async {
+    _log.fine('Updating config fatGoalGramPerKg to $fatGoalGramPerKg');
+    final config = _configBox.get(_configKey);
+    config?.userFatGoalGramPerKg = fatGoalGramPerKg;
+    await config?.save();
+  }
+
   Future<void> setConfigDailyFocus(String dailyFocus) async {
     _log.fine('Updating config dailyFocus to $dailyFocus');
     final config = _configBox.get(_configKey);

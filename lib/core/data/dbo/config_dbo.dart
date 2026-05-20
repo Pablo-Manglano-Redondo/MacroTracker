@@ -3,6 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 import 'package:macrotracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 
 part 'config_dbo.g.dart';
 
@@ -69,6 +70,14 @@ class ConfigDBO extends HiveObject {
   String? googleDriveLastBackupSuccessAt;
   @HiveField(29)
   String? googleDriveLastBackupError;
+  @HiveField(30)
+  String? macroGoalMode;
+  @HiveField(31)
+  double? userCarbGoalGramPerKg;
+  @HiveField(32)
+  double? userProteinGoalGramPerKg;
+  @HiveField(33)
+  double? userFatGoalGramPerKg;
 
   ConfigDBO(this.hasAcceptedDisclaimer, this.hasAcceptedPolicy,
       this.hasAcceptedSendAnonymousData, this.selectedAppTheme,
@@ -93,6 +102,10 @@ class ConfigDBO extends HiveObject {
     ..userCarbGoalPct = entity.userCarbGoalPct
     ..userProteinGoalPct = entity.userProteinGoalPct
     ..userFatGoalPct = entity.userFatGoalPct
+    ..macroGoalMode = entity.macroGoalMode.storageValue
+    ..userCarbGoalGramPerKg = entity.userCarbGoalGramPerKg
+    ..userProteinGoalGramPerKg = entity.userProteinGoalGramPerKg
+    ..userFatGoalGramPerKg = entity.userFatGoalGramPerKg
     ..aiEstimatedCostTotalUsd = entity.aiEstimatedCostTotalUsd
     ..aiEstimatedCostTodayUsd = entity.aiEstimatedCostTodayUsd
     ..aiEstimatedCostMonthUsd = entity.aiEstimatedCostMonthUsd

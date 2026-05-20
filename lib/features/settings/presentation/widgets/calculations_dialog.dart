@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
@@ -30,29 +31,59 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   static const double _maxKcalAdjustment = 1000;
   static const double _minKcalAdjustment = -1000;
   static const int _kcalDivisions = 200;
-  double _kcalAdjustmentSelection = 0;
 
   static const double _defaultCarbsPctSelection = 0.6;
   static const double _defaultFatPctSelection = 0.25;
   static const double _defaultProteinPctSelection = 0.15;
 
-  // Macros percentages
+  static const double _defaultProteinGramPerKg = 1.6;
+  static const double _defaultFatGramPerKg = 0.8;
+
+  double _kcalAdjustmentSelection = 0;
   double _carbsPctSelection = _defaultCarbsPctSelection * 100;
   double _proteinPctSelection = _defaultProteinPctSelection * 100;
   double _fatPctSelection = _defaultFatPctSelection * 100;
+  MacroGoalModeEntity _macroGoalMode = MacroGoalModeEntity.percentage;
+  double? _userWeightKg;
+
+  late final TextEditingController _proteinGramPerKgController;
+  late final TextEditingController _fatGramPerKgController;
+
+  @override
+  void initState() {
+    super.initState();
+    _proteinGramPerKgController = TextEditingController();
+    _fatGramPerKgController = TextEditingController();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _initializeKcalAdjustment();
+    _initializeCalculationSettings();
   }
 
-  void _initializeKcalAdjustment() async {
-    final kcalAdjustment = await widget.settingsBloc.getKcalAdjustment() *
-        1.0; // Convert to double
+  @override
+  void dispose() {
+    _proteinGramPerKgController.dispose();
+    _fatGramPerKgController.dispose();
+    super.dispose();
+  }
+
+  void _initializeCalculationSettings() async {
+    final kcalAdjustment = await widget.settingsBloc.getKcalAdjustment();
     final userCarbsPct = await widget.settingsBloc.getUserCarbGoalPct();
     final userProteinPct = await widget.settingsBloc.getUserProteinGoalPct();
     final userFatPct = await widget.settingsBloc.getUserFatGoalPct();
+    final macroGoalMode = await widget.settingsBloc.getMacroGoalMode();
+    final userProteinGramPerKg =
+        await widget.settingsBloc.getUserProteinGoalGramPerKg();
+    final userFatGramPerKg =
+        await widget.settingsBloc.getUserFatGoalGramPerKg();
+    final userWeightKg = await widget.settingsBloc.getUserWeightKg();
+
+    if (!mounted) {
+      return;
+    }
 
     setState(() {
       _kcalAdjustmentSelection = kcalAdjustment;
@@ -60,6 +91,12 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       _proteinPctSelection =
           (userProteinPct ?? _defaultProteinPctSelection) * 100;
       _fatPctSelection = (userFatPct ?? _defaultFatPctSelection) * 100;
+      _macroGoalMode = macroGoalMode;
+      _userWeightKg = userWeightKg;
+      _proteinGramPerKgController.text =
+          _formatDecimal(userProteinGramPerKg ?? _defaultProteinGramPerKg);
+      _fatGramPerKgController.text =
+          _formatDecimal(userFatGramPerKg ?? _defaultFatGramPerKg);
     });
   }
 
@@ -75,24 +112,19 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8), // Add spacing between text and button
+          const SizedBox(width: 8),
           TextButton(
             child: Text(S.of(context).buttonResetLabel),
-            onPressed: () {
-              setState(() {
-                _kcalAdjustmentSelection = 0;
-                // Reset macros to default values
-                _carbsPctSelection = _defaultCarbsPctSelection * 100;
-                _proteinPctSelection = _defaultProteinPctSelection * 100;
-                _fatPctSelection = _defaultFatPctSelection * 100;
-              });
-            },
+            onPressed: _resetSelections,
           ),
         ],
       ),
-      content: Wrap(
-        children: [
-          DropdownButtonFormField(
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField(
               isExpanded: true,
               decoration: InputDecoration(
                 enabled: false,
@@ -101,23 +133,21 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               ),
               items: [
                 DropdownMenuItem(
-                    child: Text(
-                  '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
-                  overflow: TextOverflow.ellipsis,
-                )),
+                  child: Text(
+                    '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
-              onChanged: null),
-          const SizedBox(height: 64),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Text(
+              onChanged: null,
+            ),
+            const SizedBox(height: 32),
+            Text(
               '${S.of(context).dailyKcalAdjustmentLabel} ${!_kcalAdjustmentSelection.isNegative ? "+" : ""}${_kcalAdjustmentSelection.round()} ${S.of(context).kcalLabel}',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: SizedBox(
+            const SizedBox(height: 8),
+            SizedBox(
               width: 280,
               child: Slider(
                 min: _minKcalAdjustment,
@@ -133,118 +163,153 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 },
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            S.of(context).macroDistributionLabel,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 32),
-          _buildMacroSlider(
-            S.of(context).carbsLabel,
-            _carbsPctSelection,
-            Colors.orange,
-            (value) {
-              setState(() {
-                double delta = value - _carbsPctSelection;
-                _carbsPctSelection = value;
+            const SizedBox(height: 24),
+            Text(
+              S.of(context).macroDistributionLabel,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<MacroGoalModeEntity>(
+              showSelectedIcon: false,
+              segments: [
+                ButtonSegment(
+                  value: MacroGoalModeEntity.percentage,
+                  label: Text(_isEs(context) ? '%' : '%'),
+                ),
+                ButtonSegment(
+                  value: MacroGoalModeEntity.gramsPerKg,
+                  label: Text(_isEs(context) ? 'g/kg' : 'g/kg'),
+                ),
+              ],
+              selected: {_macroGoalMode},
+              onSelectionChanged: (selection) {
+                setState(() {
+                  _macroGoalMode = selection.first;
+                });
+              },
+            ),
+            const SizedBox(height: 12),
+            if (_macroGoalMode == MacroGoalModeEntity.percentage) ...[
+              _buildMacroSlider(
+                S.of(context).carbsLabel,
+                _carbsPctSelection,
+                Colors.orange,
+                (value) {
+                  setState(() {
+                    final delta = value - _carbsPctSelection;
+                    _carbsPctSelection = value;
 
-                // Adjust other percentages proportionally
-                double proteinRatio = _proteinPctSelection /
-                    (_proteinPctSelection + _fatPctSelection);
-                double fatRatio = _fatPctSelection /
-                    (_proteinPctSelection + _fatPctSelection);
+                    final proteinRatio = _proteinPctSelection /
+                        (_proteinPctSelection + _fatPctSelection);
+                    final fatRatio = _fatPctSelection /
+                        (_proteinPctSelection + _fatPctSelection);
 
-                _proteinPctSelection -= delta * proteinRatio;
-                _fatPctSelection -= delta * fatRatio;
+                    _proteinPctSelection -= delta * proteinRatio;
+                    _fatPctSelection -= delta * fatRatio;
 
-                // Ensure no value goes below 5%
-                if (_proteinPctSelection < 5) {
-                  double overflow = 5 - _proteinPctSelection;
-                  _proteinPctSelection = 5;
-                  _fatPctSelection -= overflow;
-                }
-                if (_fatPctSelection < 5) {
-                  double overflow = 5 - _fatPctSelection;
-                  _fatPctSelection = 5;
-                  _proteinPctSelection -= overflow;
-                }
-              });
-            },
-          ),
-          _buildMacroSlider(
-            S.of(context).proteinLabel,
-            _proteinPctSelection,
-            Colors.blue,
-            (value) {
-              setState(() {
-                double delta = value - _proteinPctSelection;
-                _proteinPctSelection = value;
+                    if (_proteinPctSelection < 5) {
+                      final overflow = 5 - _proteinPctSelection;
+                      _proteinPctSelection = 5;
+                      _fatPctSelection -= overflow;
+                    }
+                    if (_fatPctSelection < 5) {
+                      final overflow = 5 - _fatPctSelection;
+                      _fatPctSelection = 5;
+                      _proteinPctSelection -= overflow;
+                    }
+                  });
+                },
+              ),
+              _buildMacroSlider(
+                S.of(context).proteinLabel,
+                _proteinPctSelection,
+                Colors.blue,
+                (value) {
+                  setState(() {
+                    final delta = value - _proteinPctSelection;
+                    _proteinPctSelection = value;
 
-                double carbsRatio = _carbsPctSelection /
-                    (_carbsPctSelection + _fatPctSelection);
-                double fatRatio =
-                    _fatPctSelection / (_carbsPctSelection + _fatPctSelection);
+                    final carbsRatio = _carbsPctSelection /
+                        (_carbsPctSelection + _fatPctSelection);
+                    final fatRatio = _fatPctSelection /
+                        (_carbsPctSelection + _fatPctSelection);
 
-                _carbsPctSelection -= delta * carbsRatio;
-                _fatPctSelection -= delta * fatRatio;
+                    _carbsPctSelection -= delta * carbsRatio;
+                    _fatPctSelection -= delta * fatRatio;
 
-                if (_carbsPctSelection < 5) {
-                  double overflow = 5 - _carbsPctSelection;
-                  _carbsPctSelection = 5;
-                  _fatPctSelection -= overflow;
-                }
-                if (_fatPctSelection < 5) {
-                  double overflow = 5 - _fatPctSelection;
-                  _fatPctSelection = 5;
-                  _carbsPctSelection -= overflow;
-                }
-              });
-            },
-          ),
-          _buildMacroSlider(
-            S.of(context).fatLabel,
-            _fatPctSelection,
-            Colors.green,
-            (value) {
-              setState(() {
-                double delta = value - _fatPctSelection;
-                _fatPctSelection = value;
+                    if (_carbsPctSelection < 5) {
+                      final overflow = 5 - _carbsPctSelection;
+                      _carbsPctSelection = 5;
+                      _fatPctSelection -= overflow;
+                    }
+                    if (_fatPctSelection < 5) {
+                      final overflow = 5 - _fatPctSelection;
+                      _fatPctSelection = 5;
+                      _carbsPctSelection -= overflow;
+                    }
+                  });
+                },
+              ),
+              _buildMacroSlider(
+                S.of(context).fatLabel,
+                _fatPctSelection,
+                Colors.green,
+                (value) {
+                  setState(() {
+                    final delta = value - _fatPctSelection;
+                    _fatPctSelection = value;
 
-                double carbsRatio = _carbsPctSelection /
-                    (_carbsPctSelection + _proteinPctSelection);
-                double proteinRatio = _proteinPctSelection /
-                    (_carbsPctSelection + _proteinPctSelection);
+                    final carbsRatio = _carbsPctSelection /
+                        (_carbsPctSelection + _proteinPctSelection);
+                    final proteinRatio = _proteinPctSelection /
+                        (_carbsPctSelection + _proteinPctSelection);
 
-                _carbsPctSelection -= delta * carbsRatio;
-                _proteinPctSelection -= delta * proteinRatio;
+                    _carbsPctSelection -= delta * carbsRatio;
+                    _proteinPctSelection -= delta * proteinRatio;
 
-                if (_carbsPctSelection < 5) {
-                  double overflow = 5 - _carbsPctSelection;
-                  _carbsPctSelection = 5;
-                  _proteinPctSelection -= overflow;
-                }
-                if (_proteinPctSelection < 5) {
-                  double overflow = 5 - _proteinPctSelection;
-                  _proteinPctSelection = 5;
-                  _carbsPctSelection -= overflow;
-                }
-              });
-            },
-          ),
-        ],
+                    if (_carbsPctSelection < 5) {
+                      final overflow = 5 - _carbsPctSelection;
+                      _carbsPctSelection = 5;
+                      _proteinPctSelection -= overflow;
+                    }
+                    if (_proteinPctSelection < 5) {
+                      final overflow = 5 - _proteinPctSelection;
+                      _proteinPctSelection = 5;
+                      _carbsPctSelection -= overflow;
+                    }
+                  });
+                },
+              ),
+            ] else ...[
+              Text(
+                _gramPerKgHint(context),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              _buildGramPerKgField(
+                label: S.of(context).proteinLabel,
+                controller: _proteinGramPerKgController,
+                color: Colors.blue,
+              ),
+              const SizedBox(height: 12),
+              _buildGramPerKgField(
+                label: S.of(context).fatLabel,
+                controller: _fatGramPerKgController,
+                color: Colors.green,
+              ),
+            ],
+          ],
+        ),
       ),
       actions: [
         TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(S.of(context).dialogCancelLabel)),
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(S.of(context).dialogCancelLabel),
+        ),
         TextButton(
-            onPressed: () {
-              _saveCalculationSettings();
-            },
-            child: Text(S.of(context).dialogOKLabel))
+          onPressed: _saveCalculationSettings,
+          child: Text(S.of(context).dialogOKLabel),
+        )
       ],
     );
   }
@@ -292,65 +357,117 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     );
   }
 
+  Widget _buildGramPerKgField({
+    required String label,
+    required TextEditingController controller,
+    required Color color,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        suffixText: 'g/kg',
+        prefixIcon: Icon(Icons.monitor_weight_outlined, color: color),
+        border: const OutlineInputBorder(),
+      ),
+    );
+  }
+
   void _normalizeMacros() {
     setState(() {
-      // First, ensure all values are rounded
       _carbsPctSelection = _carbsPctSelection.roundToDouble();
       _proteinPctSelection = _proteinPctSelection.roundToDouble();
       _fatPctSelection = _fatPctSelection.roundToDouble();
 
-      // Calculate total
-      double total =
+      final total =
           _carbsPctSelection + _proteinPctSelection + _fatPctSelection;
 
-      // If total isn't 100, adjust values proportionally
       if (total != 100) {
-        // Calculate adjustment factor
-        double factor = 100 / total;
-
-        // Adjust the first two values
+        final factor = 100 / total;
         _carbsPctSelection = (_carbsPctSelection * factor).roundToDouble();
         _proteinPctSelection = (_proteinPctSelection * factor).roundToDouble();
-
-        // Set the last value to make total exactly 100
         _fatPctSelection = 100 - _carbsPctSelection - _proteinPctSelection;
 
-        // Ensure minimum values (5%)
         if (_fatPctSelection < 5) {
           _fatPctSelection = 5;
-          // Distribute remaining 95% proportionally between carbs and protein
-          double remaining = 95;
-          double ratio =
+          final remaining = 95.0;
+          final ratio =
               _carbsPctSelection / (_carbsPctSelection + _proteinPctSelection);
           _carbsPctSelection = (remaining * ratio).roundToDouble();
           _proteinPctSelection = remaining - _carbsPctSelection;
         }
       }
-
-      // Verify final values
-      assert(
-          _carbsPctSelection + _proteinPctSelection + _fatPctSelection == 100,
-          'Macros must total 100%');
     });
   }
 
-  void _saveCalculationSettings() {
-    // Save the calorie offset as full number
-    widget.settingsBloc
+  void _resetSelections() {
+    setState(() {
+      _kcalAdjustmentSelection = 0;
+      _carbsPctSelection = _defaultCarbsPctSelection * 100;
+      _proteinPctSelection = _defaultProteinPctSelection * 100;
+      _fatPctSelection = _defaultFatPctSelection * 100;
+      _proteinGramPerKgController.text =
+          _formatDecimal(_defaultProteinGramPerKg);
+      _fatGramPerKgController.text = _formatDecimal(_defaultFatGramPerKg);
+    });
+  }
+
+  Future<void> _saveCalculationSettings() async {
+    await widget.settingsBloc
         .setKcalAdjustment(_kcalAdjustmentSelection.toInt().toDouble());
-    widget.settingsBloc.setMacroGoals(
-        _carbsPctSelection, _proteinPctSelection, _fatPctSelection);
+    await widget.settingsBloc.setMacroGoalMode(_macroGoalMode);
+
+    if (_macroGoalMode == MacroGoalModeEntity.percentage) {
+      widget.settingsBloc.setMacroGoals(
+        _carbsPctSelection,
+        _proteinPctSelection,
+        _fatPctSelection,
+      );
+    } else {
+      await widget.settingsBloc.setMacroGoalsGramPerKg(
+        0,
+        _parsePositiveDouble(
+            _proteinGramPerKgController.text, _defaultProteinGramPerKg),
+        _parsePositiveDouble(_fatGramPerKgController.text, _defaultFatGramPerKg),
+      );
+    }
 
     widget.settingsBloc.add(LoadSettingsEvent());
-    // Update other blocs that need the new calorie value
     widget.profileBloc.add(LoadProfileEvent());
     widget.homeBloc.add(LoadItemsEvent());
-
-    // Update tracked day entity
     widget.settingsBloc.updateTrackedDay(DateTime.now());
     widget.diaryBloc.add(LoadDiaryYearEvent());
     widget.calendarDayBloc.add(RefreshCalendarDayEvent());
 
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
   }
+
+  double _parsePositiveDouble(String rawValue, double fallback) {
+    final normalized = rawValue.replaceAll(',', '.').trim();
+    final parsed = double.tryParse(normalized);
+    if (parsed == null || parsed <= 0) {
+      return fallback;
+    }
+    return parsed;
+  }
+
+  String _formatDecimal(double value) {
+    return value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 1);
+  }
+
+  String _gramPerKgHint(BuildContext context) {
+    final weightLabel = _userWeightKg != null
+        ? '${_userWeightKg!.toStringAsFixed(1)} kg'
+        : (_isEs(context) ? 'tu peso actual' : 'your current weight');
+    if (_isEs(context)) {
+      return 'Proteína y grasa se calcularán multiplicando cada valor por $weightLabel. Los carbos rellenarán las kcal restantes del objetivo automático.';
+    }
+    return 'Protein and fat will be calculated by multiplying each value by $weightLabel. Carbs will fill the remaining kcal from the automatic target.';
+  }
+
+  bool _isEs(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'es';
 }

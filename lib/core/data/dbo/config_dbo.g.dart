@@ -48,13 +48,17 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..googleDriveAutoBackupEnabled = fields[26] as bool?
       ..googleDriveLastBackupAttemptAt = fields[27] as String?
       ..googleDriveLastBackupSuccessAt = fields[28] as String?
-      ..googleDriveLastBackupError = fields[29] as String?;
+      ..googleDriveLastBackupError = fields[29] as String?
+      ..macroGoalMode = fields[30] as String?
+      ..userCarbGoalGramPerKg = fields[31] as double?
+      ..userProteinGoalGramPerKg = fields[32] as double?
+      ..userFatGoalGramPerKg = fields[33] as double?;
   }
 
   @override
   void write(BinaryWriter writer, ConfigDBO obj) {
     writer
-      ..writeByte(30)
+      ..writeByte(34)
       ..writeByte(0)
       ..write(obj.hasAcceptedDisclaimer)
       ..writeByte(1)
@@ -114,7 +118,15 @@ class ConfigDBOAdapter extends TypeAdapter<ConfigDBO> {
       ..writeByte(28)
       ..write(obj.googleDriveLastBackupSuccessAt)
       ..writeByte(29)
-      ..write(obj.googleDriveLastBackupError);
+      ..write(obj.googleDriveLastBackupError)
+      ..writeByte(30)
+      ..write(obj.macroGoalMode)
+      ..writeByte(31)
+      ..write(obj.userCarbGoalGramPerKg)
+      ..writeByte(32)
+      ..write(obj.userProteinGoalGramPerKg)
+      ..writeByte(33)
+      ..write(obj.userFatGoalGramPerKg);
   }
 
   @override
@@ -147,6 +159,13 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
       ..userFatGoalPct = (json['userFatGoalPct'] as num?)?.toDouble()
+      ..macroGoalMode = json['macroGoalMode'] as String?
+      ..userCarbGoalGramPerKg =
+          (json['userCarbGoalGramPerKg'] as num?)?.toDouble()
+      ..userProteinGoalGramPerKg =
+          (json['userProteinGoalGramPerKg'] as num?)?.toDouble()
+      ..userFatGoalGramPerKg =
+          (json['userFatGoalGramPerKg'] as num?)?.toDouble()
       ..aiEstimatedCostTotalUsd =
           (json['aiEstimatedCostTotalUsd'] as num?)?.toDouble()
       ..aiEstimatedCostTodayUsd =
@@ -190,6 +209,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'userCarbGoalPct': instance.userCarbGoalPct,
       'userProteinGoalPct': instance.userProteinGoalPct,
       'userFatGoalPct': instance.userFatGoalPct,
+      'macroGoalMode': instance.macroGoalMode,
+      'userCarbGoalGramPerKg': instance.userCarbGoalGramPerKg,
+      'userProteinGoalGramPerKg': instance.userProteinGoalGramPerKg,
+      'userFatGoalGramPerKg': instance.userFatGoalGramPerKg,
       'dailyFocus': instance.dailyFocus,
       'aiEstimatedCostTotalUsd': instance.aiEstimatedCostTotalUsd,
       'aiEstimatedCostTodayUsd': instance.aiEstimatedCostTodayUsd,

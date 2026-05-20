@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
@@ -106,14 +107,54 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return config.userFatGoalPct;
   }
 
-  void setKcalAdjustment(double kcalAdjustment) {
-    _addConfigUsecase.setConfigKcalAdjustment(kcalAdjustment);
+  Future<MacroGoalModeEntity> getMacroGoalMode() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.macroGoalMode;
   }
 
-  void setMacroGoals(
+  Future<double?> getUserCarbGoalGramPerKg() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userCarbGoalGramPerKg;
+  }
+
+  Future<double?> getUserProteinGoalGramPerKg() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userProteinGoalGramPerKg;
+  }
+
+  Future<double?> getUserFatGoalGramPerKg() async {
+    final config = await _getConfigUsecase.getConfig();
+    return config.userFatGoalGramPerKg;
+  }
+
+  Future<double> getUserWeightKg() async {
+    final user = await _getUserUsecase.getUserData();
+    return user.weightKG;
+  }
+
+  Future<void> setKcalAdjustment(double kcalAdjustment) async {
+    await _addConfigUsecase.setConfigKcalAdjustment(kcalAdjustment);
+  }
+
+  Future<void> setMacroGoals(
       double carbGoalPct, double proteinGoalPct, double fatGoalPct) {
-    _addConfigUsecase.setConfigMacroGoalPct(carbGoalPct.toInt() / 100,
+    return _addConfigUsecase.setConfigMacroGoalPct(carbGoalPct.toInt() / 100,
         proteinGoalPct.toInt() / 100, fatGoalPct.toInt() / 100);
+  }
+
+  Future<void> setMacroGoalMode(MacroGoalModeEntity macroGoalMode) async {
+    await _addConfigUsecase.setMacroGoalMode(macroGoalMode);
+  }
+
+  Future<void> setMacroGoalsGramPerKg(
+      double carbGoalGramPerKg,
+      double proteinGoalGramPerKg,
+      double fatGoalGramPerKg) async {
+    await _addConfigUsecase.setConfigMacroGoalGramPerKg(
+      carbGoalGramPerKg,
+      proteinGoalGramPerKg,
+      fatGoalGramPerKg,
+    );
   }
 
   Future<void> resetAiCostTracking() async {
@@ -191,6 +232,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     final targets = GymTargetCalc.buildTargets(
       phase: user.goal,
       dailyFocus: config.dailyFocus,
+      macroGoalMode: config.macroGoalMode,
       baseKcalGoal: totalKcalGoal,
       baseCarbsGoal: baseCarbsGoal,
       baseFatGoal: baseFatGoal,

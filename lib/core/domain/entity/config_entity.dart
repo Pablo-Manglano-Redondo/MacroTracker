@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class ConfigEntity extends Equatable {
@@ -14,6 +15,10 @@ class ConfigEntity extends Equatable {
   final double? userCarbGoalPct;
   final double? userProteinGoalPct;
   final double? userFatGoalPct;
+  final MacroGoalModeEntity macroGoalMode;
+  final double? userCarbGoalGramPerKg;
+  final double? userProteinGoalGramPerKg;
+  final double? userFatGoalGramPerKg;
   final DailyFocusEntity dailyFocus;
   final double aiEstimatedCostTotalUsd;
   final double aiEstimatedCostTodayUsd;
@@ -43,6 +48,10 @@ class ConfigEntity extends Equatable {
       this.userCarbGoalPct,
       this.userProteinGoalPct,
       this.userFatGoalPct,
+      this.macroGoalMode = MacroGoalModeEntity.percentage,
+      this.userCarbGoalGramPerKg,
+      this.userProteinGoalGramPerKg,
+      this.userFatGoalGramPerKg,
       this.dailyFocus = DailyFocusEntity.upperBody,
       this.aiEstimatedCostTotalUsd = 0,
       this.aiEstimatedCostTodayUsd = 0,
@@ -75,6 +84,11 @@ class ConfigEntity extends Equatable {
         userCarbGoalPct: dbo.userCarbGoalPct,
         userProteinGoalPct: dbo.userProteinGoalPct,
         userFatGoalPct: dbo.userFatGoalPct,
+        macroGoalMode:
+            MacroGoalModeEntityX.fromStorageValue(dbo.macroGoalMode),
+        userCarbGoalGramPerKg: dbo.userCarbGoalGramPerKg,
+        userProteinGoalGramPerKg: dbo.userProteinGoalGramPerKg,
+        userFatGoalGramPerKg: dbo.userFatGoalGramPerKg,
         dailyFocus: DailyFocusEntityX.fromStorageValue(dbo.dailyFocus),
         aiEstimatedCostTotalUsd: dbo.aiEstimatedCostTotalUsd ?? 0,
         aiEstimatedCostTodayUsd: dbo.aiEstimatedCostTodayUsd ?? 0,
@@ -112,6 +126,10 @@ class ConfigEntity extends Equatable {
         userCarbGoalPct,
         userProteinGoalPct,
         userFatGoalPct,
+        macroGoalMode,
+        userCarbGoalGramPerKg,
+        userProteinGoalGramPerKg,
+        userFatGoalGramPerKg,
         dailyFocus,
         aiEstimatedCostTotalUsd,
         aiEstimatedCostTodayUsd,

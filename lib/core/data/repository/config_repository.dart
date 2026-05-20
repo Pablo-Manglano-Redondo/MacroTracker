@@ -4,6 +4,7 @@ import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/domain/entity/training_day_template_entity.dart';
 
 class ConfigRepository {
@@ -73,6 +74,17 @@ class ConfigRepository {
     _configDataSource.setConfigCarbGoalPct(carbs);
     _configDataSource.setConfigProteinGoalPct(protein);
     _configDataSource.setConfigFatGoalPct(fat);
+  }
+
+  Future<void> setUserMacroGoalsGramPerKg(
+      double carbs, double protein, double fat) async {
+    await _configDataSource.setConfigCarbGoalGramPerKg(carbs);
+    await _configDataSource.setConfigProteinGoalGramPerKg(protein);
+    await _configDataSource.setConfigFatGoalGramPerKg(fat);
+  }
+
+  Future<void> setMacroGoalMode(MacroGoalModeEntity macroGoalMode) async {
+    await _configDataSource.setMacroGoalMode(macroGoalMode.storageValue);
   }
 
   Future<void> setDailyFocus(DailyFocusEntity dailyFocus) async {
