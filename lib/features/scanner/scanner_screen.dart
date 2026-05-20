@@ -20,8 +20,11 @@ class ScannerScreen extends StatefulWidget {
 
 class _ScannerScreenState extends State<ScannerScreen> {
   final log = Logger('ScannerScreen');
+  final MobileScannerController _cameraController = MobileScannerController();
 
   String? _scannedBarcode;
+  bool _hasNavigatedToMealDetail = false;
+  bool _isHandlingDetection = false;
   late IntakeTypeEntity _intakeTypeEntity;
   late DateTime _day;
 
@@ -31,6 +34,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void initState() {
     _scannerBloc = locator<ScannerBloc>();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,7 +73,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
         } else if (state is ScannerLoadedState) {
           // Push new route after build
           Future.microtask(() {
-            if (context.mounted) {
+            if (context.mounted && !_hasNavigatedToMealDetail) {
+              _hasNavigatedToMealDetail = true;
               return Navigator.of(context).pushReplacementNamed(
                   NavigationOptions.mealDetailRoute,
                   arguments: MealDetailScreenArguments(state.product,
@@ -90,14 +100,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Scaffold _getScannerContent(BuildContext context) {
-    final cameraController = MobileScannerController();
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).scanProductLabel),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
-              valueListenable: cameraController,
+              valueListenable: _cameraController,
               builder: (context, state, child) {
                 switch (state.torchState) {
                   case TorchState.off || TorchState.unavailable:
@@ -108,23 +117,28 @@ class _ScannerScreenState extends State<ScannerScreen> {
                 }
               },
             ),
-            onPressed: () => cameraController.toggleTorch(),
+            onPressed: () => _cameraController.toggleTorch(),
           ),
           IconButton(
             icon: const Icon(Icons.flip_camera_android_outlined),
-            onPressed: () => cameraController.switchCamera(),
+            onPressed: () => _cameraController.switchCamera(),
           ),
         ],
       ),
       body: MobileScanner(
-          controller: cameraController,
+          controller: _cameraController,
           onDetect: (capture) {
+            if (_isHandlingDetection) {
+              return;
+            }
             final List<Barcode> barcodes = capture.barcodes;
             for (final barcode in barcodes) {
               if (barcode.rawValue != null &&
                   barcode.type == BarcodeType.product) {
                 final barcodeResult = barcode.rawValue;
                 if (barcodeResult != null) {
+                  _isHandlingDetection = true;
+                  _cameraController.stop();
                   HapticFeedback.lightImpact();
                   _scannedBarcode = barcodeResult;
                   log.fine('Barcode found: $barcodeResult');
@@ -140,6 +154,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   void _onRefreshButtonPressed() {
     final barcode = _scannedBarcode;
     if (barcode != null) {
+      _isHandlingDetection = true;
       _scannerBloc.add(ScannerLoadProductEvent(barcode: barcode));
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

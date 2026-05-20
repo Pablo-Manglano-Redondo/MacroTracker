@@ -354,6 +354,8 @@ class SyncSleepFromHealthConnectUsecase {
           isAvailable: false,
           hasHealthPermissions: false,
           hasActivityRecognitionPermission: false,
+          hasStepsPermission: false,
+          hasWorkoutSupplementPermission: false,
           isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
         );
       }
@@ -365,6 +367,8 @@ class SyncSleepFromHealthConnectUsecase {
           isAvailable: false,
           hasHealthPermissions: false,
           hasActivityRecognitionPermission: false,
+          hasStepsPermission: false,
+          hasWorkoutSupplementPermission: false,
           isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
         );
       }
@@ -381,6 +385,8 @@ class SyncSleepFromHealthConnectUsecase {
         hasHealthPermissions: hasCorePermissions,
         hasActivityRecognitionPermission: await _healthConnectSleepDataSource
             .hasActivityRecognitionPermission(),
+        hasStepsPermission: hasStepsPermission,
+        hasWorkoutSupplementPermission: hasWorkoutSupplementPermission,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
     } catch (error, stackTrace) {
@@ -389,6 +395,8 @@ class SyncSleepFromHealthConnectUsecase {
         isAvailable: false,
         hasHealthPermissions: false,
         hasActivityRecognitionPermission: false,
+        hasStepsPermission: false,
+        hasWorkoutSupplementPermission: false,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
     }
@@ -406,6 +414,8 @@ class SyncSleepFromHealthConnectUsecase {
           isAvailable: false,
           hasHealthPermissions: false,
           hasActivityRecognitionPermission: false,
+          hasStepsPermission: false,
+          hasWorkoutSupplementPermission: false,
           isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
         );
       }
@@ -417,6 +427,8 @@ class SyncSleepFromHealthConnectUsecase {
           isAvailable: false,
           hasHealthPermissions: false,
           hasActivityRecognitionPermission: false,
+          hasStepsPermission: false,
+          hasWorkoutSupplementPermission: false,
           isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
         );
       }
@@ -453,6 +465,8 @@ class SyncSleepFromHealthConnectUsecase {
         isAvailable: true,
         hasHealthPermissions: hasHealthPermissions,
         hasActivityRecognitionPermission: hasActivityRecognition,
+        hasStepsPermission: hasStepsPermission,
+        hasWorkoutSupplementPermission: hasWorkoutSupplementPermission,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
     } catch (error, stackTrace) {
@@ -461,6 +475,8 @@ class SyncSleepFromHealthConnectUsecase {
         isAvailable: false,
         hasHealthPermissions: false,
         hasActivityRecognitionPermission: false,
+        hasStepsPermission: false,
+        hasWorkoutSupplementPermission: false,
         isAutoSyncEnabled: config.healthConnectAutoSyncEnabled,
       );
     }

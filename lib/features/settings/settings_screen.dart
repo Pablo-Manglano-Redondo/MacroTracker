@@ -357,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _ReminderTimeTile(
-                    label: _morningReminderLabel(context),
+                    label: _morningReminderLabelFixed(context),
                     value: morningMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -374,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _afterLunchReminderLabel(context),
+                    label: _afterLunchReminderLabelFixed(context),
                     value: lunchMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -389,7 +389,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _afternoonReminderLabel(context),
+                    label: _afternoonReminderLabelFixed(context),
                     value: afternoonMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -406,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _eveningReminderLabel(context),
+                    label: _eveningReminderLabelFixed(context),
                     value: eveningMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -461,7 +461,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           enabled
               ? (permissionGranted
                   ? _mealReminderSavedMessage(context)
-                  : _mealReminderPermissionDeniedMessage(context))
+                  : _mealReminderPermissionDeniedMessageFixed(context))
               : _mealReminderDisabledMessage(context),
         ),
       ),
@@ -801,6 +801,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? 'Health Connect conectado. Si el sync falla, revisa los permisos.'
           : 'Health Connect connected. If sync fails, review permissions.';
     }
+    if (!status.hasStepsPermission) {
+      return _isEs(context)
+          ? 'Falta permiso de pasos. El sync será parcial.'
+          : 'Steps permission missing. Sync will be partial.';
+    }
+    if (!status.hasWorkoutSupplementPermission) {
+      return _isEs(context)
+          ? 'Faltan permisos extra de entreno. Algunas calorías pueden quedar en 0.'
+          : 'Workout detail permissions missing. Some calories may stay at 0.';
+    }
     return S.of(context).healthConnectStatusReady;
   }
 
@@ -940,14 +950,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _isEs(context) ? 'Activar recordatorios' : 'Enable reminders';
 
   String _mealReminderSubtitle(BuildContext context) => _isEs(context)
-      ? 'Android te avisara para registrar desayuno, comida, snack y cena.'
+      ? 'Android te avisar\u00e1 para registrar desayuno, comida, snack y cena.'
       : 'Android will remind you to log breakfast, lunch, snack and dinner.';
 
   String _morningReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Mañana' : 'Morning';
+      _isEs(context) ? 'Ma\u00f1ana' : 'Morning';
 
   String _afterLunchReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Después de comer' : 'After lunch';
+      _isEs(context) ? 'Despu\u00e9s de comer' : 'After lunch';
 
   String _afternoonReminderLabel(BuildContext context) =>
       _isEs(context) ? 'Tarde' : 'Afternoon';
@@ -964,7 +974,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _mealReminderPermissionDeniedMessage(BuildContext context) =>
       _isEs(context)
-          ? 'No se pudo activar porque Android no concedio permisos.'
+          ? 'No se pudo activar porque Android no concedi\u00f3 permisos.'
+          : 'Could not enable reminders because Android permission was denied.';
+
+  String _morningReminderLabelFixed(BuildContext context) =>
+      _isEs(context) ? 'Ma\u00f1ana' : 'Morning';
+
+  String _afterLunchReminderLabelFixed(BuildContext context) =>
+      _isEs(context) ? 'Despu\u00e9s de comer' : 'After lunch';
+
+  String _afternoonReminderLabelFixed(BuildContext context) =>
+      _isEs(context) ? 'Tarde' : 'Afternoon';
+
+  String _eveningReminderLabelFixed(BuildContext context) =>
+      _isEs(context) ? 'Cena' : 'Dinner';
+
+  String _mealReminderPermissionDeniedMessageFixed(BuildContext context) =>
+      _isEs(context)
+          ? 'No se pudo activar porque Android no concedió permisos.'
           : 'Could not enable reminders because Android permission was denied.';
 
   String _mealReminderSummary(SettingsLoadedState state) {

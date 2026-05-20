@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -16,6 +17,7 @@ const googleDriveDailyBackupUniqueName = 'google-drive-daily-backup';
 void driveBackupCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
     LoggerConfig.intiLogger();
     final log = Logger('DriveBackupWorker');
 
