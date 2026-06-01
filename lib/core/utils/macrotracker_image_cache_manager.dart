@@ -1,6 +1,6 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 
-class OntImageCacheManager {
+class MacroTrackerImageCacheManager {
   static const _cacheDuration = Duration(days: 30);
   static const _maxNrOfCacheObjects = 200;
 

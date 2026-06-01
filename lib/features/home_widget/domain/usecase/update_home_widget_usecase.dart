@@ -87,9 +87,11 @@ class UpdateHomeWidgetUsecase {
         ),
       );
 
-      await HomeWidget.updateWidget(androidName: androidWidgetProviderName);
+      await HomeWidget.updateWidget(
+        androidName: androidWidgetProviderName,
+      );
     } catch (error, stackTrace) {
-      _log.warning('Failed to refresh Android home widget', error, stackTrace);
+      _log.warning('Failed to refresh home widget', error, stackTrace);
     }
   }
 
@@ -113,7 +115,8 @@ class UpdateHomeWidgetUsecase {
     required bool usesImperialUnits,
   }) {
     if (usesImperialUnits) {
-      final trackedFlOz = UnitCalc.mlToFlOz(habitLog.waterLiters * 1000).round();
+      final trackedFlOz =
+          UnitCalc.mlToFlOz(habitLog.waterLiters * 1000).round();
       final goalFlOz = UnitCalc.mlToFlOz(hydrationGoal * 1000).round();
       return '$trackedFlOz/$goalFlOz oz';
     }

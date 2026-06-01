@@ -30,8 +30,8 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _args ??=
-        ModalRoute.of(context)!.settings.arguments as WeeklyInsightsScreenArguments;
+    _args ??= ModalRoute.of(context)!.settings.arguments
+        as WeeklyInsightsScreenArguments;
     _insightsFuture =
         locator<BuildWeeklyInsightsUsecase>().build(_args!.focusedDate);
   }
@@ -133,7 +133,8 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                       child: _InfoCard(
                         title: S.of(context).weeklyInsightsCoverage,
                         child: Text(
-                          S.of(context)
+                          S
+                              .of(context)
                               .weeklyInsightsTrackedDays(insights.trackedDays),
                         ),
                       ),
@@ -181,8 +182,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                           children: insights.topMeals
                               .map(
                                 (meal) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 4.0),
+                                  padding: const EdgeInsets.only(bottom: 4.0),
                                   child: Text(
                                     '- ${meal.label} (${meal.count})',
                                   ),
@@ -218,7 +218,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());
       locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
 
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
 

@@ -70,10 +70,10 @@ class S {
     );
   }
 
-  /// `MacroTracker is a free and open-source calorie and nutrient tracker that respects your privacy.`
+  /// `MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.`
   String get appDescription {
     return Intl.message(
-      'MacroTracker is a free and open-source calorie and nutrient tracker that respects your privacy.',
+      'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.',
       name: 'appDescription',
       desc: '',
       args: [],
@@ -900,10 +900,10 @@ class S {
     );
   }
 
-  /// `Send anonymous usage data`
+  /// `Send anonymous crash and diagnostic reports`
   String get sendAnonymousUserData {
     return Intl.message(
-      'Send anonymous usage data',
+      'Send anonymous crash and diagnostic reports',
       name: 'sendAnonymousUserData',
       desc: '',
       args: [],
@@ -1811,10 +1811,10 @@ class S {
     );
   }
 
-  /// `Support development by providing anonymous usage data`
+  /// `Help improve stability by sending anonymous crash and diagnostic reports`
   String get dataCollectionLabel {
     return Intl.message(
-      'Support development by providing anonymous usage data',
+      'Help improve stability by sending anonymous crash and diagnostic reports',
       name: 'dataCollectionLabel',
       desc: '',
       args: [],

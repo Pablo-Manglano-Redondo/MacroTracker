@@ -8,6 +8,8 @@ import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/presentation/widgets/ai_usage_gate.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
@@ -57,134 +59,143 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ? _buildLoadingSkeleton(context)
           : ListView(
               padding: const EdgeInsets.all(16),
-        children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              color: Color.alphaBlend(
-                colorScheme.primary.withValues(alpha: 0.08),
-                colorScheme.surfaceContainerLow,
-              ),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: colorScheme.primary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    color: Color.alphaBlend(
+                      colorScheme.primary.withValues(alpha: 0.08),
+                      colorScheme.surfaceContainerLow,
+                    ),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    Icons.auto_awesome_outlined,
-                    color: colorScheme.primary,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: colorScheme.primary.withValues(alpha: 0.15),
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.auto_awesome_outlined,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        S.of(context).aiCaptureByPhotoTitle,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        S.of(context).aiCaptureByPhotoSubtitle(
+                            _args.intakeTypeEntity.name),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _CaptureStepChip(
+                            icon: Icons.image_outlined,
+                            label: S.of(context).aiStepPickImage,
+                          ),
+                          _CaptureStepChip(
+                            icon: Icons.tune_outlined,
+                            label: S.of(context).aiStepReviewItems,
+                          ),
+                          _CaptureStepChip(
+                            icon: Icons.restaurant_outlined,
+                            label: S.of(context).aiStepSaveMeal,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  S.of(context).aiCaptureByPhotoTitle,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  S.of(context).aiCaptureByPhotoSubtitle(_args.intakeTypeEntity.name),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
                 ),
                 const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _CaptureStepChip(
-                      icon: Icons.image_outlined,
-                      label: S.of(context).aiStepPickImage,
+                const AiTrialBanner(placement: PaywallPlacement.aiPhoto),
+                const SizedBox(height: 16),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          S.of(context).aiHintRecommendations,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                        const SizedBox(height: 12),
+                        _CaptureHintRow(
+                          icon: Icons.crop_free_outlined,
+                          title: S.of(context).aiHintShowFullPlateTitle,
+                          subtitle: S.of(context).aiHintShowFullPlateSubtitle,
+                        ),
+                        const SizedBox(height: 10),
+                        _CaptureHintRow(
+                          icon: Icons.opacity_outlined,
+                          title: S.of(context).aiHintCheckSaucesTitle,
+                          subtitle: S.of(context).aiHintCheckSaucesSubtitle,
+                        ),
+                        const SizedBox(height: 10),
+                        _CaptureHintRow(
+                          icon: Icons.fitness_center_outlined,
+                          title: S.of(context).aiHintGymMealsTitle,
+                          subtitle: S.of(context).aiHintGymMealsSubtitle,
+                        ),
+                      ],
                     ),
-                    _CaptureStepChip(
-                      icon: Icons.tune_outlined,
-                      label: S.of(context).aiStepReviewItems,
-                    ),
-                    _CaptureStepChip(
-                      icon: Icons.restaurant_outlined,
-                      label: S.of(context).aiStepSaveMeal,
-                    ),
-                  ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: _isLoading ? null : _captureAndInterpretPhoto,
+                  icon: Icon(
+                    _isLoading
+                        ? Icons.hourglass_top_outlined
+                        : Icons.auto_awesome,
+                  ),
+                  label: Text(
+                    _isLoading
+                        ? _loadingStatus!
+                        : S.of(context).aiButtonCapture,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _isLoading ? null : _pickAndInterpretPhoto,
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(S.of(context).aiButtonPickGallery),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _isLoading ? null : _openTextFlow,
+                    icon: const Icon(Icons.notes_outlined),
+                    label: Text(S.of(context).aiButtonUseText),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    S.of(context).aiHintRecommendations,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  _CaptureHintRow(
-                    icon: Icons.crop_free_outlined,
-                    title: S.of(context).aiHintShowFullPlateTitle,
-                    subtitle: S.of(context).aiHintShowFullPlateSubtitle,
-                  ),
-                  const SizedBox(height: 10),
-                  _CaptureHintRow(
-                    icon: Icons.opacity_outlined,
-                    title: S.of(context).aiHintCheckSaucesTitle,
-                    subtitle: S.of(context).aiHintCheckSaucesSubtitle,
-                  ),
-                  const SizedBox(height: 10),
-                  _CaptureHintRow(
-                    icon: Icons.fitness_center_outlined,
-                    title: S.of(context).aiHintGymMealsTitle,
-                    subtitle: S.of(context).aiHintGymMealsSubtitle,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          FilledButton.icon(
-            onPressed: _isLoading ? null : _captureAndInterpretPhoto,
-            icon: Icon(
-              _isLoading ? Icons.hourglass_top_outlined : Icons.auto_awesome,
-            ),
-            label: Text(
-              _isLoading ? _loadingStatus! : S.of(context).aiButtonCapture,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: TextButton.icon(
-              onPressed: _isLoading ? null : _pickAndInterpretPhoto,
-              icon: const Icon(Icons.photo_library_outlined),
-              label: Text(S.of(context).aiButtonPickGallery),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: TextButton.icon(
-              onPressed: _isLoading ? null : _openTextFlow,
-              icon: const Icon(Icons.notes_outlined),
-              label: Text(S.of(context).aiButtonUseText),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -209,7 +220,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
         ),
         const SizedBox(height: 48),
-        const SkeletonBox(width: double.infinity, height: 160, borderRadius: 20),
+        const SkeletonBox(
+            width: double.infinity, height: 160, borderRadius: 20),
         const SizedBox(height: 16),
         const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
         const SizedBox(height: 16),
@@ -259,6 +271,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     required String? filePath,
     required Uint8List bytes,
   }) async {
+    final access = await AiUsageGate.ensureAccess(
+      context,
+      placement: PaywallPlacement.aiPhoto,
+    );
+    if (!access.allowed) {
+      return;
+    }
+
     setState(() {
       _loadingStatus = S.of(context).aiStatusPreparing;
     });
@@ -275,7 +295,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
 
       final config = await locator<GetConfigUsecase>().getConfig();
       final personalizationContext =
-          await locator<MealInterpretationPersonalizationUsecase>().buildContext(
+          await locator<MealInterpretationPersonalizationUsecase>()
+              .buildContext(
         intakeType: _args.intakeTypeEntity,
       );
       final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
@@ -288,7 +309,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         analysisContext: personalizationContext.promptContext,
         personalExamples: personalizationContext.remoteExamples,
       );
-
       setState(() {
         _loadingStatus = S.of(context).aiStatusPersonalizing;
       });
@@ -300,8 +320,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
         intakeType: _args.intakeTypeEntity,
         context: personalizationContext,
       );
-      final updatedDraft =
-          personalizedDraft.copyWith(localImagePath: filePath);
+      final updatedDraft = personalizedDraft.copyWith(localImagePath: filePath);
       await locator<SaveInterpretationDraftUsecase>().saveDraft(updatedDraft);
 
       if (mounted) {
@@ -325,8 +344,9 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             action: SnackBarAction(
               label: S.of(context).aiRetry,
               onPressed: () {
-                Navigator.of(context).popUntil((route) => 
-                    route.settings.name == NavigationOptions.mealPhotoCaptureRoute);
+                Navigator.of(context).popUntil((route) =>
+                    route.settings.name ==
+                    NavigationOptions.mealPhotoCaptureRoute);
                 _interpretPickedFile(
                   fileName: fileName,
                   filePath: filePath,

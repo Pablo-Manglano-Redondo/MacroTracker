@@ -48,15 +48,18 @@ class HealthConnectSleepDataSource {
   }
 
   Future<bool> isAvailable() async {
-    if (!Platform.isAndroid) {
-      return false;
+    if (Platform.isAndroid) {
+      try {
+        return await _health.isHealthConnectAvailable();
+      } catch (error, stackTrace) {
+        _log.warning(
+            'Health Connect availability check failed', error, stackTrace);
+        return false;
+      }
+    } else if (Platform.isIOS) {
+      return true;
     }
-    try {
-      return await _health.isHealthConnectAvailable();
-    } catch (error, stackTrace) {
-      _log.warning('Health Connect availability check failed', error, stackTrace);
-      return false;
-    }
+    return false;
   }
 
   Future<bool> hasReadPermission() async {
@@ -79,7 +82,8 @@ class HealthConnectSleepDataSource {
         permissions: _corePermissions,
       );
     } catch (error, stackTrace) {
-      _log.warning('Health Connect permission request failed', error, stackTrace);
+      _log.warning(
+          'Health Connect permission request failed', error, stackTrace);
       return false;
     }
   }
@@ -151,6 +155,9 @@ class HealthConnectSleepDataSource {
   }
 
   Future<bool> hasActivityRecognitionPermission() async {
+    if (Platform.isIOS) {
+      return true;
+    }
     if (!Platform.isAndroid) {
       return false;
     }
@@ -168,6 +175,9 @@ class HealthConnectSleepDataSource {
   }
 
   Future<bool> requestActivityRecognitionPermission() async {
+    if (Platform.isIOS) {
+      return true;
+    }
     if (!Platform.isAndroid) {
       return false;
     }
@@ -215,7 +225,8 @@ class HealthConnectSleepDataSource {
     DateTime endTime,
   ) async {
     try {
-      final stepCount = await _health.getTotalStepsInInterval(startTime, endTime);
+      final stepCount =
+          await _health.getTotalStepsInInterval(startTime, endTime);
       return stepCount == null || stepCount < 0 ? 0 : stepCount;
     } catch (error, stackTrace) {
       _log.warning('Reading step count failed', error, stackTrace);
@@ -243,8 +254,8 @@ class HealthConnectSleepDataSource {
       );
       final uniquePoints = _health.removeDuplicates(points);
       final workouts = <HealthConnectWorkoutEntity>[];
-      for (final point
-          in uniquePoints.where((point) => point.type == HealthDataType.WORKOUT)) {
+      for (final point in uniquePoints
+          .where((point) => point.type == HealthDataType.WORKOUT)) {
         final workout = _tryMapWorkout(point);
         if (workout != null) {
           workouts.add(workout);
@@ -331,7 +342,8 @@ class HealthConnectSleepDataSource {
       externalId: externalId,
       activityCode: 'hc:${normalizedWorkoutType.toLowerCase()}',
       displayName: displayName,
-      description: sourceName.isEmpty ? displayName : '$displayName - $sourceName',
+      description:
+          sourceName.isEmpty ? displayName : '$displayName - $sourceName',
       startTime: startTime,
       endTime: endTime,
       durationMinutes: endTime.difference(startTime).inMinutes.toDouble(),
@@ -426,10 +438,8 @@ class HealthConnectSleepDataSource {
           : '$displayName - ${point.sourceName}',
       startTime: point.dateFrom,
       endTime: point.dateTo,
-      durationMinutes: point.dateTo
-          .difference(point.dateFrom)
-          .inMinutes
-          .toDouble(),
+      durationMinutes:
+          point.dateTo.difference(point.dateFrom).inMinutes.toDouble(),
       burnedKcal: normalizedBurnedKcal.toDouble(),
     );
   }
@@ -443,7 +453,8 @@ class HealthConnectSleepDataSource {
       return point.uuid;
     }
 
-    final sourceId = point.sourceId.isNotEmpty ? point.sourceId : point.sourceName;
+    final sourceId =
+        point.sourceId.isNotEmpty ? point.sourceId : point.sourceName;
     return [
       'hc',
       activityTypeName,

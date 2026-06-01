@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,6 +10,7 @@ import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
+import 'package:macrotracker/core/presentation/widgets/shimmer_loading.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
@@ -19,6 +22,7 @@ import 'package:macrotracker/features/home_widget/domain/usecase/update_home_wid
 import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
+import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 
 class HomePage extends StatefulWidget {
@@ -106,8 +110,95 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _getLoadingContent() {
-    return const Center(
-      child: CircularProgressIndicator(),
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Dashboard card skeleton
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  const SkeletonBox(width: 44, height: 44, borderRadius: 14),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      SkeletonBox(width: 160, height: 18, borderRadius: 6),
+                      SizedBox(height: 6),
+                      SkeletonBox(width: 100, height: 12, borderRadius: 6),
+                    ],
+                  ),
+                ]),
+                const SizedBox(height: 16),
+                // Chips row
+                Wrap(
+                  spacing: 8,
+                  children: const [
+                    SkeletonBox(width: 90, height: 28, borderRadius: 14),
+                    SkeletonBox(width: 90, height: 28, borderRadius: 14),
+                    SkeletonBox(width: 90, height: 28, borderRadius: 14),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Segmented buttons
+                const SkeletonBox(
+                    width: double.infinity, height: 46, borderRadius: 12),
+                const SizedBox(height: 10),
+                const SkeletonBox(
+                    width: double.infinity, height: 46, borderRadius: 12),
+                const SizedBox(height: 18),
+                // Big metric headline
+                const SkeletonBox(width: 200, height: 30, borderRadius: 8),
+                const SizedBox(height: 12),
+                // Two metric boxes
+                Row(children: const [
+                  Expanded(
+                      child: SkeletonBox(
+                          width: double.infinity,
+                          height: 72,
+                          borderRadius: 16)),
+                  SizedBox(width: 12),
+                  Expanded(
+                      child: SkeletonBox(
+                          width: double.infinity,
+                          height: 72,
+                          borderRadius: 16)),
+                ]),
+                const SizedBox(height: 14),
+                // Progress bar
+                const SkeletonBox(
+                    width: double.infinity, height: 9, borderRadius: 999),
+                const SizedBox(height: 14),
+                // Macro rows
+                const SkeletonBox(
+                    width: double.infinity, height: 36, borderRadius: 10),
+                const SizedBox(height: 10),
+                const SkeletonBox(
+                    width: double.infinity, height: 36, borderRadius: 10),
+                const SizedBox(height: 10),
+                const SkeletonBox(
+                    width: double.infinity, height: 36, borderRadius: 10),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Secondary card skeleton
+          const SkeletonBox(
+              width: double.infinity, height: 110, borderRadius: 20),
+          const SizedBox(height: 12),
+          const SkeletonBox(
+              width: double.infinity, height: 140, borderRadius: 20),
+        ],
+      ),
     );
   }
 
@@ -236,6 +327,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _syncSleepFromHealthConnect() async {
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return;
+    }
     if (_isSyncingSleep) {
       return;
     }
@@ -252,7 +346,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       }
     } catch (error, stackTrace) {
       log.warning(
-        'Sleep sync from Health Connect failed',
+        'Health data sync failed',
         error,
         stackTrace,
       );
@@ -338,7 +432,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 }
 
-class _WeeklyInsightsCard extends StatelessWidget {
+class _WeeklyInsightsCard extends StatefulWidget {
   final VoidCallback onTap;
 
   const _WeeklyInsightsCard({
@@ -346,17 +440,188 @@ class _WeeklyInsightsCard extends StatelessWidget {
   });
 
   @override
+  State<_WeeklyInsightsCard> createState() => _WeeklyInsightsCardState();
+}
+
+class _WeeklyInsightsCardState extends State<_WeeklyInsightsCard> {
+  late final Future<_WeeklySnapshot?> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadSnapshot();
+  }
+
+  Future<_WeeklySnapshot?> _loadSnapshot() async {
+    try {
+      final insights =
+          await locator<BuildWeeklyInsightsUsecase>().build(DateTime.now());
+      return _WeeklySnapshot(
+        adherence: (insights.goalAdherenceRate * 100).round(),
+        avgProtein: insights.averageProtein.toStringAsFixed(0),
+        trackedDays: insights.trackedDays,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
     return Card(
       elevation: 0.5,
-      child: ListTile(
-        leading: const Icon(Icons.insights_outlined),
-        title: Text(S.of(context).weeklyInsightsTitle),
-        subtitle: Text(
-          S.of(context).homeWeeklyInsightsSubtitle,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.20),
         ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: widget.onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                    ),
+                    child: Icon(
+                      Icons.insights_outlined,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      S.of(context).weeklyInsightsTitle,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                ],
+              ),
+              FutureBuilder<_WeeklySnapshot?>(
+                future: _future,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
+                  final snap = snapshot.data!;
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _InsightPill(
+                          icon: Icons.track_changes_outlined,
+                          label: '${snap.adherence}%',
+                          sublabel: isEs ? 'adherencia' : 'adherence',
+                          color: colorScheme.primary,
+                        ),
+                        _InsightPill(
+                          icon: Icons.egg_alt_outlined,
+                          label: '${snap.avgProtein}g',
+                          sublabel: isEs ? 'proteína' : 'protein',
+                          color: colorScheme.tertiary,
+                        ),
+                        _InsightPill(
+                          icon: Icons.calendar_today_outlined,
+                          label: '${snap.trackedDays}/7',
+                          sublabel: isEs ? 'días' : 'days',
+                          color: colorScheme.secondary,
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WeeklySnapshot {
+  final int adherence;
+  final String avgProtein;
+  final int trackedDays;
+
+  const _WeeklySnapshot({
+    required this.adherence,
+    required this.avgProtein,
+    required this.trackedDays,
+  });
+}
+
+class _InsightPill extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String sublabel;
+  final Color color;
+
+  const _InsightPill({
+    required this.icon,
+    required this.label,
+    required this.sublabel,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: color.withValues(alpha: 0.10),
+        border: Border.all(color: color.withValues(alpha: 0.16)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: color,
+                    ),
+              ),
+              Text(
+                sublabel,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 10,
+                    ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

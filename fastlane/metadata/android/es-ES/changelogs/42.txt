@@ -1,0 +1,3 @@
+* Rebrand de publicacion bajo EPSAIT
+* Preparacion de Android App Bundle para Google Play
+* Mejoras en privacidad, Health Connect y metadatos de Play Store

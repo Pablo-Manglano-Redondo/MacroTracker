@@ -1,0 +1,24 @@
+MacroTracker de EPSAIT es una app para registrar calorias, macros, comidas y actividad, con seguimiento basico gratuito y funciones Premium opcionales de IA.
+
+Registra comidas manualmente, busca alimentos, escanea productos, guarda comidas frecuentes, crea recetas y revisa tus calorias, proteinas, carbohidratos, grasas, agua y actividad diaria desde una experiencia centrada y practica.
+
+Funciones principales:
+
+- Seguimiento diario de calorias y macros
+- Diario de comidas con historial
+- Biblioteca de recetas y comidas rapidas
+- Escaner de codigos de barras para alimentos envasados
+- Borradores opcionales de comida con IA desde texto o foto
+- Analisis semanal y ajustes de objetivos
+- Importacion opcional desde Health Connect para sueno, entrenamientos, pasos, distancia y calorias quemadas
+- Recordatorios opcionales de comidas
+- Backup cifrado opcional en Google Drive
+- Widget de resumen en la pantalla de inicio
+- Tema claro y oscuro
+- Soporte en espanol e ingles
+
+Privacidad:
+
+MacroTracker prioriza el almacenamiento local. Tu diario, recetas, ajustes, progreso corporal y actividad se guardan en el dispositivo por defecto. Algunas funciones opcionales pueden enviar datos limitados fuera del dispositivo solo cuando decides usarlas: busqueda de alimentos, interpretacion de comidas con IA, diagnostico anonimo de errores y backup en Google Drive. Los datos de Health Connect solo se leen despues de conceder permisos de Android y se usan para mostrar contexto de actividad y bienestar dentro de la app.
+
+MacroTracker no es un dispositivo medico. Los datos nutricionales, de actividad y generados por IA pueden ser incompletos o imprecisos. Revisa los valores importantes y consulta a un profesional cualificado para decisiones medicas, embarazo, enfermedad o nutricion clinica.

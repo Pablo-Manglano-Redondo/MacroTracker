@@ -173,7 +173,8 @@ class ImportDataUsecase {
       final configJsonString = utf8.decode(configFile.content as List<int>);
       final configJson = jsonDecode(configJsonString) as Map<String, dynamic>;
       final configDBO = ConfigDBO.fromJson(configJson);
-      await _configRepository.updateConfig(ConfigEntity.fromConfigDBO(configDBO));
+      await _configRepository
+          .updateConfig(ConfigEntity.fromConfigDBO(configDBO));
     }
 
     return true;

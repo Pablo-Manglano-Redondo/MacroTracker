@@ -27,7 +27,8 @@ class DiaryTableCalendar extends StatefulWidget {
   State<DiaryTableCalendar> createState() => _DiaryTableCalendarState();
 }
 
-class _DiaryTableCalendarState extends State<DiaryTableCalendar> with AutomaticKeepAliveClientMixin {
+class _DiaryTableCalendarState extends State<DiaryTableCalendar>
+    with AutomaticKeepAliveClientMixin {
   late DateTime _visibleFocusedDate;
 
   @override
@@ -261,7 +262,8 @@ class _DiaryTableCalendarState extends State<DiaryTableCalendar> with AutomaticK
     );
   }
 
-  DateTime _normalized(DateTime date) => DateTime(date.year, date.month, date.day);
+  DateTime _normalized(DateTime date) =>
+      DateTime(date.year, date.month, date.day);
 
   DateTime _clampToRange(DateTime value, DateTime firstDay, DateTime lastDay) {
     if (value.isBefore(firstDay)) {

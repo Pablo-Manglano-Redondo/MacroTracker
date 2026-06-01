@@ -1,9 +1,9 @@
 param(
-    [string]$KeyAlias = "macrotracker-local",
+    [string]$KeyAlias = "epsait-macrotracker",
     [string]$StoreFile = "upload-keystore.jks",
     [string]$StorePassword,
     [string]$KeyPassword,
-    [string]$DName = "CN=MacroTracker Local, OU=Personal Build, O=MacroTracker, L=Madrid, ST=Madrid, C=ES",
+    [string]$DName = "CN=MacroTracker, OU=Mobile Apps, O=EPSAIT, L=Madrid, ST=Madrid, C=ES",
     [int]$ValidityDays = 10000,
     [switch]$Force
 )
@@ -18,9 +18,10 @@ $storeFileReference = if ([System.IO.Path]::IsPathRooted($StoreFile)) { $StoreFi
 
 function Find-Keytool {
     $candidates = @(
+        "C:\Program Files\Android\Android Studio2\jbr\bin\keytool.exe",
+        "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe",
         "C:\Program Files\Java\jdk-21\bin\keytool.exe",
-        "C:\Program Files\Java\jdk-19\bin\keytool.exe",
-        "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe"
+        "C:\Program Files\Java\jdk-19\bin\keytool.exe"
     )
 
     foreach ($candidate in $candidates) {

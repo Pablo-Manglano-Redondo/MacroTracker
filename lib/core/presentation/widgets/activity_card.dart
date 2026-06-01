@@ -20,13 +20,6 @@ class ActivityCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cardWidth = compact ? 104.0 : 120.0;
     final cardHeight = compact ? 104.0 : 120.0;
-    final iconSize = compact ? 20.0 : 24.0;
-    final titleStyle = compact
-        ? Theme.of(context).textTheme.bodySmall
-        : Theme.of(context).textTheme.bodyMedium;
-    final subtitleStyle = compact
-        ? Theme.of(context).textTheme.labelSmall
-        : Theme.of(context).textTheme.bodySmall;
     return Row(
       children: [
         SizedBox(
@@ -41,24 +34,34 @@ class ActivityCard extends StatelessWidget {
                 height: cardHeight,
                 width: cardWidth,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
-                  color: Theme.of(context).colorScheme.brightness == Brightness.dark
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
+                  color: Theme.of(context).colorScheme.brightness ==
+                          Brightness.dark
                       ? Theme.of(context).colorScheme.surfaceContainerHigh
                       : Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: Theme.of(context).colorScheme.brightness == Brightness.dark ? 0.2 : 0.05),
+                      color: Colors.black.withValues(
+                          alpha: Theme.of(context).colorScheme.brightness ==
+                                  Brightness.dark
+                              ? 0.2
+                              : 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                   border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.25),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outlineVariant
+                        .withValues(alpha: 0.25),
                   ),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
-                child: InkWell(
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
+                  child: InkWell(
                     onTap: () {
                       onTappedItem(context);
                     },
@@ -74,7 +77,10 @@ class ActivityCard extends StatelessWidget {
                           child: Icon(
                             activityEntity.physicalActivityEntity.displayIcon,
                             size: cardHeight * 0.7,
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.04),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.04),
                           ),
                         ),
                         Positioned(
@@ -93,7 +99,8 @@ class ActivityCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text("🔥", style: TextStyle(fontSize: 10)),
+                                const Text("🔥",
+                                    style: TextStyle(fontSize: 10)),
                                 const SizedBox(width: 2),
                                 FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -128,7 +135,9 @@ class ActivityCard extends StatelessWidget {
                             child: Icon(
                               activityEntity.physicalActivityEntity.displayIcon,
                               size: compact ? 22 : 28,
-                              color: Theme.of(context).colorScheme.onSecondaryContainer,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSecondaryContainer,
                             ),
                           ),
                         ),

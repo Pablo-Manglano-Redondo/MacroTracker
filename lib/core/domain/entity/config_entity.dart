@@ -84,8 +84,7 @@ class ConfigEntity extends Equatable {
         userCarbGoalPct: dbo.userCarbGoalPct,
         userProteinGoalPct: dbo.userProteinGoalPct,
         userFatGoalPct: dbo.userFatGoalPct,
-        macroGoalMode:
-            MacroGoalModeEntityX.fromStorageValue(dbo.macroGoalMode),
+        macroGoalMode: MacroGoalModeEntityX.fromStorageValue(dbo.macroGoalMode),
         userCarbGoalGramPerKg: dbo.userCarbGoalGramPerKg,
         userProteinGoalGramPerKg: dbo.userProteinGoalGramPerKg,
         userFatGoalGramPerKg: dbo.userFatGoalGramPerKg,

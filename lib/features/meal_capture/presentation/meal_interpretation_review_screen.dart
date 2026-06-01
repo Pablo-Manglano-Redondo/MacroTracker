@@ -2,9 +2,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
@@ -109,9 +112,8 @@ class _MealInterpretationReviewScreenState
             ? null
             : () => _commitDraft(_draft!),
         icon: Icon(_isSaving ? Icons.hourglass_top_outlined : Icons.check),
-        label: Text(_isSaving
-            ? S.of(context).aiSavingMeal
-            : S.of(context).aiSaveMeal),
+        label: Text(
+            _isSaving ? S.of(context).aiSavingMeal : S.of(context).aiSaveMeal),
       ),
     );
   }
@@ -154,6 +156,11 @@ class _MealInterpretationReviewScreenState
           onServingsChanged: () => setState(() {}),
           onQuickServingSelected: _setQuickServing,
           quickServingValue: _parsedServings,
+        ),
+        const SizedBox(height: 12),
+        _AiSaveConversionCard(
+          kcal: adjustedKcal,
+          activeItemCount: activeItems.length,
         ),
         if (_draft!.localImagePath != null &&
             _draft!.localImagePath!.trim().isNotEmpty) ...[
@@ -198,7 +205,9 @@ class _MealInterpretationReviewScreenState
                     Text(
                       _isPersistingEdits
                           ? S.of(context).buttonSaveLabel
-                          : S.of(context).aiActiveItemsCount(activeItems.length),
+                          : S
+                              .of(context)
+                              .aiActiveItemsCount(activeItems.length),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color:
                                 Theme.of(context).colorScheme.onSurfaceVariant,
@@ -738,9 +747,12 @@ class _MealInterpretationReviewScreenState
   }
 
   Future<void> _commitDraft(InterpretationDraftEntity draft) async {
-    setState(() {
-      _isSaving = true;
-    });
+    final access = await _ensureAiSaveAccess();
+    if (!access.allowed) {
+      return;
+    }
+
+    setState(() => _isSaving = true);
 
     try {
       await locator<CommitInterpretationDraftUsecase>().commitDraft(
@@ -754,6 +766,9 @@ class _MealInterpretationReviewScreenState
         draft: draft,
         intakeType: _args.intakeTypeEntity,
       );
+      await locator<MonetizationService>().recordAiMealSaved(
+        consumeTrialUse: access.consumeTrialUse,
+      );
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());
       locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
@@ -761,6 +776,8 @@ class _MealInterpretationReviewScreenState
       if (!mounted) {
         return;
       }
+
+      _checkAndRequestReview();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.current.aiMealSavedSuccess)),
@@ -778,6 +795,63 @@ class _MealInterpretationReviewScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.current.aiMealSaveError)),
       );
+    }
+  }
+
+  Future<_AiSaveAccess> _ensureAiSaveAccess() async {
+    final monetizationService = locator<MonetizationService>();
+    var trialState = await monetizationService.getAiTrialState();
+    if (trialState.isPremium) {
+      return const _AiSaveAccess.allowed(consumeTrialUse: false);
+    }
+    if (trialState.remaining > 0) {
+      return const _AiSaveAccess.allowed(consumeTrialUse: true);
+    }
+    if (!mounted) {
+      return const _AiSaveAccess.denied();
+    }
+
+    final purchased = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => PaywallSheet(
+        placement: PaywallPlacement.aiLimit,
+        trialState: trialState,
+      ),
+    );
+    if (purchased != true) {
+      return const _AiSaveAccess.denied();
+    }
+
+    trialState = await monetizationService.getAiTrialState();
+    if (trialState.isPremium) {
+      return const _AiSaveAccess.allowed(consumeTrialUse: false);
+    }
+    if (trialState.remaining > 0) {
+      return const _AiSaveAccess.allowed(consumeTrialUse: true);
+    }
+    return const _AiSaveAccess.denied();
+  }
+
+  Future<void> _checkAndRequestReview() async {
+    try {
+      final box = await Hive.openBox('app_metadata');
+      final currentCount =
+          box.get('committed_meals_count', defaultValue: 0) as int;
+      final newCount = currentCount + 1;
+      await box.put('committed_meals_count', newCount);
+
+      final reviewPrompted =
+          box.get('review_prompted', defaultValue: false) as bool;
+      if (newCount >= 3 && !reviewPrompted) {
+        final InAppReview inAppReview = InAppReview.instance;
+        if (await inAppReview.isAvailable()) {
+          await inAppReview.requestReview();
+          await box.put('review_prompted', true);
+        }
+      }
+    } catch (_) {
+      // Fail silently to prevent app crashes if system review dialog fails
     }
   }
 
@@ -958,7 +1032,8 @@ class _MealInterpretationReviewScreenState
                       quickCategory: saveCategory.quickCategory,
                     ).copyWith(
                       saved: true,
-                      notes: QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+                      notes:
+                          QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
                         draft.summary,
                         saveCategory.explicitIntakeType,
                       ),
@@ -971,7 +1046,8 @@ class _MealInterpretationReviewScreenState
                     Navigator.of(dialogContext).pop();
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.of(context).recipeSavedSnackbar)),
+                        SnackBar(
+                            content: Text(S.of(context).recipeSavedSnackbar)),
                       );
                     }
                   },
@@ -1468,6 +1544,7 @@ class _MealSuggestionsCard extends StatelessWidget {
       ),
     );
   }
+
   String _suggestionMatchLabel(double score) {
     if (score >= 0.8) {
       return S.current.aiMatchHigh;
@@ -1478,6 +1555,7 @@ class _MealSuggestionsCard extends StatelessWidget {
     return S.current.aiMatchPossible;
   }
 }
+
 class _MacroHeroCard extends StatelessWidget {
   final double kcal;
   final double carbs;
@@ -1518,7 +1596,8 @@ class _MacroHeroCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        S.of(context).aiServingsReady(servings % 1 == 0 ? servings.toInt() : servings),
+                        S.of(context).aiServingsReady(
+                            servings % 1 == 0 ? servings.toInt() : servings),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -1643,7 +1722,8 @@ class _DraftItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final confidenceTone = _ConfidenceTone.fromBand(item.confidenceBand, context);
+    final confidenceTone =
+        _ConfidenceTone.fromBand(item.confidenceBand, context);
     final textStyle = item.removed
         ? Theme.of(context).textTheme.titleSmall?.copyWith(
               decoration: TextDecoration.lineThrough,
@@ -1716,7 +1796,9 @@ class _DraftItemCard extends StatelessWidget {
                           onPressed:
                               item.removed ? null : onApplySavedCorrection,
                           icon: const Icon(Icons.history_outlined),
-                          label: Text(S.of(context).aiUseHabitual(savedCorrectionLabel!)),
+                          label: Text(S
+                              .of(context)
+                              .aiUseHabitual(savedCorrectionLabel!)),
                         ),
                       ],
                     ],
@@ -2005,7 +2087,8 @@ class _ConfidenceTone {
     required this.icon,
   });
 
-  static _ConfidenceTone fromBand(ConfidenceBandEntity band, BuildContext context) {
+  static _ConfidenceTone fromBand(
+      ConfidenceBandEntity band, BuildContext context) {
     switch (band) {
       case ConfidenceBandEntity.high:
         return _ConfidenceTone(
@@ -2059,6 +2142,133 @@ class _DraftChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AiSaveConversionCard extends StatelessWidget {
+  final double kcal;
+  final int activeItemCount;
+
+  const _AiSaveConversionCard({
+    required this.kcal,
+    required this.activeItemCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<AiTrialState>(
+      future: locator<MonetizationService>().getAiTrialState(),
+      builder: (context, snapshot) {
+        final state = snapshot.data;
+        if (state == null) {
+          return const SizedBox.shrink();
+        }
+
+        final isEs = Localizations.localeOf(context).languageCode == 'es';
+        final colorScheme = Theme.of(context).colorScheme;
+        final isBlocked = !state.isPremium && state.remaining <= 0;
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: isBlocked
+                ? colorScheme.errorContainer.withValues(alpha: 0.28)
+                : colorScheme.primaryContainer.withValues(alpha: 0.32),
+            border: Border.all(
+              color: isBlocked
+                  ? colorScheme.error.withValues(alpha: 0.24)
+                  : colorScheme.primary.withValues(alpha: 0.22),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                isBlocked ? Icons.lock_outline : Icons.auto_awesome_outlined,
+                color: isBlocked ? colorScheme.error : colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isEs ? 'Borrador IA listo' : 'AI draft ready',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _message(
+                        isEs: isEs,
+                        state: state,
+                        kcal: kcal,
+                        activeItemCount: activeItemCount,
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isBlocked)
+                TextButton(
+                  onPressed: () => showModalBottomSheet<bool>(
+                    context: context,
+                    isScrollControlled: true,
+                    builder: (context) => PaywallSheet(
+                      placement: PaywallPlacement.aiLimit,
+                      trialState: state,
+                    ),
+                  ),
+                  child: Text(isEs ? 'Premium' : 'Upgrade'),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _message({
+    required bool isEs,
+    required AiTrialState state,
+    required double kcal,
+    required int activeItemCount,
+  }) {
+    final kcalText = kcal.toStringAsFixed(0);
+    if (state.isPremium) {
+      return isEs
+          ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Puedes guardar sin consumir usos.'
+          : '$activeItemCount ingredients detected, about $kcalText kcal. You can save without using trials.';
+    }
+    if (state.remaining > 0) {
+      return isEs
+          ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Revisar es gratis; guardar consumira 1 de tus ${state.remaining} usos.'
+          : '$activeItemCount ingredients detected, about $kcalText kcal. Reviewing is free; saving uses 1 of your ${state.remaining} trials.';
+    }
+    return isEs
+        ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Activa Premium para guardar comidas IA ilimitadas.'
+        : '$activeItemCount ingredients detected, about $kcalText kcal. Upgrade to save unlimited AI meals.';
+  }
+}
+
+class _AiSaveAccess {
+  final bool allowed;
+  final bool consumeTrialUse;
+
+  const _AiSaveAccess._({
+    required this.allowed,
+    required this.consumeTrialUse,
+  });
+
+  const _AiSaveAccess.allowed({required bool consumeTrialUse})
+      : this._(allowed: true, consumeTrialUse: consumeTrialUse);
+
+  const _AiSaveAccess.denied() : this._(allowed: false, consumeTrialUse: false);
 }
 
 class MealInterpretationReviewScreenArguments {

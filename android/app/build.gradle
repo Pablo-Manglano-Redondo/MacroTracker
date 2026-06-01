@@ -4,32 +4,28 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
-def localProperties = new Properties()
-def localPropertiesFile = rootProject.file('local.properties')
-if (localPropertiesFile.exists()) {
-    localPropertiesFile.withReader('UTF-8') { reader ->
-        localProperties.load(reader)
-    }
-}
-
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file('key.properties')
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
-if (flutterVersionCode == null) {
-    flutterVersionCode = '1'
+def pubspecFile = rootProject.file('../pubspec.yaml')
+if (!pubspecFile.exists()) {
+    throw new GradleException("pubspec.yaml not found. Android release versioning requires the Flutter pubspec version.")
 }
 
-def flutterVersionName = localProperties.getProperty('flutter.versionName')
-if (flutterVersionName == null) {
-    flutterVersionName = '1.0'
+def pubspecVersionLine = pubspecFile.readLines().find { it.trim().startsWith('version:') }
+if (pubspecVersionLine == null) {
+    throw new GradleException("pubspec.yaml is missing a version entry.")
 }
+def pubspecVersion = pubspecVersionLine.split(':', 2)[1].trim()
+def pubspecVersionParts = pubspecVersion.split('\\+')
+def flutterVersionName = (project.findProperty('flutter.versionName') ?: pubspecVersionParts[0]).toString()
+def flutterVersionCode = (project.findProperty('flutter.versionCode') ?: (pubspecVersionParts.length > 1 ? pubspecVersionParts[1] : '1')).toString()
 
 android {
-    namespace "com.pxblx.macrotracker"
+    namespace "com.epsait.macrotracker"
     compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
@@ -48,7 +44,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.pxblx.macrotracker"
+        applicationId "com.epsait.macrotracker"
         minSdkVersion 26
         targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()

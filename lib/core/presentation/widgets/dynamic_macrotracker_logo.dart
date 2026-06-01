@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:macrotracker/core/utils/extensions.dart';
 
-class DynamicOntLogo extends StatelessWidget {
-  const DynamicOntLogo({super.key});
+class DynamicMacroTrackerLogo extends StatelessWidget {
+  const DynamicMacroTrackerLogo({super.key});
 
   static const _circleColor = 'circleColor';
   static const _spoonColor = 'spoonColor';
@@ -12,7 +12,7 @@ class DynamicOntLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
       future: DefaultAssetBundle.of(context)
-          .loadString('assets/icon/ont_logo_square.svg'),
+          .loadString('assets/icon/macrotracker_logo_square.svg'),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done &&
             snapshot.hasData) {
@@ -29,8 +29,8 @@ class DynamicOntLogo extends StatelessWidget {
         } else {
           return Image.asset(
               MediaQuery.of(context).platformBrightness == Brightness.light
-                  ? 'assets/icon/ont_logo_square.png'
-                  : 'assets/icon/ont_logo_square_light.png');
+                  ? 'assets/icon/macrotracker_logo_square.png'
+                  : 'assets/icon/macrotracker_logo_square_light.png');
         }
       },
     );

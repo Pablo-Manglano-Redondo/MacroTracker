@@ -35,13 +35,20 @@ class PlaceholderCard extends StatelessWidget {
                   : Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: Theme.of(context).colorScheme.brightness == Brightness.dark ? 0.2 : 0.05),
+                  color: Colors.black.withValues(
+                      alpha: Theme.of(context).colorScheme.brightness ==
+                              Brightness.dark
+                          ? 0.2
+                          : 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
               border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.25),
+                color: Theme.of(context)
+                    .colorScheme
+                    .outlineVariant
+                    .withValues(alpha: 0.25),
               ),
             ),
             child: ClipRRect(

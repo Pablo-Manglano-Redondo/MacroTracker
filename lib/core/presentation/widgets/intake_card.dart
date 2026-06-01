@@ -75,7 +75,10 @@ class IntakeCard extends StatelessWidget {
                       : Center(
                           child: Icon(Icons.restaurant_outlined,
                               size: 42,
-                              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15))),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .secondary
+                                  .withValues(alpha: 0.15))),
                   Container(
                     // Add color shade
                     decoration: BoxDecoration(

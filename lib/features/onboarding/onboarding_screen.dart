@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:introduction_screen/introduction_screen.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
@@ -268,7 +269,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     if (userEntity != null) {
       _onboardingBloc.saveOnboardingData(
           context, userEntity, hasAcceptedDataCollection, usesImperialUnits);
-      Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
+      showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        barrierColor: Colors.black.withValues(alpha: 0.85),
+        builder: (context) =>
+            const PaywallSheet(placement: PaywallPlacement.onboarding),
+      ).then((_) {
+        if (context.mounted) {
+          Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
+        }
+      });
     } else {
       // Error with user input
       ScaffoldMessenger.of(context).showSnackBar(

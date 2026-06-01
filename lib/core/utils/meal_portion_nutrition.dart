@@ -35,8 +35,8 @@ class MealPortionCalculator {
       protein: convertedAmount * (meal.nutriments.proteinsPerUnit ?? 0),
       fiber: _scaledOptionalValue(convertedAmount, meal.nutriments.fiber100),
       sugar: _scaledOptionalValue(convertedAmount, meal.nutriments.sugars100),
-      saturatedFat:
-          _scaledOptionalValue(convertedAmount, meal.nutriments.saturatedFat100),
+      saturatedFat: _scaledOptionalValue(
+          convertedAmount, meal.nutriments.saturatedFat100),
     );
   }
 

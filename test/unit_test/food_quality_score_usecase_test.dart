@@ -131,7 +131,9 @@ void main() {
     final summary = usecase.summarizeIntakes([lightIntake, heavyIntake]);
 
     expect(summary.mealsCount, 2);
-    expect(summary.score, lessThan(usecase.scoreMeal(lightMeal).score.toDouble()));
-    expect(summary.score, greaterThan(usecase.scoreMeal(heavyMeal).score.toDouble()));
+    expect(
+        summary.score, lessThan(usecase.scoreMeal(lightMeal).score.toDouble()));
+    expect(summary.score,
+        greaterThan(usecase.scoreMeal(heavyMeal).score.toDouble()));
   });
 }

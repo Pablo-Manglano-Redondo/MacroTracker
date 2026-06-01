@@ -23,9 +23,9 @@ void main() {
 
       double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(user, 200.0);
 
-      // TDEE: 2662, Activities: 200, Adjustment: + 0
-      // 2662 + 200 + 0 = 2862
-      int expectedKcal = 2862;
+      // TDEE: 2662, activity calories are tracked separately, Adjustment: +0
+      // 2662 + 0 = 2662
+      int expectedKcal = 2662;
 
       expect(resultCalorieGoal.toInt(), expectedKcal);
     });
@@ -37,9 +37,9 @@ void main() {
 
       double resultCalorieGoal = CalorieGoalCalc.getTotalKcalGoal(user, 550.0);
 
-      // TDEE: 2087, Activities: 550, Adjustment: -500
-      // 2087 + 550 - 500 = 2137
-      int expectedKcal = 2137;
+      // TDEE: 2087, activity calories are tracked separately, Adjustment: -250
+      // 2087 - 250 = 1837
+      int expectedKcal = 1837;
 
       expect(resultCalorieGoal.toInt(), expectedKcal);
     });

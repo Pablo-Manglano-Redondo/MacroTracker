@@ -50,9 +50,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           bmiValue: userBMIValue,
           nutritionalStatus: BMICalc.getNutritionalStatus(userBMIValue));
       final userConfig = await _getConfigUsecase.getConfig();
-      final currentTargets =
-          await _getGymTargetsUsecase.getTargetsForDay(DateTime.now(),
-              userEntity: user, dailyFocus: userConfig.dailyFocus);
+      final currentTargets = await _getGymTargetsUsecase.getTargetsForDay(
+          DateTime.now(),
+          userEntity: user,
+          dailyFocus: userConfig.dailyFocus);
 
       emit(ProfileLoadedState(
           userBMI: userBMIEntity,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/core/presentation/widgets/dynamic_ont_logo.dart';
+import 'package:macrotracker/core/presentation/widgets/dynamic_macrotracker_logo.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -28,7 +28,7 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             alignment: Alignment.center,
-            child: const SizedBox(width: 22, child: DynamicOntLogo()),
+            child: const SizedBox(width: 22, child: DynamicMacroTrackerLogo()),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -63,7 +63,8 @@ class HomeAppbar extends StatelessWidget implements PreferredSizeWidget {
           icon: Icon(Icons.settings_outlined, color: colorScheme.onSurface),
           tooltip: S.of(context).settingsLabel,
           onPressed: () async {
-            await Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+            await Navigator.of(context)
+                .pushNamed(NavigationOptions.settingsRoute);
             locator<HomeBloc>().add(const LoadItemsEvent());
             locator<DiaryBloc>().add(const LoadDiaryYearEvent());
             locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());

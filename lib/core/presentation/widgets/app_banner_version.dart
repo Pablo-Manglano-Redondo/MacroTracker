@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/core/presentation/widgets/dynamic_ont_logo.dart';
+import 'package:macrotracker/core/presentation/widgets/dynamic_macrotracker_logo.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class AppBannerVersion extends StatelessWidget {
@@ -11,7 +11,7 @@ class AppBannerVersion extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 70, child: DynamicOntLogo()),
+        const SizedBox(height: 70, child: DynamicMacroTrackerLogo()),
         Text(S.of(context).appTitle,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
@@ -19,8 +19,10 @@ class AppBannerVersion extends StatelessWidget {
         Text(
           S.of(context).appVersionName(versionNumber),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7)),
         )
       ],
     );

@@ -58,21 +58,21 @@ class MealDBO extends HiveObject {
       required this.source});
 
   factory MealDBO.fromMealEntity(MealEntity mealEntity) => MealDBO(
-      code: mealEntity.code,
-      name: mealEntity.name,
-      brands: mealEntity.brands,
-      thumbnailImageUrl: mealEntity.thumbnailImageUrl,
-      mainImageUrl: mealEntity.mainImageUrl,
-      url: mealEntity.url,
-      mealQuantity: mealEntity.mealQuantity,
-      mealUnit: mealEntity.mealUnit,
-      servingQuantity: mealEntity.servingQuantity,
-      servingUnit: mealEntity.servingUnit,
-      servingSize: mealEntity.servingSize,
-      nutriments:
-          MealNutrimentsDBO.fromProductNutrimentsEntity(mealEntity.nutriments),
-      source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
-  );
+        code: mealEntity.code,
+        name: mealEntity.name,
+        brands: mealEntity.brands,
+        thumbnailImageUrl: mealEntity.thumbnailImageUrl,
+        mainImageUrl: mealEntity.mainImageUrl,
+        url: mealEntity.url,
+        mealQuantity: mealEntity.mealQuantity,
+        mealUnit: mealEntity.mealUnit,
+        servingQuantity: mealEntity.servingQuantity,
+        servingUnit: mealEntity.servingUnit,
+        servingSize: mealEntity.servingSize,
+        nutriments: MealNutrimentsDBO.fromProductNutrimentsEntity(
+            mealEntity.nutriments),
+        source: MealSourceDBO.fromMealSourceEntity(mealEntity.source),
+      );
 
   factory MealDBO.fromJson(Map<String, dynamic> json) =>
       _$MealDBOFromJson(json);

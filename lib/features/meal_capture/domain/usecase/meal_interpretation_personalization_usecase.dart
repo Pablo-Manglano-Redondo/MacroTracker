@@ -54,8 +54,7 @@ class MealInterpretationPersonalizationUsecase {
     );
 
     final mealQuery = freeText?.trim();
-    final sortedCandidates = [...candidates]
-      ..sort(
+    final sortedCandidates = [...candidates]..sort(
         (a, b) => _scoreCandidate(
           mealQuery,
           b,
@@ -152,19 +151,19 @@ class MealInterpretationPersonalizationUsecase {
     final activeItems = updatedItems.where((item) => !item.removed);
     final updatedDraft = draft.copyWith(
       items: updatedItems,
-      totalKcal:
-          activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
+      totalKcal: activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
       totalCarbs:
           activeItems.fold<double>(0.0, (sum, item) => sum + item.carbs),
-      totalFat:
-          activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
+      totalFat: activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
       totalProtein:
           activeItems.fold<double>(0.0, (sum, item) => sum + item.protein),
       totalFiber: activeItems.any((i) => i.fiber != null)
-          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.fiber ?? 0))
+          ? activeItems.fold<double>(
+              0.0, (sum, item) => sum + (item.fiber ?? 0))
           : null,
       totalSugar: activeItems.any((i) => i.sugar != null)
-          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.sugar ?? 0))
+          ? activeItems.fold<double>(
+              0.0, (sum, item) => sum + (item.sugar ?? 0))
           : null,
     );
     return _validateMacroCoherence(updatedDraft);
@@ -192,19 +191,19 @@ class MealInterpretationPersonalizationUsecase {
     final activeItems = updatedItems.where((item) => !item.removed);
     return draft.copyWith(
       items: updatedItems,
-      totalKcal:
-          activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
+      totalKcal: activeItems.fold<double>(0.0, (sum, item) => sum + item.kcal),
       totalCarbs:
           activeItems.fold<double>(0.0, (sum, item) => sum + item.carbs),
-      totalFat:
-          activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
+      totalFat: activeItems.fold<double>(0.0, (sum, item) => sum + item.fat),
       totalProtein:
           activeItems.fold<double>(0.0, (sum, item) => sum + item.protein),
       totalFiber: activeItems.any((i) => i.fiber != null)
-          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.fiber ?? 0))
+          ? activeItems.fold<double>(
+              0.0, (sum, item) => sum + (item.fiber ?? 0))
           : null,
       totalSugar: activeItems.any((i) => i.sugar != null)
-          ? activeItems.fold<double>(0.0, (sum, item) => sum + (item.sugar ?? 0))
+          ? activeItems.fold<double>(
+              0.0, (sum, item) => sum + (item.sugar ?? 0))
           : null,
     );
   }
@@ -268,10 +267,10 @@ class MealInterpretationPersonalizationUsecase {
       intakeType: intakeType,
       freeText: inputText ?? title,
     );
-    final query = (inputText?.trim().isNotEmpty == true ? inputText : title) ??
-        title;
-    final bestMatch = _findBestCandidate(query, context.candidates,
-        intakeType: intakeType);
+    final query =
+        (inputText?.trim().isNotEmpty == true ? inputText : title) ?? title;
+    final bestMatch =
+        _findBestCandidate(query, context.candidates, intakeType: intakeType);
     if (bestMatch != null && bestMatch.score >= 0.52) {
       final nutrition = MealPortionCalculator.calculate(
         bestMatch.candidate.meal,
@@ -444,7 +443,7 @@ class MealInterpretationPersonalizationUsecase {
       ..writeln('- meal slot: ${intakeType.name}')
       ..writeln('- daily focus: ${_focusLabel(dailyFocus)}')
       ..writeln(
-          '- instruction: prefer the user\'s repeated foods, products and saved recipes when plausible. estimate oils and sauces conservatively.');
+          '- instruction: prefer the user\'s repeated foods, products and saved recipes when plausible. estimate oils and sauces conservatively. analyze the photo for common reference elements (such as cutlery, glasses, or the plate edge) to auto-calibrate portion sizes.');
 
     if (candidates.isNotEmpty) {
       buffer.writeln('Personal meal examples:');
@@ -520,8 +519,9 @@ class MealInterpretationPersonalizationUsecase {
         MealInterpretationCandidate(
           id: 'memory:${memory.key}',
           title: memory.displayLabel,
-          sourceLabel:
-              memory.uses > 1 ? 'Tu correcci\u00f3n frecuente' : 'Tu correcci\u00f3n',
+          sourceLabel: memory.uses > 1
+              ? 'Tu correcci\u00f3n frecuente'
+              : 'Tu correcci\u00f3n',
           meal: meal,
           defaultAmount: memory.amount,
           defaultUnit: memory.unit,
@@ -568,7 +568,8 @@ class MealInterpretationPersonalizationUsecase {
     for (final candidate in candidates) {
       final key = '${_normalize(candidate.title)}|${candidate.defaultUnit}';
       final current = unique[key];
-      if (current == null || current.sourcePriority < candidate.sourcePriority) {
+      if (current == null ||
+          current.sourcePriority < candidate.sourcePriority) {
         unique[key] = candidate;
       }
     }
@@ -707,7 +708,8 @@ class MealInterpretationPersonalizationUsecase {
 
     var charBonus = 0.0;
     for (final token in aTokens) {
-      if (bTokens.any((other) => other.startsWith(token) || token.startsWith(other))) {
+      if (bTokens
+          .any((other) => other.startsWith(token) || token.startsWith(other))) {
         charBonus += 0.08;
       }
     }

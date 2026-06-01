@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/data/repository/config_repository.dart';
@@ -60,7 +59,6 @@ Future<void> initializeDriveBackupWorker() async {
 
   await Workmanager().initialize(
     driveBackupCallbackDispatcher,
-    isInDebugMode: kDebugMode,
   );
 }
 

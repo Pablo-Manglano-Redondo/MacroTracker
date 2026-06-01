@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="MacroTracker logo" src="assets/icon/ont_logo_square.png" width="128" />
+  <img alt="MacroTracker logo" src="assets/icon/macrotracker_logo_square.png" width="128" />
   <h1 align="center">MacroTracker</h1>
 </p>
 
@@ -9,19 +9,7 @@
 
 ## Description
 
-MacroTracker is an open-source mobile application for tracking calories, macros, meals, recipes, activity, and weekly nutrition trends. It is built with Flutter and stores user data locally, with optional Supabase Edge Functions for AI-assisted meal interpretation.
-
-## Screenshots
-
-<p align="center">
-  <img alt="MacroTracker screenshot 1" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="MacroTracker screenshot 2" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="MacroTracker screenshot 3" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" width="20%" />
-  &nbsp;&nbsp;
-  <img alt="MacroTracker screenshot 4" src="fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" width="20%" />
-</p>
+MacroTracker by EPSAIT is a mobile application for tracking calories, macros, meals, recipes, activity, and weekly nutrition trends. It is built with Flutter and stores user data locally, with optional Supabase Edge Functions for AI-assisted meal interpretation.
 
 ## Key Features
 
@@ -38,7 +26,7 @@ MacroTracker is an open-source mobile application for tracking calories, macros,
 
 MacroTracker stores app data locally on the device. AI meal interpretation sends text or image input to Supabase Edge Functions only for inference, and the current function contract is designed for non-persistent processing.
 
-See [Data Protection](https://www.iubenda.com/privacy-policy/53501884).
+See [Data Protection](docs/privacy-policy.md). The Google Play listing must point to the public EPSAIT-hosted version of this policy.
 
 ## Getting Started
 
@@ -79,8 +67,6 @@ Privacy notes:
 ## Disclaimer
 
 MacroTracker is not a medical application. All data provided is not validated and should be used with caution. Please maintain a healthy lifestyle and consult a professional if you have any problems. Use during illness, pregnancy, or lactation is not recommended.
-
-The application is still under construction. Errors, bugs, and crashes might occur.
 
 ## License
 

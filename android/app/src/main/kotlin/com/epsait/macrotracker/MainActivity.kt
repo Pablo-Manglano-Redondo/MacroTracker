@@ -1,5 +1,6 @@
-package com.pxblx.macrotracker
+package com.epsait.macrotracker
 
+import android.util.Log
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
@@ -9,11 +10,10 @@ import cachet.plugins.health.HealthConstants
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import android.util.Log
-import java.time.Instant
 
 class MainActivity : FlutterFragmentActivity() {
     companion object {

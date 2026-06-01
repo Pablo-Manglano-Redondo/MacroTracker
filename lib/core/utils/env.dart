@@ -13,7 +13,8 @@ abstract class Env {
   @EnviedField(varName: 'SUPABASE_PROJECT_ANON_KEY', obfuscate: true)
   static final String supabaseProjectAnonKey = _Env.supabaseProjectAnonKey;
   @EnviedField(varName: 'GOOGLE_DRIVE_SERVER_CLIENT_ID', obfuscate: true)
-  static final String googleDriveServerClientId = _Env.googleDriveServerClientId;
+  static final String googleDriveServerClientId =
+      _Env.googleDriveServerClientId;
   @EnviedField(varName: 'GOOGLE_DRIVE_IOS_CLIENT_ID', obfuscate: true)
   static final String googleDriveIosClientId = _Env.googleDriveIosClientId;
 }

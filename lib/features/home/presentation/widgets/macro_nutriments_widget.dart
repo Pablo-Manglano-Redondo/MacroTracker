@@ -49,14 +49,12 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     '${widget.totalCarbsIntake.toInt()}/${widget.totalCarbsGoal.toInt()} g',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(
                     S.of(context).carbsLabel,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface),
                   )
                 ],
               ),
@@ -83,14 +81,11 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     "${widget.totalFatsIntake.toInt()}/${widget.totalFatsGoal.toInt()} g",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(S.of(context).fatLabel,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface)),
+                          color: Theme.of(context).colorScheme.onSurface)),
                 ],
               ),
             )
@@ -116,14 +111,12 @@ class _MacroNutrientsViewState extends State<MacroNutrientsView> {
                   Text(
                     "${widget.totalProteinsIntake.toInt()}/${widget.totalProteinsGoal.toInt()} g",
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface),
                   ),
                   Text(
                     S.of(context).proteinLabel,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color:
-                            Theme.of(context).colorScheme.onSurface),
+                        color: Theme.of(context).colorScheme.onSurface),
                   )
                 ],
               ),

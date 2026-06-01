@@ -30,7 +30,8 @@ class MealAggregateFactory {
       code: recipe.id,
       name: recipe.name,
       brands: null,
-      thumbnailImageUrl: recipe.ingredients.firstOrNull?.mealSnapshot.thumbnailImageUrl,
+      thumbnailImageUrl:
+          recipe.ingredients.firstOrNull?.mealSnapshot.thumbnailImageUrl,
       mainImageUrl: recipe.ingredients.firstOrNull?.mealSnapshot.mainImageUrl,
       url: null,
       mealQuantity: recipe.defaultServings.toString(),
@@ -135,10 +136,10 @@ class MealAggregateFactory {
       (sum, ingredient) =>
           sum +
           (MealPortionCalculator.calculate(
-                    ingredient.mealSnapshot,
-                    ingredient.amount,
-                    ingredient.unit,
-                  ).fiber ??
+                ingredient.mealSnapshot,
+                ingredient.amount,
+                ingredient.unit,
+              ).fiber ??
               0),
     );
   }
@@ -149,10 +150,10 @@ class MealAggregateFactory {
       (sum, ingredient) =>
           sum +
           (MealPortionCalculator.calculate(
-                    ingredient.mealSnapshot,
-                    ingredient.amount,
-                    ingredient.unit,
-                  ).sugar ??
+                ingredient.mealSnapshot,
+                ingredient.amount,
+                ingredient.unit,
+              ).sugar ??
               0),
     );
   }
@@ -163,10 +164,10 @@ class MealAggregateFactory {
       (sum, ingredient) =>
           sum +
           (MealPortionCalculator.calculate(
-                    ingredient.mealSnapshot,
-                    ingredient.amount,
-                    ingredient.unit,
-                  ).saturatedFat ??
+                ingredient.mealSnapshot,
+                ingredient.amount,
+                ingredient.unit,
+              ).saturatedFat ??
               0),
     );
   }

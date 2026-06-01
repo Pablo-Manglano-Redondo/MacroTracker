@@ -42,7 +42,7 @@
 	<key>CFBundleLocalizations</key>
 	<array>
 		<string>en</string>
-		<string>de</string>
+		<string>es</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -70,8 +70,10 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Camera permission is required for barcode scanning.</string>
+	<string>Camera access is used to scan barcodes and capture meal photos for AI-assisted logging.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-    <string>Used for exporting data.</string>
+	<string>Photo library access is used to choose meal photos for AI-assisted logging and to export app data when requested.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Health data access is used to import sleep, steps, and workouts into MacroTracker when you grant permission.</string>
 </dict>
 </plist>

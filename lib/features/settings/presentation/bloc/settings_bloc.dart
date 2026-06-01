@@ -59,13 +59,11 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           aiTextCallsTotal: userConfig.aiTextCallsTotal,
           aiPhotoCallsTotal: userConfig.aiPhotoCallsTotal,
           currentLocale: userConfig.selectedLocale,
-          healthConnectAutoSyncEnabled:
-              userConfig.healthConnectAutoSyncEnabled,
+          healthConnectAutoSyncEnabled: userConfig.healthConnectAutoSyncEnabled,
           mealRemindersEnabled: userConfig.mealRemindersEnabled,
           mealReminderMorningMinutes: userConfig.mealReminderMorningMinutes,
           mealReminderLunchMinutes: userConfig.mealReminderLunchMinutes,
-          mealReminderAfternoonMinutes:
-              userConfig.mealReminderAfternoonMinutes,
+          mealReminderAfternoonMinutes: userConfig.mealReminderAfternoonMinutes,
           mealReminderEveningMinutes: userConfig.mealReminderEveningMinutes));
     });
   }
@@ -146,10 +144,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     await _addConfigUsecase.setMacroGoalMode(macroGoalMode);
   }
 
-  Future<void> setMacroGoalsGramPerKg(
-      double carbGoalGramPerKg,
-      double proteinGoalGramPerKg,
-      double fatGoalGramPerKg) async {
+  Future<void> setMacroGoalsGramPerKg(double carbGoalGramPerKg,
+      double proteinGoalGramPerKg, double fatGoalGramPerKg) async {
     await _addConfigUsecase.setConfigMacroGoalGramPerKg(
       carbGoalGramPerKg,
       proteinGoalGramPerKg,
@@ -201,7 +197,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     return _syncSleepFromHealthConnectUsecase.getStatus();
   }
 
-  Future<HealthConnectSyncStatusEntity> requestHealthConnectPermissions() async {
+  Future<HealthConnectSyncStatusEntity>
+      requestHealthConnectPermissions() async {
     return _syncSleepFromHealthConnectUsecase.requestPermissions();
   }
 

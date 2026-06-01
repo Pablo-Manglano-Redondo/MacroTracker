@@ -39,7 +39,8 @@ class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
             onPressed: () async {
-              await Navigator.of(context).pushNamed(NavigationOptions.settingsRoute);
+              await Navigator.of(context)
+                  .pushNamed(NavigationOptions.settingsRoute);
               locator<HomeBloc>().add(const LoadItemsEvent());
               locator<DiaryBloc>().add(const LoadDiaryYearEvent());
               locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());

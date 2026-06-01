@@ -523,9 +523,8 @@ class _QuickRecipeTile extends StatelessWidget {
                   IconButton(
                     onPressed: onRemoveSavedPressed,
                     icon: const Icon(Icons.bookmark_remove_outlined),
-                    tooltip: _isEs(context)
-                        ? 'Quitar guardada'
-                        : 'Remove saved',
+                    tooltip:
+                        _isEs(context) ? 'Quitar guardada' : 'Remove saved',
                   ),
                   IconButton.filledTonal(
                     onPressed: onAddPressed,
@@ -542,7 +541,8 @@ class _QuickRecipeTile extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _InfoChip(
-                    icon: taggedIntakeType?.getIconData() ?? preset.category.icon,
+                    icon:
+                        taggedIntakeType?.getIconData() ?? preset.category.icon,
                     label: taggedIntakeType == null
                         ? _categoryLabel(context, preset.category)
                         : _intakeTypeLabel(context, taggedIntakeType),

@@ -48,7 +48,8 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
           child: FutureBuilder<BodyProgressSummaryEntity>(
             future: _summaryFuture,
             builder: (context, snapshot) {
-              if (!snapshot.hasData && snapshot.connectionState != ConnectionState.done) {
+              if (!snapshot.hasData &&
+                  snapshot.connectionState != ConnectionState.done) {
                 return const SizedBox(
                   height: 110,
                   child: Center(child: CircularProgressIndicator()),
@@ -84,7 +85,9 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                             Text(
                               summary.latestMeasurementDay == null
                                   ? S.of(context).bodyProgressNoCheckinsYet
-                                  : S.of(context).bodyProgressLatestCheckin(DateFormat.MMMd().format(summary.latestMeasurementDay!)),
+                                  : S.of(context).bodyProgressLatestCheckin(
+                                      DateFormat.MMMd().format(
+                                          summary.latestMeasurementDay!)),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -122,7 +125,8 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                       Expanded(
                         child: _BodyMetricPill(
                           label: S.of(context).bodyProgress7dAverage,
-                          value: _formatWeight(context, summary.rollingWeightAverageKg),
+                          value: _formatWeight(
+                              context, summary.rollingWeightAverageKg),
                           accentColor: Theme.of(context).colorScheme.primary,
                         ),
                       ),
@@ -134,7 +138,8 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
                       Expanded(
                         child: _BodyMetricPill(
                           label: S.of(context).bodyProgressDelta,
-                          value: _formatWeight(context, summary.weeklyWeightDeltaKg,
+                          value: _formatWeight(
+                              context, summary.weeklyWeightDeltaKg,
                               signed: true),
                           accentColor: tone.foreground(context),
                         ),
@@ -231,7 +236,8 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
     return locator<GetBodyProgressUsecase>().getSummary();
   }
 
-  String _formatWeight(BuildContext context, double? kg, {bool signed = false}) {
+  String _formatWeight(BuildContext context, double? kg,
+      {bool signed = false}) {
     if (kg == null) {
       return '--';
     }
@@ -248,7 +254,8 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
     return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} ${widget.usesImperialUnits ? 'in' : S.of(context).cmLabel}';
   }
 
-  _StatusTone _bodyProgressTone(BuildContext context, BodyProgressSummaryEntity summary) {
+  _StatusTone _bodyProgressTone(
+      BuildContext context, BodyProgressSummaryEntity summary) {
     if (!summary.hasData) {
       return _StatusTone.neutral(context);
     }
@@ -288,7 +295,6 @@ class _BodyMetricPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -359,15 +365,22 @@ class _StatusTone {
 
   const _StatusTone._(this.label, this.icon, this.kind);
 
-  factory _StatusTone.good(BuildContext context) =>
-      _StatusTone._(S.of(context).bodyProgressTrendOnTrack, Icons.north_east, _StatusToneKind.good);
-  factory _StatusTone.caution(BuildContext context) =>
-      _StatusTone._(S.of(context).bodyProgressTrendMixed, Icons.horizontal_rule, _StatusToneKind.caution);
-  factory _StatusTone.bad(BuildContext context) =>
-      _StatusTone._(S.of(context).bodyProgressTrendOffTrack, Icons.south_east, _StatusToneKind.bad);
-  factory _StatusTone.neutral(BuildContext context) =>
-      _StatusTone._(
-            S.of(context).bodyProgressTrendNoTrend, Icons.radio_button_unchecked, _StatusToneKind.neutral);
+  factory _StatusTone.good(BuildContext context) => _StatusTone._(
+      S.of(context).bodyProgressTrendOnTrack,
+      Icons.north_east,
+      _StatusToneKind.good);
+  factory _StatusTone.caution(BuildContext context) => _StatusTone._(
+      S.of(context).bodyProgressTrendMixed,
+      Icons.horizontal_rule,
+      _StatusToneKind.caution);
+  factory _StatusTone.bad(BuildContext context) => _StatusTone._(
+      S.of(context).bodyProgressTrendOffTrack,
+      Icons.south_east,
+      _StatusToneKind.bad);
+  factory _StatusTone.neutral(BuildContext context) => _StatusTone._(
+      S.of(context).bodyProgressTrendNoTrend,
+      Icons.radio_button_unchecked,
+      _StatusToneKind.neutral);
 
   Color foreground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;

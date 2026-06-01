@@ -5,8 +5,8 @@ class AppConst {
   static const userAgentAppName = "MacroTracker";
   static const platformNameAndroid = "Android";
   static const platformNameIOS = "iOS";
-  static const reportErrorEmail = "macrotracker-dev@pm.me";
-  static const sourceCodeUrl = "https://github.com/pxblx/MacroTracker";
+  static const reportErrorEmail = "support@epsait.com";
+  static const sourceCodeUrl = "https://github.com/EPSAIT/MacroTracker";
 
   static Future<String> getVersionNumber() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();

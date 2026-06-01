@@ -45,10 +45,8 @@ class AddConfigUsecase {
     _configRepository.setUserMacroPct(carbGoalPct, proteinGoalPct, fatPctGoal);
   }
 
-  Future<void> setConfigMacroGoalGramPerKg(
-      double carbGoalGramPerKg,
-      double proteinGoalGramPerKg,
-      double fatGoalGramPerKg) async {
+  Future<void> setConfigMacroGoalGramPerKg(double carbGoalGramPerKg,
+      double proteinGoalGramPerKg, double fatGoalGramPerKg) async {
     await _configRepository.setUserMacroGoalsGramPerKg(
       carbGoalGramPerKg,
       proteinGoalGramPerKg,

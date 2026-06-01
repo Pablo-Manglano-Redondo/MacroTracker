@@ -370,7 +370,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("Todo"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
-            "MacroTracker es un rastreador de calorías y nutrientes gratuito y de código abierto que respeta tu privacidad."),
+            "MacroTracker de EPSAIT es un rastreador gratuito de calorías y nutrientes con privacidad local."),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("Licencia GPL-3.0"),
         "appTitle": MessageLookupByLibrary.simpleMessage("MacroTracker"),
@@ -483,7 +483,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Ajuste diario de Kcal:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
-            "Apoya el desarrollo proporcionando datos de uso anónimos"),
+            "Ayuda a mejorar la estabilidad enviando informes anónimos de errores y diagnóstico"),
         "dayLabel": MessageLookupByLibrary.simpleMessage("día"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Eliminar todo"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -1312,7 +1312,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Selecciona peso"),
         "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
-            "Enviar datos de uso anónimos"),
+            "Enviar informes anónimos de errores y diagnóstico"),
         "servingLabel": MessageLookupByLibrary.simpleMessage("Ración"),
         "servingSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("Tamaño ración (oz/fl oz)"),

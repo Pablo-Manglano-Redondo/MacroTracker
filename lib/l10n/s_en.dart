@@ -18,7 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appDescription =>
-      'MacroTracker is a free and open-source calorie and nutrient tracker that respects your privacy.';
+      'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.';
 
   @override
   String get alphaVersionName => '[Alpha]';
@@ -279,7 +279,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Do you want to report an error to the developer?';
 
   @override
-  String get sendAnonymousUserData => 'Send anonymous usage data';
+  String get sendAnonymousUserData =>
+      'Send anonymous crash and diagnostic reports';
 
   @override
   String get appLicenseLabel => 'GPL-3.0 license';
@@ -565,7 +566,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataCollectionLabel =>
-      'Support development by providing anonymous usage data';
+      'Help improve stability by sending anonymous crash and diagnostic reports';
 
   @override
   String get palSedentaryLabel => 'Sedentary';

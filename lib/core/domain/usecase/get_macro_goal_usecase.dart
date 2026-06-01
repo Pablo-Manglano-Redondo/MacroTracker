@@ -45,8 +45,7 @@ class GetMacroGoalUsecase {
     if (config.macroGoalMode == MacroGoalModeEntity.gramsPerKg &&
         config.userProteinGoalGramPerKg != null) {
       final user = await _userRepository.getUserData();
-      return (config.userProteinGoalGramPerKg! * user.weightKG)
-          .roundToDouble();
+      return (config.userProteinGoalGramPerKg! * user.weightKG).roundToDouble();
     }
 
     return MacroCalc.getTotalProteinsGoal(totalCalorieGoal,

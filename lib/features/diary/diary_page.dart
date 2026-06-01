@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
@@ -329,6 +330,7 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
 
   void _onDateSelected(
       DateTime newDate, Map<String, TrackedDayEntity> trackedDaysMap) {
+    HapticFeedback.selectionClick();
     _setSelectedDate(newDate);
   }
 
@@ -339,14 +341,17 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   }
 
   void _goToPreviousDay() {
+    HapticFeedback.lightImpact();
     _setSelectedDate(_selectedDate.subtract(const Duration(days: 1)));
   }
 
   void _goToNextDay() {
+    HapticFeedback.lightImpact();
     _setSelectedDate(_selectedDate.add(const Duration(days: 1)));
   }
 
   void _goToToday() {
+    HapticFeedback.selectionClick();
     _setSelectedDate(DateTime.now());
   }
 

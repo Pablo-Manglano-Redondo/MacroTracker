@@ -1,1 +1,1 @@
-A free and open source calorie tracker with focus on simplicity and privacy.
+Track calories, macros, meals and activity with local-first privacy.

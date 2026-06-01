@@ -66,8 +66,7 @@ class RecipeRepository {
       ingredients: recipeDBO.ingredients
           .map((ingredient) => RecipeIngredientEntity(
                 id: ingredient.id,
-                mealSnapshot:
-                    MealEntity.fromMealDBO(ingredient.mealSnapshot),
+                mealSnapshot: MealEntity.fromMealDBO(ingredient.mealSnapshot),
                 amount: ingredient.amount,
                 unit: ingredient.unit,
                 position: ingredient.position,

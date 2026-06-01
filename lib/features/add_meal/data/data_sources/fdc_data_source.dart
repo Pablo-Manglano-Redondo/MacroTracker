@@ -21,7 +21,8 @@ class FDCDataSource {
           await http.get(searchUrlString).timeout(_timeoutDuration);
       log.fine('Fetching FDC results from: $searchUrlString');
 
-      final wordResponse = FDCWordResponseDTO.fromJson(jsonDecode(response.body));
+      final wordResponse =
+          FDCWordResponseDTO.fromJson(jsonDecode(response.body));
       log.fine('Successful response from FDC');
       return wordResponse;
     } catch (exception, stacktrace) {

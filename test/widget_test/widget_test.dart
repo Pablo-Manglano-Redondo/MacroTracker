@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:macrotracker/generated/l10n.dart';
@@ -36,6 +37,9 @@ void main() {
             totalCarbsGoal: 250,
             totalFatsGoal: 60,
             totalProteinsGoal: 120,
+            dailyFoodQualityScore: 82,
+            dailyFoodQualityBand: FoodQualityBandEntity.good,
+            dailyFoodQualityMealsCount: 4,
             mealsLogged: 4,
             sessionsLogged: 1,
           ),

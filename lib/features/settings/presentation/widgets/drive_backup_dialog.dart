@@ -202,16 +202,18 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
   }
 
   Future<void> _signIn() async {
+    final isSpanish = _isEs(context);
     await _runAction(() async {
       await _driveBackupService.authenticate();
       await _refreshStatus();
       _showSnackBar(
-        _isEs(context) ? 'Google Drive conectado.' : 'Google Drive connected.',
+        isSpanish ? 'Google Drive conectado.' : 'Google Drive connected.',
       );
     });
   }
 
   Future<void> _disconnect() async {
+    final isSpanish = _isEs(context);
     await _runAction(() async {
       await _driveBackupService.disconnect();
       if (_autoBackupEnabled) {
@@ -220,19 +222,18 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
       }
       await _refreshStatus();
       _showSnackBar(
-        _isEs(context)
-            ? 'Google Drive desvinculado.'
-            : 'Google Drive disconnected.',
+        isSpanish ? 'Google Drive desvinculado.' : 'Google Drive disconnected.',
       );
     });
   }
 
   Future<void> _backup() async {
+    final isSpanish = _isEs(context);
     await _runAction(() async {
       final result = await _backupToDriveUsecase.performBackup();
       await _refreshStatus();
       _showSnackBar(
-        _isEs(context)
+        isSpanish
             ? 'Backup subido a Google Drive: ${result.fileName ?? 'archivo'}.'
             : 'Backup uploaded to Google Drive: ${result.fileName ?? 'file'}.',
       );
@@ -240,6 +241,7 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
   }
 
   Future<void> _setAutoBackupEnabled(bool enabled) async {
+    final isSpanish = _isEs(context);
     await _runAction(() async {
       if (enabled && !_signedIn) {
         await _driveBackupService.authenticate();
@@ -249,10 +251,10 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
       await _refreshStatus();
       _showSnackBar(
         enabled
-            ? (_isEs(context)
+            ? (isSpanish
                 ? 'Backup diario activado en Android.'
                 : 'Daily backup enabled on Android.')
-            : (_isEs(context)
+            : (isSpanish
                 ? 'Backup diario desactivado.'
                 : 'Daily backup disabled.'),
       );
@@ -638,6 +640,3 @@ String _formatTimestamp(
   final locale = Localizations.localeOf(context).toLanguageTag();
   return DateFormat.yMMMd(locale).add_Hm().format(parsed.toLocal());
 }
-
-bool _isEs(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'es';

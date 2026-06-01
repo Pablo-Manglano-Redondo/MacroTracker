@@ -37,7 +37,8 @@ class GetQuickRecipePresetsUsecase {
     final matching = category == null
         ? presets
         : presets.where((preset) => preset.category == category).toList();
-    final savedRecipes = matching.where((preset) => preset.recipe.saved).toList();
+    final savedRecipes =
+        matching.where((preset) => preset.recipe.saved).toList();
     final prioritized = savedRecipes.isNotEmpty ? savedRecipes : matching;
 
     prioritized.sort((a, b) {
@@ -47,8 +48,7 @@ class GetQuickRecipePresetsUsecase {
         return pinnedCompare;
       }
 
-      final savedCompare =
-          (b.recipe.saved ? 1 : 0) - (a.recipe.saved ? 1 : 0);
+      final savedCompare = (b.recipe.saved ? 1 : 0) - (a.recipe.saved ? 1 : 0);
       if (savedCompare != 0) {
         return savedCompare;
       }

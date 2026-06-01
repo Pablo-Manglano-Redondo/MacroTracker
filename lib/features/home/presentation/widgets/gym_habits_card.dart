@@ -132,8 +132,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                   label: readinessTone.label,
                                   icon: readinessTone.icon,
                                   foreground: readinessTone.foreground(context),
-                                  background:
-                                      readinessTone.background(context),
+                                  background: readinessTone.background(context),
                                 ),
                                 const SizedBox(width: 8),
                                 _HabitStatusPill(
@@ -254,8 +253,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                   label: _sleepTitle(context),
                                   value:
                                       '${log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1)} h',
-                                  target:
-                                      _sleepTarget(context, sleepGoalHours),
+                                  target: _sleepTarget(context, sleepGoalHours),
                                   sourceLabel: log.sleepHours > 0
                                       ? _sourceLabel(context,
                                           log.sleepSyncedFromHealthConnect)
@@ -311,7 +309,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            if (log.energyLevel == index + 1) ...[
+                                            if (log.energyLevel ==
+                                                index + 1) ...[
                                               const Icon(Icons.check, size: 16),
                                               const SizedBox(width: 4),
                                             ],
@@ -323,8 +322,9 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                         vertical: 12,
                                       ),
                                       selected: log.energyLevel == index + 1,
-                                      selectedColor: _energyTone(index + 1, context)
-                                          .withValues(alpha: 0.18),
+                                      selectedColor:
+                                          _energyTone(index + 1, context)
+                                              .withValues(alpha: 0.18),
                                       onSelected: (_) => _setEnergy(index + 1),
                                     ),
                                   ),

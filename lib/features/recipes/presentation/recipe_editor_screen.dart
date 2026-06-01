@@ -28,8 +28,8 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       return;
     }
 
-    final args =
-        ModalRoute.of(context)?.settings.arguments as RecipeEditorScreenArguments?;
+    final args = ModalRoute.of(context)?.settings.arguments
+        as RecipeEditorScreenArguments?;
     if (args == null) {
       Navigator.of(context).pop();
       return;
@@ -232,7 +232,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   }
 
   String _formatServings(double servings) {
-    return servings % 1 == 0 ? servings.toStringAsFixed(0) : servings.toString();
+    return servings % 1 == 0
+        ? servings.toStringAsFixed(0)
+        : servings.toString();
   }
 
   String _formatDate(DateTime dateTime) {

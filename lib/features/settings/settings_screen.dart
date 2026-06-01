@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -19,6 +21,9 @@ import 'package:macrotracker/features/settings/presentation/widgets/calculations
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,6 +42,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
   Future<HealthConnectSyncStatusEntity>? _healthConnectStatusFuture;
+  bool _isPremium = false;
+  AiTrialState? _aiTrialState;
+  bool _isPlanActionLoading = false;
 
   @override
   void initState() {
@@ -45,7 +53,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _homeBloc = locator<HomeBloc>();
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
-    _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
+    if (_supportsHealthIntegration) {
+      _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
+    }
+    _refreshPlanStatus();
     super.initState();
   }
 
@@ -66,6 +77,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
+                _buildPlanSection(context),
+                const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context) ? 'Seguimiento' : 'Tracking',
                   child: Column(
@@ -118,69 +131,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-                _SettingsSection(
-                  title: 'Health Connect',
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        secondary: const Icon(Icons.health_and_safety_outlined),
-                        title: Text(S.of(context).healthConnectAutoSyncTitle),
-                        subtitle: Text(
-                          S.of(context).healthConnectAutoSyncSubtitle,
-                        ),
-                        value: state.healthConnectAutoSyncEnabled,
-                        onChanged: (value) async {
-                          await _settingsBloc
-                              .setHealthConnectAutoSyncEnabled(value);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  value
-                                      ? S
-                                          .of(context)
-                                          .healthConnectAutoSyncEnabledMessage
-                                      : S
-                                          .of(context)
-                                          .healthConnectAutoSyncDisabledMessage,
+                if (_supportsHealthIntegration) ...[
+                  _SettingsSection(
+                    title: _healthIntegrationName(context),
+                    child: Column(
+                      children: [
+                        SwitchListTile(
+                          secondary:
+                              const Icon(Icons.health_and_safety_outlined),
+                          title: Text(_healthAutoSyncTitle(context)),
+                          subtitle: Text(_healthAutoSyncSubtitle(context)),
+                          value: state.healthConnectAutoSyncEnabled,
+                          onChanged: (value) async {
+                            await _settingsBloc
+                                .setHealthConnectAutoSyncEnabled(value);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    value
+                                        ? _healthAutoSyncEnabledMessage(context)
+                                        : _healthAutoSyncDisabledMessage(
+                                            context),
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-                          _settingsBloc.add(LoadSettingsEvent());
-                          if (mounted) {
-                            setState(() {});
-                            _refreshHealthConnectStatus();
-                          }
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.sync_outlined),
-                        title: Text(S.of(context).healthConnectSyncNowTitle),
-                        subtitle: FutureBuilder<HealthConnectSyncStatusEntity>(
-                          future: _healthConnectStatusFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return Text(
-                                S.of(context).healthConnectStatusUnavailable,
                               );
                             }
-                            if (!snapshot.hasData) {
-                              return Text(
-                                S.of(context).healthConnectStatusChecking,
-                              );
+                            _settingsBloc.add(LoadSettingsEvent());
+                            if (mounted) {
+                              setState(() {});
+                              _refreshHealthConnectStatus();
                             }
-                            return Text(
-                              _buildHealthConnectStatusText(snapshot.data!),
-                            );
                           },
                         ),
-                        onTap: () => _syncHealthConnectNow(context),
-                      ),
-                    ],
+                        ListTile(
+                          leading: const Icon(Icons.sync_outlined),
+                          title: Text(_healthSyncNowTitle(context)),
+                          subtitle:
+                              FutureBuilder<HealthConnectSyncStatusEntity>(
+                            future: _healthConnectStatusFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return Text(
+                                  S.of(context).healthConnectStatusUnavailable,
+                                );
+                              }
+                              if (!snapshot.hasData) {
+                                return Text(
+                                  S.of(context).healthConnectStatusChecking,
+                                );
+                              }
+                              return Text(
+                                _buildHealthConnectStatusText(snapshot.data!),
+                              );
+                            },
+                          ),
+                          onTap: () => _syncHealthConnectNow(context),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 18),
+                  const SizedBox(height: 18),
+                ],
                 _SettingsSection(
                   title: _isEs(context)
                       ? 'Datos y privacidad'
@@ -200,11 +212,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : 'Google Drive backup',
                         ),
                         subtitle: Text(
-                          _isEs(context)
-                              ? 'Copia cifrada manual o diaria en tu Drive'
-                              : 'Manual or daily encrypted backup to your Drive',
+                          _driveBackupSubtitle(context),
                         ),
                         onTap: () => _showDriveBackupDialog(context),
+                      ),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.bug_report_outlined),
+                        title: Text(S.of(context).sendAnonymousUserData),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? 'Puedes activarlo o desactivarlo en cualquier momento.'
+                              : 'You can turn this on or off at any time.',
+                        ),
+                        value: state.sendAnonymousData,
+                        onChanged: (value) {
+                          _settingsBloc.setHasAcceptedAnonymousData(value);
+                          _settingsBloc.add(LoadSettingsEvent());
+                        },
                       ),
                       ListTile(
                         leading: const Icon(Icons.description_outlined),
@@ -357,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _ReminderTimeTile(
-                    label: _morningReminderLabelFixed(context),
+                    label: _morningReminderLabel(context),
                     value: morningMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -374,7 +398,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _afterLunchReminderLabelFixed(context),
+                    label: _afterLunchReminderLabel(context),
                     value: lunchMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -389,7 +413,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _afternoonReminderLabelFixed(context),
+                    label: _afternoonReminderLabel(context),
                     value: afternoonMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -406,7 +430,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     },
                   ),
                   _ReminderTimeTile(
-                    label: _eveningReminderLabelFixed(context),
+                    label: _eveningReminderLabel(context),
                     value: eveningMinutes,
                     enabled: enabled,
                     onTap: () async {
@@ -461,7 +485,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           enabled
               ? (permissionGranted
                   ? _mealReminderSavedMessage(context)
-                  : _mealReminderPermissionDeniedMessageFixed(context))
+                  : _mealReminderPermissionDeniedMessage(context))
               : _mealReminderDisabledMessage(context),
         ),
       ),
@@ -533,7 +557,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguageDialog(BuildContext context, String? currentLocale) {
-    String? selectedLocale = currentLocale;
+    var selectedLocale = currentLocale ?? 'system';
     showDialog(
         context: context,
         builder: (context) {
@@ -543,35 +567,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             content: StatefulBuilder(
               builder: (BuildContext context,
                   void Function(void Function()) setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    RadioListTile<String?>(
-                      title: Text(
-                          S.of(context).settingsLanguageSystemDefaultLabel),
-                      value: null,
-                      groupValue: selectedLocale,
-                      onChanged: (value) {
-                        setState(() => selectedLocale = value);
-                      },
-                    ),
-                    RadioListTile<String?>(
-                      title: Text(S.of(context).settingsLanguageEnglish),
-                      value: 'en',
-                      groupValue: selectedLocale,
-                      onChanged: (value) {
-                        setState(() => selectedLocale = value);
-                      },
-                    ),
-                    RadioListTile<String?>(
-                      title: Text(S.of(context).settingsLanguageSpanish),
-                      value: 'es',
-                      groupValue: selectedLocale,
-                      onChanged: (value) {
-                        setState(() => selectedLocale = value);
-                      },
-                    ),
-                  ],
+                return RadioGroup<String>(
+                  groupValue: selectedLocale,
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => selectedLocale = value);
+                    }
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      RadioListTile<String>(
+                        title: Text(
+                            S.of(context).settingsLanguageSystemDefaultLabel),
+                        value: 'system',
+                      ),
+                      RadioListTile<String>(
+                        title: Text(S.of(context).settingsLanguageEnglish),
+                        value: 'en',
+                      ),
+                      RadioListTile<String>(
+                        title: Text(S.of(context).settingsLanguageSpanish),
+                        value: 'es',
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -583,12 +603,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Text(S.of(context).dialogCancelLabel)),
               TextButton(
                   onPressed: () async {
-                    _settingsBloc.setLocale(selectedLocale);
+                    final localeToSave =
+                        selectedLocale == 'system' ? null : selectedLocale;
+                    _settingsBloc.setLocale(localeToSave);
                     _settingsBloc.add(LoadSettingsEvent());
                     if (context.mounted) {
                       Provider.of<ThemeModeProvider>(context, listen: false)
-                          .updateLocale(selectedLocale != null
-                              ? Locale(selectedLocale!)
+                          .updateLocale(localeToSave != null
+                              ? Locale(localeToSave)
                               : null);
                     }
                     Navigator.of(context).pop();
@@ -627,7 +649,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.asset(
-                    'assets/icon/ont_logo_square.png',
+                    'assets/icon/macrotracker_logo_square.png',
                     width: 40,
                     height: 40,
                   ),
@@ -771,7 +793,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURLEn);
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final privacyPolicyUrl = languageCode == 'es'
+        ? URLConst.privacyPolicyURLEs
+        : URLConst.privacyPolicyURLEn;
+    final sourceCodeUri = Uri.parse(privacyPolicyUrl);
     _launchUrl(context, sourceCodeUri);
   }
 
@@ -788,7 +814,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _buildHealthConnectStatusText(HealthConnectSyncStatusEntity status) {
     if (!status.isAvailable) {
-      return S.of(context).healthConnectStatusUnavailable;
+      return _isEs(context)
+          ? '${_healthIntegrationName(context)} no esta disponible en este dispositivo.'
+          : '${_healthIntegrationName(context)} is not available on this device.';
     }
     if (!status.isAutoSyncEnabled) {
       return S.of(context).healthConnectStatusAutoSyncDisabled;
@@ -798,8 +826,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     if (!status.hasHealthPermissions) {
       return _isEs(context)
-          ? 'Health Connect conectado. Si el sync falla, revisa los permisos.'
-          : 'Health Connect connected. If sync fails, review permissions.';
+          ? '${_healthIntegrationName(context)} conectado. Si el sync falla, revisa los permisos.'
+          : '${_healthIntegrationName(context)} connected. If sync fails, review permissions.';
     }
     if (!status.hasStepsPermission) {
       return _isEs(context)
@@ -811,7 +839,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? 'Faltan permisos extra de entreno. Algunas calorías pueden quedar en 0.'
           : 'Workout detail permissions missing. Some calories may stay at 0.';
     }
-    return S.of(context).healthConnectStatusReady;
+    return _isEs(context)
+        ? '${_healthIntegrationName(context)} conectado. Sueño, pasos y entrenamientos pueden sincronizarse automaticamente.'
+        : '${_healthIntegrationName(context)} connected. Sleep, steps, and workouts can sync automatically.';
   }
 
   Future<void> _syncHealthConnectNow(BuildContext context) async {
@@ -839,41 +869,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _buildHealthConnectSyncMessage(HealthConnectSyncReport report) {
     if (!report.didUpdate) {
       if (_isEs(context)) {
-        return 'Health Connect: 0 cambios. Leidos ${report.workoutsRead}, importables ${report.workoutsFiltered}, descartados ${report.discardedWorkoutIds}.';
+        return '${_healthIntegrationName(context)}: 0 cambios. Leidos ${report.workoutsRead}, importables ${report.workoutsFiltered}, descartados ${report.discardedWorkoutIds}.';
       }
-      return 'Health Connect: 0 changes. Read ${report.workoutsRead}, importable ${report.workoutsFiltered}, discarded ${report.discardedWorkoutIds}.';
+      return '${_healthIntegrationName(context)}: 0 changes. Read ${report.workoutsRead}, importable ${report.workoutsFiltered}, discarded ${report.discardedWorkoutIds}.';
     }
     if (report.workoutsImported > 0 || report.workoutsUpdated > 0) {
       final imported = report.workoutsImported;
       final updated = report.workoutsUpdated;
       if (_isEs(context)) {
-        return 'Health Connect: $imported actividades nuevas y $updated reparadas.';
+        return '${_healthIntegrationName(context)}: $imported actividades nuevas y $updated reparadas.';
       }
-      return 'Health Connect: $imported new workouts and $updated repaired.';
+      return '${_healthIntegrationName(context)}: $imported new workouts and $updated repaired.';
     }
-    return S.of(context).healthConnectSyncSuccess;
+    return _isEs(context)
+        ? 'Datos de ${_healthIntegrationName(context)} sincronizados, incluidas actividades.'
+        : '${_healthIntegrationName(context)} data synced, including workouts.';
   }
 
   void _refreshHealthConnectStatus() {
     _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
-  }
-
-  Future<void> _requestHealthConnectPermissions(BuildContext context) async {
-    final status = await _settingsBloc.requestHealthConnectPermissions();
-    if (!context.mounted) {
-      return;
-    }
-    _refreshHealthConnectStatus();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          status.canSync
-              ? S.of(context).healthConnectPermissionsUpdated
-              : S.of(context).healthConnectPermissionsMissing,
-        ),
-      ),
-    );
-    setState(() {});
   }
 
   Future<int?> _pickReminderTime(
@@ -977,23 +991,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? 'No se pudo activar porque Android no concedi\u00f3 permisos.'
           : 'Could not enable reminders because Android permission was denied.';
 
-  String _morningReminderLabelFixed(BuildContext context) =>
-      _isEs(context) ? 'Ma\u00f1ana' : 'Morning';
-
-  String _afterLunchReminderLabelFixed(BuildContext context) =>
-      _isEs(context) ? 'Despu\u00e9s de comer' : 'After lunch';
-
-  String _afternoonReminderLabelFixed(BuildContext context) =>
-      _isEs(context) ? 'Tarde' : 'Afternoon';
-
-  String _eveningReminderLabelFixed(BuildContext context) =>
-      _isEs(context) ? 'Cena' : 'Dinner';
-
-  String _mealReminderPermissionDeniedMessageFixed(BuildContext context) =>
-      _isEs(context)
-          ? 'No se pudo activar porque Android no concedió permisos.'
-          : 'Could not enable reminders because Android permission was denied.';
-
   String _mealReminderSummary(SettingsLoadedState state) {
     return [
       _formatMinutesAsTime(context, state.mealReminderMorningMinutes),
@@ -1015,6 +1012,313 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   bool _isEs(BuildContext context) =>
       Localizations.localeOf(context).languageCode == 'es';
+
+  bool get _supportsHealthIntegration => Platform.isAndroid || Platform.isIOS;
+
+  String _healthIntegrationName(BuildContext context) {
+    if (Platform.isIOS) {
+      return 'Apple Health';
+    }
+    return 'Health Connect';
+  }
+
+  String _healthAutoSyncTitle(BuildContext context) {
+    if (Platform.isIOS) {
+      return _isEs(context)
+          ? 'Auto-sync de Apple Health'
+          : 'Apple Health auto-sync';
+    }
+    return S.of(context).healthConnectAutoSyncTitle;
+  }
+
+  String _healthAutoSyncSubtitle(BuildContext context) {
+    if (Platform.isIOS) {
+      return _isEs(context)
+          ? 'Sincroniza sueño, pasos y entrenamientos automáticamente al abrir la app.'
+          : 'Sync sleep, steps, and workouts automatically on app open.';
+    }
+    return S.of(context).healthConnectAutoSyncSubtitle;
+  }
+
+  String _healthSyncNowTitle(BuildContext context) {
+    if (Platform.isIOS) {
+      return _isEs(context)
+          ? 'Sincronizar Apple Health ahora'
+          : 'Sync Apple Health now';
+    }
+    return S.of(context).healthConnectSyncNowTitle;
+  }
+
+  String _healthAutoSyncEnabledMessage(BuildContext context) {
+    if (Platform.isIOS) {
+      return _isEs(context)
+          ? 'Auto-sync de Apple Health activado.'
+          : 'Apple Health auto-sync enabled.';
+    }
+    return S.of(context).healthConnectAutoSyncEnabledMessage;
+  }
+
+  String _healthAutoSyncDisabledMessage(BuildContext context) {
+    if (Platform.isIOS) {
+      return _isEs(context)
+          ? 'Auto-sync de Apple Health desactivado.'
+          : 'Apple Health auto-sync disabled.';
+    }
+    return S.of(context).healthConnectAutoSyncDisabledMessage;
+  }
+
+  String _driveBackupSubtitle(BuildContext context) {
+    if (Platform.isAndroid) {
+      return _isEs(context)
+          ? 'Copia cifrada manual o diaria en tu Drive'
+          : 'Manual or daily encrypted backup to your Drive';
+    }
+    return _isEs(context)
+        ? 'Copia cifrada manual en tu Drive'
+        : 'Manual encrypted backup to your Drive';
+  }
+
+  Future<void> _refreshPlanStatus() async {
+    final trialState = await locator<MonetizationService>().getAiTrialState();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _isPremium = trialState.isPremium;
+      _aiTrialState = trialState;
+    });
+  }
+
+  Widget _buildPlanSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEs = _isEs(context);
+    final trialState = _aiTrialState;
+    final remaining = trialState?.remaining ?? 0;
+    final used = trialState?.used ?? 0;
+    final limit = trialState?.limit ?? MonetizationService.freeAiTrialLimit;
+    final progress = limit == 0 ? 0.0 : (used / limit).clamp(0.0, 1.0);
+    final aiMealsSaved = trialState?.aiMealsSaved ?? 0;
+    final minutesSaved = trialState?.estimatedMinutesSaved ?? 0;
+
+    return _SettingsSection(
+      title: isEs ? 'Mi plan' : 'My plan',
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: _isPremium
+                        ? const Color(0xFFF2BF2E).withValues(alpha: 0.18)
+                        : colorScheme.primaryContainer.withValues(alpha: 0.45),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    _isPremium
+                        ? Icons.star_rounded
+                        : Icons.auto_awesome_outlined,
+                    color: _isPremium
+                        ? const Color(0xFFB77900)
+                        : colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isPremium
+                            ? (isEs
+                                ? 'MacroTracker Premium'
+                                : 'MacroTracker Premium')
+                            : (isEs ? 'Plan gratuito' : 'Free plan'),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _isPremium
+                            ? (isEs
+                                ? 'IA por texto y foto desbloqueada.'
+                                : 'Text and photo AI logging is unlocked.')
+                            : (isEs
+                                ? '$remaining de $limit usos gratuitos de IA disponibles.'
+                                : '$remaining of $limit free AI uses available.'),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (!_isPremium) ...[
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: progress,
+                  minHeight: 8,
+                  backgroundColor: colorScheme.surfaceContainerHighest,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isEs
+                    ? '$used usados - $remaining restantes'
+                    : '$used used - $remaining remaining',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (aiMealsSaved > 0) ...[
+                const SizedBox(height: 10),
+                _PlanMetricRow(
+                  icon: Icons.timer_outlined,
+                  label: isEs
+                      ? '$aiMealsSaved comidas IA guardadas - unos $minutesSaved min ahorrados'
+                      : '$aiMealsSaved AI meals saved - about $minutesSaved min saved',
+                ),
+              ],
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: _isPlanActionLoading
+                    ? null
+                    : () => _showSettingsPaywall(context),
+                icon: const Icon(Icons.auto_awesome_outlined),
+                label: Text(isEs
+                    ? 'Activar MacroTracker Premium'
+                    : 'Activate MacroTracker Premium'),
+              ),
+            ] else ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.55),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_outline,
+                        color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        isEs
+                            ? 'Tu suscripción está activa en este dispositivo.'
+                            : 'Your subscription is active on this device.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            TextButton.icon(
+              onPressed: _isPlanActionLoading
+                  ? null
+                  : () => _restorePurchases(context),
+              icon: const Icon(Icons.restore_outlined),
+              label: Text(isEs ? 'Restaurar compras' : 'Restore purchases'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showSettingsPaywall(BuildContext context) async {
+    setState(() => _isPlanActionLoading = true);
+    final purchased = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => PaywallSheet(
+        placement: PaywallPlacement.settings,
+        trialState: _aiTrialState,
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isPlanActionLoading = false);
+    if (purchased == true) {
+      await _refreshPlanStatus();
+    }
+  }
+
+  Future<void> _restorePurchases(BuildContext context) async {
+    setState(() => _isPlanActionLoading = true);
+    final restored = await locator<SubscriptionService>().restorePurchases();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _isPlanActionLoading = false);
+    await _refreshPlanStatus();
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(restored
+            ? (_isEs(context) ? 'Compras restauradas.' : 'Purchases restored.')
+            : (_isEs(context)
+                ? 'No se encontraron compras activas.'
+                : 'No active purchases found.')),
+      ),
+    );
+  }
+}
+
+class _PlanMetricRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _PlanMetricRow({
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.28),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: colorScheme.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _AboutInfoRow extends StatelessWidget {

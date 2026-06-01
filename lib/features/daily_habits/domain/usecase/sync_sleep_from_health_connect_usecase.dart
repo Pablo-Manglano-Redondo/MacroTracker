@@ -93,7 +93,7 @@ class SyncSleepFromHealthConnectUsecase {
     required bool ignoreAutoSyncSetting,
   }) async {
     try {
-      if (!Platform.isAndroid) {
+      if (!Platform.isAndroid && !Platform.isIOS) {
         return HealthConnectSyncReport(
           didUpdate: false,
           reason: HealthConnectSyncSkipReason.notAndroid,
@@ -288,7 +288,8 @@ class SyncSleepFromHealthConnectUsecase {
         }
         if (existingActivity != null) {
           await _userActivityRepository.deleteUserActivity(existingActivity);
-          existingHealthConnectActivitiesByExternalId.remove(workout.externalId);
+          existingHealthConnectActivitiesByExternalId
+              .remove(workout.externalId);
           updatedWorkouts++;
         }
         final activity = UserActivityEntity(
@@ -318,8 +319,7 @@ class SyncSleepFromHealthConnectUsecase {
         'and repaired $updatedWorkouts existing entries',
       );
       return HealthConnectSyncReport(
-        didUpdate:
-            sleepChanged ||
+        didUpdate: sleepChanged ||
             stepsChanged ||
             importedWorkouts > 0 ||
             updatedWorkouts > 0,
@@ -349,7 +349,7 @@ class SyncSleepFromHealthConnectUsecase {
   Future<HealthConnectSyncStatusEntity> getStatus() async {
     final config = await _configRepository.getConfig();
     try {
-      if (!Platform.isAndroid) {
+      if (!Platform.isAndroid && !Platform.isIOS) {
         return HealthConnectSyncStatusEntity(
           isAvailable: false,
           hasHealthPermissions: false,
@@ -409,7 +409,7 @@ class SyncSleepFromHealthConnectUsecase {
   Future<HealthConnectSyncStatusEntity> requestPermissions() async {
     final config = await _configRepository.getConfig();
     try {
-      if (!Platform.isAndroid) {
+      if (!Platform.isAndroid && !Platform.isIOS) {
         return HealthConnectSyncStatusEntity(
           isAvailable: false,
           hasHealthPermissions: false,

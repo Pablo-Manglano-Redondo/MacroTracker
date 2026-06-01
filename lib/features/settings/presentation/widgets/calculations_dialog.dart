@@ -114,8 +114,8 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
           ),
           const SizedBox(width: 8),
           TextButton(
-            child: Text(S.of(context).buttonResetLabel),
             onPressed: _resetSelections,
+            child: Text(S.of(context).buttonResetLabel),
           ),
         ],
       ),
@@ -429,7 +429,8 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
         0,
         _parsePositiveDouble(
             _proteinGramPerKgController.text, _defaultProteinGramPerKg),
-        _parsePositiveDouble(_fatGramPerKgController.text, _defaultFatGramPerKg),
+        _parsePositiveDouble(
+            _fatGramPerKgController.text, _defaultFatGramPerKg),
       );
     }
 

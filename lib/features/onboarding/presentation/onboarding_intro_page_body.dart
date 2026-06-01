@@ -107,7 +107,11 @@ class _OnboardingIntroPageBodyState extends State<OnboardingIntroPageBody> {
   }
 
   Future<void> _launchUrl() async {
-    if (!await launchUrl(Uri.parse(URLConst.privacyPolicyURLEn),
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final privacyPolicyUrl = languageCode == 'es'
+        ? URLConst.privacyPolicyURLEs
+        : URLConst.privacyPolicyURLEn;
+    if (!await launchUrl(Uri.parse(privacyPolicyUrl),
         mode: LaunchMode.externalApplication)) {}
   }
 }

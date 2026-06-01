@@ -49,8 +49,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
       _intakeTypeEntity = routeArgs.intakeTypeEntity;
       _day = routeArgs.day;
     } else if (routeArgs is Map) {
-      _intakeTypeEntity =
-          routeArgs['mealType'] as IntakeTypeEntity? ?? IntakeTypeEntity.breakfast;
+      _intakeTypeEntity = routeArgs['mealType'] as IntakeTypeEntity? ??
+          IntakeTypeEntity.breakfast;
       _day = routeArgs['day'] as DateTime? ?? DateTime.now();
     } else {
       _intakeTypeEntity = IntakeTypeEntity.breakfast;

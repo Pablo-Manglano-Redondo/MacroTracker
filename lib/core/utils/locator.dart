@@ -31,9 +31,11 @@ import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart'
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/utils/env.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
-import 'package:macrotracker/core/utils/ont_image_cache_manager.dart';
+import 'package:macrotracker/core/utils/macrotracker_image_cache_manager.dart';
 import 'package:macrotracker/core/utils/secure_app_storage_provider.dart';
 import 'package:macrotracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:macrotracker/features/add_activity/presentation/bloc/activities_bloc.dart';
@@ -118,8 +120,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Cache manager
-  locator
-      .registerLazySingleton<CacheManager>(() => OntImageCacheManager.instance);
+  locator.registerLazySingleton<CacheManager>(
+      () => MacroTrackerImageCacheManager.instance);
 
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
@@ -232,7 +234,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<AddTrackedDayUsecase>(
       () => AddTrackedDayUsecase(locator(), locator()));
   locator.registerLazySingleton(() => GetKcalGoalUsecase(locator(), locator()));
-  locator.registerLazySingleton(() => GetMacroGoalUsecase(locator(), locator()));
+  locator
+      .registerLazySingleton(() => GetMacroGoalUsecase(locator(), locator()));
   locator.registerLazySingleton<GetGymTargetsUsecase>(() =>
       GetGymTargetsUsecase(
           locator(), locator(), locator(), locator(), locator()));
@@ -340,6 +343,14 @@ Future<void> initLocator() async {
       () => DailyHabitLogDataSource(hiveDBProvider.dailyHabitLogBox));
   locator.registerLazySingleton<HealthConnectSleepDataSource>(
       () => HealthConnectSleepDataSource());
+
+  final subscriptionService = SubscriptionService();
+  await subscriptionService.initialize();
+  locator.registerLazySingleton<SubscriptionService>(() => subscriptionService);
+  locator.registerLazySingleton<MonetizationService>(
+    () => MonetizationService(
+        subscriptionService, hiveDBProvider.monetizationBox),
+  );
 
   await _initializeConfig(locator());
 }

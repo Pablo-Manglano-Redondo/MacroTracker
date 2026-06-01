@@ -79,16 +79,23 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
     if (!DateUtils.isSameDay(oldWidget.selectedDay, widget.selectedDay)) {
       _syncSectionState();
     } else {
-      if (oldWidget.userActivities.isEmpty && widget.userActivities.isNotEmpty)
+      if (oldWidget.userActivities.isEmpty &&
+          widget.userActivities.isNotEmpty) {
         _showActivity = true;
+      }
       if (oldWidget.breakfastIntake.isEmpty &&
-          widget.breakfastIntake.isNotEmpty) _showBreakfast = true;
-      if (oldWidget.lunchIntake.isEmpty && widget.lunchIntake.isNotEmpty)
+          widget.breakfastIntake.isNotEmpty) {
+        _showBreakfast = true;
+      }
+      if (oldWidget.lunchIntake.isEmpty && widget.lunchIntake.isNotEmpty) {
         _showLunch = true;
-      if (oldWidget.dinnerIntake.isEmpty && widget.dinnerIntake.isNotEmpty)
+      }
+      if (oldWidget.dinnerIntake.isEmpty && widget.dinnerIntake.isNotEmpty) {
         _showDinner = true;
-      if (oldWidget.snackIntake.isEmpty && widget.snackIntake.isNotEmpty)
+      }
+      if (oldWidget.snackIntake.isEmpty && widget.snackIntake.isNotEmpty) {
         _showSnack = true;
+      }
     }
   }
 

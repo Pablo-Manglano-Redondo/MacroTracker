@@ -42,8 +42,7 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
 
           final data = snapshot.data;
           if (data == null) {
-            return Center(
-                child: Text(S.of(context).bodyProgressLoadError));
+            return Center(child: Text(S.of(context).bodyProgressLoadError));
           }
 
           return ListView(
@@ -214,7 +213,8 @@ class _SummaryCard extends StatelessWidget {
                 ),
                 _MetricTile(
                   label: S.of(context).bodyProgressWeeklyDelta,
-                  value: _weight(context, summary.weeklyWeightDeltaKg, signed: true),
+                  value: _weight(context, summary.weeklyWeightDeltaKg,
+                      signed: true),
                   accentColor: tone.foreground,
                 ),
                 _MetricTile(
@@ -246,7 +246,7 @@ class _SummaryCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     if (summary.hasWeightTrend)
                       Text(
-                      _weightTrendText(context),
+                        _weightTrendText(context),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     if (summary.hasWeightTrend && summary.hasWaistTrend)

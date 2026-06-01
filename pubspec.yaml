@@ -1,5 +1,5 @@
 name: macrotracker
-description: Open-Source Calories & Activity Tracker
+description: EPSAIT calorie, macro, meal, and activity tracker.
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -60,6 +60,7 @@ dependencies:
   image: ^4.5.4
   google_sign_in: ^7.2.0
   googleapis: ^16.0.0
+  _discoveryapis_commons: ^1.0.7
   workmanager: ^0.9.0+3
 
   flutter_bloc: ^8.1.6
@@ -82,6 +83,8 @@ dependencies:
   supabase_flutter: ^2.8.2
   health: ^13.3.1
   home_widget: ^0.9.1
+  purchases_flutter: ^8.2.0
+  in_app_review: ^2.0.9
 
 dev_dependencies:
   flutter_test:
@@ -100,11 +103,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/icon/ont_logo_square.png
-    - assets/icon/ont_logo_square.svg
-    - assets/icon/ont_logo_square_light.png
-    - assets/icon/ont_banner_top.png
-    - assets/icon/ont_banner_top_light.png
+    - assets/icon/macrotracker_logo_square.png
+    - assets/icon/macrotracker_logo_square.svg
+    - assets/icon/macrotracker_logo_square_light.png
+    - assets/icon/macrotracker_banner_top.png
+    - assets/icon/macrotracker_banner_top_light.png
 
   fonts:
     - family: CustomIcons
@@ -145,9 +148,9 @@ flutter_intl:
 
 flutter_launcher_icons:
   android: true
-  adaptive_icon_foreground: "assets/icon/ont_logo_square.png"
+  adaptive_icon_foreground: "assets/icon/macrotracker_logo_square.png"
   adaptive_icon_background: "#ffffff"
   ios: true
   remove_alpha_ios: true
-  image_path: "assets/icon/ont_logo_square.png"
+  image_path: "assets/icon/macrotracker_logo_square.png"
   min_sdk_android: 21

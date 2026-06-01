@@ -32,6 +32,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const interpretationDraftBoxName = 'InterpretationDraftBox';
   static const bodyMeasurementBoxName = 'BodyMeasurementBox';
   static const dailyHabitLogBoxName = 'DailyHabitLogBox';
+  static const monetizationBoxName = 'MonetizationBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -42,6 +43,7 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<InterpretationDraftDBO> interpretationDraftBox;
   late Box<BodyMeasurementDBO> bodyMeasurementBox;
   late Box<DailyHabitLogDBO> dailyHabitLogBox;
+  late Box<dynamic> monetizationBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -71,24 +73,22 @@ class HiveDBProvider extends ChangeNotifier {
     Hive.registerAdapter(InterpretationDraftItemDBOAdapter());
     Hive.registerAdapter(InterpretationDraftDBOAdapter());
 
-    configBox =
-        await _openEncryptedBox(configBoxName, encryptionCypher);
-    intakeBox =
-        await _openEncryptedBox(intakeBoxName, encryptionCypher);
+    configBox = await _openEncryptedBox(configBoxName, encryptionCypher);
+    intakeBox = await _openEncryptedBox(intakeBoxName, encryptionCypher);
     userActivityBox =
         await _openEncryptedBox(userActivityBoxName, encryptionCypher);
-    userBox =
-        await _openEncryptedBox(userBoxName, encryptionCypher);
+    userBox = await _openEncryptedBox(userBoxName, encryptionCypher);
     trackedDayBox =
         await _openEncryptedBox(trackedDayBoxName, encryptionCypher);
-    recipeBox =
-        await _openEncryptedBox(recipeBoxName, encryptionCypher);
+    recipeBox = await _openEncryptedBox(recipeBoxName, encryptionCypher);
     interpretationDraftBox =
         await _openEncryptedBox(interpretationDraftBoxName, encryptionCypher);
     bodyMeasurementBox =
         await _openEncryptedBox(bodyMeasurementBoxName, encryptionCypher);
     dailyHabitLogBox =
         await _openEncryptedBox(dailyHabitLogBoxName, encryptionCypher);
+    monetizationBox =
+        await _openEncryptedBox<dynamic>(monetizationBoxName, encryptionCypher);
   }
 
   Future<Box<T>> _openEncryptedBox<T>(

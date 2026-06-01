@@ -184,8 +184,9 @@ class _BodyProgressChartCardState extends State<BodyProgressChartCard> {
         widget.usesImperialUnits ? UnitCalc.cmToInches(value) : value,
     };
     final unit = switch (metric) {
-      BodyProgressChartMetric.weight =>
-        widget.usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel,
+      BodyProgressChartMetric.weight => widget.usesImperialUnits
+          ? S.of(context).lbsLabel
+          : S.of(context).kgLabel,
       BodyProgressChartMetric.waist =>
         widget.usesImperialUnits ? 'in' : S.of(context).cmLabel,
     };

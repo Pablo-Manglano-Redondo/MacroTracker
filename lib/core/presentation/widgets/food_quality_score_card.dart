@@ -52,9 +52,10 @@ class FoodQualityScoreCard extends StatelessWidget {
                     children: [
                       Text(
                         resolvedTitle,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -88,10 +89,11 @@ class FoodQualityScoreCard extends StatelessWidget {
                       ),
                       Text(
                         FoodQualityUiMeta.bandLabel(context, score.band),
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: accentColor,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.labelMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: accentColor,
+                                ),
                       ),
                     ],
                   ),
@@ -142,8 +144,9 @@ class FoodQualityUiMeta {
   static String title(BuildContext context) =>
       _isEs(context) ? 'Calidad alimentaria' : 'Food quality';
 
-  static String subtitle(BuildContext context) =>
-      _isEs(context) ? 'Nota nutricional estimada' : 'Estimated nutrition score';
+  static String subtitle(BuildContext context) => _isEs(context)
+      ? 'Nota nutricional estimada'
+      : 'Estimated nutrition score';
 
   static String partialSubtitle(BuildContext context) => _isEs(context)
       ? 'Estimacion basada en datos parciales'
@@ -176,7 +179,8 @@ class FoodQualityUiMeta {
     }
   }
 
-  static String reasonLabel(BuildContext context, FoodQualityReasonCode reason) {
+  static String reasonLabel(
+      BuildContext context, FoodQualityReasonCode reason) {
     final isEs = _isEs(context);
     switch (reason) {
       case FoodQualityReasonCode.highFiber:
@@ -192,7 +196,9 @@ class FoodQualityUiMeta {
       case FoodQualityReasonCode.highEnergyDensity:
         return isEs ? 'Muy densa en calorias' : 'Calorie dense';
       case FoodQualityReasonCode.lowEnergyDensity:
-        return isEs ? 'Densidad calorica razonable' : 'Reasonable calorie density';
+        return isEs
+            ? 'Densidad calorica razonable'
+            : 'Reasonable calorie density';
       case FoodQualityReasonCode.highSaturatedFat:
         return isEs ? 'Grasas saturadas altas' : 'High saturated fat';
       case FoodQualityReasonCode.partialData:

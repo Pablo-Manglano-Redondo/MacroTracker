@@ -166,13 +166,8 @@ class DashboardWidget extends StatelessWidget {
               ],
             ),
             if (mealsLogged == 0 && sessionsLogged == 0) ...[
-              const SizedBox(height: 10),
-              Text(
-                _emptyCopy(context),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: mutedColor,
-                    ),
-              ),
+              const SizedBox(height: 14),
+              _DashboardEmptyState(isEs: _isEs(context)),
             ],
             const SizedBox(height: 18),
             _SelectorBlock<UserWeightGoalEntity>(
@@ -564,10 +559,6 @@ class DashboardWidget extends StatelessWidget {
 
   String _dashboardSubtitle(BuildContext context) =>
       _isEs(context) ? 'Lo importante de hoy.' : 'Today at a glance.';
-
-  String _emptyCopy(BuildContext context) => _isEs(context)
-      ? 'Registra una comida o un entreno para activar mejor contexto.'
-      : 'Log a meal or workout to unlock better guidance.';
 
   String _goalLabel(BuildContext context) =>
       _isEs(context) ? 'Objetivo' : 'Goal';
@@ -1036,6 +1027,97 @@ class _MacroTrackRow extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+/// Animated empty-state shown in the dashboard when no meals or sessions
+/// have been logged yet today.
+class _DashboardEmptyState extends StatefulWidget {
+  final bool isEs;
+  const _DashboardEmptyState({required this.isEs});
+
+  @override
+  State<_DashboardEmptyState> createState() => _DashboardEmptyStateState();
+}
+
+class _DashboardEmptyStateState extends State<_DashboardEmptyState>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulse;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+    _scale = Tween<double>(begin: 0.92, end: 1.08).animate(
+      CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: colorScheme.primary.withValues(alpha: 0.06),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
+        children: [
+          ScaleTransition(
+            scale: _scale,
+            child: Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primary.withValues(alpha: 0.12),
+              ),
+              child: Icon(
+                Icons.restaurant_menu_outlined,
+                size: 26,
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            widget.isEs
+                ? '¡Empieza a registrar!'
+                : 'Start logging your day!',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurface,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.isEs
+                ? 'Haz una foto a tu comida y la IA lo calcula todo.'
+                : 'Take a photo of your meal and AI does the rest.',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.4,
+                ),
+          ),
+        ],
+      ),
     );
   }
 }

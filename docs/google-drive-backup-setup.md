@@ -5,7 +5,7 @@ This project uses `google_sign_in` and the Google Drive API for manual backups.
 ## Android
 
 1. In Google Cloud, create OAuth credentials for:
-   - Android app: package `com.pxblx.macrotracker`
+   - Android app: package `com.epsait.macrotracker`
    - Web application
 2. Add the SHA-1 and SHA-256 of every Android signing configuration you use.
 3. Enable the Google Drive API.
@@ -25,7 +25,7 @@ The build script forwards `GOOGLE_DRIVE_SERVER_CLIENT_ID` as a Flutter `--dart-d
 
 ## iOS
 
-1. In Google Cloud or Firebase, create the iOS OAuth client for bundle ID `com.pxblx.macrotracker`.
+1. In Google Cloud or Firebase, create the iOS OAuth client for bundle ID `com.epsait.macrotracker`.
 2. Copy `ios/Flutter/GoogleDrive.xcconfig.template` to `ios/Flutter/GoogleDrive.xcconfig`.
 3. Fill:
    - `GOOGLE_DRIVE_IOS_CLIENT_ID`

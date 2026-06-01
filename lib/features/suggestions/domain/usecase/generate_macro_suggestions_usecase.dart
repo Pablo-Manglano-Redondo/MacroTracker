@@ -34,33 +34,34 @@ class GenerateMacroSuggestionsUsecase {
     }
 
     final recipes = await _getRecipeLibraryUsecase.getAllRecipes();
-    final frequentPresets = await _getFrequentIntakePresetsUsecase.getTopPresets();
-    
+    final frequentPresets =
+        await _getFrequentIntakePresetsUsecase.getTopPresets();
+
     // Convert frequent presets to "virtual" recipes so we can use the same scoring logic
     final frequentAsRecipes = frequentPresets.map((preset) => RecipeEntity(
-      id: 'frequent|${preset.key}',
-      name: preset.title,
-      notes: null,
-      defaultServings: 1.0,
-      yieldQuantity: 1.0,
-      yieldUnit: 'serving',
-      saved: false,
-      pinned: false,
-      timesUsed: 0,
-      lastUsedAt: null,
-      quickCategory: null,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      ingredients: [
-        RecipeIngredientEntity(
-          id: 'preset_root',
-          mealSnapshot: preset.meal,
-          amount: preset.amount,
-          unit: preset.unit,
-          position: 0,
-        ),
-      ],
-    ));
+          id: 'frequent|${preset.key}',
+          name: preset.title,
+          notes: null,
+          defaultServings: 1.0,
+          yieldQuantity: 1.0,
+          yieldUnit: 'serving',
+          saved: false,
+          pinned: false,
+          timesUsed: 0,
+          lastUsedAt: null,
+          quickCategory: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          ingredients: [
+            RecipeIngredientEntity(
+              id: 'preset_root',
+              mealSnapshot: preset.meal,
+              amount: preset.amount,
+              unit: preset.unit,
+              position: 0,
+            ),
+          ],
+        ));
 
     final allCandidates = [...recipes, ...frequentAsRecipes];
     final suggestions = <MacroSuggestionEntity>[];

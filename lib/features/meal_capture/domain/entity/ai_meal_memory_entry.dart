@@ -85,8 +85,7 @@ class AiMealMemoryEntry extends Equatable {
         fat100: (nutrimentsMap['fat100'] as num?)?.toDouble(),
         proteins100: (nutrimentsMap['proteins100'] as num?)?.toDouble(),
         sugars100: (nutrimentsMap['sugars100'] as num?)?.toDouble(),
-        saturatedFat100:
-            (nutrimentsMap['saturatedFat100'] as num?)?.toDouble(),
+        saturatedFat100: (nutrimentsMap['saturatedFat100'] as num?)?.toDouble(),
         fiber100: (nutrimentsMap['fiber100'] as num?)?.toDouble(),
       ),
       source: source,

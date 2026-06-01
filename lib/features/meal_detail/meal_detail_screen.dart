@@ -100,7 +100,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     if (_initialQuantity == "") {
       if (_loggedIntake != null) {
         _initialQuantity = _loggedIntake!.amount.toString();
-        quantityTextController.text = _formatInitialQuantity(_loggedIntake!.amount);
+        quantityTextController.text =
+            _formatInitialQuantity(_loggedIntake!.amount);
       } else if (meal.hasServingValues) {
         _initialQuantity = "1";
         quantityTextController.text = "1";
@@ -365,7 +366,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
       name: meal.name ?? '',
       meal: meal,
       amount:
-          double.tryParse(quantityTextController.text.replaceAll(',', '.')) ?? 1,
+          double.tryParse(quantityTextController.text.replaceAll(',', '.')) ??
+              1,
       unit: selectedUnit,
       quickCategory: QuickRecipeCategoryEntity.leanMeal,
     );
@@ -439,7 +441,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                       quickCategory: saveCategory.quickCategory,
                     ).copyWith(
                       saved: true,
-                      notes: QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
+                      notes:
+                          QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
                         null,
                         saveCategory.explicitIntakeType,
                       ),
@@ -452,7 +455,8 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     Navigator.of(dialogContext).pop();
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(S.of(context).recipeSavedSnackbar)),
+                        SnackBar(
+                            content: Text(S.of(context).recipeSavedSnackbar)),
                       );
                     }
                   },
@@ -631,10 +635,7 @@ class _DetailPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surface
-            .withValues(alpha: 0.9),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

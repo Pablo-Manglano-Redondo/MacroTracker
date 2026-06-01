@@ -31,7 +31,8 @@ class ActivityTitleExpanded extends StatelessWidget {
                             ?.copyWith(
                                 color: Theme.of(context)
                                     .colorScheme
-                                    .onSurface.withValues(alpha: 0.7)),
+                                    .onSurface
+                                    .withValues(alpha: 0.7)),
                       )
                     ]),
                 textAlign: TextAlign.center,

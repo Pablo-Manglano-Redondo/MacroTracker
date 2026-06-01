@@ -1,4 +1,4 @@
-package com.pxblx.macrotracker
+package com.epsait.macrotracker
 
 import android.appwidget.AppWidgetManager
 import android.content.Context

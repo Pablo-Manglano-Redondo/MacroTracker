@@ -102,13 +102,13 @@ class MacroSuggestionsCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                    Text(_title(context),
-                        style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 4.0),
-                    Text(
-                      _subtitle(context),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                            Text(_title(context),
+                                style: Theme.of(context).textTheme.titleMedium),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              _subtitle(context),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ),
                       ),

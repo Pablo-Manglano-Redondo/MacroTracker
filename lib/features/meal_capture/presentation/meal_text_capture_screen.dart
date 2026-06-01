@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/core/presentation/widgets/ai_usage_gate.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
@@ -50,33 +52,36 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
           ? _buildLoadingSkeleton(context)
           : Padding(
               padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _controller,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: S.of(context).aiTextCaptureHint,
-                border: const OutlineInputBorder(),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _controller,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: S.of(context).aiTextCaptureHint,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: _isLoading ? null : _createDraft,
+                      child: Text(_isLoading
+                          ? S.of(context).aiTextCaptureLoading
+                          : S.of(context).aiTextCaptureButton),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const AiTrialBanner(placement: PaywallPlacement.aiText),
+                  const SizedBox(height: 16),
+                  Text(
+                    S.of(context).aiTextCaptureDescription,
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _isLoading ? null : _createDraft,
-                child:
-                    Text(_isLoading ? S.of(context).aiTextCaptureLoading : S.of(context).aiTextCaptureButton),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              S.of(context).aiTextCaptureDescription,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -101,7 +106,8 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
           ),
         ),
         const SizedBox(height: 48),
-        const SkeletonBox(width: double.infinity, height: 160, borderRadius: 20),
+        const SkeletonBox(
+            width: double.infinity, height: 160, borderRadius: 20),
         const SizedBox(height: 16),
         const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
         const SizedBox(height: 16),
@@ -116,6 +122,14 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
       return;
     }
 
+    final access = await AiUsageGate.ensureAccess(
+      context,
+      placement: PaywallPlacement.aiText,
+    );
+    if (!access.allowed) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -123,7 +137,8 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
     try {
       final config = await locator<GetConfigUsecase>().getConfig();
       final personalizationContext =
-          await locator<MealInterpretationPersonalizationUsecase>().buildContext(
+          await locator<MealInterpretationPersonalizationUsecase>()
+              .buildContext(
         intakeType: _args.intakeTypeEntity,
         freeText: input,
       );
@@ -136,7 +151,6 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
         analysisContext: personalizationContext.promptContext,
         personalExamples: personalizationContext.remoteExamples,
       );
-
       final personalizedDraft =
           await locator<MealInterpretationPersonalizationUsecase>()
               .personalizeDraft(

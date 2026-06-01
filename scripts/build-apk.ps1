@@ -10,10 +10,34 @@ param(
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$flutterBin = "C:\Users\pxblx\Documents\flutter\bin"
-$flutterCmd = Join-Path $flutterBin "flutter.bat"
 $keyPropertiesPath = Join-Path $repoRoot "android\key.properties"
 $flutterGitConfigPath = Join-Path $repoRoot ".gitconfig-flutter"
+
+function Resolve-FlutterCommand {
+    $localPropertiesPath = Join-Path $repoRoot "android\local.properties"
+    if (Test-Path -LiteralPath $localPropertiesPath) {
+        $flutterSdkLine = Get-Content -LiteralPath $localPropertiesPath |
+            Where-Object { $_ -like "flutter.sdk=*" } |
+            Select-Object -First 1
+        if ($flutterSdkLine) {
+            $flutterSdk = $flutterSdkLine.Substring("flutter.sdk=".Length).Replace("\\", "\")
+            $candidate = Join-Path $flutterSdk "bin\flutter.bat"
+            if (Test-Path -LiteralPath $candidate) {
+                return $candidate
+            }
+        }
+    }
+
+    $pathCandidate = Get-Command "flutter" -ErrorAction SilentlyContinue
+    if ($pathCandidate) {
+        return $pathCandidate.Source
+    }
+
+    throw "Flutter was not found. Add it to PATH or set flutter.sdk in android/local.properties."
+}
+
+$flutterCmd = Resolve-FlutterCommand
+$flutterBin = Split-Path -Parent $flutterCmd
 
 function Assert-FlutterAvailable {
     if (-not (Test-Path -LiteralPath $flutterCmd)) {

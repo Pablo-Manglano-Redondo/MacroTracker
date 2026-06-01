@@ -120,7 +120,6 @@ class ExportDataUsecase {
 
     // Save the zip file
     final zipBytes = ZipEncoder().encode(archive);
-    if (zipBytes == null) return null;
 
     if (customOutputPath != null) {
       final file = File(customOutputPath);

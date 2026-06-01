@@ -31,11 +31,14 @@ class IntakeDataSource {
     });
   }
 
-  Future<IntakeDBO?> updateIntake(String intakeId, Map<String, dynamic> fields) async {
-    log.fine('Updating intake $intakeId with fields ${fields.toString()} in db');
+  Future<IntakeDBO?> updateIntake(
+      String intakeId, Map<String, dynamic> fields) async {
+    log.fine(
+        'Updating intake $intakeId with fields ${fields.toString()} in db');
     var intakeObject = _intakeBox.values.indexed
-      .where((indexedDbo) => indexedDbo.$2.id == intakeId).firstOrNull;
-    if(intakeObject == null) {
+        .where((indexedDbo) => indexedDbo.$2.id == intakeId)
+        .firstOrNull;
+    if (intakeObject == null) {
       log.fine('Cannot update intake $intakeId as it is non existent');
       return null;
     }
@@ -45,9 +48,8 @@ class IntakeDataSource {
   }
 
   Future<IntakeDBO?> getIntakeById(String intakeId) async {
-    return _intakeBox.values.firstWhereOrNull(
-            (intake) => intake.id == intakeId
-    );
+    return _intakeBox.values
+        .firstWhereOrNull((intake) => intake.id == intakeId);
   }
 
   Future<List<IntakeDBO>> getAllIntakes() async {
@@ -67,8 +69,7 @@ class IntakeDataSource {
     final intakeList = _intakeBox.values.toList();
 
     //  sort list by date (newest first) and filter unique intake
-    intakeList
-        .sort((a, b) =>  (-1) * a.dateTime.compareTo(b.dateTime));
+    intakeList.sort((a, b) => (-1) * a.dateTime.compareTo(b.dateTime));
 
     final filterCodes = <String>{};
     final uniqueIntake = intakeList

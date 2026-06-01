@@ -18,7 +18,8 @@ class CalculateFoodQualityScoreUsecase {
     return _FoodQualityInput.fromMeal(meal).hasAnySignal;
   }
 
-  FoodQualityDailySummaryEntity summarizeIntakes(Iterable<IntakeEntity> intakes) {
+  FoodQualityDailySummaryEntity summarizeIntakes(
+      Iterable<IntakeEntity> intakes) {
     double weightedScore = 0;
     double totalWeight = 0;
     var mealsCount = 0;
@@ -56,13 +57,15 @@ class CalculateFoodQualityScoreUsecase {
     var knownSignals = 0;
 
     if (input.fiber != null) {
-      final normalized = _normalizeLinear(input.fiber!, 0, input.isServingBased ? 8 : 10);
+      final normalized =
+          _normalizeLinear(input.fiber!, 0, input.isServingBased ? 8 : 10);
       final contribution = normalized * 20;
       score += contribution;
       knownSignals++;
       if (contribution >= 6) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.highFiber, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.highFiber, contribution.abs()),
         );
       }
     }
@@ -74,7 +77,8 @@ class CalculateFoodQualityScoreUsecase {
       knownSignals++;
       if (contribution >= 5) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.goodProtein, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.goodProtein, contribution.abs()),
         );
       }
     }
@@ -88,7 +92,8 @@ class CalculateFoodQualityScoreUsecase {
       knownSignals++;
       if (contribution <= -6) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.highSugar, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.highSugar, contribution.abs()),
         );
       } else if (input.sugar! <= sugarStart) {
         contributions.add(
@@ -106,11 +111,13 @@ class CalculateFoodQualityScoreUsecase {
       knownSignals++;
       if (contribution >= 6) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.lowEnergyDensity, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.lowEnergyDensity, contribution.abs()),
         );
       } else if (contribution <= -6) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.highEnergyDensity, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.highEnergyDensity, contribution.abs()),
         );
       }
     }
@@ -126,7 +133,8 @@ class CalculateFoodQualityScoreUsecase {
       knownSignals++;
       if (contribution <= -4) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.highSaturatedFat, contribution.abs()),
+          _ReasonContribution(
+              FoodQualityReasonCode.highSaturatedFat, contribution.abs()),
         );
       }
     }
@@ -135,7 +143,8 @@ class CalculateFoodQualityScoreUsecase {
     score += balanceBonus;
     if (balanceBonus >= 4) {
       contributions.add(
-        _ReasonContribution(FoodQualityReasonCode.balancedProfile, balanceBonus.abs()),
+        _ReasonContribution(
+            FoodQualityReasonCode.balancedProfile, balanceBonus.abs()),
       );
     }
 

@@ -12,17 +12,16 @@ List<HealthConnectWorkoutEntity> filterHealthConnectWorkoutsToImport(
   final importableWorkouts = <HealthConnectWorkoutEntity>[];
 
   for (final workout in workouts) {
-    final overlapsWindow =
-        workout.endTime.isAfter(windowStart) &&
-            workout.startTime.isBefore(windowEnd);
+    final overlapsWindow = workout.endTime.isAfter(windowStart) &&
+        workout.startTime.isBefore(windowEnd);
     if (!overlapsWindow) {
       continue;
     }
 
     if (existingIds.contains(workout.externalId) ||
         discardedIds.contains(workout.externalId) ||
-        importableWorkouts.any((alreadyAdded) =>
-            alreadyAdded.externalId == workout.externalId)) {
+        importableWorkouts.any(
+            (alreadyAdded) => alreadyAdded.externalId == workout.externalId)) {
       continue;
     }
 

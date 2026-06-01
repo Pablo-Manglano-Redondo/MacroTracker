@@ -12,7 +12,8 @@ class InterpretationDraftRepository {
   InterpretationDraftRepository(this._draftDataSource);
 
   Future<void> saveDraft(InterpretationDraftEntity draftEntity) async {
-    await _draftDataSource.saveDraft(InterpretationDraftDBO.fromEntity(draftEntity));
+    await _draftDataSource
+        .saveDraft(InterpretationDraftDBO.fromEntity(draftEntity));
   }
 
   Future<InterpretationDraftEntity?> getDraftById(String draftId) async {

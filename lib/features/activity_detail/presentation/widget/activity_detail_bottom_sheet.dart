@@ -79,7 +79,8 @@ class _ActivityDetailBottomSheetState extends State<ActivityDetailBottomSheet> {
                               border: const OutlineInputBorder(),
                               labelText: S.of(context).unitLabel),
                           items: <DropdownMenuItem<String>>[
-                            DropdownMenuItem(child: Text(S.of(context).minutesLabel))
+                            DropdownMenuItem(
+                                child: Text(S.of(context).minutesLabel))
                           ],
                           onChanged: (Object? value) {},
                         ))

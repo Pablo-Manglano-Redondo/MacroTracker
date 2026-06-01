@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @appDescription.
   ///
   /// In en, this message translates to:
-  /// **'MacroTracker is a free and open-source calorie and nutrient tracker that respects your privacy.'**
+  /// **'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.'**
   String get appDescription;
 
   /// No description provided for @alphaVersionName.
@@ -611,7 +611,7 @@ abstract class AppLocalizations {
   /// No description provided for @sendAnonymousUserData.
   ///
   /// In en, this message translates to:
-  /// **'Send anonymous usage data'**
+  /// **'Send anonymous crash and diagnostic reports'**
   String get sendAnonymousUserData;
 
   /// No description provided for @appLicenseLabel.
@@ -1158,7 +1158,7 @@ abstract class AppLocalizations {
   /// No description provided for @dataCollectionLabel.
   ///
   /// In en, this message translates to:
-  /// **'Support development by providing anonymous usage data'**
+  /// **'Help improve stability by sending anonymous crash and diagnostic reports'**
   String get dataCollectionLabel;
 
   /// No description provided for @palSedentaryLabel.

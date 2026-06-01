@@ -360,7 +360,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "allItemsLabel": MessageLookupByLibrary.simpleMessage("All"),
         "alphaVersionName": MessageLookupByLibrary.simpleMessage("[Alpha]"),
         "appDescription": MessageLookupByLibrary.simpleMessage(
-            "MacroTracker is a free and open-source calorie and nutrient tracker that respects your privacy."),
+            "MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy."),
         "appLicenseLabel":
             MessageLookupByLibrary.simpleMessage("GPL-3.0 license"),
         "appTitle": MessageLookupByLibrary.simpleMessage("MacroTracker"),
@@ -473,7 +473,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "dailyKcalAdjustmentLabel":
             MessageLookupByLibrary.simpleMessage("Daily Kcal adjustment:"),
         "dataCollectionLabel": MessageLookupByLibrary.simpleMessage(
-            "Support development by providing anonymous usage data"),
+            "Help improve stability by sending anonymous crash and diagnostic reports"),
         "dayLabel": MessageLookupByLibrary.simpleMessage("day"),
         "deleteAllLabel": MessageLookupByLibrary.simpleMessage("Delete all"),
         "deleteTimeDialogContent": MessageLookupByLibrary.simpleMessage(
@@ -1296,8 +1296,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Select Activity Level"),
         "selectWeightDialogLabel":
             MessageLookupByLibrary.simpleMessage("Select Weight"),
-        "sendAnonymousUserData":
-            MessageLookupByLibrary.simpleMessage("Send anonymous usage data"),
+        "sendAnonymousUserData": MessageLookupByLibrary.simpleMessage(
+            "Send anonymous crash and diagnostic reports"),
         "servingLabel": MessageLookupByLibrary.simpleMessage("Serving"),
         "servingSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("Serving size (oz/fl oz)"),

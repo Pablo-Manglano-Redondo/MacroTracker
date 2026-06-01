@@ -77,7 +77,9 @@ class _AdherenceNudgesCardState extends State<AdherenceNudgesCard> {
 
               if (now.hour >= 18 && proteinLeft >= 25) {
                 reminders.add(
-                  S.of(context).nudgeProteinLeft(proteinLeft.toStringAsFixed(0)),
+                  S
+                      .of(context)
+                      .nudgeProteinLeft(proteinLeft.toStringAsFixed(0)),
                 );
               }
               if (now.hour >= 17 && hydrationProgress < 0.7) {

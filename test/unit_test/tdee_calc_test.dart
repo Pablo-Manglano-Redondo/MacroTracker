@@ -19,7 +19,6 @@ void main() {
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.sedentary);
 
-
     // Call the TDEE calculation method
     double userTdee = TDEECalc.getTDEEKcalIOM2005(user);
 
@@ -34,7 +33,8 @@ void main() {
 
   test('IOM TDEE calculation for a female user', () {
     // Mock a female user
-    UserEntity user = UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
+    UserEntity user =
+        UserEntityFixtures.middleAgedActiveFemaleWantingToLoseWeight;
 
     // Call the TDEE calculation method
     double userTdee = TDEECalc.getTDEEKcalIOM2005(user);

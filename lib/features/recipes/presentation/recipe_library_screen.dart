@@ -174,7 +174,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   List<RecipeEntity> _filterRecipes(List<RecipeEntity> recipes) {
     final query = _searchController.text.trim().toLowerCase();
     return recipes.where((recipe) {
-      final matchesText = query.isEmpty || recipe.name.toLowerCase().contains(query);
+      final matchesText =
+          query.isEmpty || recipe.name.toLowerCase().contains(query);
       return matchesText && _matchesRecipeFilter(recipe, _selectedFilter);
     }).toList(growable: false);
   }
@@ -184,7 +185,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   ) {
     final query = _searchController.text.trim().toLowerCase();
     return presets.where((preset) {
-      final matchesText = query.isEmpty || preset.title.toLowerCase().contains(query);
+      final matchesText =
+          query.isEmpty || preset.title.toLowerCase().contains(query);
       return matchesText && _matchesFrequentFilter(preset, _selectedFilter);
     }).toList(growable: false);
   }
@@ -233,9 +235,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             IconButton(
               onPressed: () => _togglePinned(recipe),
               icon: Icon(
-                recipe.pinned
-                    ? Icons.push_pin
-                    : Icons.push_pin_outlined,
+                recipe.pinned ? Icons.push_pin : Icons.push_pin_outlined,
               ),
               tooltip: recipe.pinned
                   ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
@@ -269,8 +269,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   }
 
   Future<void> _showAddRecipeDialog(RecipeEntity recipe) async {
-    final controller =
-        TextEditingController(text: recipe.defaultServings.toStringAsFixed(
+    final controller = TextEditingController(
+        text: recipe.defaultServings.toStringAsFixed(
       recipe.defaultServings % 1 == 0 ? 0 : 1,
     ));
     final confirmed = await showDialog<double>(
@@ -360,8 +360,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
                 title: Text(_isEs(context) ? 'Editar' : 'Edit'),
-                onTap: () =>
-                    Navigator.of(sheetContext).pop(_RecipeAction.edit),
+                onTap: () => Navigator.of(sheetContext).pop(_RecipeAction.edit),
               ),
               ListTile(
                 leading: const Icon(Icons.bookmark_remove_outlined),
@@ -385,7 +384,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     await _onRecipeAction(recipe, action);
   }
 
-  Future<void> _onRecipeAction(RecipeEntity recipe, _RecipeAction action) async {
+  Future<void> _onRecipeAction(
+      RecipeEntity recipe, _RecipeAction action) async {
     switch (action) {
       case _RecipeAction.edit:
         await _openEditor(recipe);
@@ -421,7 +421,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     if (filter == _RecipeLibraryFilter.all) {
       return true;
     }
-    return _mapFilterToCategory(filter) == RecipeSaveCategoryEntityX.fromRecipe(recipe);
+    return _mapFilterToCategory(filter) ==
+        RecipeSaveCategoryEntityX.fromRecipe(recipe);
   }
 
   bool _matchesFrequentFilter(
@@ -436,7 +437,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     return presetCategory == _mapFilterToCategory(filter);
   }
 
-  RecipeSaveCategoryEntity _inferPresetCategory(FrequentIntakePresetEntity preset) {
+  RecipeSaveCategoryEntity _inferPresetCategory(
+      FrequentIntakePresetEntity preset) {
     switch (preset.intakeType) {
       case IntakeTypeEntity.breakfast:
         return RecipeSaveCategoryEntity.breakfast;
@@ -545,9 +547,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
   String _manualSectionTitle(BuildContext context) =>
       _isEs(context) ? 'Recetas guardadas' : 'Saved recipes';
-
-  String _savedLabel(BuildContext context) =>
-      _isEs(context) ? 'Guardada' : 'Saved';
 
   String _removeSavedLabel(BuildContext context) =>
       _isEs(context) ? 'Quitar guardada' : 'Remove saved';

@@ -4,12 +4,11 @@ $ErrorActionPreference = "Stop"
 
 $supabaseDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $supabaseDir
-$denoPath = "C:\Users\pxblx\AppData\Local\Microsoft\WinGet\Packages\DenoLand.Deno_Microsoft.Winget.Source_8wekyb3d8bbwe\deno.exe"
 
-if (Test-Path -LiteralPath $denoPath) {
-    & $denoPath test (Join-Path $supabaseDir "functions\_shared")
-    exit $LASTEXITCODE
+$denoCommand = Get-Command "deno" -ErrorAction SilentlyContinue
+if (-not $denoCommand) {
+    throw "Deno was not found. Install Deno or add deno.exe to PATH."
 }
 
-& deno test (Join-Path $supabaseDir "functions\_shared")
+& $denoCommand.Source test (Join-Path $supabaseDir "functions\_shared")
 exit $LASTEXITCODE

@@ -5,7 +5,8 @@ class ThemeModeProvider extends ChangeNotifier {
   AppThemeEntity appTheme;
   Locale? _locale;
 
-  ThemeModeProvider({required this.appTheme, Locale? locale}) : _locale = locale;
+  ThemeModeProvider({required this.appTheme, Locale? locale})
+      : _locale = locale;
 
   get themeMode => appTheme.toThemeMode();
   Locale? get locale => _locale;

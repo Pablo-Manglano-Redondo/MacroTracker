@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,7 +60,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
     _day = args.day;
     _loggedActivity = args.userActivityEntity;
     if (_loggedActivity != null) {
-      quantityTextController.text = _formatInitialDuration(_loggedActivity!.duration);
+      quantityTextController.text =
+          _formatInitialDuration(_loggedActivity!.duration);
       totalQuantity = _loggedActivity!.duration;
       totalKcal = _loggedActivity!.burnedKcal;
     }
@@ -181,8 +184,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                 const SizedBox(height: 16.0),
                 _ActivityMetricsCard(
                   activityEntity: activityEntity,
-                  durationMinutes:
-                      _loggedActivity?.duration ?? totalQuantity,
+                  durationMinutes: _loggedActivity?.duration ?? totalQuantity,
                   burnedKcal: _loggedActivity?.burnedKcal ?? totalKcal,
                 ),
                 const SizedBox(height: 48.0),
@@ -212,7 +214,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   }
 
   String _formatInitialDuration(double duration) {
-    return duration % 1 == 0 ? duration.toStringAsFixed(0) : duration.toString();
+    return duration % 1 == 0
+        ? duration.toStringAsFixed(0)
+        : duration.toString();
   }
 
   void scrollToCalorieText() {
@@ -300,7 +304,7 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
                     ? Icons.health_and_safety_outlined
                     : Icons.edit_outlined,
                 label: activity.source == UserActivitySourceEntity.healthConnect
-                    ? 'Health Connect'
+                    ? (Platform.isIOS ? 'Apple Health' : 'Health Connect')
                     : (isEs ? 'Manual' : 'Manual'),
               ),
             ],
@@ -432,10 +436,7 @@ class _ActivityDetailPill extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surface
-            .withValues(alpha: 0.9),
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

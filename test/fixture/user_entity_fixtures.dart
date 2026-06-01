@@ -17,14 +17,15 @@ class UserEntityFixtures {
 
   /// Mocked user entity
   /// 54 years, 160 cm, 75 kg, female, lose weight, active
-  static final UserEntity middleAgedActiveFemaleWantingToLoseWeight = UserEntity(
-      birthday: DateTime(DateTime.now().year - 54, DateTime.now().month,
-          DateTime.now().day - 1),
-      heightCM: 160.0,
-      weightKG: 75.0,
-      gender: UserGenderEntity.female,
-      goal: UserWeightGoalEntity.loseWeight,
-      pal: UserPALEntity.active);
+  static final UserEntity middleAgedActiveFemaleWantingToLoseWeight =
+      UserEntity(
+          birthday: DateTime(DateTime.now().year - 54, DateTime.now().month,
+              DateTime.now().day - 1),
+          heightCM: 160.0,
+          weightKG: 75.0,
+          gender: UserGenderEntity.female,
+          goal: UserWeightGoalEntity.loseWeight,
+          pal: UserPALEntity.active);
 
   /// Mocked user entity
   /// 76 years, 164 cm, 55 kg, male, gain weight, low active
