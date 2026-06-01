@@ -10,6 +10,7 @@ enum PaywallPlacement {
   aiText,
   aiPhoto,
   aiLimit,
+  macroCoach,
   weeklyInsights,
   settings,
 }
@@ -356,6 +357,32 @@ class _PaywallCopy {
             : 'AI learns from your usual corrections',
       ),
     ];
+    final macroCoachBenefits = [
+      _BenefitCopy(
+        icon: Icons.track_changes_outlined,
+        text: isEs
+            ? 'Opciones concretas para cerrar los macros de hoy'
+            : 'Concrete options to close today macros',
+      ),
+      _BenefitCopy(
+        icon: Icons.restaurant_menu_outlined,
+        text: isEs
+            ? 'Cantidades ajustadas a tus calorias y proteina restante'
+            : 'Servings adjusted to your remaining calories and protein',
+      ),
+      _BenefitCopy(
+        icon: Icons.add_circle_outline,
+        text: isEs
+            ? 'Guarda la recomendacion en la comida correcta con un toque'
+            : 'Log the recommendation to the right meal with one tap',
+      ),
+      _BenefitCopy(
+        icon: Icons.query_stats_outlined,
+        text: isEs
+            ? 'Explicacion de por que encaja con tu objetivo del dia'
+            : 'Explanation for why it fits today goal',
+      ),
+    ];
 
     final cta = isEs ? 'Activar Premium' : 'Start Premium';
     final processing = isEs ? 'Procesando...' : 'Processing...';
@@ -414,6 +441,21 @@ class _PaywallCopy {
               : 'You have tried AI logging. Premium keeps the fast flow available.',
           badge: _trialUsedBadge(isEs, trialState),
           benefits: commonBenefits,
+          ctaLabel: cta,
+          processingLabel: processing,
+          restoreLabel: restore,
+          footer: footer,
+        );
+      case PaywallPlacement.macroCoach:
+        return _PaywallCopy(
+          title: isEs
+              ? 'Desbloquea tu Coach de macros'
+              : 'Unlock your Macro Coach',
+          subtitle: isEs
+              ? 'Premium convierte los macros que te faltan en comidas concretas, cantidades ajustadas y registro rapido.'
+              : 'Premium turns your remaining macros into concrete meals, adjusted servings, and fast logging.',
+          badge: isEs ? 'Recomendacion Premium' : 'Premium recommendation',
+          benefits: macroCoachBenefits,
           ctaLabel: cta,
           processingLabel: processing,
           restoreLabel: restore,

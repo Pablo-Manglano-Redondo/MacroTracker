@@ -21,6 +21,7 @@ import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
+import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
@@ -270,6 +271,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         dinnerIntakeList.length +
                         snackIntakeList.length,
                     sessionsLogged: userActivities.length,
+                  ),
+                  MacroSuggestionsCard(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                    dailyFocus: dailyFocus,
+                    nutritionPhase: nutritionPhase,
+                    remainingKcal: totalKcalLeft,
+                    remainingCarbs: totalCarbsGoal - totalCarbsIntake,
+                    remainingFat: totalFatsGoal - totalFatsIntake,
+                    remainingProtein: totalProteinsGoal - totalProteinsIntake,
                   ),
                   QuickGymMealsCard(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
