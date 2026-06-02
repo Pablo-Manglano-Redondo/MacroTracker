@@ -6,7 +6,6 @@ import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
-import 'package:macrotracker/generated/l10n.dart';
 
 class GymHabitsCardController extends ChangeNotifier {
   void refresh() {
@@ -79,6 +78,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                   )
                 : Builder(
                     builder: (context) {
+                      final colorScheme = Theme.of(context).colorScheme;
                       final log =
                           _log ?? DailyHabitLogEntity.empty(DateTime.now());
                       final completedCount = log.completedCount(
@@ -103,13 +103,16 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               Expanded(
                                 child: Text(
                                   _title(context),
-                                  style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                 ),
                               ),
                               Text(
                                 _completedToday(context, completedCount),
-                                style: Theme.of(context).textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                               ),
                               if (_isRefreshing) ...[
                                 const SizedBox(width: 8),
@@ -122,11 +125,11 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               ],
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 _HabitStatusPill(
                                   label: readinessTone.label,
@@ -139,23 +142,19 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                   label:
                                       _focusLabel(context, widget.dailyFocus),
                                   icon: _focusIcon(widget.dailyFocus),
-                                  foreground:
-                                      Theme.of(context).colorScheme.tertiary,
-                                  background: Theme.of(context)
-                                      .colorScheme
-                                      .tertiary
-                                      .withValues(alpha: 0.12),
+                                  foreground: const Color(0xFF10B981),
+                                  background: const Color(0xFF10B981).withValues(alpha: 0.12),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 14),
                           SizedBox(
                             width: double.infinity,
                             child: Wrap(
                               spacing: 8,
                               runSpacing: 8,
-                              alignment: WrapAlignment.center,
+                              alignment: WrapAlignment.start,
                               children: [
                                 _HabitChip(
                                   label: 'Creat.',
@@ -166,14 +165,14 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                 ),
                                 _HabitChip(
                                   label: 'Prot.',
-                                  icon: Icons.fitness_center_outlined,
+                                  icon: Icons.link,
                                   selected: log.wheyTaken,
                                   onSelected: (value) =>
                                       _setHabit(wheyTaken: value),
                                 ),
                                 _HabitChip(
                                   label: 'Caf.',
-                                  icon: Icons.coffee_outlined,
+                                  icon: Icons.local_cafe_outlined,
                                   selected: log.caffeineTaken,
                                   onSelected: (value) =>
                                       _setHabit(caffeineTaken: value),
@@ -181,43 +180,55 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
                           Row(
                             children: [
+                              const Icon(
+                                Icons.water_drop_outlined,
+                                size: 18,
+                                color: Color(0xFF3B82F6),
+                              ),
+                              const SizedBox(width: 8),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      _hydrationTitle(context),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      '${_formatWater(log.waterLiters)} / ${_formatWater(hydrationGoalLiters)}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
-                                    ),
-                                  ],
+                                child: Text(
+                                  _hydrationTitle(context),
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                      ),
                                 ),
                               ),
-                              Focus(
-                                canRequestFocus: false,
-                                child: IconButton(
-                                  onPressed: () => _adjustWater(-0.25),
-                                  icon: const Icon(Icons.remove),
-                                  tooltip: _removeWaterTooltip(context),
+                              GestureDetector(
+                                onTap: () => _adjustWater(-0.25),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  child: Text(
+                                    '-',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              Focus(
-                                canRequestFocus: false,
-                                child: IconButton(
-                                  onPressed: () => _adjustWater(0.25),
-                                  icon: const Icon(Icons.add),
-                                  tooltip: _addWaterTooltip(context),
+                              Text(
+                                '${_formatWater(log.waterLiters)} / ${_formatWater(hydrationGoalLiters)}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              GestureDetector(
+                                onTap: () => _adjustWater(0.25),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  child: Text(
+                                    '+',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -226,14 +237,10 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
-                              minHeight: 10,
+                              minHeight: 8,
                               value: log.hydrationProgress(hydrationGoalLiters),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _goalTone(
-                                  log.meetsHydrationGoal(hydrationGoalLiters),
-                                  context,
-                                ),
-                              ),
+                              backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+                              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -243,93 +250,91 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               widget.dailyFocus,
                               hydrationGoalLiters,
                             ),
-                            style: Theme.of(context).textTheme.bodySmall,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
                           Row(
                             children: [
                               Expanded(
                                 child: _MetricAdjuster(
                                   label: _sleepTitle(context),
-                                  value:
-                                      '${log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1)} h',
-                                  target: _sleepTarget(context, sleepGoalHours),
-                                  sourceLabel: log.sleepHours > 0
-                                      ? _sourceLabel(context,
-                                          log.sleepSyncedFromHealthConnect)
-                                      : null,
+                                  valueText: log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1),
+                                  targetText: '/ ${log.sleepHours > 0 ? log.sleepHours.toStringAsFixed(0) : _sleepGoalForFocus(widget.dailyFocus).toStringAsFixed(0)} h',
+                                  icon: Icons.nightlight_round,
                                   onDecrease: () => _adjustSleep(-0.5),
                                   onIncrease: () => _adjustSleep(0.5),
-                                  accentColor: _goalTone(
-                                    log.meetsSleepGoal(sleepGoalHours),
-                                    context,
-                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: _MetricAdjuster(
                                   label: _stepsTitle(context),
-                                  value: _formatSteps(context, log.steps),
-                                  target: _stepsTarget(context, stepGoal),
-                                  sourceLabel: log.steps > 0
-                                      ? _sourceLabel(context,
-                                          log.stepsSyncedFromHealthConnect)
-                                      : null,
+                                  valueText: '${log.steps}',
+                                  targetText: '/ $stepGoal',
+                                  icon: Icons.directions_walk_outlined,
                                   onDecrease: () => _adjustSteps(-1000),
                                   onIncrease: () => _adjustSteps(1000),
-                                  accentColor: _goalTone(
-                                    log.meetsStepGoal(stepGoal),
-                                    context,
-                                  ),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
                           Text(
                             _energyTitle(context),
-                            style: Theme.of(context).textTheme.titleSmall,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: List.generate(
                               5,
-                              (index) => Expanded(
-                                child: Padding(
-                                  padding:
-                                      EdgeInsets.only(right: index < 4 ? 8 : 0),
-                                  child: Focus(
-                                    canRequestFocus: false,
-                                    child: ChoiceChip(
-                                      showCheckmark: false,
-                                      label: SizedBox(
-                                        width: double.infinity,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            if (log.energyLevel ==
-                                                index + 1) ...[
-                                              const Icon(Icons.check, size: 16),
-                                              const SizedBox(width: 4),
-                                            ],
-                                            Text('${index + 1}'),
-                                          ],
+                              (index) {
+                                final val = index + 1;
+                                final isSelected = log.energyLevel == val;
+                                final isDark = colorScheme.brightness == Brightness.dark;
+
+                                final Color bgColor = isSelected
+                                    ? colorScheme.primaryContainer
+                                    : (isDark ? Colors.white.withValues(alpha: 0.03) : colorScheme.surfaceContainerHighest.withValues(alpha: 0.45));
+                                final Color textColor = isSelected
+                                    ? colorScheme.onPrimaryContainer
+                                    : colorScheme.onSurfaceVariant;
+                                final Border border = Border.all(
+                                  color: isSelected
+                                      ? colorScheme.primaryContainer
+                                      : colorScheme.outlineVariant.withValues(alpha: isDark ? 0.15 : 0.35),
+                                );
+
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: index < 4 ? 8.0 : 0.0),
+                                    child: GestureDetector(
+                                      onTap: () => _setEnergy(val),
+                                      child: Container(
+                                        height: 44,
+                                        decoration: BoxDecoration(
+                                          color: bgColor,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: border,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '$val',
+                                          style: TextStyle(
+                                            color: textColor,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                            fontSize: 14,
+                                          ),
                                         ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 12,
-                                      ),
-                                      selected: log.energyLevel == index + 1,
-                                      selectedColor:
-                                          _energyTone(index + 1, context)
-                                              .withValues(alpha: 0.18),
-                                      onSelected: (_) => _setEnergy(index + 1),
                                     ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ),
                         ],
@@ -566,11 +571,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} L';
   }
 
-  String _formatSteps(BuildContext context, int steps) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-    return isEs ? '$steps pasos' : '$steps steps';
-  }
-
   _ReadinessTone _readinessTone({
     required int completedCount,
     required bool hydrationMet,
@@ -587,29 +587,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     return const _ReadinessTone.caution();
   }
 
-  Color _goalTone(bool met, BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return met ? scheme.primary : scheme.tertiary;
-  }
-
-  Color _energyTone(int energyLevel, BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    if (energyLevel >= 4) {
-      return scheme.primary;
-    }
-    if (energyLevel == 3) {
-      return scheme.tertiary;
-    }
-    return scheme.error;
-  }
-
-  String _sourceLabel(BuildContext context, bool synced) {
-    if (synced) {
-      return S.of(context).habitSourceSynced;
-    }
-    return S.of(context).habitSourceManualAdjust;
-  }
-
   bool _isEs(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'es';
   }
@@ -623,12 +600,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   String _hydrationTitle(BuildContext context) =>
       _isEs(context) ? 'Hidratación' : 'Hydration';
 
-  String _addWaterTooltip(BuildContext context) =>
-      _isEs(context) ? 'Añadir agua' : 'Add water';
-
-  String _removeWaterTooltip(BuildContext context) =>
-      _isEs(context) ? 'Reducir agua' : 'Remove water';
-
   String _sleepTitle(BuildContext context) =>
       _isEs(context) ? 'Sueño' : 'Sleep';
 
@@ -637,17 +608,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   String _energyTitle(BuildContext context) =>
       _isEs(context) ? 'Energía' : 'Energy';
-
-  String _sleepTarget(BuildContext context, double hours) {
-    final amount = hours.toStringAsFixed(hours % 1 == 0 ? 0 : 1);
-    return _isEs(context) ? 'Objetivo $amount h' : 'Goal $amount h';
-  }
-
-  String _stepsTarget(BuildContext context, int steps) {
-    return _isEs(context)
-        ? 'Objetivo ${_formatSteps(context, steps)}'
-        : 'Goal ${_formatSteps(context, steps)}';
-  }
 }
 
 class _HabitChip extends StatelessWidget {
@@ -665,20 +625,44 @@ class _HabitChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Focus(
-      canRequestFocus: false,
-      child: FilterChip(
-        selected: selected,
-        showCheckmark: false,
-        avatar: Icon(
-          icon,
-          size: 18,
-          color: selected
-              ? Theme.of(context).colorScheme.onSecondaryContainer
-              : Theme.of(context).colorScheme.onSurfaceVariant,
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final Color bgColor = selected
+        ? colorScheme.secondaryContainer
+        : (isDark ? Colors.transparent : Colors.transparent);
+    final Color contentColor = selected
+        ? colorScheme.onSecondaryContainer
+        : colorScheme.onSurfaceVariant;
+    final Border border = Border.all(
+      color: selected
+          ? colorScheme.secondaryContainer
+          : colorScheme.outlineVariant.withValues(alpha: isDark ? 0.20 : 0.45),
+    );
+
+    return GestureDetector(
+      onTap: () => onSelected(!selected),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: bgColor,
+          border: border,
         ),
-        label: Text(label),
-        onSelected: onSelected,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: contentColor),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: contentColor,
+                    fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -686,98 +670,113 @@ class _HabitChip extends StatelessWidget {
 
 class _MetricAdjuster extends StatelessWidget {
   final String label;
-  final String value;
-  final String target;
-  final String? sourceLabel;
+  final String valueText;
+  final String targetText;
+  final IconData icon;
   final VoidCallback onDecrease;
   final VoidCallback onIncrease;
-  final Color accentColor;
 
   const _MetricAdjuster({
     required this.label,
-    required this.value,
-    required this.target,
-    this.sourceLabel,
+    required this.valueText,
+    required this.targetText,
+    required this.icon,
     required this.onDecrease,
     required this.onIncrease,
-    required this.accentColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: accentColor.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(16),
+        color: isDark
+            ? const Color(0xFF0D0D0D)
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         border: Border.all(
-          color: accentColor.withValues(alpha: 0.22),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: accentColor,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(value, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 2),
-          Text(target, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 36),
-            child: sourceLabel == null
-                ? const SizedBox.shrink()
-                : Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .surface
-                          .withValues(alpha: 0.75),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.75),
+                      fontWeight: FontWeight.bold,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          sourceLabel!,
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: accentColor,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                      ],
+              ),
+              Icon(
+                icon,
+                size: 16,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: valueText,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 26,
+                      ),
+                ),
+                TextSpan(
+                  text: ' $targetText',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
+                      ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onTap: onDecrease,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.06 : 0.50),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.15 : 0.40),
                     ),
                   ),
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Focus(
-                canRequestFocus: false,
-                child: IconButton(
-                  onPressed: onDecrease,
-                  icon: Icon(Icons.remove, color: accentColor),
-                  tooltip: Localizations.localeOf(context).languageCode == 'es'
-                      ? 'Reducir $label'
-                      : 'Reduce $label',
+                  alignment: Alignment.center,
+                  child: Icon(Icons.remove, size: 14, color: colorScheme.onSurface),
                 ),
               ),
-              Focus(
-                canRequestFocus: false,
-                child: IconButton(
-                  onPressed: onIncrease,
-                  icon: Icon(Icons.add, color: accentColor),
-                  tooltip: Localizations.localeOf(context).languageCode == 'es'
-                      ? 'Aumentar $label'
-                      : 'Increase $label',
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: onIncrease,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: isDark ? 0.06 : 0.50),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.15 : 0.40),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(Icons.add, size: 14, color: colorScheme.onSurface),
                 ),
               ),
             ],

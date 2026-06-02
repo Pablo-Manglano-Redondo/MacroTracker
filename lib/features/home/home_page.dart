@@ -16,16 +16,13 @@ import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/home/presentation/widgets/body_progress_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
-import 'package:macrotracker/features/home/presentation/widgets/adherence_nudges_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.dart';
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
-import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_plan_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
-import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 
 class HomePage extends StatefulWidget {
@@ -41,6 +38,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late HomeBloc _homeBloc;
   late final GymHabitsCardController _gymHabitsCardController;
   bool _isSyncingSleep = false;
+  bool _didQueueDeferredStartupWork = false;
 
   @override
   void initState() {
@@ -48,8 +46,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _homeBloc = locator<HomeBloc>();
     _gymHabitsCardController = GymHabitsCardController();
     super.initState();
-    _refreshHomeWidgetSummary();
-    _syncSleepFromHealthConnect();
+    _queueDeferredStartupWork();
   }
 
   @override
@@ -243,6 +240,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final overviewCardWidth = overviewColumns == 2
             ? (contentWidth - 32 - 12) / 2
             : contentWidth - 32;
+        final actionColumns = contentWidth >= 920 ? 2 : 1;
+        final actionCardWidth = actionColumns == 2
+            ? (contentWidth - 32 - 12) / 2
+            : contentWidth - 32;
 
         return Align(
           alignment: Alignment.topCenter,
@@ -251,8 +252,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  _HomeContextHeader(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    dailyFocus: dailyFocus,
+                    nutritionPhase: nutritionPhase,
+                    onDailyFocusChanged: _homeBloc.setDailyFocus,
+                    onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
+                  ),
                   DashboardWidget(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                     nutritionPhase: nutritionPhase,
                     onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
                     dailyFocus: dailyFocus,
@@ -284,30 +292,53 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         NavigationOptions.professionalPlanRoute,
                       ),
                     ),
-                  MacroSuggestionsCard(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    dailyFocus: dailyFocus,
-                    nutritionPhase: nutritionPhase,
-                    remainingKcal: totalKcalLeft,
-                    remainingCarbs: totalCarbsGoal - totalCarbsIntake,
-                    remainingFat: totalFatsGoal - totalFatsIntake,
-                    remainingProtein: totalProteinsGoal - totalProteinsIntake,
+                  _HomeSectionHeader(
+                    padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                    title: _homeCopy(
+                      context,
+                      es: 'Acciones de hoy',
+                      en: 'Today actions',
+                    ),
+                    subtitle: _homeCopy(
+                      context,
+                      es: 'Sugerencias y comidas listas para cerrar macros sin perder tiempo.',
+                      en: 'Suggestions and ready meals to close macros without friction.',
+                    ),
                   ),
-                  QuickGymMealsCard(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    dailyFocus: dailyFocus,
-                    nutritionPhase: nutritionPhase,
+                  _ResponsiveHomeGroup(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    columns: actionColumns,
+                    cardWidth: actionCardWidth,
+                    children: [
+                      MacroSuggestionsCard(
+                        padding: EdgeInsets.zero,
+                        dailyFocus: dailyFocus,
+                        nutritionPhase: nutritionPhase,
+                        remainingKcal: totalKcalLeft,
+                        remainingCarbs: totalCarbsGoal - totalCarbsIntake,
+                        remainingFat: totalFatsGoal - totalFatsIntake,
+                        remainingProtein:
+                            totalProteinsGoal - totalProteinsIntake,
+                      ),
+                      QuickGymMealsCard(
+                        padding: EdgeInsets.zero,
+                        dailyFocus: dailyFocus,
+                        nutritionPhase: nutritionPhase,
+                      ),
+                    ],
                   ),
-                  AdherenceNudgesCard(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    dailyFocus: dailyFocus,
-                    totalKcalDaily: totalKcalDaily,
-                    totalKcalSupplied: totalKcalSupplied,
-                    totalProteinsGoal: totalProteinsGoal,
-                    totalProteinsIntake: totalProteinsIntake,
-                  ),
-                  const NutritionKpiCard(
-                    padding: EdgeInsets.fromLTRB(16, 0, 16, 10),
+                  _HomeSectionHeader(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    title: _homeCopy(
+                      context,
+                      es: 'Seguimiento',
+                      en: 'Tracking',
+                    ),
+                    subtitle: _homeCopy(
+                      context,
+                      es: 'Adherencia, progreso y tendencias para ajustar con criterio.',
+                      en: 'Adherence, progress, and trends for better adjustments.',
+                    ),
                   ),
                   _buildOverviewSection(
                     context: context,
@@ -346,6 +377,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (!DateUtils.isSameDay(_homeBloc.currentDay, DateTime.now())) {
       _homeBloc.add(const LoadItemsEvent());
     }
+  }
+
+  void _queueDeferredStartupWork() {
+    if (_didQueueDeferredStartupWork) {
+      return;
+    }
+    _didQueueDeferredStartupWork = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      if (!mounted) {
+        return;
+      }
+      _refreshHomeWidgetSummary();
+      _syncSleepFromHealthConnect();
+      _homeBloc.add(const LoadItemsEvent(
+        refreshRemotePlan: true,
+        uploadProfessionalSnapshot: true,
+      ));
+    });
   }
 
   Future<void> _syncSleepFromHealthConnect() async {
@@ -454,7 +504,377 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 }
 
-class _WeeklyInsightsCard extends StatefulWidget {
+class _HomeContextHeader extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final DailyFocusEntity dailyFocus;
+  final UserWeightGoalEntity nutritionPhase;
+  final ValueChanged<DailyFocusEntity>? onDailyFocusChanged;
+  final ValueChanged<UserWeightGoalEntity>? onNutritionPhaseChanged;
+
+  const _HomeContextHeader({
+    required this.padding,
+    required this.dailyFocus,
+    required this.nutritionPhase,
+    this.onDailyFocusChanged,
+    this.onNutritionPhaseChanged,
+  });
+
+  bool _isEs(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'es';
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _formattedToday(context),
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          _homeCopy(
+            context,
+            es: 'Panel diario',
+            en: 'Daily board',
+          ),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                height: 1.05,
+              ),
+        ),
+      ],
+    );
+    final chips = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.start,
+      children: [
+        PopupMenuButton<DailyFocusEntity>(
+          tooltip: _isEs(context) ? 'Cambiar enfoque' : 'Change focus',
+          onSelected: onDailyFocusChanged,
+          offset: const Offset(0, 40),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          itemBuilder: (BuildContext context) =>
+              DailyFocusEntity.values.map((focus) {
+            return PopupMenuItem<DailyFocusEntity>(
+              value: focus,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_focusIcon(focus),
+                      size: 18, color: const Color(0xFF10B981)),
+                  const SizedBox(width: 8),
+                  Text(_focusLabel(context, focus)),
+                ],
+              ),
+            );
+          }).toList(),
+          child: _HomeContextChip(
+            icon: _focusIcon(dailyFocus),
+            label: _focusLabel(context, dailyFocus),
+            isFocus: true,
+          ),
+        ),
+        PopupMenuButton<UserWeightGoalEntity>(
+          tooltip: _isEs(context) ? 'Cambiar objetivo' : 'Change goal',
+          onSelected: onNutritionPhaseChanged,
+          offset: const Offset(0, 40),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          itemBuilder: (BuildContext context) =>
+              UserWeightGoalEntity.values.map((phase) {
+            return PopupMenuItem<UserWeightGoalEntity>(
+              value: phase,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(_goalIcon(phase),
+                      size: 18, color: colorScheme.onSurfaceVariant),
+                  const SizedBox(width: 8),
+                  Text(phase.getName(context)),
+                ],
+              ),
+            );
+          }).toList(),
+          child: _HomeContextChip(
+            icon: _goalIcon(nutritionPhase),
+            label: nutritionPhase.getName(context),
+            isFocus: false,
+          ),
+        ),
+      ],
+    );
+
+    return Padding(
+      padding: padding,
+      child: SizedBox(
+        width: double.infinity,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            titleBlock,
+            const SizedBox(height: 10),
+            chips,
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _focusIcon(DailyFocusEntity focus) {
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+      case DailyFocusEntity.upperBody:
+        return Icons.fitness_center_outlined;
+      case DailyFocusEntity.cardio:
+        return Icons.directions_run_outlined;
+      case DailyFocusEntity.rest:
+        return Icons.hotel_outlined;
+    }
+  }
+
+  String _focusLabel(BuildContext context, DailyFocusEntity focus) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return isEs ? 'Pierna' : 'Legs';
+      case DailyFocusEntity.upperBody:
+        return isEs ? 'Torso' : 'Upper';
+      case DailyFocusEntity.cardio:
+        return isEs ? 'Cardio' : 'Cardio';
+      case DailyFocusEntity.rest:
+        return isEs ? 'Descanso' : 'Rest';
+    }
+  }
+
+  IconData _goalIcon(UserWeightGoalEntity goal) {
+    switch (goal) {
+      case UserWeightGoalEntity.loseWeight:
+        return Icons.trending_down_outlined;
+      case UserWeightGoalEntity.gainWeight:
+        return Icons.trending_up_outlined;
+      case UserWeightGoalEntity.maintainWeight:
+        return Icons.trending_flat_outlined;
+    }
+  }
+
+  String _formattedToday(BuildContext context) {
+    final now = DateTime.now();
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final weekdays = isEs
+        ? const ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
+        : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final months = isEs
+        ? const [
+            'ene',
+            'feb',
+            'mar',
+            'abr',
+            'may',
+            'jun',
+            'jul',
+            'ago',
+            'sep',
+            'oct',
+            'nov',
+            'dic',
+          ]
+        : const [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec',
+          ];
+    return '${weekdays[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
+  }
+}
+
+class _HomeContextChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isFocus;
+
+  const _HomeContextChip({
+    required this.icon,
+    required this.label,
+    required this.isFocus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final Color textColor = isFocus
+        ? const Color(0xFF10B981) // Vibrant green
+        : colorScheme.onSurfaceVariant;
+    final Color iconColor = textColor;
+    final Color bgColor = isFocus
+        ? const Color(0xFF10B981).withValues(alpha: 0.08)
+        : (isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : Colors.black.withValues(alpha: 0.03));
+    final Border border = isFocus
+        ? Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.16))
+        : Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.06),
+          );
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 142),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: bgColor,
+        border: border,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: iconColor),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeSectionHeader extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final String title;
+  final String subtitle;
+
+  const _HomeSectionHeader({
+    required this.padding,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: padding,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        height: 1.08,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResponsiveHomeGroup extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final int columns;
+  final double cardWidth;
+  final List<Widget> children;
+
+  const _ResponsiveHomeGroup({
+    required this.padding,
+    required this.columns,
+    required this.cardWidth,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (columns == 1) {
+      return Padding(
+        padding: padding,
+        child: Column(
+          children: _spacedChildren(
+            children
+                .map((child) => SizedBox(width: double.infinity, child: child))
+                .toList(),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: padding,
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: children
+            .map((child) => SizedBox(width: cardWidth, child: child))
+            .toList(),
+      ),
+    );
+  }
+
+  List<Widget> _spacedChildren(List<Widget> widgets) {
+    final spaced = <Widget>[];
+    for (var i = 0; i < widgets.length; i++) {
+      if (i > 0) {
+        spaced.add(const SizedBox(height: 12));
+      }
+      spaced.add(widgets[i]);
+    }
+    return spaced;
+  }
+}
+
+String _homeCopy(BuildContext context,
+    {required String es, required String en}) {
+  return Localizations.localeOf(context).languageCode == 'es' ? es : en;
+}
+
+class _WeeklyInsightsCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _WeeklyInsightsCard({
@@ -462,188 +882,61 @@ class _WeeklyInsightsCard extends StatefulWidget {
   });
 
   @override
-  State<_WeeklyInsightsCard> createState() => _WeeklyInsightsCardState();
-}
-
-class _WeeklyInsightsCardState extends State<_WeeklyInsightsCard> {
-  late final Future<_WeeklySnapshot?> _future;
-
-  @override
-  void initState() {
-    super.initState();
-    _future = _loadSnapshot();
-  }
-
-  Future<_WeeklySnapshot?> _loadSnapshot() async {
-    try {
-      final insights =
-          await locator<BuildWeeklyInsightsUsecase>().build(DateTime.now());
-      return _WeeklySnapshot(
-        adherence: (insights.goalAdherenceRate * 100).round(),
-        avgProtein: insights.averageProtein.toStringAsFixed(0),
-        trackedDays: insights.trackedDays,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final cardBg = isDark ? const Color(0xFF121212) : Colors.white;
+    final borderColor = isDark
+        ? colorScheme.outlineVariant.withValues(alpha: 0.22)
+        : const Color(0xFFE5E7EB);
 
     return Card(
-      elevation: 0.5,
+      elevation: 0.0,
+      color: cardBg,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.20),
+          color: borderColor,
         ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: colorScheme.primary.withValues(alpha: 0.12),
-                    ),
-                    child: Icon(
-                      Icons.insights_outlined,
-                      size: 18,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      S.of(context).weeklyInsightsTitle,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                  ),
-                  Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                    size: 20,
-                  ),
-                ],
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                ),
+                child: const Icon(
+                  Icons.trending_up,
+                  size: 18,
+                  color: Color(0xFF10B981),
+                ),
               ),
-              FutureBuilder<_WeeklySnapshot?>(
-                future: _future,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const SizedBox.shrink();
-                  }
-                  final snap = snapshot.data!;
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _InsightPill(
-                          icon: Icons.track_changes_outlined,
-                          label: '${snap.adherence}%',
-                          sublabel: isEs ? 'adherencia' : 'adherence',
-                          color: colorScheme.primary,
-                        ),
-                        _InsightPill(
-                          icon: Icons.egg_alt_outlined,
-                          label: '${snap.avgProtein}g',
-                          sublabel: isEs ? 'proteína' : 'protein',
-                          color: colorScheme.tertiary,
-                        ),
-                        _InsightPill(
-                          icon: Icons.calendar_today_outlined,
-                          label: '${snap.trackedDays}/7',
-                          sublabel: isEs ? 'días' : 'days',
-                          color: colorScheme.secondary,
-                        ),
-                      ],
-                    ),
-                  );
-                },
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  S.of(context).weeklyInsightsTitle,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _WeeklySnapshot {
-  final int adherence;
-  final String avgProtein;
-  final int trackedDays;
-
-  const _WeeklySnapshot({
-    required this.adherence,
-    required this.avgProtein,
-    required this.trackedDays,
-  });
-}
-
-class _InsightPill extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String sublabel;
-  final Color color;
-
-  const _InsightPill({
-    required this.icon,
-    required this.label,
-    required this.sublabel,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: color.withValues(alpha: 0.10),
-        border: Border.all(color: color.withValues(alpha: 0.16)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: color),
-          const SizedBox(width: 5),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: color,
-                    ),
-              ),
-              Text(
-                sublabel,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 10,
-                    ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

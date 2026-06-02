@@ -261,14 +261,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.paid_outlined),
-                        title: Text(S.of(context).settingsAiCostLabel),
-                        subtitle: Text(
-                          'Total \$${state.aiEstimatedCostTotalUsd.toStringAsFixed(3)} | ${S.of(context).todayLabel} \$${state.aiEstimatedCostTodayUsd.toStringAsFixed(3)}',
-                        ),
-                        onTap: () => _showAiCostDialog(context, state),
-                      ),
-                      ListTile(
                         leading: const Icon(Icons.info_outline),
                         title: Text(S.of(context).settingAboutLabel),
                         onTap: () => _showAboutDialog(context),
@@ -751,58 +743,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  void _showAiCostDialog(BuildContext context, SettingsLoadedState state) {
-    final currency = NumberFormat.currency(
-      locale: 'es_ES',
-      symbol: '\$',
-      decimalDigits: 3,
-    );
-    final totalCalls = state.aiTextCallsTotal + state.aiPhotoCallsTotal;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(S.of(context).settingsAiCostLabel),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(S.of(context).settingsAiCostTotal(
-                currency.format(state.aiEstimatedCostTotalUsd))),
-            Text(S.of(context).settingsAiCostToday(
-                currency.format(state.aiEstimatedCostTodayUsd))),
-            Text(S.of(context).settingsAiCostMonth(
-                currency.format(state.aiEstimatedCostMonthUsd))),
-            const SizedBox(height: 10),
-            Text(S.of(context).settingsAiCallsTotal(totalCalls)),
-            Text(S.of(context).settingsAiCallsText(state.aiTextCallsTotal)),
-            Text(S.of(context).settingsAiCallsPhoto(state.aiPhotoCallsTotal)),
-            const SizedBox(height: 10),
-            Text(
-              S.of(context).settingsAiCostDescription,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(S.of(context).dialogCancelLabel),
-          ),
-          TextButton(
-            onPressed: () async {
-              await _settingsBloc.resetAiCostTracking();
-              if (context.mounted) {
-                Navigator.of(context).pop();
-                _settingsBloc.add(LoadSettingsEvent());
-              }
-            },
-            child: Text(S.of(context).settingsResetLabel),
-          ),
-        ],
-      ),
-    );
-  }
 
   void _launchSourceCodeUrl(BuildContext context) async {
     final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);

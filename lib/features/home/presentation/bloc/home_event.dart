@@ -8,5 +8,14 @@ abstract class HomeEvent extends Equatable {
 }
 
 class LoadItemsEvent extends HomeEvent {
-  const LoadItemsEvent();
+  final bool refreshRemotePlan;
+  final bool uploadProfessionalSnapshot;
+
+  const LoadItemsEvent({
+    this.refreshRemotePlan = false,
+    this.uploadProfessionalSnapshot = false,
+  });
+
+  @override
+  List<Object?> get props => [refreshRemotePlan, uploadProfessionalSnapshot];
 }

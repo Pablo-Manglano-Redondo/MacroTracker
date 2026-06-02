@@ -168,7 +168,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       final professionalConnection =
           await _getProfessionalPlanUsecase.getActiveConnection(
-        refreshRemotePlan: true,
+        refreshRemotePlan: event.refreshRemotePlan,
       );
       final targets = _resolveTargetsForDay(
         date: currentDay,
@@ -183,15 +183,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         fatActual: totalFatsIntake,
         proteinActual: totalProteinsIntake,
       );
-      await _uploadSnapshotIfConsented(
-        connection: professionalConnection,
-        targets: targets,
-        kcalActual: totalKcalIntake,
-        carbsActual: totalCarbsIntake,
-        fatActual: totalFatsIntake,
-        proteinActual: totalProteinsIntake,
-        mealsLogged: allIntakes.length,
-      );
+      if (event.uploadProfessionalSnapshot) {
+        await _uploadSnapshotIfConsented(
+          connection: professionalConnection,
+          targets: targets,
+          kcalActual: totalKcalIntake,
+          carbsActual: totalCarbsIntake,
+          fatActual: totalFatsIntake,
+          proteinActual: totalProteinsIntake,
+          mealsLogged: allIntakes.length,
+        );
+      }
 
       final totalKcalLeft =
           CalorieGoalCalc.getDailyKcalLeft(targets.kcalGoal, totalKcalIntake);

@@ -52,16 +52,13 @@ void main() {
     expect(find.text('4 comidas'), findsOneWidget);
     expect(find.text('500 kcals'), findsOneWidget);
     expect(find.text('1 sesión'), findsOneWidget);
-    expect(find.text('Proteína restante'), findsOneWidget);
+    expect(find.text('Proteína restante'), findsNothing);
     expect(find.text('Kcal restantes'), findsOneWidget);
-    expect(find.text('Torso: rinde y recupera bien.'), findsOneWidget);
-    expect(find.text('Volumen'), findsOneWidget);
-    expect(find.text('Torso'), findsWidgets);
 
     final counters = tester.widgetList<AnimatedFlipCounter>(
       find.byType(AnimatedFlipCounter),
     );
-    expect(counters.map((counter) => counter.value), containsAll([20, 1000]));
+    expect(counters.map((counter) => counter.value), containsAll([1000]));
   });
 }
 

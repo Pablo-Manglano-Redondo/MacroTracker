@@ -317,6 +317,8 @@ class _LockedMacroCoach extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -326,13 +328,13 @@ class _LockedMacroCoach extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: colorScheme.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.08),
               ),
               child: Icon(
                 Icons.lock_outline,
                 size: 18,
-                color: colorScheme.primary,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(width: 12),
@@ -351,7 +353,9 @@ class _LockedMacroCoach extends StatelessWidget {
                     isEs
                         ? 'Gratis ves lo que te falta. Premium te dice que comer, cuanto y donde registrarlo.'
                         : 'Free shows what is left. Premium tells you what to eat, how much, and where to log it.',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -365,18 +369,19 @@ class _LockedMacroCoach extends StatelessWidget {
           children: [
             _MacroGapChip(
               icon: Icons.local_fire_department_outlined,
+              iconColor: const Color(0xFFEF4444),
               label: '${remainingKcal.clamp(0, double.infinity).round()} kcal',
             ),
             _MacroGapChip(
-              icon: Icons.egg_alt_outlined,
+              dotColor: const Color(0xFF10B981),
               label: 'P ${remainingProtein.clamp(0, double.infinity).round()}g',
             ),
             _MacroGapChip(
-              icon: Icons.grain_outlined,
+              dotColor: const Color(0xFFE7A83B),
               label: 'C ${remainingCarbs.clamp(0, double.infinity).round()}g',
             ),
             _MacroGapChip(
-              icon: Icons.water_drop_outlined,
+              dotColor: const Color(0xFF3B82F6),
               label: 'F ${remainingFat.clamp(0, double.infinity).round()}g',
             ),
           ],
@@ -386,14 +391,14 @@ class _LockedMacroCoach extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+            color: const Color(0xFF10B981).withValues(alpha: 0.05),
             border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+              color: const Color(0xFF10B981).withValues(alpha: 0.22),
             ),
           ),
           child: Row(
             children: [
-              Icon(Icons.auto_awesome_outlined, color: colorScheme.primary),
+              const Icon(Icons.auto_awesome_outlined, color: Color(0xFF10B981), size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -402,6 +407,7 @@ class _LockedMacroCoach extends StatelessWidget {
                       : '3 recommendations ready with servings adjusted to your remaining macros.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: const Color(0xFF10B981),
                       ),
                 ),
               ),
@@ -411,8 +417,22 @@ class _LockedMacroCoach extends StatelessWidget {
         const SizedBox(height: 12),
         FilledButton.icon(
           onPressed: onUpgrade,
-          icon: const Icon(Icons.workspace_premium_outlined, size: 18),
-          label: Text(isEs ? 'Desbloquear Coach' : 'Unlock Coach'),
+          style: FilledButton.styleFrom(
+            backgroundColor: isDark ? const Color(0xFF1E1E1E) : colorScheme.surfaceContainerHighest,
+            foregroundColor: colorScheme.onSurface,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+              ),
+            ),
+          ),
+          icon: Icon(Icons.lock_outline, size: 16, color: colorScheme.onSurface),
+          label: Text(
+            isEs ? 'Desbloquear Coach' : 'Unlock Coach',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );
@@ -420,31 +440,55 @@ class _LockedMacroCoach extends StatelessWidget {
 }
 
 class _MacroGapChip extends StatelessWidget {
-  final IconData icon;
   final String label;
+  final Color? dotColor;
+  final IconData? icon;
+  final Color? iconColor;
 
   const _MacroGapChip({
-    required this.icon,
     required this.label,
+    this.dotColor,
+    this.icon,
+    this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.5),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.04)
+            : colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.10),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13),
-          const SizedBox(width: 5),
-          Text(label, style: Theme.of(context).textTheme.labelSmall),
+          if (icon != null)
+            Icon(icon, size: 14, color: iconColor ?? colorScheme.primary)
+          else if (dotColor != null)
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: dotColor,
+              ),
+            ),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
         ],
       ),
     );

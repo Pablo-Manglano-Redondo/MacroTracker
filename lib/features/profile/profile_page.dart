@@ -206,15 +206,6 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: Icons.directions_walk_outlined,
               onTap: () => _showSetPALCategoryDialog(context, user),
             ),
-            _ProfileActionTile(
-              title: S.of(context).profileBodyProgress,
-              subtitle: S.of(context).profileBodyProgressSubtitle,
-              icon: Icons.show_chart_outlined,
-              onTap: () {
-                Navigator.of(context)
-                    .pushNamed(NavigationOptions.bodyProgressRoute);
-              },
-            ),
           ],
         ),
         const SizedBox(height: 16),

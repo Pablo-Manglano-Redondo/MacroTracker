@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -40,30 +42,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
   try {
-    try {
-      await initializeDriveBackupWorker();
-    } catch (error, stackTrace) {
-      Logger('main').warning(
-        'Google Drive background worker initialization failed',
-        error,
-        stackTrace,
-      );
-    }
     await initLocator();
     final log = Logger('main');
-    try {
-      final config = await locator<ConfigRepository>().getConfig();
-      await locator<AndroidDriveBackupScheduler>()
-          .syncFromConfig(config.googleDriveAutoBackupEnabled);
-    } catch (error, stackTrace) {
-      log.warning(
-          'Google Drive backup scheduler sync failed', error, stackTrace);
-    }
-    try {
-      await locator<MealReminderService>().syncFromConfig();
-    } catch (error, stackTrace) {
-      log.severe('Meal reminder startup sync failed', error, stackTrace);
-    }
     final isUserInitialized = await locator<UserDataSource>().hasUserData();
     final configRepo = locator<ConfigRepository>();
     final hasAcceptedAnonymousData =
@@ -82,6 +62,7 @@ Future<void> main() async {
       log.info('Starting App ...');
       runAppWithChangeNotifiers(isUserInitialized, savedAppTheme, locale);
     }
+    unawaited(_runDeferredStartupTasks());
   } catch (e, stackTrace) {
     runApp(
       MaterialApp(
@@ -105,6 +86,35 @@ Future<void> main() async {
         ),
       ),
     );
+  }
+}
+
+Future<void> _runDeferredStartupTasks() async {
+  final log = Logger('main');
+  await Future<void>.delayed(const Duration(milliseconds: 600));
+
+  try {
+    await initializeDriveBackupWorker();
+  } catch (error, stackTrace) {
+    log.warning(
+      'Google Drive background worker initialization failed',
+      error,
+      stackTrace,
+    );
+  }
+
+  try {
+    final config = await locator<ConfigRepository>().getConfig();
+    await locator<AndroidDriveBackupScheduler>()
+        .syncFromConfig(config.googleDriveAutoBackupEnabled);
+  } catch (error, stackTrace) {
+    log.warning('Google Drive backup scheduler sync failed', error, stackTrace);
+  }
+
+  try {
+    await locator<MealReminderService>().syncFromConfig();
+  } catch (error, stackTrace) {
+    log.severe('Meal reminder startup sync failed', error, stackTrace);
   }
 }
 
@@ -193,7 +203,9 @@ class MacroTrackerApp extends StatelessWidget {
   ThemeData _buildTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
     final scaffoldColor =
-        isDark ? const Color(0xFF101311) : colorScheme.surface;
+        isDark ? const Color(0xFF000000) : const Color(0xFFF7F8F3);
+    final cardColor =
+        isDark ? const Color(0xFF121212) : const Color(0xFFFFFFFF);
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
@@ -206,33 +218,41 @@ class MacroTrackerApp extends StatelessWidget {
         elevation: 0,
         centerTitle: false,
         surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
         titleTextStyle: appTextTheme.titleLarge?.copyWith(
           color: colorScheme.onSurface,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
         ),
       ),
       cardTheme: CardThemeData(
-        color: isDark ? colorScheme.surfaceContainerLow : colorScheme.surface,
+        color: cardColor,
         surfaceTintColor: Colors.transparent,
-        elevation: isDark ? 0 : 0.5,
+        elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           side: BorderSide(
             color: colorScheme.outlineVariant
-                .withValues(alpha: isDark ? 0.38 : 0.65),
+                .withValues(alpha: isDark ? 0.26 : 0.42),
           ),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: scaffoldColor,
+        backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: colorScheme.primary.withValues(alpha: 0.16),
+        elevation: 0,
+        indicatorColor: colorScheme.primary.withValues(alpha: 0.12),
+        height: 68,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final color = states.contains(WidgetState.selected)
               ? colorScheme.onSurface
               : colorScheme.onSurfaceVariant;
-          return appTextTheme.labelMedium?.copyWith(color: color);
+          return appTextTheme.labelMedium?.copyWith(
+            color: color,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w800
+                : FontWeight.w600,
+          );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final color = states.contains(WidgetState.selected)
@@ -250,6 +270,33 @@ class MacroTrackerApp extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
         ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: isDark
+            ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.22)
+            : Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.58),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.58),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: colorScheme.primary,
+            width: 1.4,
+          ),
+        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
@@ -282,8 +329,16 @@ class MacroTrackerApp extends StatelessWidget {
         style: ButtonStyle(
           visualDensity: VisualDensity.compact,
           side: WidgetStatePropertyAll(
-            BorderSide(color: colorScheme.outlineVariant),
+            BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.68),
+            ),
           ),
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return colorScheme.primary.withValues(alpha: 0.11);
+            }
+            return Colors.transparent;
+          }),
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -292,15 +347,18 @@ class MacroTrackerApp extends StatelessWidget {
         ),
       ),
       chipTheme: ChipThemeData(
+        backgroundColor: colorScheme.surfaceContainerHighest
+            .withValues(alpha: isDark ? 0.30 : 0.45),
+        selectedColor: colorScheme.primary.withValues(alpha: 0.12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.32),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: colorScheme.outlineVariant.withValues(alpha: 0.65),
+        color: colorScheme.outlineVariant.withValues(alpha: 0.42),
         thickness: 1,
         space: 1,
       ),

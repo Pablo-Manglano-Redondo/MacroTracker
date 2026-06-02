@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
@@ -69,7 +70,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
     final cardBackground =
-        isDark ? colorScheme.surfaceContainerLow : colorScheme.surface;
+        isDark ? const Color(0xFF121212) : Colors.white;
 
     return Padding(
       padding: widget.padding,
@@ -92,14 +93,14 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      color: colorScheme.primary.withValues(alpha: 0.12),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFE7A83B),
                     ),
-                    child: Icon(
-                      Icons.bolt_outlined,
-                      size: 18,
-                      color: colorScheme.primary,
+                    child: const Icon(
+                      Icons.local_fire_department,
+                      size: 20,
+                      color: Colors.black,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -136,7 +137,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.bookmarks_outlined),
+                    icon: const Icon(Icons.bookmark_outline),
                     tooltip: _savedTooltip(context),
                   ),
                 ],
@@ -144,39 +145,49 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
               const SizedBox(height: 14),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SegmentedButton<_QuickGymMealsFilter>(
-                  showSelectedIcon: false,
-                  multiSelectionEnabled: false,
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    padding: const WidgetStatePropertyAll(
-                      EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                  segments: _QuickGymMealsFilter.values
-                      .map(
-                        (filter) => ButtonSegment<_QuickGymMealsFilter>(
-                          value: filter,
-                          label: SizedBox(
-                            width: _segmentWidthForFilter(filter),
-                            child: Text(
-                              _labelForFilter(context, filter),
-                              maxLines: 1,
-                              softWrap: false,
-                              overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: _QuickGymMealsFilter.values.map((filter) {
+                    final isSelected = filter == _selectedFilter;
+                    final Color bgColor = isSelected
+                        ? const Color(0xFF10B981)
+                        : (isDark ? Colors.white.withValues(alpha: 0.04) : colorScheme.surfaceContainerHighest.withValues(alpha: 0.4));
+                    final Color textColor = isSelected
+                        ? Colors.black
+                        : colorScheme.onSurfaceVariant;
+                    final Border border = Border.all(
+                      color: isSelected
+                          ? Colors.transparent
+                          : (isDark ? Colors.white.withValues(alpha: 0.05) : colorScheme.outlineVariant.withValues(alpha: 0.25)),
+                    );
+
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _selectedFilter = filter;
+                            _presetsFuture = _loadPresets(_selectedFilter);
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            borderRadius: BorderRadius.circular(999),
+                            border: border,
+                          ),
+                          child: Text(
+                            _labelForFilter(context, filter),
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
                             ),
                           ),
                         ),
-                      )
-                      .toList(),
-                  selected: {_selectedFilter},
-                  onSelectionChanged: (selection) {
-                    setState(() {
-                      _selectedFilter = selection.first;
-                      _presetsFuture = _loadPresets(_selectedFilter);
-                    });
-                  },
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
               const SizedBox(height: 16),
@@ -194,19 +205,28 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   final presets =
                       snapshot.data ?? const <QuickRecipePresetEntity>[];
                   if (presets.isEmpty) {
-                    return Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.40),
+                    return CustomPaint(
+                      painter: DashedRectPainter(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+                        radius: 16,
                       ),
-                      child: Text(
-                        _selectedFilter == _QuickGymMealsFilter.all
-                            ? _emptyAll(context)
-                            : _emptyFiltered(context),
-                        style: Theme.of(context).textTheme.bodyMedium,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.15)
+                              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                        ),
+                        child: Text(
+                          _selectedFilter == _QuickGymMealsFilter.all
+                              ? _emptyAll(context)
+                              : _emptyFiltered(context),
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                        ),
                       ),
                     );
                   }
@@ -452,26 +472,6 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
 
   String _addedTo(BuildContext context, String recipe, String slot) =>
       _isEs(context) ? '$recipe añadida a $slot' : '$recipe added to $slot';
-  double _segmentWidthForFilter(_QuickGymMealsFilter filter) {
-    switch (filter) {
-      case _QuickGymMealsFilter.all:
-        return 52;
-      case _QuickGymMealsFilter.breakfast:
-        return 86;
-      case _QuickGymMealsFilter.lunch:
-        return 72;
-      case _QuickGymMealsFilter.dinner:
-        return 56;
-      case _QuickGymMealsFilter.preWorkout:
-        return 96;
-      case _QuickGymMealsFilter.postWorkout:
-        return 102;
-      case _QuickGymMealsFilter.shake:
-        return 60;
-      case _QuickGymMealsFilter.snack:
-        return 62;
-    }
-  }
 }
 
 class _QuickRecipeTile extends StatelessWidget {
@@ -651,4 +651,56 @@ class _InfoChip extends StatelessWidget {
       ),
     );
   }
+}
+
+class DashedRectPainter extends CustomPainter {
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+  final double dash;
+  final double radius;
+
+  DashedRectPainter({
+    required this.color,
+    this.strokeWidth = 1.0,
+    this.gap = 5.0,
+    this.dash = 5.0,
+    this.radius = 18.0,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        Radius.circular(radius),
+      ));
+
+    final Path dashPath = Path();
+    for (final PathMetric metric in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        final double end = (distance + dash).clamp(0.0, metric.length);
+        dashPath.addPath(
+          metric.extractPath(distance, end),
+          Offset.zero,
+        );
+        distance += dash + gap;
+      }
+    }
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(DashedRectPainter oldDelegate) =>
+      color != oldDelegate.color ||
+      strokeWidth != oldDelegate.strokeWidth ||
+      gap != oldDelegate.gap ||
+      dash != oldDelegate.dash ||
+      radius != oldDelegate.radius;
 }
