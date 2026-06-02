@@ -8,10 +8,13 @@ import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
+import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:macrotracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatefulWidget {
@@ -57,6 +60,115 @@ class DayInfoWidget extends StatefulWidget {
 
   @override
   State<DayInfoWidget> createState() => _DayInfoWidgetState();
+}
+
+class _DiaryProfessionalPlanComparison extends StatelessWidget {
+  final DateTime selectedDay;
+  final TrackedDayEntity trackedDay;
+
+  const _DiaryProfessionalPlanComparison({
+    required this.selectedDay,
+    required this.trackedDay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<ProfessionalConnectionEntity?>(
+      future: locator<GetProfessionalPlanUsecase>().getActiveConnection(),
+      builder: (context, snapshot) {
+        final connection = snapshot.data;
+        final target = connection?.activePlan?.targetForDate(selectedDay);
+        if (target == null) {
+          return const SizedBox.shrink();
+        }
+        final colorScheme = Theme.of(context).colorScheme;
+        final isEs = Localizations.localeOf(context).languageCode == 'es';
+        final kcalActual = trackedDay.caloriesTracked;
+        final kcalDelta = kcalActual - target.kcalGoal;
+        final adherence = target.kcalGoal <= 0
+            ? 0.0
+            : (1 - (kcalDelta.abs() / target.kcalGoal)).clamp(0, 1).toDouble();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: Card(
+            color: colorScheme.surfaceContainerLow,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.assignment_turned_in_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isEs ? 'Plan del profesional' : 'Coach plan',
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                        ),
+                      ),
+                      Text('${(adherence * 100).round()}%'),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  LinearProgressIndicator(value: adherence),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _PlanCompareChip(
+                        label: 'Kcal',
+                        value:
+                            '${kcalActual.round()}/${target.kcalGoal.round()}',
+                      ),
+                      _PlanCompareChip(
+                        label: isEs ? 'P' : 'P',
+                        value:
+                            '${(trackedDay.proteinTracked ?? 0).round()}/${target.proteinGoal.round()}g',
+                      ),
+                      _PlanCompareChip(
+                        label: isEs ? 'C' : 'C',
+                        value:
+                            '${(trackedDay.carbsTracked ?? 0).round()}/${target.carbsGoal.round()}g',
+                      ),
+                      _PlanCompareChip(
+                        label: isEs ? 'G' : 'F',
+                        value:
+                            '${(trackedDay.fatTracked ?? 0).round()}/${target.fatGoal.round()}g',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PlanCompareChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _PlanCompareChip({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(label: Text('$label $value'));
+  }
 }
 
 class _DayInfoWidgetState extends State<DayInfoWidget>
@@ -177,6 +289,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
               canCopyDay:
                   !DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
               onCopyDayToToday: widget.onCopyDayToToday,
+            ),
+            _DiaryProfessionalPlanComparison(
+              selectedDay: widget.selectedDay,
+              trackedDay: trackedDay,
             ),
             const SizedBox(height: 12),
           ],

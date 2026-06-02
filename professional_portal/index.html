@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MacroTracker Pro</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MacroTracker</p>
+          <h1>Professional Portal</h1>
+        </div>
+        <button id="sign-out" class="ghost" hidden>Sign out</button>
+      </header>
+
+      <section class="panel" id="auth-panel">
+        <h2>Login</h2>
+        <div class="inline">
+          <input id="email" type="email" placeholder="nutritionist@example.com" />
+          <button id="login">Send magic link</button>
+        </div>
+        <p class="muted">The professional pays Pro here; clients never pay for assigned plans in app stores.</p>
+      </section>
+
+      <section class="panel" id="profile-panel" hidden>
+        <div class="section-title">
+          <h2>Professional Profile</h2>
+          <span id="pro-status" class="badge">inactive</span>
+        </div>
+        <div class="grid two">
+          <label>Display name <input id="display-name" /></label>
+          <label>Business name <input id="business-name" /></label>
+        </div>
+        <button id="save-profile">Save profile</button>
+      </section>
+
+      <section class="panel" id="billing-panel" hidden>
+        <div class="section-title">
+          <h2>Pro Subscription</h2>
+          <span class="badge">Stripe</span>
+        </div>
+        <div class="grid three">
+          <button data-tier="starter" class="checkout">Starter · 10 clients</button>
+          <button data-tier="growth" class="checkout">Growth · 50 clients</button>
+          <button data-tier="studio" class="checkout">Studio · 500 clients</button>
+        </div>
+        <p class="muted">Checkout updates Pro status through the Stripe webhook. Existing clients keep read access to plans if billing lapses.</p>
+      </section>
+
+      <section class="panel" id="invite-panel" hidden>
+        <div class="section-title">
+          <h2>Invite Client</h2>
+          <button id="create-invite">Create invite</button>
+        </div>
+        <div id="invite-output" class="notice"></div>
+      </section>
+
+      <section class="panel" id="clients-panel" hidden>
+        <div class="section-title">
+          <h2>Clients</h2>
+          <button id="refresh">Refresh</button>
+        </div>
+        <div id="clients"></div>
+      </section>
+
+      <section class="panel" id="plan-panel" hidden>
+        <h2>Create Active Plan</h2>
+        <div class="grid two">
+          <label>Client ID <input id="plan-client-id" /></label>
+          <label>Plan name <input id="plan-name" value="Weekly coaching plan" /></label>
+          <label>Kcal <input id="plan-kcal" type="number" value="2200" /></label>
+          <label>Protein g <input id="plan-protein" type="number" value="160" /></label>
+          <label>Carbs g <input id="plan-carbs" type="number" value="250" /></label>
+          <label>Fat g <input id="plan-fat" type="number" value="70" /></label>
+        </div>
+        <button id="create-plan">Publish weekly plan</button>
+      </section>
+    </main>
+    <script src="./config.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

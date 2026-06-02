@@ -16,4 +16,5 @@ class NavigationOptions {
   static const recipeEditorRoute = "recipeEditor";
   static const weeklyInsightsRoute = "weeklyInsights";
   static const bodyProgressRoute = "bodyProgress";
+  static const professionalPlanRoute = "professionalPlan";
 }

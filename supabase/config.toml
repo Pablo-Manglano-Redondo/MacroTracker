@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.meal-interpretations-photo]
 verify_jwt = false
+
+[functions.stripe-pro-webhook]
+verify_jwt = false
+
+[functions.stripe-pro-checkout]
+verify_jwt = true

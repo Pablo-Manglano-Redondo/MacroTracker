@@ -8,6 +8,7 @@ import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/theme_mode_provider.dart';
 import 'package:macrotracker/core/utils/url_const.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
@@ -215,6 +216,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _driveBackupSubtitle(context),
                         ),
                         onTap: () => _showDriveBackupDialog(context),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.assignment_ind_outlined),
+                        title: Text(
+                          _isEs(context)
+                              ? 'Plan de mi nutricionista'
+                              : 'My coach plan',
+                        ),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? 'Invitación, consentimiento y acceso compartido.'
+                              : 'Invite, consent, and shared access.',
+                        ),
+                        onTap: () => Navigator.of(context).pushNamed(
+                          NavigationOptions.professionalPlanRoute,
+                        ),
                       ),
                       SwitchListTile(
                         secondary: const Icon(Icons.bug_report_outlined),

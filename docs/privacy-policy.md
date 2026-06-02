@@ -1,6 +1,6 @@
 # MacroTracker Privacy Policy
 
-Last updated: 2026-05-31
+Last updated: 2026-06-01
 
 MacroTracker is provided by EPSAIT. This policy describes how MacroTracker handles data when installed from Google Play or built from source.
 
@@ -20,6 +20,7 @@ MacroTracker can send limited data outside the device only when the user enables
 - AI meal interpretation: meal text or selected meal photos may be sent to EPSAIT's Supabase Edge Functions for inference. The app requires user review before saving any AI result.
 - Anonymous diagnostics: if the user opts in, crash and diagnostic data may be sent to Sentry to improve stability.
 - Google Drive backup: if the user connects Google Drive, encrypted backup files are uploaded to the user's own Google Drive account.
+- Professional plan sharing: if the user accepts an invite from a professional, MacroTracker creates a Supabase cloud identity and shares only aggregate plan-adherence snapshots with that professional. Shared snapshots include daily calories, macronutrient totals and targets, meal count, optional body weight if enabled in a future version, and sync timestamps. The raw meal diary, food names, photos, recipes, and full activity records are not shared in this version.
 
 ## Health Connect
 
@@ -27,11 +28,11 @@ MacroTracker can read Health Connect data only after the user grants Android per
 
 ## Retention And Deletion
 
-Local app data remains on the device until the user deletes it, clears app storage, uninstalls the app, or imports/replaces data through app tools. Google Drive backups are controlled by the user's Google Drive account and can be deleted there. Health Connect access can be revoked from Android Health Connect settings.
+Local app data remains on the device until the user deletes it, clears app storage, uninstalls the app, or imports/replaces data through app tools. Google Drive backups are controlled by the user's Google Drive account and can be deleted there. Health Connect access can be revoked from Android Health Connect settings. Professional sharing can be revoked inside MacroTracker; revocation stops future snapshot sync and marks the professional-client connection as revoked.
 
 ## Third-Party Processors
 
-Optional integrations may involve Google Drive, Google Health Connect, Supabase, Sentry, food data providers, and AI model providers used behind EPSAIT's Supabase Edge Functions.
+Optional integrations may involve Google Drive, Google Health Connect, Supabase, Sentry, Stripe for professional portal billing, food data providers, and AI model providers used behind EPSAIT's Supabase Edge Functions.
 
 ## Medical Disclaimer
 

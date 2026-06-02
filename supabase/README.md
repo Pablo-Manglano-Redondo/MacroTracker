@@ -6,8 +6,11 @@ This directory contains the backend functions used by the app-side AI capture fl
 
 - `meal-interpretations-text`
 - `meal-interpretations-photo`
+- `stripe-pro-checkout`
+- `stripe-pro-webhook`
 
 Both functions return the same structured meal draft contract so the Flutter client does not depend on a specific AI provider.
+The Stripe webhook updates professional Pro subscription state in Supabase.
 
 ## Tooling
 
@@ -70,6 +73,11 @@ Then replace the placeholder values with real secrets:
 - optional `GEMINI_25_FLASH_LITE_OUTPUT_TOKEN_USD_PER_1M`
 - optional `GEMINI_25_FLASH_INPUT_TOKEN_USD_PER_1M`
 - optional `GEMINI_25_FLASH_OUTPUT_TOKEN_USD_PER_1M`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PRO_WEBHOOK_SECRET`
+- `STRIPE_PRO_STARTER_PRICE_ID`
+- `STRIPE_PRO_GROWTH_PRICE_ID`
+- `STRIPE_PRO_STUDIO_PRICE_ID`
 
 ## Deploy
 
@@ -82,6 +90,39 @@ The script will:
 - push function secrets from `supabase/.env.functions`
 - deploy `meal-interpretations-text`
 - deploy `meal-interpretations-photo`
+- deploy `stripe-pro-checkout`
+- deploy `stripe-pro-webhook`
+
+## Professional Pro Billing
+
+Use Stripe for the professional portal subscription because the existing
+RevenueCat integration is app-store-oriented and currently exposes only the
+mobile `premium` entitlement. The B2B Pro product is paid by the professional
+in a web portal and must update Supabase server-side RLS fields such as
+`professionals.pro_status` and `professionals.client_limit`.
+
+Stripe checkout sessions should set either:
+
+- `client_reference_id=<professionals.id>`
+- or `metadata.professional_id=<professionals.id>`
+
+Subscriptions should include:
+
+- `metadata.professional_id`
+- `metadata.tier` with `starter`, `growth`, or `studio`
+
+Configure the Stripe endpoint to:
+
+```text
+https://<project-ref>.functions.supabase.co/stripe-pro-webhook
+```
+
+Listen for:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
 
 If secrets are already configured remotely, you can skip that step:
 

@@ -29,6 +29,9 @@ function Assert-EnvFileReady {
     if ($raw -match "YOUR_GEMINI_API_KEY") {
         throw "supabase/.env.functions still contains placeholder values. Set GEMINI_API_KEY before deploying."
     }
+    if ($raw -match "YOUR_STRIPE_SECRET_KEY|YOUR_WEBHOOK_SECRET|YOUR_STARTER_PRICE|YOUR_GROWTH_PRICE|YOUR_STUDIO_PRICE") {
+        throw "supabase/.env.functions still contains Stripe placeholder values. Set Stripe Pro secrets before deploying."
+    }
 }
 
 function Assert-SupabaseAuthReady {
@@ -49,14 +52,18 @@ if (-not $SkipSecrets) {
     }
 }
 
-& npx supabase functions deploy meal-interpretations-text --project-ref $ProjectRef --workdir $repoRoot --use-api
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to deploy meal-interpretations-text."
+$functions = @(
+    "meal-interpretations-text",
+    "meal-interpretations-photo",
+    "stripe-pro-checkout",
+    "stripe-pro-webhook"
+)
+
+foreach ($functionName in $functions) {
+    & npx supabase functions deploy $functionName --project-ref $ProjectRef --workdir $repoRoot --use-api
+    if ($LASTEXITCODE -ne 0) {
+        throw "Failed to deploy $functionName."
+    }
 }
 
-& npx supabase functions deploy meal-interpretations-photo --project-ref $ProjectRef --workdir $repoRoot --use-api
-if ($LASTEXITCODE -ne 0) {
-    throw "Failed to deploy meal-interpretations-photo."
-}
-
-Write-Host "Supabase meal interpretation functions deployed successfully for project '$ProjectRef'." -ForegroundColor Green
+Write-Host "Supabase functions deployed successfully for project '$ProjectRef'." -ForegroundColor Green

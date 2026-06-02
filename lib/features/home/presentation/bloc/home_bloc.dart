@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
+import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
@@ -25,6 +26,9 @@ import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 
 part 'home_event.dart';
 
@@ -44,6 +48,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetKcalGoalUsecase _getKcalGoalUsecase;
   final GetMacroGoalUsecase _getMacroGoalUsecase;
   final CalculateFoodQualityScoreUsecase _calculateFoodQualityScoreUsecase;
+  final GetProfessionalPlanUsecase _getProfessionalPlanUsecase;
+  final UploadProfessionalSnapshotUsecase _uploadProfessionalSnapshotUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -60,7 +66,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._addTrackedDayUseCase,
       this._getKcalGoalUsecase,
       this._getMacroGoalUsecase,
-      this._calculateFoodQualityScoreUsecase)
+      this._calculateFoodQualityScoreUsecase,
+      this._getProfessionalPlanUsecase,
+      this._uploadProfessionalSnapshotUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       final shouldShowBlockingLoader = state is! HomeLoadedState;
@@ -147,7 +155,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final baseProteinsGoal =
           await _getMacroGoalUsecase.getProteinsGoal(baseKcalGoal);
 
-      final targets = GymTargetCalc.buildTargets(
+      final appTargets = GymTargetCalc.buildTargets(
         phase: nutritionPhase,
         dailyFocus: dailyFocus,
         macroGoalMode: configData.macroGoalMode,
@@ -157,6 +165,32 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         baseProteinGoal: baseProteinsGoal,
         userWeightKg: user.weightKG,
         userHeightCm: user.heightCM,
+      );
+      final professionalConnection =
+          await _getProfessionalPlanUsecase.getActiveConnection(
+        refreshRemotePlan: true,
+      );
+      final targets = _resolveTargetsForDay(
+        date: currentDay,
+        appTargets: appTargets,
+        connection: professionalConnection,
+      );
+      final professionalPlanSummary = _buildProfessionalPlanSummary(
+        connection: professionalConnection,
+        targets: targets,
+        kcalActual: totalKcalIntake,
+        carbsActual: totalCarbsIntake,
+        fatActual: totalFatsIntake,
+        proteinActual: totalProteinsIntake,
+      );
+      await _uploadSnapshotIfConsented(
+        connection: professionalConnection,
+        targets: targets,
+        kcalActual: totalKcalIntake,
+        carbsActual: totalCarbsIntake,
+        fatActual: totalFatsIntake,
+        proteinActual: totalProteinsIntake,
+        mealsLogged: allIntakes.length,
       );
 
       final totalKcalLeft =
@@ -184,7 +218,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           dinnerIntakeList: dinnerIntakeList,
           snackIntakeList: snackIntakeList,
           userActivityList: userActivities,
-          usesImperialUnits: usesImperialUnits));
+          usesImperialUnits: usesImperialUnits,
+          professionalPlanSummary: professionalPlanSummary));
     });
   }
 
@@ -306,7 +341,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final baseProteinGoal =
         await _getMacroGoalUsecase.getProteinsGoal(baseKcalGoal);
 
-    final targets = GymTargetCalc.buildTargets(
+    final appTargets = GymTargetCalc.buildTargets(
       phase: phase ?? currentUser.goal,
       dailyFocus: dailyFocus ?? config.dailyFocus,
       macroGoalMode: config.macroGoalMode,
@@ -316,6 +351,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       baseProteinGoal: baseProteinGoal,
       userWeightKg: currentUser.weightKG,
       userHeightCm: currentUser.heightCM,
+    );
+    final professionalConnection =
+        await _getProfessionalPlanUsecase.getActiveConnection();
+    final targets = _resolveTargetsForDay(
+      date: day,
+      appTargets: appTargets,
+      connection: professionalConnection,
     );
 
     await _addTrackedDayUseCase.updateDayCalorieGoal(day, targets.kcalGoal);
@@ -327,6 +369,82 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
     if (refreshDiary) {
       await _updateDiaryPage(day);
+    }
+  }
+
+  GymTargetsEntity _resolveTargetsForDay({
+    required DateTime date,
+    required GymTargetsEntity appTargets,
+    required ProfessionalConnectionEntity? connection,
+  }) {
+    final dayTarget = connection?.activePlan?.targetForDate(date);
+    if (dayTarget == null || dayTarget.kcalGoal <= 0) {
+      return appTargets;
+    }
+    return GymTargetsEntity(
+      kcalGoal: dayTarget.kcalGoal,
+      carbsGoal: dayTarget.carbsGoal,
+      fatGoal: dayTarget.fatGoal,
+      proteinGoal: dayTarget.proteinGoal,
+    );
+  }
+
+  ProfessionalPlanSummaryEntity? _buildProfessionalPlanSummary({
+    required ProfessionalConnectionEntity? connection,
+    required GymTargetsEntity targets,
+    required double kcalActual,
+    required double carbsActual,
+    required double fatActual,
+    required double proteinActual,
+  }) {
+    final plan = connection?.activePlan;
+    if (connection == null ||
+        plan == null ||
+        plan.targetForDate(currentDay) == null) {
+      return null;
+    }
+    return ProfessionalPlanSummaryEntity(
+      professionalName: connection.professionalName,
+      planName: plan.name,
+      kcalTarget: targets.kcalGoal,
+      kcalActual: kcalActual,
+      carbsTarget: targets.carbsGoal,
+      carbsActual: carbsActual,
+      fatTarget: targets.fatGoal,
+      fatActual: fatActual,
+      proteinTarget: targets.proteinGoal,
+      proteinActual: proteinActual,
+    );
+  }
+
+  Future<void> _uploadSnapshotIfConsented({
+    required ProfessionalConnectionEntity? connection,
+    required GymTargetsEntity targets,
+    required double kcalActual,
+    required double carbsActual,
+    required double fatActual,
+    required double proteinActual,
+    required int mealsLogged,
+  }) async {
+    if (connection == null || connection.activePlan == null) {
+      return;
+    }
+    try {
+      await _uploadProfessionalSnapshotUsecase.uploadDailySnapshot(
+        connection: connection,
+        day: currentDay,
+        kcalActual: kcalActual,
+        kcalTarget: targets.kcalGoal,
+        carbsActual: carbsActual,
+        carbsTarget: targets.carbsGoal,
+        fatActual: fatActual,
+        fatTarget: targets.fatGoal,
+        proteinActual: proteinActual,
+        proteinTarget: targets.proteinGoal,
+        mealsLogged: mealsLogged,
+      );
+    } catch (_) {
+      // Snapshot sync is consented but non-blocking; local tracking must keep working.
     }
   }
 }

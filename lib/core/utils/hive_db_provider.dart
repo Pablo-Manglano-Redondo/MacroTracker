@@ -33,6 +33,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const bodyMeasurementBoxName = 'BodyMeasurementBox';
   static const dailyHabitLogBoxName = 'DailyHabitLogBox';
   static const monetizationBoxName = 'MonetizationBox';
+  static const professionalPlanBoxName = 'ProfessionalPlanBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -44,6 +45,7 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<BodyMeasurementDBO> bodyMeasurementBox;
   late Box<DailyHabitLogDBO> dailyHabitLogBox;
   late Box<dynamic> monetizationBox;
+  late Box<dynamic> professionalPlanBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -89,6 +91,8 @@ class HiveDBProvider extends ChangeNotifier {
         await _openEncryptedBox(dailyHabitLogBoxName, encryptionCypher);
     monetizationBox =
         await _openEncryptedBox<dynamic>(monetizationBoxName, encryptionCypher);
+    professionalPlanBox = await _openEncryptedBox<dynamic>(
+        professionalPlanBoxName, encryptionCypher);
   }
 
   Future<Box<T>> _openEncryptedBox<T>(

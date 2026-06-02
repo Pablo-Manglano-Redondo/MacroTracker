@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
@@ -12,6 +15,7 @@ import 'package:macrotracker/core/presentation/widgets/main_appbar.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:macrotracker/features/profile/profile_page.dart';
+import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MainScreen extends StatefulWidget {
@@ -25,6 +29,8 @@ class _MainScreenState extends State<MainScreen>
     with SingleTickerProviderStateMixin {
   int _selectedPageIndex = 0;
   bool _fabExpanded = false;
+  late final AppLinks _appLinks;
+  StreamSubscription<Uri>? _appLinkSubscription;
 
   late AnimationController _fabAnimController;
   late Animation<double> _fabRotation;
@@ -47,6 +53,8 @@ class _MainScreenState extends State<MainScreen>
       parent: _fabAnimController,
       curve: Curves.easeOutBack,
     );
+    _appLinks = AppLinks();
+    _initInviteLinks();
   }
 
   @override
@@ -68,7 +76,49 @@ class _MainScreenState extends State<MainScreen>
   @override
   void dispose() {
     _fabAnimController.dispose();
+    _appLinkSubscription?.cancel();
     super.dispose();
+  }
+
+  Future<void> _initInviteLinks() async {
+    try {
+      final initialUri = await _appLinks.getInitialLink();
+      if (initialUri != null) {
+        _openInviteLink(initialUri);
+      }
+      _appLinkSubscription = _appLinks.uriLinkStream.listen(_openInviteLink);
+    } catch (_) {
+      // Deep links are a convenience path. Manual invite-code entry remains available.
+    }
+  }
+
+  void _openInviteLink(Uri uri) {
+    final code = _extractInviteCode(uri);
+    if (code == null || code.isEmpty || !mounted) {
+      return;
+    }
+    Navigator.of(context).pushNamed(
+      NavigationOptions.professionalPlanRoute,
+      arguments: ProfessionalPlanScreenArguments(inviteCode: code),
+    );
+  }
+
+  String? _extractInviteCode(Uri uri) {
+    final queryCode = uri.queryParameters['code'];
+    if (queryCode != null && queryCode.trim().isNotEmpty) {
+      return queryCode.trim();
+    }
+    final segments = uri.pathSegments;
+    if (uri.scheme == 'macrotracker' &&
+        uri.host == 'invite' &&
+        segments.isNotEmpty) {
+      return segments.first;
+    }
+    final inviteIndex = segments.indexOf('invite');
+    if (inviteIndex >= 0 && inviteIndex + 1 < segments.length) {
+      return segments[inviteIndex + 1];
+    }
+    return null;
   }
 
   void _toggleFab() {
@@ -98,9 +148,8 @@ class _MainScreenState extends State<MainScreen>
           index: _selectedPageIndex,
           children: _bodyPages,
         ),
-        floatingActionButton: _selectedPageIndex == 0
-            ? _buildSpeedDial(context)
-            : null,
+        floatingActionButton:
+            _selectedPageIndex == 0 ? _buildSpeedDial(context) : null,
         bottomNavigationBar: NavigationBar(
           selectedIndex: _selectedPageIndex,
           onDestinationSelected: _setPage,

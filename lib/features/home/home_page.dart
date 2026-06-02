@@ -20,6 +20,8 @@ import 'package:macrotracker/features/home/presentation/widgets/adherence_nudges
 import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.dart';
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/home/presentation/widgets/nutrition_kpi_card.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_plan_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
@@ -91,7 +93,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.dinnerIntakeList,
               state.snackIntakeList,
               state.userActivityList,
-              state.usesImperialUnits);
+              state.usesImperialUnits,
+              state.professionalPlanSummary);
         } else {
           return _getLoadingContent();
         }
@@ -226,7 +229,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       List<IntakeEntity> dinnerIntakeList,
       List<IntakeEntity> snackIntakeList,
       List<UserActivityEntity> userActivities,
-      bool usesImperialUnits) {
+      bool usesImperialUnits,
+      ProfessionalPlanSummaryEntity? professionalPlanSummary) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -272,6 +276,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         snackIntakeList.length,
                     sessionsLogged: userActivities.length,
                   ),
+                  if (professionalPlanSummary != null)
+                    ProfessionalPlanCard(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                      summary: professionalPlanSummary,
+                      onOpenPlan: () => Navigator.of(context).pushNamed(
+                        NavigationOptions.professionalPlanRoute,
+                      ),
+                    ),
                   MacroSuggestionsCard(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
                     dailyFocus: dailyFocus,

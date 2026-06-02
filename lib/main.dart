@@ -24,6 +24,7 @@ import 'package:macrotracker/features/meal_capture/presentation/meal_interpretat
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:macrotracker/features/onboarding/onboarding_screen.dart';
+import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_editor_screen.dart';
 import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
 import 'package:macrotracker/features/scanner/scanner_screen.dart';
@@ -183,6 +184,8 @@ class MacroTrackerApp extends StatelessWidget {
             const WeeklyInsightsScreen(),
         NavigationOptions.bodyProgressRoute: (context) =>
             const BodyProgressScreen(),
+        NavigationOptions.professionalPlanRoute: (context) =>
+            const ProfessionalPlanScreen(),
       },
     );
   }

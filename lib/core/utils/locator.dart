@@ -33,6 +33,7 @@ import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
+import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/core/utils/env.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/macrotracker_image_cache_manager.dart';
@@ -77,6 +78,12 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpret
 import 'package:macrotracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:macrotracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/disconnect_professional_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
@@ -118,6 +125,8 @@ Future<void> initLocator() async {
   await Supabase.initialize(
       url: Env.supabaseProjectUrl, anonKey: Env.supabaseProjectAnonKey);
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+  locator.registerLazySingleton<SupabaseIdentityService>(
+      () => SupabaseIdentityService(locator()));
 
   // Cache manager
   locator.registerLazySingleton<CacheManager>(
@@ -127,6 +136,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
+      locator(),
+      locator(),
       locator(),
       locator(),
       locator(),
@@ -289,6 +300,14 @@ Future<void> initLocator() async {
             locator(),
             locator(),
           ));
+  locator.registerLazySingleton<GetProfessionalPlanUsecase>(
+      () => GetProfessionalPlanUsecase(locator()));
+  locator.registerLazySingleton<AcceptProfessionalInviteUsecase>(
+      () => AcceptProfessionalInviteUsecase(locator()));
+  locator.registerLazySingleton<DisconnectProfessionalUsecase>(
+      () => DisconnectProfessionalUsecase(locator()));
+  locator.registerLazySingleton<UploadProfessionalSnapshotUsecase>(
+      () => UploadProfessionalSnapshotUsecase(locator()));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));
@@ -314,6 +333,8 @@ Future<void> initLocator() async {
       () => BodyMeasurementRepository(locator()));
   locator.registerLazySingleton<DailyHabitLogRepository>(
       () => DailyHabitLogRepository(locator()));
+  locator.registerLazySingleton<ProfessionalPlanRepository>(
+      () => ProfessionalPlanRepository(locator()));
 
   // DataSources
   locator
@@ -343,6 +364,9 @@ Future<void> initLocator() async {
       () => DailyHabitLogDataSource(hiveDBProvider.dailyHabitLogBox));
   locator.registerLazySingleton<HealthConnectSleepDataSource>(
       () => HealthConnectSleepDataSource());
+  locator.registerLazySingleton<ProfessionalPlanDataSource>(() =>
+      ProfessionalPlanDataSource(
+          hiveDBProvider.professionalPlanBox, locator(), locator()));
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.initialize();
