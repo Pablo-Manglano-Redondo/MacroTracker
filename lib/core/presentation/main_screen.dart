@@ -4,6 +4,10 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/services/app_review_service.dart';
+import 'package:macrotracker/core/services/backup_nudge_service.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/add_activity/presentation/add_activity_screen.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_screen.dart';
@@ -16,6 +20,7 @@ import 'package:macrotracker/features/meal_capture/presentation/meal_photo_captu
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:macrotracker/features/profile/profile_page.dart';
 import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
+import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MainScreen extends StatefulWidget {
@@ -55,6 +60,27 @@ class _MainScreenState extends State<MainScreen>
     );
     _appLinks = AppLinks();
     _initInviteLinks();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final nudgeService = locator<BackupNudgeService>();
+      await nudgeService.recordAppOpen();
+      
+      // Record daily usage for review triggers
+      await locator<AppReviewService>().recordDailyUsage();
+
+      // Ensure onboarding bonus is granted for legacy users who updated the app
+      await locator<MonetizationService>().grantOnboardingBonus();
+
+      if (await nudgeService.shouldShowBackupNudge()) {
+        await nudgeService.markNudgeShown();
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => const DriveBackupDialog(),
+          );
+        }
+      }
+    });
   }
 
   @override

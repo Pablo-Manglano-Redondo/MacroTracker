@@ -7,6 +7,7 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/app_review_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
@@ -848,25 +849,7 @@ class _MealInterpretationReviewScreenState
   }
 
   Future<void> _checkAndRequestReview() async {
-    try {
-      final box = await Hive.openBox('app_metadata');
-      final currentCount =
-          box.get('committed_meals_count', defaultValue: 0) as int;
-      final newCount = currentCount + 1;
-      await box.put('committed_meals_count', newCount);
-
-      final reviewPrompted =
-          box.get('review_prompted', defaultValue: false) as bool;
-      if (newCount >= 3 && !reviewPrompted) {
-        final InAppReview inAppReview = InAppReview.instance;
-        if (await inAppReview.isAvailable()) {
-          await inAppReview.requestReview();
-          await box.put('review_prompted', true);
-        }
-      }
-    } catch (_) {
-      // Fail silently to prevent app crashes if system review dialog fails
-    }
+    await locator<AppReviewService>().recordAiMealCommitted();
   }
 
   int _decimals(double value) {

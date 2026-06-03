@@ -30,9 +30,12 @@ import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
+import 'package:macrotracker/core/services/app_review_service.dart';
+import 'package:macrotracker/core/services/backup_nudge_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/referral_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/core/utils/env.dart';
@@ -381,6 +384,15 @@ Future<void> initLocator() async {
       FirebaseConversionAnalyticsClient(),
       locator(),
     ),
+  );
+  locator.registerLazySingleton<AppReviewService>(
+    () => AppReviewService(),
+  );
+  locator.registerLazySingleton<BackupNudgeService>(
+    () => BackupNudgeService(locator()),
+  );
+  locator.registerLazySingleton<ReferralService>(
+    () => ReferralService(locator(), locator(), locator()),
   );
 
   await _initializeConfig(locator());

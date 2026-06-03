@@ -1,1 +1,1 @@
-Track calories, macros, meals and activity with local-first privacy.
+AI calorie counter & macro tracker. Log meals from text or photos.

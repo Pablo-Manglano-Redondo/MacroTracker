@@ -94,6 +94,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
 
     setState(() => _isPurchasing = false);
     if (success) {
+      await locator<MonetizationService>().markAsFoundingMember();
       await locator<ConversionAnalyticsService>().logPurchaseCompleted(
         placement: _placementName(widget.placement),
         package: _selectedPackage,
@@ -143,6 +144,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
       return;
     }
     if (success) {
+      await locator<MonetizationService>().markAsFoundingMember();
       HapticFeedback.heavyImpact();
       Navigator.of(context).pop(true);
     } else {

@@ -1,24 +1,41 @@
-MacroTracker by EPSAIT is a calorie, macro, meal, and activity tracker with free core tracking and optional Premium AI features.
+MacroTracker by EPSAIT is an AI-powered calorie counter, macro tracker, and nutrition diary that helps you log meals in seconds — from text descriptions, photos, or manual entry.
 
-Log meals manually, search food databases, scan packaged products, save frequent meals, create recipes, and review your daily calories, protein, carbs, fats, water, and activity from one focused app.
+Whether you are counting macros for muscle gain, tracking calories for weight loss, or following a custom diet plan from your nutritionist, MacroTracker keeps your food diary organized and your progress visible.
+
+Why MacroTracker?
+
+🤖 AI Meal Logging
+Describe your meal in plain text or snap a photo. The AI calorie counter creates an editable macro draft — review protein, carbs, fats, and calories before saving. No more guessing portion sizes.
+
+📊 Complete Macro Tracker
+Track daily calories, protein, carbohydrates, fats, fiber, sugar, and water intake. See your nutrition breakdown at a glance with weekly insights and goal adjustments.
+
+🔍 Food Database & Barcode Scanner
+Search food databases or scan packaged product barcodes for instant nutritional data. Save frequent meals and build a personal recipe library for one-tap logging.
+
+👩‍⚕️ Built for Nutritionists
+Nutritionists and dietitians can create personalized macro plans for their clients. Clients share aggregate progress snapshots — not raw diary data — keeping coaching efficient and private.
+
+💪 Activity & Health Tracking
+Import sleep, workouts, steps, distance, and calories burned from Health Connect or Apple Health. Track body weight progress and daily wellness habits.
+
+🔒 Privacy-First Design
+Your meal diary, recipes, and body data stay on your device by default. Optional encrypted Google Drive backup. Optional anonymous crash reporting. No ads, no selling your data.
 
 Key features:
-
-- Daily calorie and macro tracking
-- Food diary with meal history
-- Recipe library and quick meal logging
-- Barcode scanning for packaged foods
-- Optional AI-assisted meal drafts from text or photos
-- Weekly nutrition insights and goal adjustments
-- Optional Health Connect import for sleep, workouts, steps, distance, and calories burned
-- Optional meal reminders
-- Optional encrypted Google Drive backup
+- AI calorie counter with text and photo meal interpretation
+- Daily macro tracker for protein, carbs, fats, and calories
+- Food diary with full meal history
+- Recipe library and frequent meal quick-logging
+- Barcode scanner for packaged foods
+- Weekly nutrition insights and automatic goal adjustments
+- Macro coach suggestions to close daily gaps
+- Health Connect and Apple Health import
+- Customizable meal reminders
+- Encrypted Google Drive backup
 - Home screen summary widget
 - Light and dark themes
 - English and Spanish support
+- Professional nutritionist plans and client management
 
-Privacy:
-
-MacroTracker is local-first. Your meal diary, recipes, settings, body progress, and activity data are stored on your device by default. Optional features may send limited data outside the device only when you choose to use them: food search, AI meal interpretation, anonymous crash diagnostics, and Google Drive backup. Health Connect data is read only after Android permission approval and is used to show activity and wellness context inside the app.
-
-MacroTracker is not a medical device. Nutrition, activity, and AI-generated data may be incomplete or inaccurate. Review important values yourself and consult a qualified professional for medical, pregnancy, illness, or clinical nutrition decisions.
+MacroTracker is not a medical device. Nutrition, activity, and AI-generated data may be incomplete or inaccurate. Review important values yourself and consult a qualified professional for medical decisions.

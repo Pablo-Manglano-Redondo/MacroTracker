@@ -1,1 +1,1 @@
-Registra calorias, macros, comidas y actividad con privacidad local.
+Contador de calorías con IA. Registra comidas por texto o foto.

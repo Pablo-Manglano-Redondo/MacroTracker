@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
@@ -24,6 +25,7 @@ import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/referral_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +49,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   AiTrialState? _aiTrialState;
   bool _isPlanActionLoading = false;
 
+  String? _referralCode;
+  bool _hasRedeemedCode = false;
+  bool _isRedeeming = false;
+  final _redeemController = TextEditingController();
+
   @override
   void initState() {
     _settingsBloc = locator<SettingsBloc>();
@@ -58,7 +65,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
     }
     _refreshPlanStatus();
+    _loadReferralInfo();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _redeemController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadReferralInfo() async {
+    final referralService = locator<ReferralService>();
+    final code = await referralService.getOrCreateReferralCode();
+    final hasRedeemed = await referralService.hasRedeemedAnyCode();
+    if (!mounted) return;
+    setState(() {
+      _referralCode = code;
+      _hasRedeemedCode = hasRedeemed;
+    });
   }
 
   @override
@@ -79,6 +104,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 _buildPlanSection(context),
+                const SizedBox(height: 18),
+                _buildReferralSection(context),
                 const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context) ? 'Seguimiento' : 'Tracking',
@@ -1230,21 +1257,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: colorScheme.surfaceContainerHighest
                       .withValues(alpha: 0.55),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.check_circle_outline,
-                        color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        isEs
-                            ? 'Tu suscripción está activa en este dispositivo.'
-                            : 'Your subscription is active on this device.',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle_outline,
+                            color: colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            isEs
+                                ? 'Tu suscripción está activa en este dispositivo.'
+                                : 'Your subscription is active on this device.',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
+                    if (trialState?.isFoundingMember == true) ...[
+                      const SizedBox(height: 10),
+                      Divider(color: colorScheme.outlineVariant),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF2BF2E).withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFB77900).withValues(alpha: 0.5),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.workspace_premium_rounded,
+                                  color: Color(0xFFB77900),
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  isEs ? 'Miembro Fundador' : 'Founding Member',
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: const Color(0xFFB77900),
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -1260,6 +1330,220 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildReferralSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEs = _isEs(context);
+
+    return _SettingsSection(
+      title: isEs ? 'Invitar amigos' : 'Invite friends',
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              isEs
+                  ? 'Comparte tu código de invitación con un amigo y ambos obtendréis usos extra de IA gratis cuando lo canjee.'
+                  : 'Share your invitation code with a friend and you both get extra free AI uses when they redeem it.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Referral code box
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: colorScheme.outlineVariant),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isEs ? 'TU CÓDIGO DE INVITACIÓN' : 'YOUR REFERRAL CODE',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            letterSpacing: 1.2,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _referralCode ?? '------',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontFamily: 'monospace',
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (_referralCode != null) ...[
+                    IconButton(
+                      onPressed: () {
+                        final referralService = locator<ReferralService>();
+                        final msg = referralService.buildShareMessage(_referralCode!, isEs: isEs);
+                        Clipboard.setData(ClipboardData(text: msg));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              isEs
+                                  ? 'Enlace y código de invitación copiados al portapapeles.'
+                                  : 'Invitation link and code copied to clipboard.',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.copy_outlined),
+                      tooltip: isEs ? 'Copiar' : 'Copy',
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 18),
+            Divider(color: colorScheme.outlineVariant),
+            const SizedBox(height: 12),
+            
+            // Redeem Section
+            if (_hasRedeemedCode) ...[
+              Row(
+                children: [
+                  Icon(Icons.check_circle_outlined, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      isEs
+                          ? '¡Ya has canjeado un código de invitación!'
+                          : 'You have already redeemed an invitation code!',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              Text(
+                isEs ? '¿Te ha invitado un amigo?' : 'Were you invited by a friend?',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: TextField(
+                        controller: _redeemController,
+                        decoration: InputDecoration(
+                          hintText: isEs ? 'Introduce su código' : 'Enter their code',
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(10)),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                        textCapitalization: TextCapitalization.characters,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  FilledButton(
+                    onPressed: _isRedeeming ? null : _redeemFriendCode,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      minimumSize: const Size(0, 46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: _isRedeeming
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(isEs ? 'Canjear' : 'Redeem'),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _redeemFriendCode() async {
+    final code = _redeemController.text.trim();
+    if (code.isEmpty) return;
+    
+    setState(() => _isRedeeming = true);
+    final referralService = locator<ReferralService>();
+    final result = await referralService.redeemCode(code);
+    
+    if (!mounted) return;
+    setState(() => _isRedeeming = false);
+    
+    final isEs = _isEs(context);
+    String message;
+    switch (result) {
+      case ReferralRedemptionResult.success:
+        message = isEs
+            ? '¡Código canjeado con éxito! Has ganado usos de IA gratis.'
+            : 'Code redeemed successfully! You earned free AI uses.';
+        _redeemController.clear();
+        _loadReferralInfo();
+        _refreshPlanStatus();
+        break;
+      case ReferralRedemptionResult.codeNotFound:
+        message = isEs
+            ? 'El código de invitación no existe.'
+            : 'Invitation code not found.';
+        break;
+      case ReferralRedemptionResult.selfReferral:
+        message = isEs
+            ? 'No puedes canjear tu propio código.'
+            : 'You cannot redeem your own code.';
+        break;
+      case ReferralRedemptionResult.alreadyRedeemed:
+        message = isEs
+            ? 'Ya has canjeado un código de invitación.'
+            : 'You have already redeemed an invitation code.';
+        break;
+      case ReferralRedemptionResult.notAuthenticated:
+        message = isEs
+            ? 'Inicia sesión para canjear códigos.'
+            : 'Log in to redeem codes.';
+        break;
+      case ReferralRedemptionResult.unknownError:
+        message = isEs
+            ? 'Error al canjear el código. Inténtalo de nuevo.'
+            : 'Error redeeming code. Please try again.';
+        break;
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _showSettingsPaywall(BuildContext context) async {

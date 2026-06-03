@@ -178,6 +178,37 @@ class ConversionAnalyticsService {
     );
   }
 
+  // -------------------------------------------------------------------------
+  // Funnel events
+  // -------------------------------------------------------------------------
+
+  Future<void> logOnboardingCompleted() {
+    return logEvent('onboarding_completed');
+  }
+
+  Future<void> logFirstAiMealCreated() {
+    return logEvent('first_ai_meal_created');
+  }
+
+  Future<void> logTrialExhausted({required int totalAiMealsSaved}) {
+    return logEvent(
+      'trial_exhausted',
+      parameters: {'ai_meals_saved': totalAiMealsSaved},
+    );
+  }
+
+  Future<void> logShareBonusGranted() {
+    return logEvent('share_bonus_granted');
+  }
+
+  Future<void> logReferralCodeCreated() {
+    return logEvent('referral_code_created');
+  }
+
+  Future<void> logReferralRedeemed() {
+    return logEvent('referral_redeemed');
+  }
+
   Map<String, Object> _cleanParameters(Map<String, Object?> parameters) {
     final cleaned = <String, Object>{};
     for (final entry in parameters.entries) {

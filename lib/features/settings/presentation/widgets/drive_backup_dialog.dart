@@ -205,9 +205,14 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
     final isSpanish = _isEs(context);
     await _runAction(() async {
       await _driveBackupService.authenticate();
+      // Auto-activate backup by default upon sign in (opt-out)
+      await _addConfigUsecase.setGoogleDriveAutoBackupEnabled(true);
+      await _backupScheduler.syncFromConfig(true);
       await _refreshStatus();
       _showSnackBar(
-        isSpanish ? 'Google Drive conectado.' : 'Google Drive connected.',
+        isSpanish 
+            ? 'Google Drive conectado y backup diario activado.' 
+            : 'Google Drive connected and daily backup enabled.',
       );
     });
   }

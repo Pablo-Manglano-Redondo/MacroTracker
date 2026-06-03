@@ -1,24 +1,41 @@
-MacroTracker de EPSAIT es una app para registrar calorias, macros, comidas y actividad, con seguimiento basico gratuito y funciones Premium opcionales de IA.
+MacroTracker de EPSAIT es un contador de calorías con IA, tracker de macros y diario de nutrición que te ayuda a registrar comidas en segundos — por texto, foto o entrada manual.
 
-Registra comidas manualmente, busca alimentos, escanea productos, guarda comidas frecuentes, crea recetas y revisa tus calorias, proteinas, carbohidratos, grasas, agua y actividad diaria desde una experiencia centrada y practica.
+Ya sea que estés contando macros para ganar músculo, registrando calorías para perder peso, o siguiendo un plan de dieta de tu nutricionista, MacroTracker organiza tu diario de comidas y hace visible tu progreso.
+
+¿Por qué MacroTracker?
+
+🤖 Registro de Comidas con IA
+Describe tu comida por texto o hazle una foto. La app para contar macros con IA crea un borrador editable — revisa proteínas, carbohidratos, grasas y calorías antes de guardar. Sin adivinar porciones.
+
+📊 Tracker de Calorías Completo
+Registra calorías, proteínas, carbohidratos, grasas, fibra, azúcar e ingesta de agua diaria. Visualiza tu desglose nutricional con análisis semanal y ajustes automáticos de objetivos.
+
+🔍 Base de Datos de Alimentos y Escáner
+Busca alimentos en bases de datos o escanea códigos de barras de productos envasados para obtener datos nutricionales al instante. Guarda comidas frecuentes y crea una biblioteca de recetas.
+
+👩‍⚕️ Diseñado para Nutricionistas
+Los nutricionistas y dietistas pueden crear planes de macros personalizados para sus clientes. Los clientes comparten resúmenes de progreso agregados — no datos crudos del diario — manteniendo el seguimiento eficiente y privado.
+
+💪 Seguimiento de Actividad y Salud
+Importa sueño, entrenamientos, pasos, distancia y calorías quemadas desde Health Connect o Apple Health. Registra progreso de peso corporal y hábitos diarios de bienestar.
+
+🔒 Privacidad Primero
+Tu diario de comidas, recetas y datos corporales se guardan en tu dispositivo por defecto. Backup cifrado opcional en Google Drive. Reporte anónimo opcional de errores. Sin anuncios, sin vender tus datos.
 
 Funciones principales:
-
-- Seguimiento diario de calorias y macros
-- Diario de comidas con historial
-- Biblioteca de recetas y comidas rapidas
-- Escaner de codigos de barras para alimentos envasados
-- Borradores opcionales de comida con IA desde texto o foto
-- Analisis semanal y ajustes de objetivos
-- Importacion opcional desde Health Connect para sueno, entrenamientos, pasos, distancia y calorias quemadas
-- Recordatorios opcionales de comidas
-- Backup cifrado opcional en Google Drive
-- Widget de resumen en la pantalla de inicio
+- Contador de calorías con IA por texto y foto
+- Tracker de macros diario: proteínas, carbohidratos, grasas y calorías
+- Diario de comidas con historial completo
+- Biblioteca de recetas y registro rápido de comidas frecuentes
+- Escáner de códigos de barras para alimentos envasados
+- Análisis semanal de nutrición y ajustes automáticos
+- Coach de macros con sugerencias para cerrar déficits diarios
+- Importación desde Health Connect y Apple Health
+- Recordatorios personalizables de comidas
+- Backup cifrado en Google Drive
+- Widget de resumen en pantalla de inicio
 - Tema claro y oscuro
-- Soporte en espanol e ingles
+- Soporte en español e inglés
+- Planes profesionales de nutricionista y gestión de clientes
 
-Privacidad:
-
-MacroTracker prioriza el almacenamiento local. Tu diario, recetas, ajustes, progreso corporal y actividad se guardan en el dispositivo por defecto. Algunas funciones opcionales pueden enviar datos limitados fuera del dispositivo solo cuando decides usarlas: busqueda de alimentos, interpretacion de comidas con IA, diagnostico anonimo de errores y backup en Google Drive. Los datos de Health Connect solo se leen despues de conceder permisos de Android y se usan para mostrar contexto de actividad y bienestar dentro de la app.
-
-MacroTracker no es un dispositivo medico. Los datos nutricionales, de actividad y generados por IA pueden ser incompletos o imprecisos. Revisa los valores importantes y consulta a un profesional cualificado para decisiones medicas, embarazo, enfermedad o nutricion clinica.
+MacroTracker no es un dispositivo médico. Los datos nutricionales, de actividad y generados por IA pueden ser incompletos o imprecisos. Revisa los valores importantes y consulta a un profesional cualificado para decisiones médicas.
