@@ -48,8 +48,10 @@ async function signOut() {
 
 function renderAuthState() {
   const signedIn = Boolean(session);
+  $('auth-panel').hidden = signedIn;
   $('sign-out').hidden = !signedIn;
   $('profile-panel').hidden = !signedIn;
+  $('profile-form-panel').hidden = !signedIn;
   $('billing-panel').hidden = !signedIn;
   $('invite-panel').hidden = !signedIn;
   $('clients-panel').hidden = !signedIn;
@@ -67,8 +69,18 @@ async function loadProfile() {
   if (professional) {
     $('display-name').value = professional.display_name || '';
     $('business-name').value = professional.business_name || '';
-    $('pro-status').textContent = professional.pro_status;
+    $('professional-title').textContent =
+      professional.business_name || professional.display_name || 'Professional profile';
+    $('pro-status').textContent = formatProStatus(professional.pro_status);
+    $('pro-status').dataset.status = professional.pro_status;
+    $('pro-limit').textContent = `${professional.client_limit || 0} client capacity`;
+  } else {
+    $('professional-title').textContent = 'Complete setup to unlock billing';
+    $('pro-status').textContent = 'setup required';
+    $('pro-status').dataset.status = 'inactive';
+    $('pro-limit').textContent = 'Save a profile before checkout';
   }
+  renderProGate();
   await loadClients();
 }
 
@@ -89,11 +101,12 @@ async function saveProfile() {
     .upsert(payload, { onConflict: 'user_id' });
   if (error) return alert(error.message);
   await loadProfile();
+  alert('Profile saved.');
 }
 
 async function createInvite() {
   if (!professional) return alert('Save your profile first.');
-  if (!['trialing', 'active'].includes(professional.pro_status)) {
+  if (!hasActivePro()) {
     return alert('Pro must be active to create invites.');
   }
   const code = crypto.randomUUID().slice(0, 8).toUpperCase();
@@ -108,27 +121,36 @@ async function createInvite() {
 }
 
 async function startCheckout(event) {
+  if (!professional) return alert('Save your profile first.');
   const tier = event.currentTarget.dataset.tier || 'starter';
+  setBusy(event.currentTarget, true);
   const { data, error } = await client.functions.invoke('stripe-pro-checkout', {
     body: {
       tier,
       origin: window.location.origin + window.location.pathname,
     },
   });
+  setBusy(event.currentTarget, false);
   if (error) return alert(error.message);
   if (!data?.url) return alert('Stripe checkout did not return a URL.');
   window.location.href = data.url;
 }
 
 async function loadClients() {
-  if (!professional) return;
+  if (!professional) {
+    $('clients').innerHTML = '<p class="muted">Save your profile to load clients.</p>';
+    return;
+  }
+  $('clients').innerHTML = '<p class="muted">Loading connected clients...</p>';
   const { data, error } = await client
     .from('professional_clients')
     .select('id, client_id, status, connected_at, client_shared_snapshots(*)')
     .eq('professional_id', professional.id)
     .order('connected_at', { ascending: false });
   if (error) return alert(error.message);
-  $('clients').innerHTML = (data || []).map(renderClient).join('') || '<p class="muted">No connected clients yet.</p>';
+  $('clients').innerHTML =
+    (data || []).map(renderClient).join('') ||
+    '<p class="muted">No connected clients yet.</p>';
 }
 
 function renderClient(row) {
@@ -136,13 +158,16 @@ function renderClient(row) {
     String(b.snapshot_date).localeCompare(String(a.snapshot_date))
   )[0];
   const summary = latest
-    ? `${latest.snapshot_date}: ${Math.round(latest.kcal_actual)} / ${Math.round(latest.kcal_target)} kcal`
+    ? `${escapeHtml(latest.snapshot_date)}: ${Math.round(latest.kcal_actual)} / ${Math.round(latest.kcal_target)} kcal`
     : 'No shared snapshots yet.';
+  const clientId = escapeHtml(row.client_id);
+  const status = escapeHtml(row.status);
+  const connected = new Date(row.connected_at).toLocaleDateString();
   return `<div class="client">
-    <strong>${row.client_id}</strong>
-    <span class="muted">${row.status} · ${new Date(row.connected_at).toLocaleDateString()}</span>
-    <span>${summary}</span>
-    <button onclick="selectClient('${row.client_id}')">Create plan for this client</button>
+    <strong>${clientId}</strong>
+    <span class="muted">${status} · ${connected}</span>
+    <span class="client-snapshot">${summary}</span>
+    <button onclick="selectClient('${clientId}')">Create plan</button>
   </div>`;
 }
 
@@ -164,9 +189,30 @@ function showCheckoutResult() {
   }
 }
 
+function hasActivePro() {
+  return ['trialing', 'active'].includes(professional?.pro_status);
+}
+
+function renderProGate() {
+  const active = hasActivePro();
+  const hasProfile = Boolean(professional);
+  $('create-invite').disabled = !active;
+  $('create-plan').disabled = !active;
+  document.querySelectorAll('.checkout').forEach((button) => {
+    button.disabled = !hasProfile;
+  });
+  document.querySelectorAll('[data-pro-gate]').forEach((element) => {
+    element.hidden = active;
+    if (!active) {
+      element.textContent = gateMessage(element, hasProfile);
+      element.hidden = false;
+    }
+  });
+}
+
 async function createPlan() {
   if (!professional) return alert('Save your profile first.');
-  if (!['trialing', 'active'].includes(professional.pro_status)) {
+  if (!hasActivePro()) {
     return alert('Pro must be active to create plans.');
   }
   const clientId = $('plan-client-id').value.trim();
@@ -201,6 +247,36 @@ async function createPlan() {
   const { error } = await client.from('nutrition_plan_days').insert(dayRows);
   if (error) return alert(error.message);
   alert('Plan published.');
+}
+
+function formatProStatus(status) {
+  if (!status) return 'inactive';
+  return status.replaceAll('_', ' ');
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function setBusy(button, busy) {
+  if (!button) return;
+  button.disabled = busy;
+  button.dataset.originalText ??= button.textContent;
+  button.textContent = busy ? 'Opening Stripe...' : button.dataset.originalText;
+}
+
+function gateMessage(element, hasProfile) {
+  if (!hasProfile) {
+    return 'Save your professional profile before billing, invites, or plans.';
+  }
+  return element.closest('#plan-panel')
+    ? 'Pro must be trialing or active to publish plans.'
+    : 'Pro must be trialing or active to create invites.';
 }
 
 $('login').addEventListener('click', login);

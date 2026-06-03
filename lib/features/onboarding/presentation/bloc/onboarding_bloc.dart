@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:macrotracker/core/utils/calc/macro_calc.dart';
 import 'package:macrotracker/features/onboarding/domain/entity/user_data_mask_entity.dart';
@@ -16,9 +17,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final userSelection = UserDataMaskEntity();
   final AddUserUsecase _addUserUsecase;
   final AddConfigUsecase _addConfigUsecase;
+  final ConversionAnalyticsService _analyticsService;
 
-  OnboardingBloc(this._addUserUsecase, this._addConfigUsecase)
-      : super(OnboardingInitialState()) {
+  OnboardingBloc(
+    this._addUserUsecase,
+    this._addConfigUsecase,
+    this._analyticsService,
+  ) : super(OnboardingInitialState()) {
     on<LoadOnboardingEvent>((event, emit) async {
       emit(OnboardingLoadingState());
 
@@ -31,6 +36,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     _addUserUsecase.addUser(userEntity);
     _addConfigUsecase
         .setConfigHasAcceptedAnonymousData(hasAcceptedDataCollection);
+    _analyticsService.setEnabled(hasAcceptedDataCollection);
     _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
   }
 

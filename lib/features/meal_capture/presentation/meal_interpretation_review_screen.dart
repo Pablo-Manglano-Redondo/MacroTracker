@@ -7,6 +7,7 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -769,6 +770,15 @@ class _MealInterpretationReviewScreenState
       await locator<MonetizationService>().recordAiMealSaved(
         consumeTrialUse: access.consumeTrialUse,
       );
+      if (access.consumeTrialUse) {
+        await locator<ConversionAnalyticsService>().logEvent('ai_trial_used');
+      }
+      await locator<ConversionAnalyticsService>().logEvent(
+        'ai_meal_saved',
+        parameters: {
+          'intake_type': _args.intakeTypeEntity.name,
+        },
+      );
       locator<HomeBloc>().add(const LoadItemsEvent());
       locator<DiaryBloc>().add(const LoadDiaryYearEvent());
       locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
@@ -807,6 +817,10 @@ class _MealInterpretationReviewScreenState
     if (trialState.remaining > 0) {
       return const _AiSaveAccess.allowed(consumeTrialUse: true);
     }
+    await locator<ConversionAnalyticsService>().logEvent(
+      'ai_limit_reached',
+      parameters: {'placement': 'ai_save'},
+    );
     if (!mounted) {
       return const _AiSaveAccess.denied();
     }

@@ -30,6 +30,7 @@ import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
@@ -134,7 +135,7 @@ Future<void> initLocator() async {
 
   // BLoCs
   locator.registerLazySingleton<OnboardingBloc>(
-      () => OnboardingBloc(locator(), locator()));
+      () => OnboardingBloc(locator(), locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
       locator(),
       locator(),
@@ -374,6 +375,12 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<MonetizationService>(
     () => MonetizationService(
         subscriptionService, hiveDBProvider.monetizationBox),
+  );
+  locator.registerLazySingleton<ConversionAnalyticsService>(
+    () => ConversionAnalyticsService(
+      FirebaseConversionAnalyticsClient(),
+      locator(),
+    ),
   );
 
   await _initializeConfig(locator());

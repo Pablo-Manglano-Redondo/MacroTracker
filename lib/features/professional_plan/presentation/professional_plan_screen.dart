@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
@@ -132,6 +133,14 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     try {
       final invite = await _acceptProfessionalInviteUsecase
           .fetchInvitePreview(_codeController.text);
+      await locator<ConversionAnalyticsService>().logEvent(
+        'professional_invite_previewed',
+        parameters: {
+          'found': invite != null,
+          if (invite != null) 'professional_id': invite.professionalId,
+          if (invite != null) 'is_expired': invite.isExpired,
+        },
+      );
       if (!mounted) return;
       setState(() {
         _invitePreview = invite;
@@ -167,6 +176,13 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     try {
       final connection = await _acceptProfessionalInviteUsecase
           .acceptInvite(_codeController.text);
+      await locator<ConversionAnalyticsService>().logEvent(
+        'professional_invite_accepted',
+        parameters: {
+          'professional_id': connection.professionalId,
+          'relationship_id': connection.relationshipId,
+        },
+      );
       if (!mounted) return;
       setState(() {
         _connection = connection;
@@ -211,6 +227,13 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     if (confirmed != true) return;
     setState(() => _loading = true);
     await _disconnectProfessionalUsecase.disconnect();
+    await locator<ConversionAnalyticsService>().logEvent(
+      'professional_connection_revoked',
+      parameters: {
+        'professional_id': _connection?.professionalId,
+        'relationship_id': _connection?.relationshipId,
+      },
+    );
     if (!mounted) return;
     setState(() {
       _connection = null;

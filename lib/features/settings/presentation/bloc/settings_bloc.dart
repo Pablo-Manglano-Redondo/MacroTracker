@@ -68,8 +68,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     });
   }
 
-  void setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
-    _addConfigUsecase
+  Future<void> setHasAcceptedAnonymousData(bool hasAcceptedAnonymousData) {
+    return _addConfigUsecase
         .setConfigHasAcceptedAnonymousData(hasAcceptedAnonymousData);
   }
 

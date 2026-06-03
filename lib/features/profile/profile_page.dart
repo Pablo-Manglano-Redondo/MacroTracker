@@ -11,7 +11,6 @@ import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
-import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_gender_dialog.dart';
 import 'package:macrotracker/features/profile/presentation/widgets/set_goal_dialog.dart';

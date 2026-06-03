@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 
@@ -32,6 +33,10 @@ class AiUsageGate {
     if (state.remaining > 0) {
       return const AiAccessResult.allowed(shouldConsumeTrial: true);
     }
+    await locator<ConversionAnalyticsService>().logEvent(
+      'ai_limit_reached',
+      parameters: {'placement': _placementName(placement)},
+    );
     if (!context.mounted) {
       return const AiAccessResult.denied();
     }
@@ -53,6 +58,26 @@ class AiUsageGate {
       return;
     }
     await locator<MonetizationService>().consumeAiTrialUse();
+    await locator<ConversionAnalyticsService>().logEvent('ai_trial_used');
+  }
+}
+
+String _placementName(PaywallPlacement placement) {
+  switch (placement) {
+    case PaywallPlacement.onboarding:
+      return 'onboarding';
+    case PaywallPlacement.aiText:
+      return 'ai_text';
+    case PaywallPlacement.aiPhoto:
+      return 'ai_photo';
+    case PaywallPlacement.aiLimit:
+      return 'ai_limit';
+    case PaywallPlacement.macroCoach:
+      return 'macro_coach';
+    case PaywallPlacement.weeklyInsights:
+      return 'weekly_insights';
+    case PaywallPlacement.settings:
+      return 'settings';
   }
 }
 

@@ -1,5 +1,11 @@
+import 'dart:async';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -23,17 +29,21 @@ class WeeklyInsightsScreen extends StatefulWidget {
 }
 
 class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
-  late Future<WeeklyInsightsEntity> _insightsFuture;
+  late Future<_WeeklyInsightsViewState> _viewStateFuture;
   WeeklyInsightsScreenArguments? _args;
   bool _isApplyingAdjustment = false;
+  bool _loggedView = false;
+  bool _loggedLockedAdjustment = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _args ??= ModalRoute.of(context)!.settings.arguments
+    if (_args != null) {
+      return;
+    }
+    _args = ModalRoute.of(context)!.settings.arguments
         as WeeklyInsightsScreenArguments;
-    _insightsFuture =
-        locator<BuildWeeklyInsightsUsecase>().build(_args!.focusedDate);
+    _viewStateFuture = _loadViewState(_args!.focusedDate);
   }
 
   @override
@@ -42,8 +52,8 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
       appBar: AppBar(
         title: Text(S.of(context).weeklyInsightsTitle),
       ),
-      body: FutureBuilder<WeeklyInsightsEntity>(
-        future: _insightsFuture,
+      body: FutureBuilder<_WeeklyInsightsViewState>(
+        future: _viewStateFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -52,7 +62,10 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
             return Center(child: Text(S.of(context).weeklyInsightsError));
           }
 
-          final insights = snapshot.data!;
+          final viewState = snapshot.data!;
+          final insights = viewState.insights;
+          final isPremium = viewState.aiTrialState.isPremium;
+          _logViewed(insights, isPremium);
           final locale = Localizations.localeOf(context).toLanguageTag();
           final weekStart = DateFormat.MMMd(locale).format(insights.weekStart);
           final weekEnd = DateFormat.MMMd(locale).format(insights.weekEnd);
@@ -78,32 +91,11 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                               '${insights.weeklyWeightDeltaKg >= 0 ? '+' : ''}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)}',
                             ),
                       ),
-                      const SizedBox(height: 6),
-                      Text(insights.kcalAdjustmentRecommendation),
-                      const SizedBox(height: 10),
-                      if (insights.recommendedKcalAdjustmentDelta != 0)
-                        FilledButton.icon(
-                          onPressed: _isApplyingAdjustment
-                              ? null
-                              : () => _applyRecommendedAdjustment(
-                                    context,
-                                    insights,
-                                  ),
-                          icon: const Icon(Icons.auto_fix_high_outlined),
-                          label: _isApplyingAdjustment
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  S.of(context).weeklyInsightsApplyAdjustment(
-                                        '${insights.recommendedKcalAdjustmentDelta > 0 ? '+' : ''}${insights.recommendedKcalAdjustmentDelta}',
-                                      ),
-                                ),
-                        ),
+                      _buildAdjustmentSection(
+                        context,
+                        insights,
+                        isPremium: isPremium,
+                      ),
                     ],
                   ),
                 ),
@@ -199,6 +191,68 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
     );
   }
 
+  Future<_WeeklyInsightsViewState> _loadViewState(DateTime focusedDate) async {
+    final insightsFuture =
+        locator<BuildWeeklyInsightsUsecase>().build(focusedDate);
+    final trialStateFuture = locator<MonetizationService>().getAiTrialState();
+    return _WeeklyInsightsViewState(
+      insights: await insightsFuture,
+      aiTrialState: await trialStateFuture,
+    );
+  }
+
+  Widget _buildAdjustmentSection(
+    BuildContext context,
+    WeeklyInsightsEntity insights, {
+    required bool isPremium,
+  }) {
+    final delta = insights.recommendedKcalAdjustmentDelta;
+    if (isPremium) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 6),
+          Text(insights.kcalAdjustmentRecommendation),
+          if (delta != 0) ...[
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: _isApplyingAdjustment
+                  ? null
+                  : () => _applyRecommendedAdjustment(
+                        context,
+                        insights,
+                      ),
+              icon: const Icon(Icons.auto_fix_high_outlined),
+              label: _isApplyingAdjustment
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Text(
+                      S.of(context).weeklyInsightsApplyAdjustment(
+                            '${delta > 0 ? '+' : ''}$delta',
+                          ),
+                    ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    if (delta == 0) {
+      return const SizedBox.shrink();
+    }
+
+    _logLockedAdjustmentViewed(insights);
+    return _LockedWeeklyAdjustmentCard(
+      deltaKcal: delta,
+      onOpenPaywall: () => _openWeeklyPaywall(context),
+    );
+  }
+
   Future<void> _applyRecommendedAdjustment(
     BuildContext context,
     WeeklyInsightsEntity insights,
@@ -212,6 +266,13 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
           await locator<ApplyWeeklyKcalAdjustmentUsecase>().apply(
         day: DateTime.now(),
         deltaKcal: insights.recommendedKcalAdjustmentDelta,
+      );
+      await locator<ConversionAnalyticsService>().logEvent(
+        'weekly_adjustment_applied',
+        parameters: {
+          'delta_kcal': insights.recommendedKcalAdjustmentDelta,
+          'new_adjustment': updatedAdjustment,
+        },
       );
 
       locator<HomeBloc>().add(const LoadItemsEvent());
@@ -248,9 +309,177 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
     }
 
     setState(() {
-      _insightsFuture =
-          locator<BuildWeeklyInsightsUsecase>().build(args.focusedDate);
+      _loggedView = false;
+      _loggedLockedAdjustment = false;
+      _viewStateFuture = _loadViewState(args.focusedDate);
     });
+  }
+
+  Future<void> _openWeeklyPaywall(BuildContext context) async {
+    await locator<ConversionAnalyticsService>()
+        .logEvent('weekly_paywall_opened');
+    if (!context.mounted) {
+      return;
+    }
+    final purchased = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => const PaywallSheet(
+        placement: PaywallPlacement.weeklyInsights,
+      ),
+    );
+    if (purchased == true && mounted) {
+      _reloadInsights();
+    }
+  }
+
+  void _logViewed(WeeklyInsightsEntity insights, bool isPremium) {
+    if (_loggedView) {
+      return;
+    }
+    _loggedView = true;
+    unawaited(locator<ConversionAnalyticsService>().logEvent(
+      'weekly_insights_viewed',
+      parameters: {
+        'is_premium': isPremium,
+        'tracked_days': insights.trackedDays,
+        'has_adjustment': insights.recommendedKcalAdjustmentDelta != 0,
+      },
+    ));
+  }
+
+  void _logLockedAdjustmentViewed(WeeklyInsightsEntity insights) {
+    if (_loggedLockedAdjustment) {
+      return;
+    }
+    _loggedLockedAdjustment = true;
+    unawaited(locator<ConversionAnalyticsService>().logEvent(
+      'weekly_adjustment_locked_viewed',
+      parameters: {
+        'delta_kcal': insights.recommendedKcalAdjustmentDelta,
+        'tracked_days': insights.trackedDays,
+      },
+    ));
+  }
+}
+
+class _WeeklyInsightsViewState {
+  final WeeklyInsightsEntity insights;
+  final AiTrialState aiTrialState;
+
+  const _WeeklyInsightsViewState({
+    required this.insights,
+    required this.aiTrialState,
+  });
+}
+
+class _LockedWeeklyAdjustmentCard extends StatelessWidget {
+  final int deltaKcal;
+  final VoidCallback onOpenPaywall;
+
+  const _LockedWeeklyAdjustmentCard({
+    required this.deltaKcal,
+    required this.onOpenPaywall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: colorScheme.surface,
+        border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome_outlined, color: colorScheme.primary, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  isEs ? 'Recomendación de Ajuste Inteligente' : 'Smart Adjustment Recommendation',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Stack(
+            children: [
+              // Blurred preview of the recommendation
+              ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isEs ? 'Nuevo objetivo diario' : 'New daily target',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            '+250 kcal / día',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      const Icon(Icons.trending_up, size: 28),
+                    ],
+                  ),
+                ),
+              ),
+              // Locked overlay
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            isEs
+                ? 'Tus tendencias de peso e ingesta indican que deberías ajustar tus calorías diarias. Premium calcula el cambio exacto y lo aplica automáticamente.'
+                : 'Your weight trends and intake indicate you should adjust your daily calories. Premium calculates the exact change and applies it automatically.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                  height: 1.35,
+                ),
+          ),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: onOpenPaywall,
+            icon: const Icon(Icons.lock_open_outlined, size: 16),
+            label: Text(isEs ? 'Ver ajuste Premium' : 'Reveal recommended adjustment'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, 36),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -330,59 +330,62 @@ class _SpeedDialItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSlide(
-      duration: Duration(milliseconds: visible ? 220 : 160),
-      offset: visible ? Offset.zero : const Offset(0, 0.3),
-      curve: visible ? Curves.easeOutBack : Curves.easeIn,
-      child: AnimatedOpacity(
-        duration: Duration(milliseconds: visible ? 200 : 140),
-        opacity: visible ? 1.0 : 0.0,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Label
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 180),
-                opacity: visible ? 1.0 : 0.0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    action.label,
-                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
+    return IgnorePointer(
+      ignoring: !visible,
+      child: AnimatedSlide(
+        duration: Duration(milliseconds: visible ? 220 : 160),
+        offset: visible ? Offset.zero : const Offset(0, 0.3),
+        curve: visible ? Curves.easeOutBack : Curves.easeIn,
+        child: AnimatedOpacity(
+          duration: Duration(milliseconds: visible ? 200 : 140),
+          opacity: visible ? 1.0 : 0.0,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Label
+                AnimatedOpacity(
+                  duration: const Duration(milliseconds: 180),
+                  opacity: visible ? 1.0 : 0.0,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
+                      ],
+                    ),
+                    child: Text(
+                      action.label,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              // Mini FAB
-              SizedBox(
-                width: 46,
-                height: 46,
-                child: FloatingActionButton.small(
-                  heroTag: 'speed_dial_${action.label}',
-                  onPressed: action.onTap,
-                  backgroundColor: action.color,
-                  foregroundColor: Colors.white,
-                  elevation: 3,
-                  child: Icon(action.icon, size: 20),
+                const SizedBox(width: 10),
+                // Mini FAB
+                SizedBox(
+                  width: 46,
+                  height: 46,
+                  child: FloatingActionButton.small(
+                    heroTag: 'speed_dial_${action.label}',
+                    onPressed: action.onTap,
+                    backgroundColor: action.color,
+                    foregroundColor: Colors.white,
+                    elevation: 3,
+                    child: Icon(action.icon, size: 20),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

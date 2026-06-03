@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -41,6 +42,10 @@ class _PaywallSheetState extends State<PaywallSheet> {
   @override
   void initState() {
     super.initState();
+    locator<ConversionAnalyticsService>().logPaywallViewed(
+      placement: _placementName(widget.placement),
+      aiTrialsRemaining: widget.trialState?.remaining,
+    );
     _loadOfferings();
   }
 
@@ -72,6 +77,10 @@ class _PaywallSheetState extends State<PaywallSheet> {
     }
 
     HapticFeedback.mediumImpact();
+    await locator<ConversionAnalyticsService>().logPurchaseStarted(
+      placement: _placementName(widget.placement),
+      package: _selectedPackage!,
+    );
     setState(() {
       _isPurchasing = true;
       _errorMessage = null;
@@ -85,12 +94,26 @@ class _PaywallSheetState extends State<PaywallSheet> {
 
     setState(() => _isPurchasing = false);
     if (success) {
+      await locator<ConversionAnalyticsService>().logPurchaseCompleted(
+        placement: _placementName(widget.placement),
+        package: _selectedPackage,
+      );
+      if (!mounted) {
+        return;
+      }
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('MacroTracker Premium is active.')),
       );
       Navigator.of(context).pop(true);
     } else {
+      await locator<ConversionAnalyticsService>().logPurchaseFailed(
+        placement: _placementName(widget.placement),
+        package: _selectedPackage,
+      );
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _errorMessage = 'The purchase could not be completed.';
       });
@@ -114,6 +137,11 @@ class _PaywallSheetState extends State<PaywallSheet> {
     }
 
     setState(() => _isPurchasing = false);
+    await locator<ConversionAnalyticsService>()
+        .logPurchaseRestored(restored: success);
+    if (!mounted) {
+      return;
+    }
     if (success) {
       HapticFeedback.heavyImpact();
       Navigator.of(context).pop(true);
@@ -153,12 +181,25 @@ class _PaywallSheetState extends State<PaywallSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 18),
-            Text(
-              copy.title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    copy.title,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                  style: IconButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Text(
@@ -215,6 +256,11 @@ class _PaywallSheetState extends State<PaywallSheet> {
                     _selectedPackage = _offerings.first.availablePackages
                         .firstWhere((package) => package.identifier == value);
                   });
+                  locator<ConversionAnalyticsService>()
+                      .logPaywallPackageSelected(
+                    placement: _placementName(widget.placement),
+                    package: _selectedPackage!,
+                  );
                 },
                 child: Column(
                   children: _offerings.first.availablePackages
@@ -294,6 +340,25 @@ class _PaywallSheetState extends State<PaywallSheet> {
         ),
       ),
     );
+  }
+}
+
+String _placementName(PaywallPlacement placement) {
+  switch (placement) {
+    case PaywallPlacement.onboarding:
+      return 'onboarding';
+    case PaywallPlacement.aiText:
+      return 'ai_text';
+    case PaywallPlacement.aiPhoto:
+      return 'ai_photo';
+    case PaywallPlacement.aiLimit:
+      return 'ai_limit';
+    case PaywallPlacement.macroCoach:
+      return 'macro_coach';
+    case PaywallPlacement.weeklyInsights:
+      return 'weekly_insights';
+    case PaywallPlacement.settings:
+      return 'settings';
   }
 }
 

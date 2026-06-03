@@ -9,6 +9,7 @@ import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/main_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/styles/color_schemes.dart';
 import 'package:macrotracker/core/styles/fonts.dart';
@@ -48,6 +49,7 @@ Future<void> main() async {
     final configRepo = locator<ConfigRepository>();
     final hasAcceptedAnonymousData =
         await configRepo.getConfigHasAcceptedAnonymousData();
+    await locator<ConversionAnalyticsService>().initializeFromConsent();
     final savedAppTheme = await configRepo.getConfigAppTheme();
     final savedLocale = await configRepo.getConfigLocale();
     final locale = savedLocale != null ? Locale(savedLocale) : null;

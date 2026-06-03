@@ -46,6 +46,8 @@ test_env.dart
 env.g.dart
 supabase/.env.functions
 supabase/.deploy.local.ps1
+supabase/.temp/
+professional_portal/config.js
 
 # Symbolication related
 app.*.symbols

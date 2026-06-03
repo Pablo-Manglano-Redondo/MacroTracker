@@ -8,7 +8,8 @@ invite-only release.
 Apply the migration:
 
 ```powershell
-npx supabase db push --project-ref <project-ref> --workdir .
+npx supabase link --project-ref vjbhtlautynotigaicjt --workdir .
+npx supabase db push --linked --workdir .
 ```
 
 Then verify in Supabase:
@@ -21,7 +22,7 @@ Then verify in Supabase:
 
 ## 2. Stripe
 
-Create three recurring prices:
+Use Stripe test mode first and create three recurring prices:
 
 - Starter: metadata `tier=starter`
 - Growth: metadata `tier=growth`
@@ -40,7 +41,7 @@ STRIPE_PRO_STUDIO_PRICE_ID="price_..."
 Configure Stripe webhook endpoint:
 
 ```text
-https://<project-ref>.functions.supabase.co/stripe-pro-webhook
+https://vjbhtlautynotigaicjt.functions.supabase.co/stripe-pro-webhook
 ```
 
 Events:
@@ -50,12 +51,23 @@ Events:
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
+For each tier, complete a test checkout from the portal and confirm the
+`professionals` row receives:
+
+- `pro_status = active` or `trialing`
+- `stripe_customer_id`
+- `stripe_subscription_id`
+- `client_limit = 10` for Starter, `50` for Growth, `500` for Studio
+
+Then cancel a test subscription and confirm new invites and new plans are
+blocked while existing active client plans remain readable.
+
 ## 3. Edge Functions
 
 Deploy:
 
 ```powershell
-pwsh ./supabase/deploy.functions.ps1 -ProjectRef <project-ref>
+pwsh ./supabase/deploy.functions.ps1 -ProjectRef vjbhtlautynotigaicjt
 ```
 
 Verify:
@@ -65,23 +77,42 @@ deno test supabase/functions/_shared
 deno check supabase/functions/stripe-pro-checkout/index.ts supabase/functions/stripe-pro-webhook/index.ts
 ```
 
-## 4. Professional Portal
+## 4. Firebase Analytics
+
+Add the private Firebase config files before mobile QA:
+
+- `android/app/google-services.json`
+- `ios/Runner/GoogleService-Info.plist`, included in the Runner target
+
+Verify analytics collection follows the existing anonymous-data consent:
+
+- off by default before onboarding consent
+- enabled after consent is accepted
+- disabled again from Settings when the toggle is turned off
+
+## 5. Professional Portal
 
 Generate `professional_portal/config.js` during deployment:
 
 ```js
 window.MT_SUPABASE_CONFIG = {
-  url: "https://<project-ref>.supabase.co",
-  anonKey: "<anon-key>"
+  url: "https://vjbhtlautynotigaicjt.supabase.co",
+  anonKey: "<anon-key from .env>"
 };
 ```
 
 Host `professional_portal` as a static site over HTTPS.
 
-## 5. Mobile Verification
+## 6. Mobile Verification
 
 Install an internal Android/iOS build and verify:
 
+- Onboarding paywall appears and purchase/restore events are tracked only with
+  anonymous-data opt-in enabled.
+- AI meal trial counts 1/2/3, then blocks and opens the AI-limit paywall.
+- Macro Coach shows locked free state and Premium unlocked suggestions.
+- Weekly Insights free users see the weekly summary but cannot view or apply
+  the kcal adjustment. Premium users can view and apply it.
 - `macrotracker://invite/<CODE>` opens the professional plan screen.
 - Manual code entry previews the invite.
 - Accepting an invite creates a connected relationship.
@@ -91,7 +122,7 @@ Install an internal Android/iOS build and verify:
 - Snapshots include aggregate totals only.
 - Offline startup still shows the cached active plan.
 
-## 6. Release Decision
+## 7. Release Decision
 
 Release only after:
 

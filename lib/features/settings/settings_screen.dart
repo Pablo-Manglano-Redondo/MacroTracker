@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -23,6 +22,7 @@ import 'package:macrotracker/features/settings/presentation/widgets/drive_backup
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -242,8 +242,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               : 'You can turn this on or off at any time.',
                         ),
                         value: state.sendAnonymousData,
-                        onChanged: (value) {
-                          _settingsBloc.setHasAcceptedAnonymousData(value);
+                        onChanged: (value) async {
+                          await _settingsBloc
+                              .setHasAcceptedAnonymousData(value);
+                          await locator<ConversionAnalyticsService>()
+                              .setEnabled(value);
                           _settingsBloc.add(LoadSettingsEvent());
                         },
                       ),
@@ -251,6 +254,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         leading: const Icon(Icons.description_outlined),
                         title: Text(S.of(context).settingsDisclaimerLabel),
                         onTap: () => _showDisclaimerDialog(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                _SettingsSection(
+                  title: _isEs(context)
+                      ? 'Soporte y sugerencias'
+                      : 'Support and feedback',
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.bug_report_outlined),
+                        title: Text(
+                          _isEs(context) ? 'Reportar un bug' : 'Report a bug',
+                        ),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? 'Informanos sobre un problema en la aplicacion.'
+                              : 'Let us know about an issue in the app.',
+                        ),
+                        onTap: () => _reportBug(context),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.lightbulb_outline),
+                        title: Text(
+                          _isEs(context)
+                              ? 'Sugerir funcionalidad'
+                              : 'Suggest a feature',
+                        ),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? '¿Que te gustaria ver en MacroTracker?'
+                              : 'What would you like to see in MacroTracker?',
+                        ),
+                        onTap: () => _requestFeature(context),
                       ),
                     ],
                   ),
@@ -743,7 +782,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-
   void _launchSourceCodeUrl(BuildContext context) async {
     final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
     _launchUrl(context, sourceCodeUri);
@@ -767,6 +805,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
             SnackBar(content: Text(S.of(context).errorOpeningBrowser)));
       }
     }
+  }
+
+  void _reportBug(BuildContext context) async {
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: AppConst.reportErrorEmail,
+      queryParameters: {
+        'subject': 'MacroTracker - Bug Report',
+        'body': 'Por favor, describe el bug aqui / Please describe the bug here:\n\n\n\n---\nInformacion del sistema / System info:\nPlatform: ${Platform.isAndroid ? 'Android' : 'iOS'}\n',
+      },
+    );
+    _launchUrl(context, emailUri);
+  }
+
+  void _requestFeature(BuildContext context) async {
+    final emailUri = Uri(
+      scheme: 'mailto',
+      path: AppConst.reportErrorEmail,
+      queryParameters: {
+        'subject': 'MacroTracker - Feature Request',
+        'body': 'Describe la funcionalidad que te gustaria ver / Describe the feature you would like to see:\n\n\n',
+      },
+    );
+    _launchUrl(context, emailUri);
   }
 
   String _buildHealthConnectStatusText(HealthConnectSyncStatusEntity status) {
@@ -1222,6 +1284,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _restorePurchases(BuildContext context) async {
     setState(() => _isPlanActionLoading = true);
     final restored = await locator<SubscriptionService>().restorePurchases();
+    await locator<ConversionAnalyticsService>()
+        .logPurchaseRestored(restored: restored);
     if (!mounted) {
       return;
     }

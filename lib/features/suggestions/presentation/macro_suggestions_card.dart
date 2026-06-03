@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -63,6 +65,10 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
   Future<_MacroCoachState> _loadState() async {
     final trialState = await locator<MonetizationService>().getAiTrialState();
     if (!trialState.isPremium) {
+      await locator<ConversionAnalyticsService>().logEvent(
+        'macro_coach_locked_viewed',
+        parameters: _macroContextParameters(),
+      );
       return _MacroCoachState(
         isPremium: false,
         suggestions: const <MacroSuggestionEntity>[],
@@ -196,6 +202,13 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
   }
 
   Future<void> _openPaywall(BuildContext context) async {
+    await locator<ConversionAnalyticsService>().logEvent(
+      'macro_coach_paywall_opened',
+      parameters: _macroContextParameters(),
+    );
+    if (!context.mounted) {
+      return;
+    }
     final purchased = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -219,6 +232,15 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
     locator<HomeBloc>().add(const LoadItemsEvent());
     locator<DiaryBloc>().add(const LoadDiaryYearEvent());
     locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+    await locator<ConversionAnalyticsService>().logEvent(
+      'macro_coach_suggestion_logged',
+      parameters: {
+        ..._macroContextParameters(),
+        'recipe_id': suggestion.recipe.id,
+        'intake_type': suggestion.recommendedIntakeType.name,
+        'servings': suggestion.suggestedServings,
+      },
+    );
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -286,6 +308,17 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
         return S.of(context).snackLabel.toLowerCase();
     }
   }
+
+  Map<String, Object> _macroContextParameters() {
+    return {
+      'daily_focus': widget.dailyFocus.name,
+      'nutrition_phase': widget.nutritionPhase.name,
+      'remaining_kcal': widget.remainingKcal.round(),
+      'remaining_carbs': widget.remainingCarbs.round(),
+      'remaining_fat': widget.remainingFat.round(),
+      'remaining_protein': widget.remainingProtein.round(),
+    };
+  }
 }
 
 class _MacroCoachState {
@@ -317,7 +350,6 @@ class _LockedMacroCoach extends StatelessWidget {
   Widget build(BuildContext context) {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = colorScheme.brightness == Brightness.dark;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,8 +383,8 @@ class _LockedMacroCoach extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     isEs
-                        ? 'Gratis ves lo que te falta. Premium te dice que comer, cuanto y donde registrarlo.'
-                        : 'Free shows what is left. Premium tells you what to eat, how much, and where to log it.',
+                        ? 'Gratis ves lo que te falta. Premium te dice qué comer para ajustarte a tu objetivo.'
+                        : 'Free shows what is left. Premium tells you what to eat to meet your goals.',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -386,55 +418,189 @@ class _LockedMacroCoach extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: const Color(0xFF10B981).withValues(alpha: 0.05),
-            border: Border.all(
-              color: const Color(0xFF10B981).withValues(alpha: 0.22),
+        const SizedBox(height: 16),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Blurred mock recommendations list
+            Column(
+              children: [
+                _BlurredSuggestionRow(
+                  title: isEs ? 'Pollo Teriyaki con Brócoli' : 'Teriyaki Chicken with Broccoli',
+                  category: isEs ? 'Almuerzo' : 'Lunch',
+                  kcal: '540 kcal',
+                  protein: 'P 42g',
+                ),
+                _BlurredSuggestionRow(
+                  title: isEs ? 'Tortilla de Espinacas y Pavo' : 'Spinach & Turkey Omelette',
+                  category: isEs ? 'Cena' : 'Dinner',
+                  kcal: '380 kcal',
+                  protein: 'P 34g',
+                ),
+              ],
             ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.auto_awesome_outlined, color: Color(0xFF10B981), size: 20),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  isEs
-                      ? '3 recomendaciones listas con cantidades ajustadas a tus macros restantes.'
-                      : '3 recommendations ready with servings adjusted to your remaining macros.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF10B981),
-                      ),
+            // Lock overlay with call-to-action
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      colorScheme.surface.withValues(alpha: 0.15),
+                      colorScheme.surface.withValues(alpha: 0.75),
+                      colorScheme.surface,
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: onUpgrade,
-          style: FilledButton.styleFrom(
-            backgroundColor: isDark ? const Color(0xFF1E1E1E) : colorScheme.surfaceContainerHighest,
-            foregroundColor: colorScheme.onSurface,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(999),
-              side: BorderSide(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+            ),
+            Positioned(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.42),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.auto_awesome_outlined,
+                      color: colorScheme.primary,
+                      size: 26,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isEs ? 'Recomendaciones Premium' : 'Premium Suggestions',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      isEs
+                          ? 'Sugerencias personalizadas a tus macros diarios'
+                          : 'Custom suggestions tailored to your remaining macros',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.icon(
+                      onPressed: onUpgrade,
+                      icon: const Icon(Icons.lock_open_outlined, size: 16),
+                      label: Text(
+                        isEs ? 'Desbloquear Coach' : 'Unlock Coach',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(0, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          icon: Icon(Icons.lock_outline, size: 16, color: colorScheme.onSurface),
-          label: Text(
-            isEs ? 'Desbloquear Coach' : 'Unlock Coach',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
+          ],
         ),
       ],
+    );
+  }
+}
+
+class _BlurredSuggestionRow extends StatelessWidget {
+  final String title;
+  final String category;
+  final String kcal;
+  final String protein;
+
+  const _BlurredSuggestionRow({
+    required this.title,
+    required this.category,
+    required this.kcal,
+    required this.protein,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ImageFiltered(
+      imageFilter: ImageFilter.blur(sigmaX: 4.5, sigmaY: 4.5),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: colorScheme.secondaryContainer,
+              ),
+              child: Icon(
+                Icons.restaurant_menu_outlined,
+                size: 16,
+                color: colorScheme.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Text(
+                        category,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '|   $kcal   |   $protein',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

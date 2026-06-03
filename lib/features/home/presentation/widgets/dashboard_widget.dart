@@ -5,6 +5,9 @@ import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 
 class DashboardWidget extends StatelessWidget {
   final EdgeInsetsGeometry padding;
@@ -834,6 +837,27 @@ class _DashboardEmptyStateState extends State<_DashboardEmptyState>
                     color: colorScheme.onSurfaceVariant,
                     height: 1.4,
                   ),
+            ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.of(context).pushNamed(
+                  NavigationOptions.mealPhotoCaptureRoute,
+                  arguments: MealPhotoCaptureScreenArguments(
+                    DateTime.now(),
+                    IntakeTypeEntity.lunch,
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add_a_photo_outlined, size: 16),
+              label: Text(
+                widget.isEs ? 'Hacer foto con IA' : 'Take AI Photo',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
             ),
           ],
         ),
