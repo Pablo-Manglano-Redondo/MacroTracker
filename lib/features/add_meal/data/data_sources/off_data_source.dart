@@ -12,7 +12,7 @@ import 'package:macrotracker/features/scanner/data/product_not_found_exception.d
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 class OFFDataSource {
-  static const _timeoutDuration = Duration(seconds: 20); // TODO lower timeout
+  static const _timeoutDuration = Duration(seconds: 10);
   final log = Logger('OFFDataSource');
 
   Future<OFFWordResponseDTO> fetchSearchWordResults(String searchString) async {

@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
@@ -31,13 +30,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     });
   }
 
-  void saveOnboardingData(BuildContext context, UserEntity userEntity,
+  Future<void> saveOnboardingData(UserEntity userEntity,
       bool hasAcceptedDataCollection, bool usesImperialUnits) async {
-    _addUserUsecase.addUser(userEntity);
-    _addConfigUsecase
+    await _addUserUsecase.addUser(userEntity);
+    await _addConfigUsecase
         .setConfigHasAcceptedAnonymousData(hasAcceptedDataCollection);
-    _analyticsService.setEnabled(hasAcceptedDataCollection);
-    _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
+    await _analyticsService.setEnabled(hasAcceptedDataCollection);
+    await _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
   }
 
   double? getOverviewCalorieGoal() {

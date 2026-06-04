@@ -63,6 +63,14 @@
                     android:scheme="macrotracker"
                     android:host="invite" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="macrotracker"
+                    android:host="login-callback" />
+            </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -115,5 +123,24 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-    </application>
+
+    <!-- Required: set your sentry.io project identifier (DSN) -->
+    <meta-data android:name="io.sentry.dsn" android:value="https://b51586cd2e102f9d247e515196af6162@o4511508222181376.ingest.de.sentry.io/4511508224671824" />
+
+    <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
+    <meta-data android:name="io.sentry.traces.user-interaction.enable" android:value="true" />
+    <!-- enable screenshot for crashes (could contain sensitive/PII data) -->
+    <meta-data android:name="io.sentry.attach-screenshot" android:value="true" />
+    <!-- enable view hierarchy for crashes -->
+    <meta-data android:name="io.sentry.attach-view-hierarchy" android:value="true" />
+
+    <!-- enable the performance API by setting a sample-rate, adjust in production env -->
+    <meta-data android:name="io.sentry.traces.sample-rate" android:value="1.0" />
+
+    <!-- Image Cropper Activity -->
+    <activity
+        android:name="com.yalantis.ucrop.UCropActivity"
+        android:screenOrientation="portrait"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+</application>
 </manifest>

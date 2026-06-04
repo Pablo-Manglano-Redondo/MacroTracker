@@ -8,3 +8,8 @@ class LoadSettingsEvent extends SettingsEvent {
   @override
   List<Object?> get props => [];
 }
+
+class DeleteAccountEvent extends SettingsEvent {
+  @override
+  List<Object?> get props => [];
+}

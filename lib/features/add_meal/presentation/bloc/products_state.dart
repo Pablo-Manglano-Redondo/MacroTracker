@@ -29,3 +29,12 @@ class ProductsFailedState extends ProductsState {
   @override
   List<Object?> get props => [];
 }
+
+class ProductsOfflineState extends ProductsState {
+  final List<MealEntity> cachedProducts;
+
+  const ProductsOfflineState({required this.cachedProducts});
+
+  @override
+  List<Object?> get props => [cachedProducts];
+}

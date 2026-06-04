@@ -2,12 +2,9 @@ import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
 import { mapSubscriptionToProConfig } from "../_shared/pro_billing.ts";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-  apiVersion: "2025-02-24.acacia",
-});
-
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const webhookSecret = Deno.env.get("STRIPE_PRO_WEBHOOK_SECRET") ?? "";
 
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
@@ -19,14 +16,23 @@ Deno.serve(async (request) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
+  if (!stripeSecretKey || !webhookSecret) {
+    return new Response("Missing Stripe webhook configuration", {
+      status: 400,
+    });
+  }
+
   const signature = request.headers.get("stripe-signature");
-  if (!signature || !webhookSecret) {
-    return new Response("Missing Stripe signature configuration", {
+  if (!signature) {
+    return new Response("Missing Stripe signature", {
       status: 400,
     });
   }
 
   const rawBody = await request.text();
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2025-02-24.acacia",
+  });
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(

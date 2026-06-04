@@ -5,6 +5,8 @@ import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:macrotracker/core/utils/url_const.dart';
 
 enum PaywallPlacement {
   onboarding,
@@ -145,6 +147,9 @@ class _PaywallSheetState extends State<PaywallSheet> {
     }
     if (success) {
       await locator<MonetizationService>().markAsFoundingMember();
+      if (!mounted) {
+        return;
+      }
       HapticFeedback.heavyImpact();
       Navigator.of(context).pop(true);
     } else {
@@ -158,6 +163,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final copy = _PaywallCopy.forPlacement(context, widget.placement,
         trialState: widget.trialState);
 
@@ -299,6 +305,57 @@ class _PaywallSheetState extends State<PaywallSheet> {
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final languageCode = Localizations.localeOf(context).languageCode;
+                    final privacyUrl = languageCode == 'es'
+                        ? URLConst.privacyPolicyURLEs
+                        : URLConst.privacyPolicyURLEn;
+                    final uri = Uri.parse(privacyUrl);
+                    if (await canLaunchUrl(uri)) {
+                      launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Text(
+                    isEs ? 'Política de privacidad' : 'Privacy Policy',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  '•',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontSize: 11,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () async {
+                    final uri = Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+                    if (await canLaunchUrl(uri)) {
+                      launchUrl(uri, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                  child: Text(
+                    isEs ? 'Términos de uso (EULA)' : 'Terms of Use (EULA)',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

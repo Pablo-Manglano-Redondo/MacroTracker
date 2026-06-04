@@ -9,6 +9,10 @@ This checklist covers the B2B invite-only professional platform before release.
 - Run `deno check supabase/functions/stripe-pro-checkout/index.ts supabase/functions/stripe-pro-webhook/index.ts`.
 - Enable anonymous sign-ins in Supabase Auth. MacroTracker uses a persistent
   anonymous Supabase user as the cloud identity for invite acceptance and RLS.
+- Enable the Supabase Google Auth provider for mobile account protection.
+  Google Cloud must allow
+  `https://vjbhtlautynotigaicjt.supabase.co/auth/v1/callback`, and Supabase
+  Auth must allow `macrotracker://login-callback`.
 - Verify RPC grants:
   - `preview_client_invite(text)` callable by `anon` and `authenticated`.
   - `accept_client_invite(text)` callable by `authenticated`.
@@ -61,6 +65,8 @@ This checklist covers the B2B invite-only professional platform before release.
 - Verify onboarding paywall, AI trial uses 1/2/3, AI limit blocking, Macro
   Coach locked/unlocked, and Weekly Insights free/Premium states.
 - Verify `macrotracker://invite/CODE` on Android and iOS.
+- Verify `macrotracker://login-callback` returns to the app after protecting
+  the cloud account with Google.
 - Verify manual invite code entry.
 - Accept valid invite, reject expired invite, reject revoked invite.
 - Confirm the consent screen states that only aggregate snapshots are shared.

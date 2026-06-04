@@ -38,11 +38,12 @@ class MealDetailNutrimentsTable extends StatelessWidget {
         const SizedBox(height: 16.0),
         Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          border: TableBorder.all(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.5)),
+          border: TableBorder(
+            horizontalInside: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
           children: <TableRow>[
             _getNutrimentsTableRow("", headerText, textStyleBold),
             _getNutrimentsTableRow(
@@ -91,10 +92,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
       String label, String quantityString, TextStyle textStyle) {
     return TableRow(children: <Widget>[
       Container(
-          padding: const EdgeInsets.only(left: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           child: Text(label, style: textStyle)),
       Container(
-          padding: const EdgeInsets.only(right: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           alignment: Alignment.centerRight,
           child: Text(quantityString, style: textStyle)),
     ]);

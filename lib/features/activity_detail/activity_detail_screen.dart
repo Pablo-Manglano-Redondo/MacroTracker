@@ -46,8 +46,8 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
   void initState() {
     _activityDetailBloc = locator<ActivityDetailBloc>();
     quantityTextController = TextEditingController();
-    quantityTextController.text = "0";
-    totalQuantity = 0; // TODO change to 60
+    quantityTextController.text = "60";
+    totalQuantity = 60;
     totalKcal = 0;
     super.initState();
   }
@@ -82,6 +82,9 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
             return getLoadingContent();
           } else if (state is ActivityDetailLoadedState) {
             _currentUser = state.userEntity;
+            if (_loggedActivity == null && totalKcal == 0) {
+              totalKcal = state.totalKcalBurned;
+            }
             return getLoadedContent(state.totalKcalBurned, state.userEntity);
           } else {
             return const SizedBox();

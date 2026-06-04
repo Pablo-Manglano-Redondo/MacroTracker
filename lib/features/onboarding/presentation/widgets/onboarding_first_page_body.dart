@@ -84,11 +84,13 @@ class _OnboardingFirstPageBodyState extends State<OnboardingFirstPageBody> {
   }
 
   void onDateInputClicked() async {
+    final now = DateTime.now();
+    final latestBirthDate = DateTime(now.year - 13, now.month, now.day);
     final pickedDate = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(1900),
-        lastDate: DateTime(2100));
+        initialDate: DateTime(now.year - 25, now.month, now.day),
+        firstDate: DateTime(now.year - 100, now.month, now.day),
+        lastDate: latestBirthDate);
     if (pickedDate != null) {
       String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
       setState(() {

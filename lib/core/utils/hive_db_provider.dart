@@ -34,6 +34,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const dailyHabitLogBoxName = 'DailyHabitLogBox';
   static const monetizationBoxName = 'MonetizationBox';
   static const professionalPlanBoxName = 'ProfessionalPlanBox';
+  static const productSearchCacheBoxName = 'ProductSearchCacheBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -46,6 +47,7 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<DailyHabitLogDBO> dailyHabitLogBox;
   late Box<dynamic> monetizationBox;
   late Box<dynamic> professionalPlanBox;
+  late Box<dynamic> productSearchCacheBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
@@ -93,6 +95,8 @@ class HiveDBProvider extends ChangeNotifier {
         await _openEncryptedBox<dynamic>(monetizationBoxName, encryptionCypher);
     professionalPlanBox = await _openEncryptedBox<dynamic>(
         professionalPlanBoxName, encryptionCypher);
+    productSearchCacheBox = await _openEncryptedBox<dynamic>(
+        productSearchCacheBoxName, encryptionCypher);
   }
 
   Future<Box<T>> _openEncryptedBox<T>(
@@ -107,6 +111,21 @@ class HiveDBProvider extends ChangeNotifier {
     } catch (error) {
       throw HiveError('Failed to open $boxName: $error');
     }
+  }
+
+  Future<void> clearAllData() async {
+    await configBox.clear();
+    await intakeBox.clear();
+    await userActivityBox.clear();
+    await userBox.clear();
+    await trackedDayBox.clear();
+    await recipeBox.clear();
+    await interpretationDraftBox.clear();
+    await bodyMeasurementBox.clear();
+    await dailyHabitLogBox.clear();
+    await monetizationBox.clear();
+    await professionalPlanBox.clear();
+    await productSearchCacheBox.clear();
   }
 
   static generateNewHiveEncryptionKey() => Hive.generateSecureKey();

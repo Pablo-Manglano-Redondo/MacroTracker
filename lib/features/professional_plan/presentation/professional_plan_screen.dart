@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
@@ -28,6 +29,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   ProfessionalConnectionEntity? _connection;
   ProfessionalInvitePreviewEntity? _invitePreview;
   bool _loading = true;
+  bool _protectingAccount = false;
   bool _handledRouteArguments = false;
   String? _error;
 
@@ -89,6 +91,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                     codeController: _codeController,
                     invitePreview: _invitePreview,
                     error: _error,
+                    isBusy: _protectingAccount,
                     onPreviewInvite: _previewInvite,
                     onAcceptInvite: _acceptInvite,
                   ),
@@ -169,6 +172,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   }
 
   Future<void> _acceptInvite() async {
+    final accountReady = await _ensureProtectedAccountForConnection();
+    if (!accountReady) {
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -196,6 +204,89 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<bool> _ensureProtectedAccountForConnection() async {
+    try {
+      final accountService = locator<CloudAccountService>();
+      final status = await accountService.getStatus();
+      if (status.isProtected) {
+        return true;
+      }
+
+      final shouldProtect = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(_copy(
+            context,
+            es: 'Guarda tu cuenta',
+            en: 'Protect your account',
+          )),
+          content: Text(_copy(
+            context,
+            es: 'Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Asi podras recuperar la cuenta y mantener el consentimiento si cambias de movil. Esto no activa Google Drive.',
+            en: 'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.',
+          )),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(_copy(context, es: 'Cancelar', en: 'Cancel')),
+            ),
+            FilledButton.icon(
+              onPressed: () => Navigator.of(context).pop(true),
+              icon: const Icon(Icons.g_mobiledata_outlined),
+              label: Text(_copy(
+                context,
+                es: 'Guardar con Google',
+                en: 'Link Google',
+              )),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldProtect != true) {
+        return false;
+      }
+      if (!mounted) {
+        return false;
+      }
+
+      setState(() {
+        _protectingAccount = true;
+        _error = null;
+      });
+      final opened = await accountService.protectWithGoogle();
+      if (!mounted) {
+        return false;
+      }
+      setState(() => _protectingAccount = false);
+      _showSnackBar(_copy(
+        context,
+        es: opened
+            ? 'Completa Google y vuelve para aceptar la invitacion.'
+            : 'No se pudo abrir Google.',
+        en: opened
+            ? 'Complete Google and return to accept the invite.'
+            : 'Could not open Google.',
+      ));
+      return false;
+    } catch (error) {
+      if (!mounted) {
+        return false;
+      }
+      setState(() {
+        _protectingAccount = false;
+        _error = _friendlyError(context, error);
+      });
+      return false;
+    }
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 
   Future<void> _disconnect() async {
@@ -246,6 +337,7 @@ class _InviteEntryView extends StatelessWidget {
   final TextEditingController codeController;
   final ProfessionalInvitePreviewEntity? invitePreview;
   final String? error;
+  final bool isBusy;
   final VoidCallback onPreviewInvite;
   final VoidCallback onAcceptInvite;
 
@@ -253,6 +345,7 @@ class _InviteEntryView extends StatelessWidget {
     required this.codeController,
     required this.invitePreview,
     required this.error,
+    required this.isBusy,
     required this.onPreviewInvite,
     required this.onAcceptInvite,
   });
@@ -289,7 +382,7 @@ class _InviteEntryView extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
-          onPressed: onPreviewInvite,
+          onPressed: isBusy ? null : onPreviewInvite,
           icon: const Icon(Icons.search_outlined),
           label: Text(
               _copy(context, es: 'Revisar invitacion', en: 'Review invite')),
@@ -302,6 +395,7 @@ class _InviteEntryView extends StatelessWidget {
           const SizedBox(height: 18),
           _ConsentCard(
             invitePreview: invitePreview!,
+            isBusy: isBusy,
             onAcceptInvite: onAcceptInvite,
           ),
         ],
@@ -312,10 +406,12 @@ class _InviteEntryView extends StatelessWidget {
 
 class _ConsentCard extends StatelessWidget {
   final ProfessionalInvitePreviewEntity invitePreview;
+  final bool isBusy;
   final VoidCallback onAcceptInvite;
 
   const _ConsentCard({
     required this.invitePreview,
+    required this.isBusy,
     required this.onAcceptInvite,
   });
 
@@ -357,12 +453,18 @@ class _ConsentCard extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             FilledButton.icon(
-              onPressed: onAcceptInvite,
-              icon: const Icon(Icons.check_circle_outline),
+              onPressed: isBusy ? null : onAcceptInvite,
+              icon: isBusy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_circle_outline),
               label: Text(_copy(
                 context,
-                es: 'Aceptar y conectar',
-                en: 'Accept and connect',
+                es: isBusy ? 'Abriendo Google' : 'Aceptar y conectar',
+                en: isBusy ? 'Opening Google' : 'Accept and connect',
               )),
             ),
           ],

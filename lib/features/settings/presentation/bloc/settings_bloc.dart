@@ -14,6 +14,10 @@ import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/hive_db_provider.dart';
+import 'package:macrotracker/core/utils/secure_app_storage_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 part 'settings_event.dart';
 
@@ -65,6 +69,23 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           mealReminderLunchMinutes: userConfig.mealReminderLunchMinutes,
           mealReminderAfternoonMinutes: userConfig.mealReminderAfternoonMinutes,
           mealReminderEveningMinutes: userConfig.mealReminderEveningMinutes));
+    });
+
+    on<DeleteAccountEvent>((event, emit) async {
+      emit(SettingsLoadingState());
+      try {
+        // 1. Clear all Hive data
+        await locator<HiveDBProvider>().clearAllData();
+
+        // 2. Wipe secure storage (including Hive encryption keys)
+        await SecureAppStorageProvider.secureAppStorage.deleteAll();
+
+        // 3. Sign out of Supabase
+        await locator<SupabaseClient>().auth.signOut();
+      } catch (e, stackTrace) {
+        log.severe('Error deleting account and data', e, stackTrace);
+      }
+      emit(SettingsAccountDeletedState());
     });
   }
 

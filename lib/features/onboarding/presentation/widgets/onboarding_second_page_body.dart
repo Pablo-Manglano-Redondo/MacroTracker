@@ -161,17 +161,26 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
 
   String? validateHeight(String? value) {
     if (value == null) return S.of(context).onboardingWrongHeightLabel;
+    final parsedValue = double.tryParse(value.replaceAll(',', '.'));
 
     if (_isImperialSelected) {
       // Regex for feet and inches
-      if (value.isEmpty || !RegExp(r'^[0-9]+([.,][0-9])?$').hasMatch(value)) {
+      if (value.isEmpty ||
+          !RegExp(r'^[0-9]+([.,][0-9])?$').hasMatch(value) ||
+          parsedValue == null ||
+          parsedValue < 2.7 ||
+          parsedValue > 8.2) {
         return S.of(context).onboardingWrongHeightLabel;
       } else {
         return null;
       }
     } else {
       // Regex for cm
-      if (value.isEmpty || !RegExp(r'^[0-9]+$').hasMatch(value)) {
+      if (value.isEmpty ||
+          !RegExp(r'^[0-9]+$').hasMatch(value) ||
+          parsedValue == null ||
+          parsedValue < 80 ||
+          parsedValue > 250) {
         return S.of(context).onboardingWrongHeightLabel;
       } else {
         return null;
@@ -181,8 +190,15 @@ class _OnboardingSecondPageBodyState extends State<OnboardingSecondPageBody> {
 
   String? validateWeight(String? value) {
     if (value == null) return S.of(context).onboardingWrongWeightLabel;
-    if (value.isEmpty || !RegExp(r'^[0-9]').hasMatch(value)) {
-      return S.of(context).onboardingWrongHeightLabel;
+    final parsedValue = double.tryParse(value);
+    final minWeight = _isImperialSelected ? 55 : 25;
+    final maxWeight = _isImperialSelected ? 770 : 350;
+    if (value.isEmpty ||
+        !RegExp(r'^[0-9]+$').hasMatch(value) ||
+        parsedValue == null ||
+        parsedValue < minWeight ||
+        parsedValue > maxWeight) {
+      return S.of(context).onboardingWrongWeightLabel;
     } else {
       return null;
     }

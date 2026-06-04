@@ -67,3 +67,8 @@ class SettingsLoadedState extends SettingsState {
         mealReminderEveningMinutes,
       ];
 }
+
+class SettingsAccountDeletedState extends SettingsState {
+  @override
+  List<Object?> get props => [];
+}

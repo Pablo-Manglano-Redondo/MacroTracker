@@ -66,3 +66,6 @@ result
 
 # FVM Version Cache
 .fvm/
+
+# Sentry Config File
+sentry.properties

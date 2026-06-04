@@ -18,4 +18,9 @@ class SearchProductsUseCase {
         await _productsRepository.getSupabaseFDCFoodsByString(searchString);
     return foods;
   }
+
+  Future<List<MealEntity>> searchOfflineCache(String searchString) async {
+    final foods = await _productsRepository.searchOfflineCache(searchString);
+    return foods;
+  }
 }

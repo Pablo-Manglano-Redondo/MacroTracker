@@ -95,8 +95,8 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                                 const SizedBox(height: 6),
                                 Text(
                                   _isEs(context)
-                                      ? 'Crea un ZIP cifrado de tus datos y lo guarda en tu propio Drive. En Android puedes dejar una copia diaria en segundo plano.'
-                                      : 'Creates an encrypted ZIP of your data and stores it in your own Drive. On Android you can keep a daily background copy running.',
+                                      ? 'Crea un ZIP cifrado de tus datos y lo guarda en tu propio Drive. Es independiente de la cuenta cloud de MacroTracker.'
+                                      : 'Creates an encrypted ZIP of your data and stores it in your own Drive. This is separate from your MacroTracker cloud account.',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -154,7 +154,7 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                               onPressed: _runningAction ? null : _signIn,
                               icon: const Icon(Icons.login_outlined),
                               label: Text(
-                                _isEs(context) ? 'Iniciar sesion' : 'Sign in',
+                                _isEs(context) ? 'Conectar Drive' : 'Connect Drive',
                               ),
                             ),
                           const SizedBox(width: 12),
@@ -210,9 +210,9 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
       await _backupScheduler.syncFromConfig(true);
       await _refreshStatus();
       _showSnackBar(
-        isSpanish 
-            ? 'Google Drive conectado y backup diario activado.' 
-            : 'Google Drive connected and daily backup enabled.',
+        isSpanish
+            ? 'Google Drive conectado. Esto no cambia tu cuenta cloud.'
+            : 'Google Drive connected. This does not change your cloud account.',
       );
     });
   }
@@ -335,7 +335,7 @@ class _ConnectionPanel extends StatelessWidget {
               Expanded(
                 child: Text(
                   signedIn
-                      ? (isEs ? 'Cuenta conectada' : 'Connected account')
+                      ? (isEs ? 'Cuenta de Drive conectada' : 'Drive account connected')
                       : (isEs ? 'Sin conectar' : 'Not connected'),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
@@ -565,8 +565,8 @@ class _AutomationPanel extends StatelessWidget {
                               ? 'Android programara una copia al día cuando el sistema permita ejecutar trabajo en segundo plano.'
                               : 'Android will schedule one backup per day when the system allows background work to run.')
                           : (isEs
-                              ? 'Conecta primero tu cuenta de Google para activar el backup diario.'
-                              : 'Connect your Google account first to enable daily backups.'),
+                              ? 'Conecta primero Google Drive para activar el backup diario.'
+                              : 'Connect Google Drive first to enable daily backups.'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

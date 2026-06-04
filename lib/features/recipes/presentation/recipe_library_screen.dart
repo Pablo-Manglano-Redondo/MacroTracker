@@ -193,63 +193,115 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
 
   Widget _buildRecipeTile(RecipeEntity recipe) {
     final category = RecipeSaveCategoryEntityX.fromRecipe(recipe);
-    return ListTile(
-      title: Text(recipe.name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${S.of(context).recipeLibraryIngredientsCount(recipe.ingredients.length)} | ${S.of(context).recipeLibraryServingsCount(recipe.defaultServings % 1 == 0 ? recipe.defaultServings.toInt() : recipe.defaultServings)}',
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, left: 16, right: 16),
+      child: Card(
+        elevation: 2,
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.08),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.5),
           ),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _RecipeMetaChip(
-                icon: _filterIcon(category),
-                label: _categoryLabel(category),
-              ),
-              if (recipe.pinned)
-                _RecipeMetaChip(
-                  icon: Icons.push_pin_outlined,
-                  label: _isEs(context) ? 'Fijada' : 'Pinned',
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+        ),
+        child: InkWell(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          onTap: () => _showAddRecipeDialog(recipe),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: isDark ? 0.12 : 0.4),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _filterIcon(category),
+                    color: colorScheme.primary,
+                  ),
                 ),
-              if (recipe.timesUsed > 0)
-                _RecipeMetaChip(
-                  icon: Icons.repeat_outlined,
-                  label: _isEs(context)
-                      ? '${recipe.timesUsed} usos'
-                      : '${recipe.timesUsed} uses',
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        recipe.name,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${S.of(context).recipeLibraryIngredientsCount(recipe.ingredients.length)} | ${S.of(context).recipeLibraryServingsCount(recipe.defaultServings % 1 == 0 ? recipe.defaultServings.toInt() : recipe.defaultServings)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _RecipeMetaChip(
+                            icon: _filterIcon(category),
+                            label: _categoryLabel(category),
+                          ),
+                          if (recipe.pinned)
+                            _RecipeMetaChip(
+                              icon: Icons.push_pin_outlined,
+                              label: _isEs(context) ? 'Fijada' : 'Pinned',
+                            ),
+                          if (recipe.timesUsed > 0)
+                            _RecipeMetaChip(
+                              icon: Icons.repeat_outlined,
+                              label: _isEs(context)
+                                  ? '${recipe.timesUsed} usos'
+                                  : '${recipe.timesUsed} uses',
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-            ],
+                const SizedBox(width: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      onPressed: () => _togglePinned(recipe),
+                      icon: Icon(
+                        recipe.pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                        size: 20,
+                        color: recipe.pinned ? colorScheme.primary : colorScheme.onSurfaceVariant,
+                      ),
+                      tooltip: recipe.pinned
+                          ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
+                          : (_isEs(context) ? 'Fijar' : 'Pin'),
+                    ),
+                    IconButton(
+                      onPressed: () => _showRecipeActions(recipe),
+                      icon: Icon(
+                        Icons.more_horiz,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      tooltip: _isEs(context) ? 'Acciones' : 'Actions',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-      trailing: SizedBox(
-        width: 88,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            IconButton(
-              onPressed: () => _togglePinned(recipe),
-              icon: Icon(
-                recipe.pinned ? Icons.push_pin : Icons.push_pin_outlined,
-              ),
-              tooltip: recipe.pinned
-                  ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
-                  : (_isEs(context) ? 'Fijar' : 'Pin'),
-            ),
-            IconButton(
-              onPressed: () => _showRecipeActions(recipe),
-              icon: const Icon(Icons.more_horiz),
-              tooltip: _isEs(context) ? 'Acciones' : 'Actions',
-            ),
-          ],
         ),
       ),
-      onTap: () => _showAddRecipeDialog(recipe),
     );
   }
 
@@ -257,14 +309,73 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     final amountText = preset.amount.toStringAsFixed(
       preset.amount % 1 == 0 ? 0 : 1,
     );
-    return ListTile(
-      title: Text(preset.title),
-      subtitle: Text(
-        '$amountText ${preset.unit} | ${_frequentUses(context, preset.uses)}',
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10, left: 16, right: 16),
+      child: Card(
+        elevation: 2,
+        shadowColor: colorScheme.shadow.withValues(alpha: 0.08),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.5),
+          ),
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+        ),
+        child: InkWell(
+          borderRadius: const BorderRadius.all(Radius.circular(16)),
+          onTap: () => _logFrequentPreset(preset),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer.withValues(alpha: isDark ? 0.12 : 0.4),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.history_outlined,
+                    color: colorScheme.secondary,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        preset.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$amountText ${preset.unit} | ${_frequentUses(context, preset.uses)}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: colorScheme.primary.withValues(alpha: 0.7),
+                ),
+                const SizedBox(width: 4),
+              ],
+            ),
+          ),
+        ),
       ),
-      leading: const Icon(Icons.history_outlined),
-      trailing: const Icon(Icons.add_circle_outline),
-      onTap: () => _logFrequentPreset(preset),
     );
   }
 

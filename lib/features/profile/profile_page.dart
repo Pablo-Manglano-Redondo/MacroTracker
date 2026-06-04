@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
@@ -146,7 +147,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       onSelected: (action) {
                         switch (action) {
                           case _ProfilePhotoAction.change:
-                            _showSetProfilePhotoDialog(context, user);
+                            _showSetProfilePhotoDialog(user);
                             break;
                           case _ProfilePhotoAction.remove:
                             _removeProfilePhoto(user);
@@ -339,8 +340,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _showSetProfilePhotoDialog(
-      BuildContext context, UserEntity userEntity) async {
+  Future<void> _showSetProfilePhotoDialog(UserEntity userEntity) async {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.image,
       allowMultiple: false,
@@ -352,7 +352,41 @@ class _ProfilePageState extends State<ProfilePage> {
     if (path == null || path.trim().isEmpty) {
       return;
     }
-    userEntity.profileImagePath = path;
+
+    if (!mounted) return;
+    final colorScheme = Theme.of(context).colorScheme;
+    final croppedFile = await ImageCropper().cropImage(
+      sourcePath: path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: S.of(context).profileChangePhoto,
+          toolbarColor: colorScheme.surfaceContainer,
+          toolbarWidgetColor: colorScheme.onSurface,
+          activeControlsWidgetColor: colorScheme.primary,
+          cropFrameColor: colorScheme.primary,
+          cropGridColor: colorScheme.outline,
+          cropFrameStrokeWidth: 3,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+          cropStyle: CropStyle.circle,
+        ),
+        IOSUiSettings(
+          title: S.of(context).profileChangePhoto,
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+          doneButtonTitle: S.of(context).buttonSaveLabel,
+          cancelButtonTitle: S.of(context).dialogCancelLabel,
+          cropStyle: CropStyle.circle,
+        ),
+      ],
+      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+    );
+
+    if (croppedFile == null) {
+      return;
+    }
+
+    userEntity.profileImagePath = croppedFile.path;
     _profileBloc.updateUser(userEntity);
   }
 
@@ -441,18 +475,19 @@ class _ProfileAvatar extends StatelessWidget {
           ),
         ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: hasImage
-          ? Image.file(
-              File(path),
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              filterQuality: FilterQuality.medium,
-              errorBuilder: (context, error, stackTrace) {
-                return const _ProfileAvatarPlaceholder();
-              },
-            )
-          : const _ProfileAvatarPlaceholder(),
+      child: ClipOval(
+        child: hasImage
+            ? Image.file(
+                File(path),
+                fit: BoxFit.cover,
+                gaplessPlayback: true,
+                filterQuality: FilterQuality.medium,
+                errorBuilder: (context, error, stackTrace) {
+                  return const _ProfileAvatarPlaceholder();
+                },
+              )
+            : const _ProfileAvatarPlaceholder(),
+      ),
     );
   }
 }

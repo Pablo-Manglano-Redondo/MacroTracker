@@ -1,5 +1,21 @@
 project_id = "macrotracker"
 
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["macrotracker://login-callback"]
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.email]
+enable_confirmations = true
+max_frequency = "1m0s"
+otp_length = 8
+
+[storage.vector]
+enabled = false
+
 [functions.meal-interpretations-text]
 verify_jwt = false
 

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -23,12 +24,14 @@ import 'package:macrotracker/features/settings/presentation/widgets/drive_backup
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/referral_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -52,6 +55,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _referralCode;
   bool _hasRedeemedCode = false;
   bool _isRedeeming = false;
+  CloudAccountStatus? _cloudAccountStatus;
+  bool _isProtectingAccount = false;
+  StreamSubscription<AuthState>? _authSubscription;
   final _redeemController = TextEditingController();
 
   @override
@@ -61,16 +67,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _homeBloc = locator<HomeBloc>();
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
+    _authSubscription =
+        locator<SupabaseClient>().auth.onAuthStateChange.listen((_) {
+      _loadCloudAccountStatus();
+    });
     if (_supportsHealthIntegration) {
       _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
     }
     _refreshPlanStatus();
     _loadReferralInfo();
+    _loadCloudAccountStatus();
     super.initState();
   }
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _redeemController.dispose();
     super.dispose();
   }
@@ -86,14 +98,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _loadCloudAccountStatus() async {
+    try {
+      final status = await locator<CloudAccountService>().getStatus();
+      if (!mounted) return;
+      setState(() => _cloudAccountStatus = status);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _cloudAccountStatus = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).settingsLabel),
       ),
-      body: BlocBuilder<SettingsBloc, SettingsState>(
+      body: BlocConsumer<SettingsBloc, SettingsState>(
         bloc: _settingsBloc,
+        listener: (context, state) {
+          if (state is SettingsAccountDeletedState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEs(context)
+                      ? 'Cuenta y datos eliminados con éxito.'
+                      : 'Account and data successfully deleted.',
+                ),
+              ),
+            );
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              NavigationOptions.onboardingRoute,
+              (route) => false,
+            );
+          }
+        },
         builder: (context, state) {
           if (state is SettingsInitial) {
             _settingsBloc.add(LoadSettingsEvent());
@@ -106,6 +146,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildPlanSection(context),
                 const SizedBox(height: 18),
                 _buildReferralSection(context),
+                const SizedBox(height: 18),
+                _buildCloudAccountSection(context),
                 const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context) ? 'Seguimiento' : 'Tracking',
@@ -281,6 +323,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         leading: const Icon(Icons.description_outlined),
                         title: Text(S.of(context).settingsDisclaimerLabel),
                         onTap: () => _showDisclaimerDialog(context),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Colors.red.withValues(alpha: 0.35),
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.red.withValues(alpha: 0.04),
+                          ),
+                          child: ListTile(
+                            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+                            title: Text(
+                              _isEs(context) ? 'Eliminar cuenta y datos' : 'Delete account and data',
+                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              _isEs(context)
+                                  ? 'Borra permanentemente tu perfil y registros de este dispositivo y de la nube.'
+                                  : 'Permanently delete your profile and logs from this device and the cloud.',
+                            ),
+                            onTap: () => _confirmDeleteAccount(context),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -1494,6 +1562,140 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildCloudAccountSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEs = _isEs(context);
+    final status = _cloudAccountStatus;
+    final isProtected = status?.isProtected == true;
+
+    return _SettingsSection(
+      title: isEs ? 'Cuenta cloud' : 'Cloud account',
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color:
+                        (isProtected ? colorScheme.primary : colorScheme.tertiary)
+                            .withValues(alpha: 0.12),
+                  ),
+                  child: Icon(
+                    isProtected
+                        ? Icons.verified_user_outlined
+                        : Icons.shield_outlined,
+                    color: isProtected
+                        ? colorScheme.primary
+                        : colorScheme.tertiary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isProtected
+                            ? (isEs ? 'Cuenta protegida' : 'Account protected')
+                            : (isEs
+                                ? 'Uso sin registro'
+                                : 'Using without sign-up'),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isProtected
+                            ? (status?.email?.isNotEmpty == true
+                                ? status!.email!
+                                : (isEs
+                                    ? 'Identidad vinculada'
+                                    : 'Linked identity'))
+                            : (isEs
+                                ? 'Puedes seguir usando la app. Vincula Google para recuperar tu cuenta si cambias de movil y para conexiones profesionales. Esto no activa Google Drive.'
+                                : 'You can keep using the app. Link Google to recover your account on a new phone and for coach connections. This does not enable Google Drive.'),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (!isProtected)
+              FilledButton.icon(
+                onPressed: _isProtectingAccount
+                    ? null
+                    : () => _protectCloudAccount(context),
+                icon: _isProtectingAccount
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.g_mobiledata_outlined),
+                label: Text(isEs
+                    ? 'Guardar cuenta cloud con Google'
+                    : 'Protect cloud account with Google'),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _loadCloudAccountStatus,
+                icon: const Icon(Icons.refresh_outlined),
+                label: Text(isEs ? 'Actualizar estado' : 'Refresh status'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _protectCloudAccount(BuildContext context) async {
+    setState(() => _isProtectingAccount = true);
+    try {
+      final opened = await locator<CloudAccountService>().protectWithGoogle();
+      if (!mounted) return;
+      setState(() => _isProtectingAccount = false);
+      await _loadCloudAccountStatus();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(opened
+              ? (_isEs(context)
+                  ? 'Completa Google y vuelve a MacroTracker.'
+                  : 'Complete Google and return to MacroTracker.')
+              : (_isEs(context)
+                  ? 'No se pudo abrir Google.'
+                  : 'Could not open Google.')),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isProtectingAccount = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_isEs(context)
+              ? 'No se pudo iniciar la vinculacion con Google.'
+              : 'Could not start Google linking.'),
+        ),
+      );
+    }
+  }
+
   Future<void> _redeemFriendCode() async {
     final code = _redeemController.text.trim();
     if (code.isEmpty) return;
@@ -1587,6 +1789,79 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 : 'No active purchases found.')),
       ),
     );
+  }
+
+  void _confirmDeleteAccount(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final isEs = _isEs(context);
+        final targetText = isEs ? 'ELIMINAR' : 'DELETE';
+        String typedText = '';
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final isValid = typedText.trim().toUpperCase() == targetText;
+
+            return AlertDialog(
+              title: Text(
+                isEs ? '¿Eliminar cuenta y datos?' : 'Delete account and data?',
+                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEs
+                        ? 'Esta acción es irreversible y borrará para siempre todos tus registros de comidas, actividades, recetas, pesos y tu perfil de usuario.'
+                        : 'This action is irreversible and will permanently delete all your logged meals, activities, recipes, weight history, and user profile.',
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isEs
+                        ? 'Para confirmar, escribe "$targetText" en la casilla de abajo:'
+                        : 'To confirm, type "$targetText" in the box below:',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        typedText = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: targetText,
+                      border: const OutlineInputBorder(),
+                    ),
+                    textCapitalization: TextCapitalization.characters,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(isEs ? 'Cancelar' : 'Cancel'),
+                ),
+                FilledButton(
+                  onPressed: isValid ? () => Navigator.of(context).pop(true) : null,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isValid ? Colors.red : Colors.grey.shade400,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: Text(isEs ? 'Eliminar todo' : 'Delete all'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      _settingsBloc.add(DeleteAccountEvent());
+    }
   }
 }
 

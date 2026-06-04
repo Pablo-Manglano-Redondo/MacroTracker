@@ -16,3 +16,8 @@ class ScannerLoadProductEvent extends ScannerEvent {
   @override
   List<Object?> get props => [barcode];
 }
+
+class ScannerResetEvent extends ScannerEvent {
+  @override
+  List<Object?> get props => [];
+}

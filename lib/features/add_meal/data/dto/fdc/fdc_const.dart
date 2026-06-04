@@ -26,7 +26,6 @@ class FDCConst {
 
   static const fdcDefaultUnit = 'g/ml';
 
-  // TODO Make translation keys
   static const Map<int, String> measureUnits = {
     1000: "cup",
     1001: "tablespoon",

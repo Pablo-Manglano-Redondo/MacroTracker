@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -269,10 +269,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         _onboardingBloc.userSelection.acceptDataCollection;
     final usesImperialUnits = _onboardingBloc.userSelection.usesImperialUnits;
     if (userEntity != null) {
-      _onboardingBloc.saveOnboardingData(
-          context, userEntity, hasAcceptedDataCollection, usesImperialUnits);
+      await _onboardingBloc.saveOnboardingData(
+          userEntity, hasAcceptedDataCollection, usesImperialUnits);
       await locator<MonetizationService>().grantOnboardingBonus();
       await locator<ConversionAnalyticsService>().logOnboardingCompleted();
+      if (context.mounted) {
+        await _offerCloudAccountProtection(context);
+      }
       if (context.mounted) {
         Navigator.pushReplacementNamed(context, NavigationOptions.mainRoute);
       }
@@ -282,5 +285,78 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           SnackBar(content: Text(S.of(context).onboardingSaveUserError)));
       _scrollToPage(1);
     }
+  }
+
+  Future<void> _offerCloudAccountProtection(BuildContext context) async {
+    final shouldProtect = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(_copy(
+          context,
+          es: 'Guarda tu cuenta cloud',
+          en: 'Protect your cloud account',
+        )),
+        content: Text(_copy(
+          context,
+          es: 'MacroTracker ya esta listo sin registro. Si guardas tu cuenta con Google podras recuperarla al cambiar de movil y usar conexiones profesionales. Esto no activa Google Drive.',
+          en: 'MacroTracker is ready without sign-up. If you protect your account with Google, you can recover it on a new phone and use coach connections. This does not enable Google Drive.',
+        )),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(_copy(context, es: 'Ahora no', en: 'Not now')),
+          ),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(true),
+            icon: const Icon(Icons.g_mobiledata_outlined),
+            label: Text(_copy(context, es: 'Guardar con Google', en: 'Use Google')),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldProtect != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      final opened = await locator<CloudAccountService>().protectWithGoogle();
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(opened
+              ? _copy(
+                  context,
+                  es: 'Completa Google y vuelve a MacroTracker.',
+                  en: 'Complete Google and return to MacroTracker.',
+                )
+              : _copy(
+                  context,
+                  es: 'No se pudo abrir Google.',
+                  en: 'Could not open Google.',
+                )),
+        ),
+      );
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_copy(
+            context,
+            es: 'No se pudo iniciar la vinculacion con Google.',
+            en: 'Could not start Google linking.',
+          )),
+        ),
+      );
+    }
+  }
+
+  String _copy(BuildContext context, {required String es, required String en}) {
+    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
   }
 }

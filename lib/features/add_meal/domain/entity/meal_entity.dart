@@ -157,16 +157,15 @@ class MealEntity extends Equatable {
     } else if (value is int) {
       parsedValue = value.toDouble();
     } else if (value is String) {
-      value.replaceAll(RegExp("mg|g|kg|ml|cl|l| "), ""); // TODO extract
-      final doubleParsed =
-          double.tryParse(value) ?? int.tryParse(value)?.toDouble();
+      final cleanValue = value.replaceAll(
+          RegExp("mg|g|kg|ml|cl|l| ", caseSensitive: false), "");
+      final doubleParsed = double.tryParse(cleanValue) ??
+          int.tryParse(cleanValue)?.toDouble();
       parsedValue = doubleParsed;
     }
     return parsedValue;
   }
 
-  /// TODO extract correct unit
-  /// Unit can either be 100g or 100ml
   static String? _tryGetUnit(String? quantityString) {
     if (quantityString == null) return null;
 

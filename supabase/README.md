@@ -144,6 +144,39 @@ or
 $env:SUPABASE_ACCESS_TOKEN="your-access-token"
 ```
 
+## Mobile Account Linking
+
+The app starts with anonymous Supabase auth and lets users protect that same
+account with Google when they need recovery or a professional connection.
+
+Production setup:
+
+1. Enable anonymous sign-ins in Supabase Auth.
+2. Enable Google as a Supabase Auth provider.
+3. In Google Cloud, use a Web OAuth client for Supabase Auth and add this
+   authorized redirect URI:
+
+```text
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+4. In Supabase Auth URL configuration, allow this mobile redirect URL:
+
+```text
+macrotracker://login-callback
+```
+
+For the current production project this means:
+
+```text
+https://vjbhtlautynotigaicjt.supabase.co/auth/v1/callback
+macrotracker://login-callback
+```
+
+This Google identity is only for the MacroTracker cloud account. Google Drive
+backup uses `google_sign_in` with the Drive API and remains a separate consent
+flow because it needs the `drive.file` scope.
+
 ## Security Notes
 
 - `verify_jwt = false` is enabled because the mobile app currently calls these endpoints without user auth.

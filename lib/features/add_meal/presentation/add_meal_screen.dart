@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -40,13 +41,29 @@ class _AddMealScreenState extends State<AddMealScreen>
   late AddMealType _mealType;
 
   final ValueNotifier<String> _searchStringListener = ValueNotifier<String>("");
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     _productsBloc = locator<ProductsBloc>();
     _recentMealBloc = locator<RecentMealBloc>();
+    _searchStringListener.addListener(_onSearchStringChanged);
+    _tabController.addListener(_onTabChanged);
     super.initState();
+  }
+
+  void _onSearchStringChanged() {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+      _onSearchSubmit(_searchStringListener.value);
+    });
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      _onSearchSubmit(_searchStringListener.value);
+    }
   }
 
   @override
@@ -60,8 +77,11 @@ class _AddMealScreenState extends State<AddMealScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _searchStringListener.removeListener(_onSearchStringChanged);
     _searchStringListener.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -152,6 +172,59 @@ class _AddMealScreenState extends State<AddMealScreen>
                                         }))
                                 : NoResultsWidget.message(
                                     localizations.noResultsFound,
+                                  );
+                          } else if (state is ProductsOfflineState) {
+                            final isEs = Localizations.localeOf(context).languageCode == 'es';
+                            return state.cachedProducts.isNotEmpty
+                                ? Flexible(
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          margin: const EdgeInsets.only(bottom: 12),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.errorContainer.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Theme.of(context).colorScheme.error.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.wifi_off_outlined, color: Theme.of(context).colorScheme.error, size: 18),
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  isEs
+                                                      ? 'Sin conexión. Mostrando caché local.'
+                                                      : 'Offline. Showing cached results.',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.error,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: ListView.builder(
+                                              itemCount: state.cachedProducts.length,
+                                              itemBuilder: (context, index) {
+                                                return MealItemCard(
+                                                  day: _day,
+                                                  mealEntity: state.cachedProducts[index],
+                                                  addMealType: _mealType,
+                                                  usesImperialUnits: false,
+                                                );
+                                              }),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                : NoResultsWidget.message(
+                                    isEs
+                                        ? 'Sin conexión y sin resultados en caché.'
+                                        : 'Offline. No cached results found.',
                                   );
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(

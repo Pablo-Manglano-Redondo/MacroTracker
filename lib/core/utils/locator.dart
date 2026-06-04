@@ -32,6 +32,7 @@ import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/services/app_review_service.dart';
 import 'package:macrotracker/core/services/backup_nudge_service.dart';
+import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
@@ -124,6 +125,7 @@ Future<void> initLocator() async {
   final hiveDBProvider = HiveDBProvider();
   await hiveDBProvider
       .initHiveDB(await secureAppStorageProvider.getHiveEncryptionKey());
+  locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
 
   // Backend
   await Supabase.initialize(
@@ -131,6 +133,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
   locator.registerLazySingleton<SupabaseIdentityService>(
       () => SupabaseIdentityService(locator()));
+  locator.registerLazySingleton<CloudAccountService>(
+      () => CloudAccountService(locator(), locator()));
 
   // Cache manager
   locator.registerLazySingleton<CacheManager>(
@@ -392,7 +396,7 @@ Future<void> initLocator() async {
     () => BackupNudgeService(locator()),
   );
   locator.registerLazySingleton<ReferralService>(
-    () => ReferralService(locator(), locator(), locator()),
+    () => ReferralService(locator(), locator(), locator(), locator()),
   );
 
   await _initializeConfig(locator());

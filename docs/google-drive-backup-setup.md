@@ -1,6 +1,9 @@
 # Google Drive Backup Setup
 
 This project uses `google_sign_in` and the Google Drive API for manual backups.
+This is intentionally separate from Supabase Auth account linking. Supabase
+Google login protects the MacroTracker cloud account; Drive backup asks for the
+`drive.file` scope and stores encrypted ZIP files in the user's own Drive.
 
 ## Android
 
@@ -43,3 +46,24 @@ The build script forwards `GOOGLE_DRIVE_SERVER_CLIENT_ID` as a Flutter `--dart-d
   often still a configuration error, usually SHA or OAuth mismatch.
 - Google Drive backup dialog says configuration is missing:
   the app was built without `GOOGLE_DRIVE_SERVER_CLIENT_ID` on Android.
+
+## Relationship with Supabase Auth
+
+For production, keep these two Google OAuth flows configured in the same Google
+Cloud project but treat them as different permissions:
+
+- Supabase Auth Google provider:
+  - needs a Web OAuth client ID and secret in Supabase.
+  - Google Cloud authorized redirect URI:
+    `https://vjbhtlautynotigaicjt.supabase.co/auth/v1/callback`
+  - Supabase allowed mobile redirect URL:
+    `macrotracker://login-callback`
+  - should request only identity scopes such as email/profile.
+- Google Drive backup:
+  - needs Android/iOS OAuth clients for the app package or bundle ID.
+  - needs the Web client ID exposed as `GOOGLE_DRIVE_SERVER_CLIENT_ID`.
+  - requests `drive.file` only when the user connects Drive from backup
+    settings.
+
+Linking Google in Supabase does not grant Drive backup permission. Connecting
+Drive does not protect or recover the Supabase cloud account.

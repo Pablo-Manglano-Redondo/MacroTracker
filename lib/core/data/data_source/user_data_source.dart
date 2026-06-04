@@ -19,7 +19,6 @@ class UserDataSource {
 
   Future<bool> hasUserData() async => _userBox.containsKey(_userKey);
 
-  // TODO remove dummy data
   Future<UserDBO> getUserData() async {
     return _userBox.get(_userKey) ??
         UserDBO(

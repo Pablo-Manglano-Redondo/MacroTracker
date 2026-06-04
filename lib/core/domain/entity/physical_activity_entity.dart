@@ -595,5 +595,4 @@ enum PhysicalActivityTypeEntity {
   }
 }
 
-// TODO GROUP activities in effort categories (light, moderate, vigorous)
 enum PhysicalActivityEffort { light, moderate, vigorous }

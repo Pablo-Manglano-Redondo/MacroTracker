@@ -20,26 +20,26 @@ subprojects {
 }
 
 subprojects {
-    def configureAndroid = { proj ->
+    def configureProject = { proj ->
         if (proj.hasProperty("android")) {
             proj.android {
                 compileOptions {
                     sourceCompatibility JavaVersion.VERSION_17
                     targetCompatibility JavaVersion.VERSION_17
                 }
-                if (proj.android.extensions.findByName("kotlinOptions") != null) {
-                    kotlinOptions {
-                        jvmTarget = '17'
-                    }
-                }
+            }
+        }
+        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = '17'
             }
         }
     }
     if (project.state.executed) {
-        configureAndroid(project)
+        configureProject(project)
     } else {
         project.afterEvaluate {
-            configureAndroid(project)
+            configureProject(project)
         }
     }
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Manages the referral code lifecycle: creation, sharing, and redemption.
@@ -11,12 +12,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// in Supabase. When another user redeems that code, both users earn rewards.
 class ReferralService {
   final SupabaseClient _supabase;
+  final SupabaseIdentityService _identityService;
   final MonetizationService _monetizationService;
   final ConversionAnalyticsService _analyticsService;
   final _log = Logger('ReferralService');
 
   ReferralService(
     this._supabase,
+    this._identityService,
     this._monetizationService,
     this._analyticsService,
   );
@@ -26,16 +29,15 @@ class ReferralService {
   // ---------------------------------------------------------------------------
 
   /// Returns the user's referral code. Creates one if it doesn't exist.
-  /// Returns `null` if the user is not authenticated.
+  /// Creates an anonymous Supabase session when the app has no cloud identity.
   Future<String?> getOrCreateReferralCode() async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return null;
-
     // Check local cache first.
     final cached = _monetizationService.savedReferralCode;
     if (cached != null) return cached;
 
     try {
+      final userId = await _identityService.ensureUserSession();
+
       // Try to fetch existing code from Supabase.
       final response = await _supabase
           .from('referral_codes')
@@ -70,12 +72,9 @@ class ReferralService {
 
   /// Redeems a referral code. Returns the result of the redemption.
   Future<ReferralRedemptionResult> redeemCode(String code) async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) {
-      return ReferralRedemptionResult.notAuthenticated;
-    }
-
     try {
+      await _identityService.ensureUserSession();
+
       final response = await _supabase
           .rpc('redeem_referral_code', params: {'p_code': code});
 
@@ -109,9 +108,9 @@ class ReferralService {
 
   /// Checks if the current user has already redeemed any referral code.
   Future<bool> hasRedeemedAnyCode() async {
-    final userId = _supabase.auth.currentUser?.id;
-    if (userId == null) return false;
     try {
+      final userId = await _identityService.ensureUserSession();
+
       final response = await _supabase
           .from('referral_redemptions')
           .select('id')
@@ -132,6 +131,8 @@ class ReferralService {
   /// Returns the number of people who have redeemed the current user's code.
   Future<int> getReferralCount() async {
     try {
+      await _identityService.ensureUserSession();
+
       final count = await _supabase.rpc('get_referral_count');
       return (count as num?)?.toInt() ?? 0;
     } catch (e) {

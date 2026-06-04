@@ -159,13 +159,6 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..userCarbGoalPct = (json['userCarbGoalPct'] as num?)?.toDouble()
       ..userProteinGoalPct = (json['userProteinGoalPct'] as num?)?.toDouble()
       ..userFatGoalPct = (json['userFatGoalPct'] as num?)?.toDouble()
-      ..macroGoalMode = json['macroGoalMode'] as String?
-      ..userCarbGoalGramPerKg =
-          (json['userCarbGoalGramPerKg'] as num?)?.toDouble()
-      ..userProteinGoalGramPerKg =
-          (json['userProteinGoalGramPerKg'] as num?)?.toDouble()
-      ..userFatGoalGramPerKg =
-          (json['userFatGoalGramPerKg'] as num?)?.toDouble()
       ..aiEstimatedCostTotalUsd =
           (json['aiEstimatedCostTotalUsd'] as num?)?.toDouble()
       ..aiEstimatedCostTodayUsd =
@@ -197,7 +190,14 @@ ConfigDBO _$ConfigDBOFromJson(Map<String, dynamic> json) => ConfigDBO(
       ..googleDriveLastBackupSuccessAt =
           json['googleDriveLastBackupSuccessAt'] as String?
       ..googleDriveLastBackupError =
-          json['googleDriveLastBackupError'] as String?;
+          json['googleDriveLastBackupError'] as String?
+      ..macroGoalMode = json['macroGoalMode'] as String?
+      ..userCarbGoalGramPerKg =
+          (json['userCarbGoalGramPerKg'] as num?)?.toDouble()
+      ..userProteinGoalGramPerKg =
+          (json['userProteinGoalGramPerKg'] as num?)?.toDouble()
+      ..userFatGoalGramPerKg =
+          (json['userFatGoalGramPerKg'] as num?)?.toDouble();
 
 Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'hasAcceptedDisclaimer': instance.hasAcceptedDisclaimer,
@@ -209,10 +209,6 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'userCarbGoalPct': instance.userCarbGoalPct,
       'userProteinGoalPct': instance.userProteinGoalPct,
       'userFatGoalPct': instance.userFatGoalPct,
-      'macroGoalMode': instance.macroGoalMode,
-      'userCarbGoalGramPerKg': instance.userCarbGoalGramPerKg,
-      'userProteinGoalGramPerKg': instance.userProteinGoalGramPerKg,
-      'userFatGoalGramPerKg': instance.userFatGoalGramPerKg,
       'dailyFocus': instance.dailyFocus,
       'aiEstimatedCostTotalUsd': instance.aiEstimatedCostTotalUsd,
       'aiEstimatedCostTodayUsd': instance.aiEstimatedCostTodayUsd,
@@ -235,6 +231,10 @@ Map<String, dynamic> _$ConfigDBOToJson(ConfigDBO instance) => <String, dynamic>{
       'googleDriveLastBackupAttemptAt': instance.googleDriveLastBackupAttemptAt,
       'googleDriveLastBackupSuccessAt': instance.googleDriveLastBackupSuccessAt,
       'googleDriveLastBackupError': instance.googleDriveLastBackupError,
+      'macroGoalMode': instance.macroGoalMode,
+      'userCarbGoalGramPerKg': instance.userCarbGoalGramPerKg,
+      'userProteinGoalGramPerKg': instance.userProteinGoalGramPerKg,
+      'userFatGoalGramPerKg': instance.userFatGoalGramPerKg,
     };
 
 const _$AppThemeDBOEnumMap = {

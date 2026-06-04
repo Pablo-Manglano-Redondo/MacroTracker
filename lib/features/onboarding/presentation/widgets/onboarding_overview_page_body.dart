@@ -149,6 +149,28 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 20.0),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+              ),
+            ),
+            child: Text(
+              _copy(
+                context,
+                es: 'Puedes ajustar estos objetivos despues desde Perfil. Tus datos empiezan en este dispositivo; al terminar podras guardar una cuenta cloud opcional para recuperarla.',
+                en: 'You can adjust these targets later from Profile. Your data starts on this device; after this you can optionally protect a cloud account for recovery.',
+              ),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -208,5 +230,9 @@ class OnboardingOverviewPageBody extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _copy(BuildContext context, {required String es, required String en}) {
+    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
   }
 }

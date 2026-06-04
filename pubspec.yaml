@@ -89,6 +89,7 @@ dependencies:
   home_widget: ^0.9.1
   purchases_flutter: ^8.2.0
   in_app_review: ^2.0.9
+  image_cropper: ^12.2.1
 
 dev_dependencies:
   flutter_test:

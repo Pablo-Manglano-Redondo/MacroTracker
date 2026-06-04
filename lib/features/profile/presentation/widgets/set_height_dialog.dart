@@ -49,8 +49,10 @@ class SetHeightDialog extends StatelessWidget {
             child: Text(S.of(context).dialogCancelLabel)),
         TextButton(
             onPressed: () {
-              // TODO validate selected height
-              Navigator.pop(context, selectedHeight);
+              final validatedHeight = usesImperialUnits
+                  ? selectedHeight.clamp(1.5, 9.0)
+                  : selectedHeight.clamp(50.0, 300.0);
+              Navigator.pop(context, validatedHeight);
             },
             child: Text(S.of(context).dialogOKLabel))
       ],

@@ -2,6 +2,8 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+
+    id 'io.sentry.android.gradle' version '6.9.0'
 }
 
 if (file("google-services.json").exists()) {
@@ -78,4 +80,21 @@ flutter {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
     implementation "androidx.health.connect:connect-client:1.2.0-alpha02"
+}
+
+
+sentry {
+    org = "epsait"
+    projectName = "android"
+
+    includeSourceContext = true
+    autoUpload = true
+    autoUploadProguardMapping = true
+}
+
+// Copy sentry.properties from Flutter root directory (shared with iOS) at configuration time
+def rootSentryFile = rootProject.file("../sentry.properties")
+def localSentryFile = project.file("sentry.properties")
+if (rootSentryFile.exists()) {
+    localSentryFile.text = rootSentryFile.text
 }

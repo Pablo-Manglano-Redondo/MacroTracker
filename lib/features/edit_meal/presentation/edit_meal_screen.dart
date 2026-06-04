@@ -48,9 +48,18 @@ class _EditMealScreenState extends State<EditMealScreen> {
   // late List<DropdownMenuItem> _mealUnitDropdownItems;
   late List<ButtonSegment<String>> _mealUnitButtonSegment;
 
-  // TODO: Add base quantity and unit
   String baseQuantity = "100";
-  String baseQuantityUnit = " g/ml";
+  String get baseQuantityUnit {
+    final unit = selectedUnit ?? 'g/ml';
+    if (_usesImperialUnits) {
+      if (unit == 'g') return ' oz';
+      if (unit == 'ml') return ' fl.oz';
+    } else {
+      if (unit == 'g') return ' g';
+      if (unit == 'ml') return ' ml';
+    }
+    return ' g/ml';
+  }
 
   @override
   void initState() {
@@ -85,6 +94,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
     _fatTextController.text = _mealEntity.nutriments.fat100.toStringOrEmpty();
     _proteinTextController.text =
         _mealEntity.nutriments.proteins100.toStringOrEmpty();
+    _baseQuantityTextController.text = "100";
     selectedUnit = _switchButtonUnit(_mealEntity.mealUnit);
 
     // Convert meal size to imperial units if necessary

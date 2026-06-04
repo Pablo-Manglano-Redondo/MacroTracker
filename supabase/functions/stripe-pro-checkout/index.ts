@@ -2,12 +2,9 @@ import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
 import { normalizeProTier } from "../_shared/pro_billing.ts";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-  apiVersion: "2025-02-24.acacia",
-});
-
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const starterPriceId = Deno.env.get("STRIPE_PRO_STARTER_PRICE_ID") ?? "";
 const growthPriceId = Deno.env.get("STRIPE_PRO_GROWTH_PRICE_ID") ?? "";
 const studioPriceId = Deno.env.get("STRIPE_PRO_STUDIO_PRICE_ID") ?? "";
@@ -24,6 +21,10 @@ Deno.serve(async (request) => {
   }
   if (request.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
+  }
+
+  if (!stripeSecretKey) {
+    return json({ error: "Missing STRIPE_SECRET_KEY" }, 500);
   }
 
   const authHeader = request.headers.get("authorization");
@@ -55,6 +56,10 @@ Deno.serve(async (request) => {
   if (professionalError || !professional) {
     return json({ error: "Professional profile must be created first" }, 400);
   }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2025-02-24.acacia",
+  });
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
