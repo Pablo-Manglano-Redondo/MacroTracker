@@ -187,6 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
           macroHint: _focusHint(context, dailyFocus),
           focusLabel: dailyFocus.label,
           targets: currentTargets,
+          onReviewTargets: () => _showSetGoalDialog(context, user),
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
@@ -260,6 +261,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (selectedPalCategory != null) {
       userEntity.pal = selectedPalCategory;
       _profileBloc.updateUser(userEntity);
+      _showTargetsReviewSnackBar(userEntity);
     }
   }
 
@@ -292,6 +294,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       _profileBloc.updateUser(userEntity);
+      _showTargetsReviewSnackBar(userEntity);
     }
   }
 
@@ -312,6 +315,7 @@ class _ProfilePageState extends State<ProfilePage> {
         userEntity.weightKG = selectedWeight;
       }
       _profileBloc.updateUser(userEntity);
+      _showTargetsReviewSnackBar(userEntity);
     }
   }
 
@@ -337,6 +341,7 @@ class _ProfilePageState extends State<ProfilePage> {
       userEntity.gender = selectedGender;
 
       _profileBloc.updateUser(userEntity);
+      _showTargetsReviewSnackBar(userEntity);
     }
   }
 
@@ -444,6 +449,24 @@ class _ProfilePageState extends State<ProfilePage> {
       case DailyFocusEntity.rest:
         return S.of(context).profileFocusRest;
     }
+  }
+
+  void _showTargetsReviewSnackBar(UserEntity userEntity) {
+    if (!mounted) {
+      return;
+    }
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isEs
+            ? 'Objetivos recalculados. Puedes revisar la estrategia.'
+            : 'Targets recalculated. You can review the strategy.'),
+        action: SnackBarAction(
+          label: isEs ? 'Revisar' : 'Review',
+          onPressed: () => _showSetGoalDialog(context, userEntity),
+        ),
+      ),
+    );
   }
 }
 
@@ -673,6 +696,7 @@ class _CurrentTargetsCard extends StatelessWidget {
   final String macroHint;
   final String focusLabel;
   final GymTargetsEntity targets;
+  final VoidCallback onReviewTargets;
 
   const _CurrentTargetsCard({
     required this.goalLabel,
@@ -680,6 +704,7 @@ class _CurrentTargetsCard extends StatelessWidget {
     required this.macroHint,
     required this.focusLabel,
     required this.targets,
+    required this.onReviewTargets,
   });
 
   @override
@@ -801,10 +826,42 @@ class _CurrentTargetsCard extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  _copy(
+                    context,
+                    es: 'Calculado con edad, peso, altura, actividad y objetivo. Puedes editarlo despues.',
+                    en: 'Calculated from age, weight, height, activity, and goal. You can edit it later.',
+                  ),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton(
+                    onPressed: onReviewTargets,
+                    child: Text(_copy(
+                      context,
+                      es: 'Revisar objetivos',
+                      en: 'Review targets',
+                    )),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  String _copy(BuildContext context, {required String es, required String en}) {
+    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
   }
 }
 

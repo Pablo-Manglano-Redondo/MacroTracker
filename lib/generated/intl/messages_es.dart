@@ -560,7 +560,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Producto no encontrado"),
         "exportAction": MessageLookupByLibrary.simpleMessage("Exportar"),
         "exportImportDescription": MessageLookupByLibrary.simpleMessage(
-            "Puedes exportar los datos de la aplicación a un archivo zip e importarlos más tarde. Esto es útil si quieres hacer una copia de seguridad de tus datos o transferirlos a otro dispositivo.\n\nLa aplicación no utiliza ningún servicio en la nube para almacenar tus datos."),
+            "Exportar ZIP crea una copia local/manual que puedes importar mas tarde. MacroTracker es local-first; Cuenta cloud, Google Drive backup, IA y conexion profesional son funciones opcionales y separadas."),
         "exportImportErrorLabel": MessageLookupByLibrary.simpleMessage(
             "Error en la exportación / importación"),
         "exportImportLabel":

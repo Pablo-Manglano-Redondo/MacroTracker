@@ -429,21 +429,37 @@ class _ConsentCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
             ),
+            const SizedBox(height: 14),
+            _ConsentGroup(
+              title: _copy(
+                context,
+                es: 'Que se comparte',
+                en: 'What is shared',
+              ),
+              rows: [
+                _copy(
+                  context,
+                  es: 'Compartiras kcal, macros, dias registrados y adherencia agregada.',
+                  en: 'You will share calories, macros, logged days, and aggregate adherence.',
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
-            _ConsentRow(
-              text: _copy(
+            _ConsentGroup(
+              title: _copy(
                 context,
-                es: 'Compartiras kcal, macros, dias registrados y adherencia agregada.',
-                en: 'You will share calories, macros, logged days, and aggregate adherence.',
+                es: 'Que no se comparte',
+                en: 'What is not shared',
               ),
+              rows: [
+                _copy(
+                  context,
+                  es: 'No se comparte el diario bruto ni comidas completas en esta version.',
+                  en: 'Raw diary entries and full meals are not shared in this version.',
+                ),
+              ],
             ),
-            _ConsentRow(
-              text: _copy(
-                context,
-                es: 'No se comparte el diario bruto ni comidas completas en esta version.',
-                en: 'Raw diary entries and full meals are not shared in this version.',
-              ),
-            ),
+            const SizedBox(height: 10),
             _ConsentRow(
               text: _copy(
                 context,
@@ -906,6 +922,43 @@ class _InfoCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ConsentGroup extends StatelessWidget {
+  final String title;
+  final List<String> rows;
+
+  const _ConsentGroup({
+    required this.title,
+    required this.rows,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 8),
+          for (final row in rows) _ConsentRow(text: row),
+        ],
       ),
     );
   }

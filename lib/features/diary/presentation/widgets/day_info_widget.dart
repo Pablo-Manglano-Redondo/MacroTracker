@@ -6,6 +6,7 @@ import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
+import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -226,7 +227,6 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
   Widget build(BuildContext context) {
     super.build(context);
     final trackedDay = widget.trackedDayEntity;
-    final colorScheme = Theme.of(context).colorScheme;
     final mealCount = widget.breakfastIntake.length +
         widget.lunchIntake.length +
         widget.dinnerIntake.length +
@@ -249,35 +249,10 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
             widget.lunchIntake.isEmpty &&
             widget.dinnerIntake.isEmpty &&
             widget.snackIntake.isEmpty)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      color: colorScheme.surfaceContainerHigh,
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.calendar_today_outlined,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      S.of(context).nothingAddedLabel,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
+          _DiaryEmptyDayCard(
+            onAddMeal: () => MealEntryActionSheet.show(
+              context,
+              day: widget.selectedDay,
             ),
           )
         else ...[
@@ -680,6 +655,101 @@ class _DaySummaryCard extends StatelessWidget {
 
     return S.of(context).diaryMacrosSummary(carbsTracked, carbsGoal, fatTracked,
         fatGoal, proteinTracked, proteinGoal);
+  }
+}
+
+class _DiaryEmptyDayCard extends StatelessWidget {
+  final VoidCallback onAddMeal;
+
+  const _DiaryEmptyDayCard({
+    required this.onAddMeal,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: colorScheme.surfaceContainerHigh,
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.calendar_today_outlined,
+                    color: colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEs ? 'Dia sin registros' : 'No logs for this day',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isEs
+                            ? 'Todavia no hay comidas ni actividad en este dia.'
+                            : 'There are no meals or activities on this day yet.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                FilledButton.icon(
+                  onPressed: onAddMeal,
+                  icon: const Icon(Icons.restaurant_outlined),
+                  label: Text(isEs ? 'Anadir comida' : 'Add meal'),
+                ),
+                IconButton.filledTonal(
+                  onPressed: onAddMeal,
+                  icon: const Icon(Icons.qr_code_scanner_outlined),
+                  tooltip: isEs ? 'Escanear' : 'Scan',
+                ),
+                IconButton.filledTonal(
+                  onPressed: onAddMeal,
+                  icon: const Icon(Icons.edit_note_outlined),
+                  tooltip: isEs ? 'IA texto' : 'AI text',
+                ),
+                IconButton.filledTonal(
+                  onPressed: onAddMeal,
+                  icon: const Icon(Icons.add_a_photo_outlined),
+                  tooltip: isEs ? 'IA foto' : 'AI photo',
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

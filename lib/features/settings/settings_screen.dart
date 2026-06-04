@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
+import 'package:macrotracker/core/presentation/widgets/data_safety_status.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -56,7 +57,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _hasRedeemedCode = false;
   bool _isRedeeming = false;
   CloudAccountStatus? _cloudAccountStatus;
-  bool _isProtectingAccount = false;
   StreamSubscription<AuthState>? _authSubscription;
   final _redeemController = TextEditingController();
 
@@ -147,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 18),
                 _buildReferralSection(context),
                 const SizedBox(height: 18),
-                _buildCloudAccountSection(context),
+                _buildAccountSecuritySection(context, state),
                 const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context) ? 'Seguimiento' : 'Tracking',
@@ -263,97 +263,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 18),
                 ],
-                _SettingsSection(
-                  title: _isEs(context)
-                      ? 'Datos y privacidad'
-                      : 'Data and privacy',
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.import_export),
-                        title: Text(S.of(context).exportImportLabel),
-                        onTap: () => _showExportImportDialog(context),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.cloud_upload_outlined),
-                        title: Text(
-                          _isEs(context)
-                              ? 'Backup en Google Drive'
-                              : 'Google Drive backup',
-                        ),
-                        subtitle: Text(
-                          _driveBackupSubtitle(context),
-                        ),
-                        onTap: () => _showDriveBackupDialog(context),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.assignment_ind_outlined),
-                        title: Text(
-                          _isEs(context)
-                              ? 'Plan de mi nutricionista'
-                              : 'My coach plan',
-                        ),
-                        subtitle: Text(
-                          _isEs(context)
-                              ? 'Invitación, consentimiento y acceso compartido.'
-                              : 'Invite, consent, and shared access.',
-                        ),
-                        onTap: () => Navigator.of(context).pushNamed(
-                          NavigationOptions.professionalPlanRoute,
-                        ),
-                      ),
-                      SwitchListTile(
-                        secondary: const Icon(Icons.bug_report_outlined),
-                        title: Text(S.of(context).sendAnonymousUserData),
-                        subtitle: Text(
-                          _isEs(context)
-                              ? 'Puedes activarlo o desactivarlo en cualquier momento.'
-                              : 'You can turn this on or off at any time.',
-                        ),
-                        value: state.sendAnonymousData,
-                        onChanged: (value) async {
-                          await _settingsBloc
-                              .setHasAcceptedAnonymousData(value);
-                          await locator<ConversionAnalyticsService>()
-                              .setEnabled(value);
-                          _settingsBloc.add(LoadSettingsEvent());
-                        },
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.description_outlined),
-                        title: Text(S.of(context).settingsDisclaimerLabel),
-                        onTap: () => _showDisclaimerDialog(context),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.red.withValues(alpha: 0.35),
-                              width: 1.5,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            color: Colors.red.withValues(alpha: 0.04),
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-                            title: Text(
-                              _isEs(context) ? 'Eliminar cuenta y datos' : 'Delete account and data',
-                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              _isEs(context)
-                                  ? 'Borra permanentemente tu perfil y registros de este dispositivo y de la nube.'
-                                  : 'Permanently delete your profile and logs from this device and the cloud.',
-                            ),
-                            onTap: () => _confirmDeleteAccount(context),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context)
                       ? 'Soporte y sugerencias'
@@ -1192,6 +1101,135 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : 'Manual encrypted backup to your Drive';
   }
 
+  Widget _buildAccountSecuritySection(
+    BuildContext context,
+    SettingsLoadedState state,
+  ) {
+    final isEs = _isEs(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final status = _cloudAccountStatus;
+    final isProtected = status?.isProtected == true;
+
+    return _SettingsSection(
+      title: isEs ? 'Cuenta y seguridad' : 'Account and security',
+      child: Column(
+        children: [
+          DataSafetyStatus(
+            icon: isProtected
+                ? Icons.verified_user_outlined
+                : Icons.shield_outlined,
+            title: isEs ? 'Cuenta cloud' : 'Cloud account',
+            body: isProtected
+                ? (status?.email?.isNotEmpty == true
+                    ? status!.email!
+                    : (isEs
+                        ? 'Identidad vinculada para recuperacion y conexiones profesionales.'
+                        : 'Linked identity for recovery and coach connections.'))
+                : (isEs
+                    ? 'Recupera la cuenta y permite conexiones profesionales. No activa Drive.'
+                    : 'Enables recovery and coach connections. This does not enable Drive.'),
+            statusLabel: isProtected
+                ? (isEs ? 'Protegida' : 'Protected')
+                : (isEs ? 'Opcional' : 'Optional'),
+            accentColor:
+                isProtected ? colorScheme.primary : colorScheme.tertiary,
+            onTap: isProtected
+                ? _loadCloudAccountStatus
+                : () => _protectCloudAccount(context),
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          DataSafetyStatus(
+            icon: Icons.cloud_upload_outlined,
+            title: isEs ? 'Google Drive backup' : 'Google Drive backup',
+            body: isEs
+                ? 'Backup cifrado en tu Drive. Es independiente de la cuenta cloud.'
+                : 'Encrypted backup in your Drive. Separate from the cloud account.',
+            statusLabel: _driveBackupSubtitle(context),
+            accentColor: const Color(0xFF0EA5E9),
+            onTap: () => _showDriveBackupDialog(context),
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          DataSafetyStatus(
+            icon: Icons.folder_zip_outlined,
+            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
+            body: isEs
+                ? 'Copia local/manual para guardar o mover datos entre dispositivos.'
+                : 'Manual local copy to store or move data between devices.',
+            statusLabel: isEs ? 'Manual' : 'Manual',
+            accentColor: const Color(0xFFF59E0B),
+            onTap: () => _showExportImportDialog(context),
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          DataSafetyStatus(
+            icon: Icons.assignment_ind_outlined,
+            title: isEs ? 'Conexion profesional' : 'Coach connection',
+            body: isEs
+                ? 'Comparte resumenes agregados solo con invitacion y consentimiento.'
+                : 'Shares aggregate summaries only by invite and consent.',
+            statusLabel: isEs ? 'Consentimiento' : 'Consent',
+            accentColor: colorScheme.primary,
+            onTap: () => Navigator.of(context).pushNamed(
+              NavigationOptions.professionalPlanRoute,
+            ),
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          SwitchListTile(
+            secondary: const Icon(Icons.bug_report_outlined),
+            title: Text(S.of(context).sendAnonymousUserData),
+            subtitle: Text(
+              isEs
+                  ? 'Puedes activarlo o desactivarlo en cualquier momento.'
+                  : 'You can turn this on or off at any time.',
+            ),
+            value: state.sendAnonymousData,
+            onChanged: (value) async {
+              await _settingsBloc.setHasAcceptedAnonymousData(value);
+              await locator<ConversionAnalyticsService>().setEnabled(value);
+              _settingsBloc.add(LoadSettingsEvent());
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(S.of(context).settingsDisclaimerLabel),
+            onTap: () => _showDisclaimerDialog(context),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.red.withValues(alpha: 0.35),
+                  width: 1.5,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.red.withValues(alpha: 0.04),
+              ),
+              child: ListTile(
+                leading: const Icon(
+                  Icons.delete_forever_outlined,
+                  color: Colors.red,
+                ),
+                title: Text(
+                  isEs ? 'Eliminar cuenta y datos' : 'Delete account and data',
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  isEs
+                      ? 'Borra permanentemente el perfil, los registros locales y los datos cloud vinculados.'
+                      : 'Permanently deletes your profile, local logs, and linked cloud data.',
+                ),
+                onTap: () => _confirmDeleteAccount(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _refreshPlanStatus() async {
     final trialState = await locator<MonetizationService>().getAiTrialState();
     if (!mounted) {
@@ -1562,114 +1600,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCloudAccountSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final isEs = _isEs(context);
-    final status = _cloudAccountStatus;
-    final isProtected = status?.isProtected == true;
-
-    return _SettingsSection(
-      title: isEs ? 'Cuenta cloud' : 'Cloud account',
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color:
-                        (isProtected ? colorScheme.primary : colorScheme.tertiary)
-                            .withValues(alpha: 0.12),
-                  ),
-                  child: Icon(
-                    isProtected
-                        ? Icons.verified_user_outlined
-                        : Icons.shield_outlined,
-                    color: isProtected
-                        ? colorScheme.primary
-                        : colorScheme.tertiary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isProtected
-                            ? (isEs ? 'Cuenta protegida' : 'Account protected')
-                            : (isEs
-                                ? 'Uso sin registro'
-                                : 'Using without sign-up'),
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isProtected
-                            ? (status?.email?.isNotEmpty == true
-                                ? status!.email!
-                                : (isEs
-                                    ? 'Identidad vinculada'
-                                    : 'Linked identity'))
-                            : (isEs
-                                ? 'Puedes seguir usando la app. Vincula Google para recuperar tu cuenta si cambias de movil y para conexiones profesionales. Esto no activa Google Drive.'
-                                : 'You can keep using the app. Link Google to recover your account on a new phone and for coach connections. This does not enable Google Drive.'),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            if (!isProtected)
-              FilledButton.icon(
-                onPressed: _isProtectingAccount
-                    ? null
-                    : () => _protectCloudAccount(context),
-                icon: _isProtectingAccount
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.g_mobiledata_outlined),
-                label: Text(isEs
-                    ? 'Guardar cuenta cloud con Google'
-                    : 'Protect cloud account with Google'),
-              )
-            else
-              OutlinedButton.icon(
-                onPressed: _loadCloudAccountStatus,
-                icon: const Icon(Icons.refresh_outlined),
-                label: Text(isEs ? 'Actualizar estado' : 'Refresh status'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Future<void> _protectCloudAccount(BuildContext context) async {
-    setState(() => _isProtectingAccount = true);
     try {
       final opened = await locator<CloudAccountService>().protectWithGoogle();
       if (!mounted) return;
-      setState(() => _isProtectingAccount = false);
       await _loadCloudAccountStatus();
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1685,7 +1619,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     } catch (_) {
       if (!mounted) return;
-      setState(() => _isProtectingAccount = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isEs(context)

@@ -315,7 +315,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportImportDescription =>
-      'You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.';
+      'Export ZIP creates a local manual copy that you can import later. MacroTracker is local-first; Cuenta cloud, Google Drive backup, AI, and coach connections are optional and separate.';
 
   @override
   String get exportImportSuccessLabel => 'Export / Import successful';

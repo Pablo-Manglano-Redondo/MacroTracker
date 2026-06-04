@@ -94,7 +94,7 @@
   "dailyKcalAdjustmentLabel": "Daily Kcal adjustment:",
   "macroDistributionLabel": "Macronutrient Distribution:",
   "exportImportLabel": "Export / Import data",
-  "exportImportDescription": "You can export the app data to a zip file and import it later. This is useful if you want to backup your data or transfer it to another device.\n\nThe app does not use any cloud service to store your data.",
+  "exportImportDescription": "Export ZIP creates a local manual copy that you can import later. MacroTracker is local-first; Cuenta cloud, Google Drive backup, AI, and coach connections are optional and separate.",
   "exportImportSuccessLabel": "Export / Import successful",
   "exportImportErrorLabel": "Export / Import error",
   "exportAction": "Export",
