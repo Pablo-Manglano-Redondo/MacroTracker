@@ -18,7 +18,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appDescription =>
-      'MacroTracker de EPSAIT es un rastreador gratuito de calorías y nutrientes con privacidad local.';
+      'MacroTracker de EPSAIT es un rastreador profesional de calorías y nutrientes con privacidad local.';
 
   @override
   String get alphaVersionName => '[Alpha]';
@@ -1738,19 +1738,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get homeDashboardStatusBulkOpen =>
-      'Aún tienes margen. Mete carbohidrato fácil y proteina.';
+      'Aún tienes margen. Mete carbohidrato fácil y proteína.';
 
   @override
   String get homeDashboardStatusProteinGap =>
-      'La principal brecha sigue siendo la proteina. Priorizala en la siguiente comida.';
+      'La principal brecha sigue siendo la proteína. Priorízala en la siguiente comida.';
 
   @override
   String get homeDashboardStatusCarbWindow =>
-      'Aún tienes margen de carbohidratos. Buen momento para meter energia de entreno.';
+      'Aún tienes margen de carbohidratos. Buen momento para meter energía de entreno.';
 
   @override
   String get homeDashboardStatusRestClosing =>
-      'Dia de descanso casi cerrado. Termina ligero y con proteina.';
+      'Día de descanso casi cerrado. Termina ligero y con proteína.';
 
   @override
   String get homeDashboardStatusOverGoal =>

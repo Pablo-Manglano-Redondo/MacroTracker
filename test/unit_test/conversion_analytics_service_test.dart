@@ -44,7 +44,7 @@ void main() {
       expect(client.events.single.name, 'weekly_adjustment_applied');
       expect(client.events.single.parameters, {
         'delta_kcal': -100,
-        'is_premium': true,
+        'is_premium': 'true',
         'custom': '2026-06-03 00:00:00.000',
       });
     });

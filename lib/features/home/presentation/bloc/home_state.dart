@@ -38,6 +38,8 @@ class HomeLoadedState extends HomeState {
   final List<IntakeEntity> snackIntakeList;
   final bool usesImperialUnits;
   final ProfessionalPlanSummaryEntity? professionalPlanSummary;
+  final int? targetSteps;
+  final double? targetSleepHours;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -63,6 +65,8 @@ class HomeLoadedState extends HomeState {
     required this.snackIntakeList,
     required this.usesImperialUnits,
     required this.professionalPlanSummary,
+    this.targetSteps,
+    this.targetSleepHours,
   });
 
   @override
@@ -90,5 +94,7 @@ class HomeLoadedState extends HomeState {
         userActivityList,
         usesImperialUnits,
         professionalPlanSummary,
+        targetSteps,
+        targetSleepHours,
       ];
 }

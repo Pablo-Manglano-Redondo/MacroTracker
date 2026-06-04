@@ -677,9 +677,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Proteína restante"),
         "homeDashboardSessionsChip": m33,
         "homeDashboardStatusBulkOpen": MessageLookupByLibrary.simpleMessage(
-            "Aún tienes margen. Mete carbohidrato fácil y proteina."),
+            "Aún tienes margen. Mete carbohidrato fácil y proteína."),
         "homeDashboardStatusCarbWindow": MessageLookupByLibrary.simpleMessage(
-            "Aún tienes margen de carbohidratos. Buen momento para meter energia de entreno."),
+            "Aún tienes margen de carbohidratos. Buen momento para meter energía de entreno."),
         "homeDashboardStatusDefClosing": MessageLookupByLibrary.simpleMessage(
             "La definición va en ritmo. Cierra con proteína alta."),
         "homeDashboardStatusDefault": MessageLookupByLibrary.simpleMessage(
@@ -687,9 +687,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "homeDashboardStatusOverGoal": MessageLookupByLibrary.simpleMessage(
             "Vas por encima del objetivo. Manten el resto del día mas controlado."),
         "homeDashboardStatusProteinGap": MessageLookupByLibrary.simpleMessage(
-            "La principal brecha sigue siendo la proteina. Priorizala en la siguiente comida."),
+            "La principal brecha sigue siendo la proteína. Priorízala en la siguiente comida."),
         "homeDashboardStatusRestClosing": MessageLookupByLibrary.simpleMessage(
-            "Dia de descanso casi cerrado. Termina ligero y con proteina."),
+            "Día de descanso casi cerrado. Termina ligero y con proteína."),
         "homeDashboardSubtitle":
             MessageLookupByLibrary.simpleMessage("Lo importante de hoy."),
         "homeDashboardTitle":

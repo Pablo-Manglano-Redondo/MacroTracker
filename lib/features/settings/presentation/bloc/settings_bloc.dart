@@ -68,7 +68,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
           mealReminderMorningMinutes: userConfig.mealReminderMorningMinutes,
           mealReminderLunchMinutes: userConfig.mealReminderLunchMinutes,
           mealReminderAfternoonMinutes: userConfig.mealReminderAfternoonMinutes,
-          mealReminderEveningMinutes: userConfig.mealReminderEveningMinutes));
+          mealReminderEveningMinutes: userConfig.mealReminderEveningMinutes,
+          macroGoalMode: userConfig.macroGoalMode));
     });
 
     on<DeleteAccountEvent>((event, emit) async {

@@ -214,6 +214,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         return true;
       }
 
+      if (!mounted) return false;
+
       final shouldProtect = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -652,7 +654,7 @@ class _ConnectedPlanView extends StatelessWidget {
                         color: colorScheme.primary,
                       ),
                       _TargetTile(
-                        label: _copy(context, es: 'Proteina', en: 'Protein'),
+                        label: _copy(context, es: 'Proteína', en: 'Protein'),
                         value: '${todayTarget.proteinGoal.round()}g',
                         color: colorScheme.tertiary,
                       ),

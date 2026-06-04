@@ -153,7 +153,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                         '${summary.kcalActual.round()} / ${summary.kcalTarget.round()}',
                   ),
                   _MetricPill(
-                    label: isEs ? 'Proteina' : 'Protein',
+                    label: isEs ? 'Proteína' : 'Protein',
                     value:
                         '${summary.proteinActual.round()} / ${summary.proteinTarget.round()}g',
                   ),

@@ -10,7 +10,6 @@ import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
-import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
 import 'package:macrotracker/core/presentation/widgets/shimmer_loading.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
@@ -92,7 +91,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.snackIntakeList,
               state.userActivityList,
               state.usesImperialUnits,
-              state.professionalPlanSummary);
+              state.professionalPlanSummary,
+              state.targetSteps,
+              state.targetSleepHours);
         } else {
           return _getLoadingContent();
         }
@@ -228,7 +229,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       List<IntakeEntity> snackIntakeList,
       List<UserActivityEntity> userActivities,
       bool usesImperialUnits,
-      ProfessionalPlanSummaryEntity? professionalPlanSummary) {
+      ProfessionalPlanSummaryEntity? professionalPlanSummary,
+      int? targetSteps,
+      double? targetSleepHours) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -285,20 +288,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         snackIntakeList.length,
                     sessionsLogged: userActivities.length,
                   ),
-                  _NextActionCard(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                    mealsLogged: breakfastIntakeList.length +
-                        lunchIntakeList.length +
-                        dinnerIntakeList.length +
-                        snackIntakeList.length,
-                    remainingKcal: totalKcalLeft,
-                    remainingProtein:
-                        totalProteinsGoal - totalProteinsIntake,
-                    onAddMeal: () => MealEntryActionSheet.show(
-                      context,
-                      day: DateTime.now(),
-                    ),
-                  ),
+
                   if (professionalPlanSummary != null)
                     ProfessionalPlanCard(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
@@ -361,6 +351,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     overviewCardWidth: overviewCardWidth,
                     usesImperialUnits: usesImperialUnits,
                     dailyFocus: dailyFocus,
+                    targetSteps: targetSteps,
+                    targetSleepHours: targetSleepHours,
                   ),
                   const SizedBox(height: 48.0),
                 ],
@@ -460,6 +452,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     required double overviewCardWidth,
     required bool usesImperialUnits,
     required DailyFocusEntity dailyFocus,
+    int? targetSteps,
+    double? targetSleepHours,
   }) {
     final bodyProgressCard = SizedBox(
       width: overviewCardWidth,
@@ -475,6 +469,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         dailyFocus: dailyFocus,
         usesImperialUnits: usesImperialUnits,
         controller: _gymHabitsCardController,
+        targetSteps: targetSteps,
+        targetSleepHours: targetSleepHours,
       ),
     );
     final weeklyInsightsCard = SizedBox(
@@ -881,128 +877,6 @@ class _ResponsiveHomeGroup extends StatelessWidget {
       spaced.add(widgets[i]);
     }
     return spaced;
-  }
-}
-
-class _NextActionCard extends StatelessWidget {
-  final EdgeInsetsGeometry padding;
-  final int mealsLogged;
-  final double remainingKcal;
-  final double remainingProtein;
-  final VoidCallback onAddMeal;
-
-  const _NextActionCard({
-    required this.padding,
-    required this.mealsLogged,
-    required this.remainingKcal,
-    required this.remainingProtein,
-    required this.onAddMeal,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isEmpty = mealsLogged == 0;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-    final kcalLeft = remainingKcal.clamp(0, 99999).round();
-    final proteinLeft = remainingProtein.clamp(0, 99999).round();
-
-    return Padding(
-      padding: padding,
-      child: Card(
-        color: colorScheme.surfaceContainerLow,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      color: colorScheme.primary.withValues(alpha: 0.12),
-                    ),
-                    child: Icon(
-                      isEmpty
-                          ? Icons.add_circle_outline
-                          : Icons.track_changes_outlined,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isEmpty
-                              ? (isEs ? 'Empieza el dia' : 'Start the day')
-                              : (isEs
-                                  ? 'Siguiente accion'
-                                  : 'Next action'),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          isEmpty
-                              ? (isEs
-                                  ? 'Aun no hay comidas registradas hoy.'
-                                  : 'No meals logged today yet.')
-                              : (isEs
-                                  ? '$kcalLeft kcal y $proteinLeft g de proteina pendientes.'
-                                  : '$kcalLeft kcal and $proteinLeft g protein remaining.'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  FilledButton.icon(
-                    onPressed: onAddMeal,
-                    icon: const Icon(Icons.restaurant_outlined),
-                    label: Text(isEs ? 'Anadir comida' : 'Add meal'),
-                  ),
-                  IconButton.filledTonal(
-                    onPressed: onAddMeal,
-                    icon: const Icon(Icons.qr_code_scanner_outlined),
-                    tooltip: isEs ? 'Escanear' : 'Scan',
-                  ),
-                  IconButton.filledTonal(
-                    onPressed: onAddMeal,
-                    icon: const Icon(Icons.edit_note_outlined),
-                    tooltip: isEs ? 'IA texto' : 'AI text',
-                  ),
-                  IconButton.filledTonal(
-                    onPressed: onAddMeal,
-                    icon: const Icon(Icons.add_a_photo_outlined),
-                    tooltip: isEs ? 'IA foto' : 'AI photo',
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 

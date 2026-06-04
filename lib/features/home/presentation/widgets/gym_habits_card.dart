@@ -18,6 +18,8 @@ class GymHabitsCard extends StatefulWidget {
   final DailyFocusEntity dailyFocus;
   final bool usesImperialUnits;
   final GymHabitsCardController? controller;
+  final int? targetSteps;
+  final double? targetSleepHours;
 
   const GymHabitsCard({
     super.key,
@@ -25,6 +27,8 @@ class GymHabitsCard extends StatefulWidget {
     required this.dailyFocus,
     required this.usesImperialUnits,
     this.controller,
+    this.targetSteps,
+    this.targetSleepHours,
   });
 
   @override
@@ -50,6 +54,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       oldWidget.controller?.removeListener(_handleExternalRefresh);
       widget.controller?.addListener(_handleExternalRefresh);
     }
+    _loadLog();
   }
 
   @override
@@ -61,8 +66,8 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   @override
   Widget build(BuildContext context) {
     final hydrationGoalLiters = _hydrationGoalForFocus(widget.dailyFocus);
-    final sleepGoalHours = _sleepGoalForFocus(widget.dailyFocus);
-    final stepGoal = _stepGoalForFocus(widget.dailyFocus);
+    final sleepGoalHours = widget.targetSleepHours ?? _sleepGoalForFocus(widget.dailyFocus);
+    final stepGoal = widget.targetSteps ?? _stepGoalForFocus(widget.dailyFocus);
 
     return RepaintBoundary(
       child: Padding(
@@ -261,7 +266,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                                 child: _MetricAdjuster(
                                   label: _sleepTitle(context),
                                   valueText: log.sleepHours.toStringAsFixed(log.sleepHours % 1 == 0 ? 0 : 1),
-                                  targetText: '/ ${log.sleepHours > 0 ? log.sleepHours.toStringAsFixed(0) : _sleepGoalForFocus(widget.dailyFocus).toStringAsFixed(0)} h',
+                                  targetText: '/ ${sleepGoalHours.toStringAsFixed(sleepGoalHours % 1 == 0 ? 0 : 1)} h',
                                   icon: Icons.nightlight_round,
                                   onDecrease: () => _adjustSleep(-0.5),
                                   onIncrease: () => _adjustSleep(0.5),

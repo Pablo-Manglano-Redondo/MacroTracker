@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
+import 'package:macrotracker/firebase_options.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 abstract class ConversionAnalyticsClient {
@@ -31,11 +32,20 @@ class FirebaseConversionAnalyticsClient implements ConversionAnalyticsClient {
     }
 
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       _analytics = FirebaseAnalytics.instance;
     } catch (error, stackTrace) {
-      _log.warning(
-          'Firebase Analytics initialization failed', error, stackTrace);
+      final errorStr = error.toString();
+      if (errorStr.contains('Failed to load FirebaseOptions') ||
+          errorStr.contains('google-services.json') ||
+          errorStr.contains('GoogleService-Info.plist')) {
+        _log.info('Firebase is not configured for this project. Analytics is disabled.');
+      } else {
+        _log.warning(
+            'Firebase Analytics initialization failed', error, stackTrace);
+      }
     } finally {
       _initialized = true;
     }
@@ -216,7 +226,7 @@ class ConversionAnalyticsService {
       if (value == null) {
         continue;
       }
-      if (value is String || value is num || value is bool) {
+      if (value is String || value is num) {
         cleaned[entry.key] = value;
       } else {
         cleaned[entry.key] = value.toString();

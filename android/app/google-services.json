@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "430678349395",
+    "project_id": "macrotracker-6e1b0",
+    "storage_bucket": "macrotracker-6e1b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:430678349395:android:08acb46554db17c0a3d8a6",
+        "android_client_info": {
+          "package_name": "com.epsait.macrotracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3j7k1rfeMNVWtzHPHlMkTWrzqKCSk2PU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

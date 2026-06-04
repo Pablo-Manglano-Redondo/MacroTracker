@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
@@ -74,6 +75,7 @@ class _ProfilePageState extends State<ProfilePage> {
       DailyFocusEntity dailyFocus,
       GymTargetsEntity currentTargets) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final weightLabel =
         '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
     final heightLabel =
@@ -184,10 +186,8 @@ class _ProfilePageState extends State<ProfilePage> {
         _CurrentTargetsCard(
           goalLabel: _goalCardTitle(context, user.goal),
           goalHeadline: _goalHeadline(context, user.goal),
-          macroHint: _focusHint(context, dailyFocus),
           focusLabel: dailyFocus.label,
           targets: currentTargets,
-          onReviewTargets: () => _showSetGoalDialog(context, user),
         ),
         const SizedBox(height: 16),
         _ProfileSectionCard(
@@ -206,6 +206,22 @@ class _ProfilePageState extends State<ProfilePage> {
               subtitle: user.pal.getName(context),
               icon: Icons.directions_walk_outlined,
               onTap: () => _showSetPALCategoryDialog(context, user),
+            ),
+            _ProfileActionTile(
+              title: isEs ? 'Objetivo de pasos' : 'Steps goal',
+              subtitle: user.targetSteps != null
+                  ? '${user.targetSteps}'
+                  : (isEs ? 'Por defecto' : 'Default'),
+              icon: Icons.directions_run_outlined,
+              onTap: () => _showSetTargetStepsDialog(context, user),
+            ),
+            _ProfileActionTile(
+              title: isEs ? 'Horas de dormir objetivo' : 'Sleep hours goal',
+              subtitle: user.targetSleepHours != null
+                  ? '${user.targetSleepHours} h'
+                  : (isEs ? 'Por defecto' : 'Default'),
+              icon: Icons.hotel_outlined,
+              onTap: () => _showSetTargetSleepDialog(context, user),
             ),
           ],
         ),
@@ -251,6 +267,176 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ],
     );
+  }
+
+  Future<void> _showSetTargetStepsDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final controller = TextEditingController(
+      text: userEntity.targetSteps != null ? '${userEntity.targetSteps}' : '',
+    );
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final selectedSteps = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            isEs ? 'Objetivo de pasos diarios' : 'Daily Steps Goal',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEs
+                    ? 'Establece tu meta diaria de pasos. Si la dejas vacía, se usará el valor predeterminado según el día.'
+                    : 'Set your daily steps goal. If left empty, the default value based on the day will be used.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g. 10000',
+                  labelText: isEs ? 'Meta de pasos' : 'Steps target',
+                  prefixIcon: const Icon(Icons.directions_walk_outlined),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(-1);
+              },
+              child: Text(
+                isEs ? 'Restablecer' : 'Reset',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty) {
+                  Navigator.of(context).pop(-1);
+                } else {
+                  final val = int.tryParse(text);
+                  if (val != null && val > 0) {
+                    Navigator.of(context).pop(val);
+                  }
+                }
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedSteps != null) {
+      userEntity.targetSteps = selectedSteps == -1 ? null : selectedSteps;
+      _profileBloc.updateUser(userEntity);
+    }
+  }
+
+  Future<void> _showSetTargetSleepDialog(
+      BuildContext context, UserEntity userEntity) async {
+    final controller = TextEditingController(
+      text: userEntity.targetSleepHours != null ? '${userEntity.targetSleepHours}' : '',
+    );
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final selectedSleep = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            isEs ? 'Objetivo de horas de sueño' : 'Sleep Hours Goal',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEs
+                    ? 'Establece tu meta diaria de horas de sueño. Si la dejas vacía, se usará el valor predeterminado según el día.'
+                    : 'Set your daily sleep hours goal. If left empty, the default value based on the day will be used.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g. 8.0',
+                  labelText: isEs ? 'Horas de sueño' : 'Sleep hours target',
+                  prefixIcon: const Icon(Icons.hotel_outlined),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(-1.0);
+              },
+              child: Text(
+                isEs ? 'Restablecer' : 'Reset',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty) {
+                  Navigator.of(context).pop(-1.0);
+                } else {
+                  final val = double.tryParse(text);
+                  if (val != null && val > 0) {
+                    Navigator.of(context).pop(val);
+                  }
+                }
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedSleep != null) {
+      userEntity.targetSleepHours = selectedSleep == -1.0 ? null : selectedSleep;
+      _profileBloc.updateUser(userEntity);
+    }
   }
 
   Future<void> _showSetPALCategoryDialog(
@@ -438,18 +624,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  String _focusHint(BuildContext context, DailyFocusEntity focus) {
-    switch (focus) {
-      case DailyFocusEntity.lowerBody:
-        return S.of(context).profileFocusLowerBody;
-      case DailyFocusEntity.upperBody:
-        return S.of(context).profileFocusUpperBody;
-      case DailyFocusEntity.cardio:
-        return S.of(context).profileFocusCardio;
-      case DailyFocusEntity.rest:
-        return S.of(context).profileFocusRest;
-    }
-  }
+
 
   void _showTargetsReviewSnackBar(UserEntity userEntity) {
     if (!mounted) {
@@ -693,18 +868,14 @@ class _ProfileSectionCard extends StatelessWidget {
 class _CurrentTargetsCard extends StatelessWidget {
   final String goalLabel;
   final String goalHeadline;
-  final String macroHint;
   final String focusLabel;
   final GymTargetsEntity targets;
-  final VoidCallback onReviewTargets;
 
   const _CurrentTargetsCard({
     required this.goalLabel,
     required this.goalHeadline,
-    required this.macroHint,
     required this.focusLabel,
     required this.targets,
-    required this.onReviewTargets,
   });
 
   @override
@@ -797,72 +968,12 @@ class _CurrentTargetsCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: colorScheme.surfaceContainerHigh,
-                border: Border.all(color: colorScheme.outlineVariant),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.fitness_center_outlined,
-                    size: 18,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      macroHint,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  _copy(
-                    context,
-                    es: 'Calculado con edad, peso, altura, actividad y objetivo. Puedes editarlo despues.',
-                    en: 'Calculated from age, weight, height, activity, and goal. You can edit it later.',
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton(
-                    onPressed: onReviewTargets,
-                    child: Text(_copy(
-                      context,
-                      es: 'Revisar objetivos',
-                      en: 'Review targets',
-                    )),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),
     );
   }
 
-  String _copy(BuildContext context, {required String es, required String en}) {
-    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
-  }
 }
 
 class _MacroMetricTile extends StatelessWidget {

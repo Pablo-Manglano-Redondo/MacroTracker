@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:in_app_review/in_app_review.dart';
+import 'package:hive/hive.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/presentation/widgets/food_quality_score_card.dart';

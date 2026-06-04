@@ -52,7 +52,8 @@ class MealEntryActionSheet extends StatelessWidget {
       _EntryAction(
         icon: Icons.search_outlined,
         title: isEs ? 'Buscar producto' : 'Search food',
-        subtitle: isEs ? 'Base de datos y recientes' : 'Database and recent meals',
+        subtitle:
+            isEs ? 'Base de datos y recientes' : 'Database and recent meals',
         color: colorScheme.primary,
         onTap: () => _openAddMeal(context, mealType),
       ),
@@ -84,14 +85,16 @@ class MealEntryActionSheet extends StatelessWidget {
       _EntryAction(
         icon: Icons.bookmarks_outlined,
         title: isEs ? 'Recetas y frecuentes' : 'Recipes and frequent',
-        subtitle: isEs ? 'Guardadas, fijadas y presets' : 'Saved meals and presets',
+        subtitle:
+            isEs ? 'Guardadas, fijadas y presets' : 'Saved meals and presets',
         color: const Color(0xFFF59E0B),
         onTap: () => _openRecipeLibrary(context, intakeType),
       ),
       _EntryAction(
         icon: UserActivityEntity.getIconData(),
         title: S.of(context).activityLabel,
-        subtitle: isEs ? 'Entrenamiento o gasto extra' : 'Workout or extra burn',
+        subtitle:
+            isEs ? 'Entrenamiento o gasto extra' : 'Workout or extra burn',
         color: const Color(0xFFEF4444),
         onTap: () => _openAddActivity(context),
       ),
@@ -105,7 +108,7 @@ class MealEntryActionSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEs ? 'Anadir comida' : 'Add meal',
+              isEs ? 'Añadir comida' : 'Add meal',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -113,7 +116,7 @@ class MealEntryActionSheet extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               isEs
-                  ? 'Elige como quieres registrar. La comida se guardara en ${_mealTypeLabel(context, mealType).toLowerCase()}.'
+                  ? 'Elige como quieres registrar. La comida se guardará en ${_mealTypeLabel(context, mealType).toLowerCase()}.'
                   : 'Choose how to log it. The meal will be saved to ${_mealTypeLabel(context, mealType).toLowerCase()}.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,

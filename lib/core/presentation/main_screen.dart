@@ -42,7 +42,7 @@ class _MainScreenState extends State<MainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final nudgeService = locator<BackupNudgeService>();
       await nudgeService.recordAppOpen();
-      
+
       // Record daily usage for review triggers
       await locator<AppReviewService>().recordDailyUsage();
 
@@ -172,7 +172,7 @@ class _MainScreenState extends State<MainScreen> {
       children: [
         FloatingActionButton(
           onPressed: _toggleFab,
-          tooltip: isEs ? 'Anadir comida' : 'Add meal',
+          tooltip: isEs ? 'Añadir comida' : 'Add meal',
           child: const Icon(Icons.add),
         ),
       ],

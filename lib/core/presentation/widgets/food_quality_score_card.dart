@@ -186,18 +186,18 @@ class FoodQualityUiMeta {
       case FoodQualityReasonCode.highFiber:
         return isEs ? 'Alta en fibra' : 'High fiber';
       case FoodQualityReasonCode.goodProtein:
-        return isEs ? 'Buena proteina' : 'Good protein';
+        return isEs ? 'Buena proteína' : 'Good protein';
       case FoodQualityReasonCode.balancedProfile:
         return isEs ? 'Perfil equilibrado' : 'Balanced profile';
       case FoodQualityReasonCode.lowSugar:
-        return isEs ? 'Azucar contenido' : 'Moderate sugar';
+        return isEs ? 'Azúcar contenido' : 'Moderate sugar';
       case FoodQualityReasonCode.highSugar:
-        return isEs ? 'Azucar alto' : 'High sugar';
+        return isEs ? 'Azúcar alto' : 'High sugar';
       case FoodQualityReasonCode.highEnergyDensity:
-        return isEs ? 'Muy densa en calorias' : 'Calorie dense';
+        return isEs ? 'Muy densa en calorías' : 'Calorie dense';
       case FoodQualityReasonCode.lowEnergyDensity:
         return isEs
-            ? 'Densidad calorica razonable'
+            ? 'Densidad calórica razonable'
             : 'Reasonable calorie density';
       case FoodQualityReasonCode.highSaturatedFat:
         return isEs ? 'Grasas saturadas altas' : 'High saturated fat';

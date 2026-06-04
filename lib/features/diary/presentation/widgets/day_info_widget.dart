@@ -727,7 +727,7 @@ class _DiaryEmptyDayCard extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onAddMeal,
                   icon: const Icon(Icons.restaurant_outlined),
-                  label: Text(isEs ? 'Anadir comida' : 'Add meal'),
+                  label: Text(isEs ? 'Añadir comida' : 'Add meal'),
                 ),
                 IconButton.filledTonal(
                   onPressed: onAddMeal,

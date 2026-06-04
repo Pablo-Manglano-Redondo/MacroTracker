@@ -285,7 +285,7 @@ class _FoodQualityDailyStrip extends StatelessWidget {
       child: mealsCount == 0
           ? Text(
               isEs
-                  ? 'Aun no hay datos suficientes de calidad.'
+                  ? 'Aún no hay datos suficientes de calidad.'
                   : 'No food quality data yet.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
@@ -856,7 +856,8 @@ class _DashboardEmptyStateState extends State<_DashboardEmptyState>
               ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(0, 36),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
             ),
           ],

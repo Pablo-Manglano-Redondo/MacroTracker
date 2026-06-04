@@ -37,6 +37,9 @@ class SubscriptionService {
   bool get isConfigured => _configured;
 
   Future<bool> isPremiumActive() async {
+    if (kDebugMode) {
+      return true;
+    }
     if (!_configured) {
       return false;
     }

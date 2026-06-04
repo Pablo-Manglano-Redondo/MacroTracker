@@ -4,7 +4,6 @@ import 'package:logging/logging.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
-import 'package:macrotracker/core/presentation/widgets/error_dialog.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
@@ -316,17 +315,6 @@ class _ScannerScreenState extends State<ScannerScreen> {
           usesImperialUnits,
         ),
       );
-    }
-  }
-
-  void _onRefreshButtonPressed() {
-    final barcode = _scannedBarcode;
-    if (barcode != null) {
-      _isHandlingDetection = true;
-      _scannerBloc.add(ScannerLoadProductEvent(barcode: barcode));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorFetchingProductData)));
     }
   }
 }

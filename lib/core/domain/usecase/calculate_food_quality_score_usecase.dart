@@ -56,13 +56,17 @@ class CalculateFoodQualityScoreUsecase {
     final contributions = <_ReasonContribution>[];
     var knownSignals = 0;
 
+    final double energyVal = input.energy ?? 0;
+    final double baseKcal = energyVal > 0 ? energyVal : 100.0;
+
     if (input.fiber != null) {
-      final normalized =
-          _normalizeLinear(input.fiber!, 0, input.isServingBased ? 8 : 10);
-      final contribution = normalized * 20;
+      final fiberVal = input.fiber!;
+      final fiberDensity = (fiberVal / baseKcal) * 100.0; // g per 100 kcal
+      final normalized = _normalizeLinear(fiberDensity, 0.0, 2.0);
+      final contribution = normalized * 20.0;
       score += contribution;
       knownSignals++;
-      if (contribution >= 6) {
+      if (contribution >= 6.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.highFiber, contribution.abs()),
@@ -71,11 +75,13 @@ class CalculateFoodQualityScoreUsecase {
     }
 
     if (input.protein != null) {
-      final normalized = _normalizeLinear(input.protein!, 0, 20);
-      final contribution = normalized * 15;
+      final proteinVal = input.protein!;
+      final proteinDensity = (proteinVal / baseKcal) * 100.0; // g per 100 kcal
+      final normalized = _normalizeLinear(proteinDensity, 0.0, 8.0);
+      final contribution = normalized * 20.0;
       score += contribution;
       knownSignals++;
-      if (contribution >= 5) {
+      if (contribution >= 6.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.goodProtein, contribution.abs()),
@@ -84,37 +90,43 @@ class CalculateFoodQualityScoreUsecase {
     }
 
     if (input.sugar != null) {
-      final sugarStart = input.isServingBased ? 10.0 : 5.0;
-      final sugarEnd = input.isServingBased ? 30.0 : 25.0;
-      final normalized = _normalizeLinear(input.sugar!, sugarStart, sugarEnd);
-      final contribution = normalized * -20;
+      final sugarVal = input.sugar!;
+      final sugarKcal = sugarVal * 4.0;
+      final sugarPct = (sugarKcal / baseKcal) * 100.0; // % of energy from sugar
+      final normalized = _normalizeLinear(sugarPct, 10.0, 25.0);
+      final contribution = normalized * -20.0;
       score += contribution;
       knownSignals++;
-      if (contribution <= -6) {
+
+      if (contribution <= -6.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.highSugar, contribution.abs()),
         );
-      } else if (input.sugar! <= sugarStart) {
+      } else if (sugarPct <= 5.0) {
         contributions.add(
-          _ReasonContribution(FoodQualityReasonCode.lowSugar, 4),
+          _ReasonContribution(FoodQualityReasonCode.lowSugar, 4.0),
         );
       }
     }
 
-    if (input.energy != null) {
-      final contribution = _energyContribution(
-        input.energy!,
-        isServingBased: input.isServingBased,
-      );
+    if (input.energy != null && !input.isServingBased) {
+      final densityKcal = input.energy!; // kcal/100g
+      double contribution = 0.0;
+      if (densityKcal < 150.0) {
+        contribution = 5.0;
+      } else if (densityKcal > 350.0) {
+        contribution = -10.0;
+      }
       score += contribution;
       knownSignals++;
-      if (contribution >= 6) {
+
+      if (contribution >= 5.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.lowEnergyDensity, contribution.abs()),
         );
-      } else if (contribution <= -6) {
+      } else if (contribution <= -6.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.highEnergyDensity, contribution.abs()),
@@ -123,15 +135,15 @@ class CalculateFoodQualityScoreUsecase {
     }
 
     if (input.saturatedFat != null) {
-      final normalized = _normalizeLinear(
-        input.saturatedFat!,
-        input.isServingBased ? 3 : 3,
-        input.isServingBased ? 10 : 10,
-      );
-      final contribution = normalized * -10;
+      final satFatVal = input.saturatedFat!;
+      final satFatKcal = satFatVal * 9.0;
+      final satFatPct = (satFatKcal / baseKcal) * 100.0; // % of energy from sat fat
+      final normalized = _normalizeLinear(satFatPct, 10.0, 20.0);
+      final contribution = normalized * -15.0;
       score += contribution;
       knownSignals++;
-      if (contribution <= -4) {
+
+      if (contribution <= -4.0) {
         contributions.add(
           _ReasonContribution(
               FoodQualityReasonCode.highSaturatedFat, contribution.abs()),
@@ -139,9 +151,9 @@ class CalculateFoodQualityScoreUsecase {
       }
     }
 
-    final balanceBonus = _balanceBonus(input);
+    final balanceBonus = _balanceBonus(input, baseKcal);
     score += balanceBonus;
-    if (balanceBonus >= 4) {
+    if (balanceBonus >= 4.0) {
       contributions.add(
         _ReasonContribution(
             FoodQualityReasonCode.balancedProfile, balanceBonus.abs()),
@@ -179,68 +191,34 @@ class CalculateFoodQualityScoreUsecase {
     );
   }
 
-  double _balanceBonus(_FoodQualityInput input) {
+  double _balanceBonus(_FoodQualityInput input, double baseKcal) {
     if (input.protein == null ||
         input.fiber == null ||
         input.sugar == null ||
         input.energy == null) {
-      return 0;
+      return 0.0;
     }
 
-    final fiberThreshold = input.isServingBased ? 6.0 : 6.0;
-    final proteinThreshold = input.isServingBased ? 15.0 : 12.0;
-    final sugarThreshold = input.isServingBased ? 12.0 : 10.0;
-    final energyUpperBound = input.isServingBased ? 450.0 : 250.0;
+    final proteinDensity = (input.protein! / baseKcal) * 100.0;
+    final fiberDensity = (input.fiber! / baseKcal) * 100.0;
+    final sugarPct = (input.sugar! * 4.0 / baseKcal) * 100.0;
 
-    if (input.fiber! >= fiberThreshold &&
-        input.protein! >= proteinThreshold &&
-        input.sugar! <= sugarThreshold &&
-        input.energy! <= energyUpperBound) {
-      return 10;
+    if (fiberDensity >= 1.0 &&
+        proteinDensity >= 4.0 &&
+        sugarPct <= 10.0) {
+      return 10.0;
     }
-    if (input.fiber! >= fiberThreshold / 2 &&
-        input.protein! >= proteinThreshold / 2 &&
-        input.sugar! <= sugarThreshold * 1.25) {
-      return 4;
+    if (fiberDensity >= 0.5 &&
+        proteinDensity >= 2.0 &&
+        sugarPct <= 15.0) {
+      return 4.0;
     }
-    return 0;
-  }
-
-  double _energyContribution(double value, {required bool isServingBased}) {
-    if (isServingBased) {
-      if (value <= 150) {
-        return 10;
-      }
-      if (value <= 250) {
-        return 4;
-      }
-      if (value <= 400) {
-        return 0;
-      }
-      if (value <= 650) {
-        return -8;
-      }
-      return -15;
-    }
-
-    if (value <= 150) {
-      return 10;
-    }
-    if (value <= 250) {
-      return 4;
-    }
-    if (value <= 400) {
-      return 0;
-    }
-    if (value <= 550) {
-      return -8;
-    }
-    return -15;
+    return 0.0;
   }
 
   double _normalizeLinear(double value, double start, double end) {
     if (end <= start) {
-      return 0;
+      return 0.0;
     }
     return ((value - start) / (end - start)).clamp(0, 1).toDouble();
   }

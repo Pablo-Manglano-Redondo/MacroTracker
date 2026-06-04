@@ -22,25 +22,35 @@ class UserDBO extends HiveObject {
   UserWeightGoalDBO goal;
   @HiveField(5)
   UserPALDBO pal;
+  @HiveField(7)
+  int? targetSteps;
+  @HiveField(8)
+  double? targetSleepHours;
 
-  UserDBO(
-      {required this.birthday,
-      required this.heightCM,
-      required this.weightKG,
-      this.profileImagePath,
-      required this.gender,
-      required this.goal,
-      required this.pal});
+  UserDBO({
+    required this.birthday,
+    required this.heightCM,
+    required this.weightKG,
+    this.profileImagePath,
+    required this.gender,
+    required this.goal,
+    required this.pal,
+    this.targetSteps,
+    this.targetSleepHours,
+  });
 
   factory UserDBO.fromUserEntity(UserEntity entity) {
     return UserDBO(
-        birthday: entity.birthday,
-        heightCM: entity.heightCM,
-        weightKG: entity.weightKG,
-        profileImagePath: entity.profileImagePath,
-        gender: UserGenderDBO.fromUserGenderEntity(entity.gender),
-        goal: UserWeightGoalDBO.fromUserWeightGoalEntity(entity.goal),
-        pal: UserPALDBO.fromUserPALEntity(entity.pal));
+      birthday: entity.birthday,
+      heightCM: entity.heightCM,
+      weightKG: entity.weightKG,
+      profileImagePath: entity.profileImagePath,
+      gender: UserGenderDBO.fromUserGenderEntity(entity.gender),
+      goal: UserWeightGoalDBO.fromUserWeightGoalEntity(entity.goal),
+      pal: UserPALDBO.fromUserPALEntity(entity.pal),
+      targetSteps: entity.targetSteps,
+      targetSleepHours: entity.targetSleepHours,
+    );
   }
 
   factory UserDBO.fromJson(Map<String, dynamic> json) {
@@ -52,6 +62,8 @@ class UserDBO extends HiveObject {
       gender: UserGenderDBO.values.byName(json['gender'] as String),
       goal: UserWeightGoalDBO.values.byName(json['goal'] as String),
       pal: UserPALDBO.values.byName(json['pal'] as String),
+      targetSteps: json['targetSteps'] as int?,
+      targetSleepHours: (json['targetSleepHours'] as num?)?.toDouble(),
     );
   }
 
@@ -63,5 +75,7 @@ class UserDBO extends HiveObject {
         'gender': gender.name,
         'goal': goal.name,
         'pal': pal.name,
+        'targetSteps': targetSteps,
+        'targetSleepHours': targetSleepHours,
       };
 }

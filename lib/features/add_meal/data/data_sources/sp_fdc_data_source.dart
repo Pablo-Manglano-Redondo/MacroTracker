@@ -60,7 +60,7 @@ class SpFdcDataSource {
     'pera': 'pear',
     'platano': 'banana',
     'pollo': 'chicken',
-    'proteina': 'protein',
+    'proteína': 'protein',
     'queso': 'cheese',
     'salmon': 'salmon',
     'ternera': 'beef',

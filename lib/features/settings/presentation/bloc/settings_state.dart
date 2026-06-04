@@ -31,6 +31,7 @@ class SettingsLoadedState extends SettingsState {
   final int mealReminderLunchMinutes;
   final int mealReminderAfternoonMinutes;
   final int mealReminderEveningMinutes;
+  final MacroGoalModeEntity macroGoalMode;
 
   const SettingsLoadedState(this.versionNumber, this.sendAnonymousData,
       this.appTheme, this.usesImperialUnits,
@@ -45,7 +46,8 @@ class SettingsLoadedState extends SettingsState {
       this.mealReminderMorningMinutes = 9 * 60,
       this.mealReminderLunchMinutes = 15 * 60 + 30,
       this.mealReminderAfternoonMinutes = 18 * 60,
-      this.mealReminderEveningMinutes = 21 * 60 + 30});
+      this.mealReminderEveningMinutes = 21 * 60 + 30,
+      this.macroGoalMode = MacroGoalModeEntity.percentage});
 
   @override
   List<Object?> get props => [
@@ -65,6 +67,7 @@ class SettingsLoadedState extends SettingsState {
         mealReminderLunchMinutes,
         mealReminderAfternoonMinutes,
         mealReminderEveningMinutes,
+        macroGoalMode,
       ];
 }
 

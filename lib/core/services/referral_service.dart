@@ -60,6 +60,13 @@ class ReferralService {
       await _monetizationService.saveReferralCode(newCode);
       await _analyticsService.logReferralCodeCreated();
       return newCode;
+    } on AuthApiException catch (e) {
+      if (e.code == 'anonymous_provider_disabled') {
+        _log.info('Supabase anonymous sign-ins are disabled. Referral code features are disabled for guests.');
+      } else {
+        _log.warning('Failed to get/create referral code', e);
+      }
+      return null;
     } catch (e) {
       _log.warning('Failed to get/create referral code', e);
       return null;
@@ -118,6 +125,13 @@ class ReferralService {
           .limit(1)
           .maybeSingle();
       return response != null;
+    } on AuthApiException catch (e) {
+      if (e.code == 'anonymous_provider_disabled') {
+        _log.info('Supabase anonymous sign-ins are disabled. Cannot check if guest user redeemed a code.');
+      } else {
+        _log.warning('Failed to check if user redeemed any code', e);
+      }
+      return false;
     } catch (e) {
       _log.warning('Failed to check if user redeemed any code', e);
       return false;
@@ -135,6 +149,13 @@ class ReferralService {
 
       final count = await _supabase.rpc('get_referral_count');
       return (count as num?)?.toInt() ?? 0;
+    } on AuthApiException catch (e) {
+      if (e.code == 'anonymous_provider_disabled') {
+        _log.info('Supabase anonymous sign-ins are disabled. Cannot get referral count for guest.');
+      } else {
+        _log.warning('Failed to get referral count', e);
+      }
+      return 0;
     } catch (e) {
       _log.warning('Failed to get referral count', e);
       return 0;

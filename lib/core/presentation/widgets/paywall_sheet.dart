@@ -312,7 +312,8 @@ class _PaywallSheetState extends State<PaywallSheet> {
               children: [
                 GestureDetector(
                   onTap: () async {
-                    final languageCode = Localizations.localeOf(context).languageCode;
+                    final languageCode =
+                        Localizations.localeOf(context).languageCode;
                     final privacyUrl = languageCode == 'es'
                         ? URLConst.privacyPolicyURLEs
                         : URLConst.privacyPolicyURLEn;
@@ -341,7 +342,8 @@ class _PaywallSheetState extends State<PaywallSheet> {
                 const SizedBox(width: 12),
                 GestureDetector(
                   onTap: () async {
-                    final uri = Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
+                    final uri = Uri.parse(
+                        'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/');
                     if (await canLaunchUrl(uri)) {
                       launchUrl(uri, mode: LaunchMode.externalApplication);
                     }
@@ -491,19 +493,19 @@ class _PaywallCopy {
       _BenefitCopy(
         icon: Icons.restaurant_menu_outlined,
         text: isEs
-            ? 'Cantidades ajustadas a tus calorias y proteina restante'
+            ? 'Cantidades ajustadas a tus calorías y proteína restante'
             : 'Servings adjusted to your remaining calories and protein',
       ),
       _BenefitCopy(
         icon: Icons.add_circle_outline,
         text: isEs
-            ? 'Guarda la recomendacion en la comida correcta con un toque'
+            ? 'Guarda la recomendación en la comida correcta con un toque'
             : 'Log the recommendation to the right meal with one tap',
       ),
       _BenefitCopy(
         icon: Icons.query_stats_outlined,
         text: isEs
-            ? 'Explicacion de por que encaja con tu objetivo del dia'
+            ? 'Explicación de por qué encaja con tu objetivo del día'
             : 'Explanation for why it fits today goal',
       ),
     ];
@@ -561,7 +563,7 @@ class _PaywallCopy {
           title:
               isEs ? 'Desbloquea IA ilimitada' : 'Unlock unlimited AI logging',
           subtitle: isEs
-              ? 'Ya has probado la IA. Premium mantiene el registro rapido sin cortar tu flujo.'
+              ? 'Ya has probado la IA. Premium mantiene el registro rápido sin cortar tu flujo.'
               : 'You have tried AI logging. Premium keeps the fast flow available.',
           badge: _trialUsedBadge(isEs, trialState),
           benefits: commonBenefits,
@@ -576,7 +578,7 @@ class _PaywallCopy {
               ? 'Desbloquea tu Coach de macros'
               : 'Unlock your Macro Coach',
           subtitle: isEs
-              ? 'Premium convierte los macros que te faltan en comidas concretas, cantidades ajustadas y registro rapido.'
+              ? 'Premium convierte los macros que te faltan en comidas concretas, cantidades ajustadas y registro rápido.'
               : 'Premium turns your remaining macros into concrete meals, adjusted servings, and fast logging.',
           badge: isEs ? 'Recomendacion Premium' : 'Premium recommendation',
           benefits: macroCoachBenefits,
@@ -649,8 +651,8 @@ class _UsageValueStrip extends StatelessWidget {
           Expanded(
             child: Text(
               isEs
-                  ? '${trialState.aiMealsSaved} comidas IA guardadas. Unos ${trialState.estimatedMinutesSaved} min ahorrados.'
-                  : '${trialState.aiMealsSaved} AI meals saved. About ${trialState.estimatedMinutesSaved} min saved.',
+                  ? '${trialState.aiMealsSaved} comidas IA guardadas. ${trialState.estimatedMinutesSaved} min ahorrados.'
+                  : '${trialState.aiMealsSaved} AI meals saved. ${trialState.estimatedMinutesSaved} min saved.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

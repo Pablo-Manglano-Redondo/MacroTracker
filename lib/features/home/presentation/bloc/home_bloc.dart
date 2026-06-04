@@ -221,7 +221,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           snackIntakeList: snackIntakeList,
           userActivityList: userActivities,
           usesImperialUnits: usesImperialUnits,
-          professionalPlanSummary: professionalPlanSummary));
+          professionalPlanSummary: professionalPlanSummary,
+          targetSteps: user.targetSteps,
+          targetSleepHours: user.targetSleepHours));
     });
   }
 

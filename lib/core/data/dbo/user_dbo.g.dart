@@ -24,13 +24,15 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
       gender: fields[3] as UserGenderDBO,
       goal: fields[4] as UserWeightGoalDBO,
       pal: fields[5] as UserPALDBO,
+      targetSteps: fields[7] as int?,
+      targetSleepHours: fields[8] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserDBO obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.birthday)
       ..writeByte(1)
@@ -44,7 +46,11 @@ class UserDBOAdapter extends TypeAdapter<UserDBO> {
       ..writeByte(4)
       ..write(obj.goal)
       ..writeByte(5)
-      ..write(obj.pal);
+      ..write(obj.pal)
+      ..writeByte(7)
+      ..write(obj.targetSteps)
+      ..writeByte(8)
+      ..write(obj.targetSleepHours);
   }
 
   @override

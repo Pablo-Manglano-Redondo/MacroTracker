@@ -124,24 +124,20 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButtonFormField(
-              isExpanded: true,
+            InputDecorator(
               decoration: InputDecoration(
-                enabled: false,
-                filled: false,
                 labelText: S.of(context).calculationsTDEELabel,
-              ),
-              items: [
-                DropdownMenuItem(
-                  child: Text(
-                    '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                border: const OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
-              ],
-              onChanged: null,
+                prefixIcon: const Icon(Icons.functions_outlined),
+              ),
+              child: Text(
+                '${S.of(context).calculationsTDEEIOM2006Label} ${S.of(context).calculationsRecommendedLabel}',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             Text(
               '${S.of(context).dailyKcalAdjustmentLabel} ${!_kcalAdjustmentSelection.isNegative ? "+" : ""}${_kcalAdjustmentSelection.round()} ${S.of(context).kcalLabel}',
               style: Theme.of(context).textTheme.titleMedium,
@@ -169,26 +165,33 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            SegmentedButton<MacroGoalModeEntity>(
-              showSelectedIcon: false,
-              segments: [
-                ButtonSegment(
-                  value: MacroGoalModeEntity.percentage,
-                  label: Text(_isEs(context) ? '%' : '%'),
+            SizedBox(
+              width: 280,
+              child: SegmentedButton<MacroGoalModeEntity>(
+                showSelectedIcon: true,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                ButtonSegment(
-                  value: MacroGoalModeEntity.gramsPerKg,
-                  label: Text(_isEs(context) ? 'g/kg' : 'g/kg'),
-                ),
-              ],
-              selected: {_macroGoalMode},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  _macroGoalMode = selection.first;
-                });
-              },
+                segments: [
+                  ButtonSegment(
+                    value: MacroGoalModeEntity.percentage,
+                    label: Text(_isEs(context) ? 'Porcentaje' : 'Percentage'),
+                  ),
+                  ButtonSegment(
+                    value: MacroGoalModeEntity.gramsPerKg,
+                    label: Text(_isEs(context) ? 'Gramos/kg' : 'Grams/kg'),
+                  ),
+                ],
+                selected: {_macroGoalMode},
+                onSelectionChanged: (selection) {
+                  setState(() {
+                    _macroGoalMode = selection.first;
+                  });
+                },
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             if (_macroGoalMode == MacroGoalModeEntity.percentage) ...[
               _buildMacroSlider(
                 S.of(context).carbsLabel,
@@ -281,21 +284,28 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 },
               ),
             ] else ...[
-              Text(
-                _gramPerKgHint(context),
-                style: Theme.of(context).textTheme.bodySmall,
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 16),
+                child: Text(
+                  _gramPerKgHint(context),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                ),
               ),
-              const SizedBox(height: 12),
               _buildGramPerKgField(
                 label: S.of(context).proteinLabel,
                 controller: _proteinGramPerKgController,
                 color: Colors.blue,
+                icon: Icons.fitness_center_outlined,
               ),
               const SizedBox(height: 12),
               _buildGramPerKgField(
                 label: S.of(context).fatLabel,
                 controller: _fatGramPerKgController,
                 color: Colors.green,
+                icon: Icons.opacity_outlined,
               ),
             ],
           ],
@@ -361,6 +371,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
     required String label,
     required TextEditingController controller,
     required Color color,
+    required IconData icon,
   }) {
     return TextFormField(
       controller: controller,
@@ -368,8 +379,11 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
       decoration: InputDecoration(
         labelText: label,
         suffixText: 'g/kg',
-        prefixIcon: Icon(Icons.monitor_weight_outlined, color: color),
-        border: const OutlineInputBorder(),
+        prefixIcon: Icon(icon, color: color),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

@@ -72,10 +72,10 @@ void main() {
     test('applies and replaces explicit intake type tags in notes', () {
       expect(
         QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
-          'rica en proteina',
+          'rica en proteína',
           IntakeTypeEntity.breakfast,
         ),
-        '#breakfast rica en proteina',
+        '#breakfast rica en proteína',
       );
       expect(
         QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
@@ -86,10 +86,10 @@ void main() {
       );
       expect(
         QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
-          '#snack algo rapido',
+          '#snack algo rápido',
           null,
         ),
-        'algo rapido',
+        'algo rápido',
       );
     });
   });

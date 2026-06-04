@@ -11,25 +11,33 @@ class UserEntity {
   UserGenderEntity gender;
   UserWeightGoalEntity goal;
   UserPALEntity pal;
+  int? targetSteps;
+  double? targetSleepHours;
 
-  UserEntity(
-      {required this.birthday,
-      required this.heightCM,
-      required this.weightKG,
-      this.profileImagePath,
-      required this.gender,
-      required this.goal,
-      required this.pal});
+  UserEntity({
+    required this.birthday,
+    required this.heightCM,
+    required this.weightKG,
+    this.profileImagePath,
+    required this.gender,
+    required this.goal,
+    required this.pal,
+    this.targetSteps,
+    this.targetSleepHours,
+  });
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
     return UserEntity(
-        birthday: userDBO.birthday,
-        heightCM: userDBO.heightCM,
-        weightKG: userDBO.weightKG,
-        profileImagePath: userDBO.profileImagePath,
-        gender: UserGenderEntity.fromUserGenderDBO(userDBO.gender),
-        goal: UserWeightGoalEntity.fromUserWeightGoalDBO(userDBO.goal),
-        pal: UserPALEntity.fromUserPALDBO(userDBO.pal));
+      birthday: userDBO.birthday,
+      heightCM: userDBO.heightCM,
+      weightKG: userDBO.weightKG,
+      profileImagePath: userDBO.profileImagePath,
+      gender: UserGenderEntity.fromUserGenderDBO(userDBO.gender),
+      goal: UserWeightGoalEntity.fromUserWeightGoalDBO(userDBO.goal),
+      pal: UserPALEntity.fromUserPALDBO(userDBO.pal),
+      targetSteps: userDBO.targetSteps,
+      targetSleepHours: userDBO.targetSleepHours,
+    );
   }
 
   int get age => DateTime.now().difference(birthday).inDays ~/ 365;

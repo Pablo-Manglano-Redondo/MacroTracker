@@ -136,4 +136,51 @@ void main() {
     expect(summary.score,
         greaterThan(usecase.scoreMeal(heavyMeal).score.toDouble()));
   });
+
+  test('food quality score is invariant between 100g and serving based units', () {
+    final healthyGramsMeal = buildMeal(
+      code: 'healthy_g',
+      kcal100: 160,
+      carbs100: 18,
+      fat100: 5,
+      protein100: 19,
+      sugar100: 3,
+      fiber100: 9,
+      saturatedFat100: 1.2,
+    );
+
+    final healthyServingMeal = MealEntity(
+      code: 'healthy_serving',
+      name: 'healthy_serving',
+      brands: null,
+      thumbnailImageUrl: null,
+      mainImageUrl: null,
+      url: null,
+      mealQuantity: '1',
+      mealUnit: 'serving',
+      servingQuantity: null,
+      servingUnit: 'serving',
+      servingSize: null,
+      nutriments: const MealNutrimentsEntity(
+        energyKcal100: 160,
+        carbohydrates100: 18,
+        fat100: 5,
+        proteins100: 19,
+        sugars100: 3,
+        saturatedFat100: 1.2,
+        fiber100: 9,
+      ),
+      source: MealSourceEntity.custom,
+    );
+
+    final scoreGrams = usecase.scoreMeal(healthyGramsMeal);
+    final scoreServing = usecase.scoreMeal(healthyServingMeal);
+
+    expect(scoreServing.score, greaterThanOrEqualTo(70));
+    expect(scoreGrams.score, greaterThanOrEqualTo(70));
+    expect(scoreServing.reasons, contains(FoodQualityReasonCode.goodProtein));
+    expect(scoreServing.reasons, contains(FoodQualityReasonCode.highFiber));
+    expect(scoreGrams.reasons, contains(FoodQualityReasonCode.goodProtein));
+    expect(scoreGrams.reasons, contains(FoodQualityReasonCode.highFiber));
+  });
 }

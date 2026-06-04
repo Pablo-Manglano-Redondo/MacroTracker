@@ -5,9 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:macrotracker/core/presentation/widgets/data_safety_status.dart';
-import 'package:macrotracker/core/presentation/widgets/disclaimer_dialog.dart';
+
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
@@ -147,8 +148,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 18),
                 _buildReferralSection(context),
                 const SizedBox(height: 18),
-                _buildAccountSecuritySection(context, state),
-                const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context) ? 'Seguimiento' : 'Tracking',
                   child: Column(
@@ -164,6 +163,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ListTile(
                         leading: const Icon(Icons.calculate_outlined),
                         title: Text(S.of(context).settingsCalculationsLabel),
+                        subtitle: Text(
+                          _isEs(context)
+                              ? (state.macroGoalMode == MacroGoalModeEntity.percentage
+                                  ? 'Distribución por porcentaje (%)'
+                                  : 'Distribución por gramos por kilo (g/kg)')
+                              : (state.macroGoalMode == MacroGoalModeEntity.percentage
+                                  ? 'Percentage distribution (%)'
+                                  : 'Grams per kg distribution (g/kg)'),
+                        ),
                         onTap: () => _showCalculationsDialog(context),
                       ),
                       ListTile(
@@ -263,6 +271,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 18),
                 ],
+                _buildAccountSecuritySection(context, state),
+                const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context)
                       ? 'Soporte y sugerencias'
@@ -298,6 +308,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 18),
+                _buildPrivacyAndDataSection(context, state),
                 const SizedBox(height: 18),
                 _SettingsSection(
                   title: 'App',
@@ -673,13 +685,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
   }
 
-  void _showDisclaimerDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return const DisclaimerDialog();
-        });
-  }
+
 
   void _showAboutDialog(BuildContext context) async {
     final packageInfo = await PackageInfo.fromPlatform();
@@ -744,10 +750,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           : 'Calorie, macro, habit, activity, and local/Drive backup tracking.',
                     ),
                     _AboutInfoRow(
-                      label: _isEs(context) ? 'Licencia' : 'License',
-                      value: S.of(context).appLicenseLabel,
-                    ),
-                    _AboutInfoRow(
                       label: _isEs(context) ? 'Modelo' : 'Model',
                       value: _isEs(context)
                           ? 'App local-first con sincronización opcional y funciones de IA para interpretar comidas.'
@@ -766,11 +768,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             actions: [
               TextButton.icon(
-                onPressed: () => _launchSourceCodeUrl(context),
-                icon: const Icon(Icons.code_outlined),
-                label: Text(S.of(context).settingsSourceCodeLabel),
-              ),
-              TextButton.icon(
                 onPressed: () => _launchPrivacyPolicyUrl(context),
                 icon: const Icon(Icons.policy_outlined),
                 label: Text(S.of(context).privacyPolicyLabel),
@@ -784,11 +781,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
       );
     }
-  }
-
-  void _launchSourceCodeUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    _launchUrl(context, sourceCodeUri);
   }
 
   void _launchPrivacyPolicyUrl(BuildContext context) async {
@@ -817,7 +809,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       path: AppConst.reportErrorEmail,
       queryParameters: {
         'subject': 'MacroTracker - Bug Report',
-        'body': 'Por favor, describe el bug aqui / Please describe the bug here:\n\n\n\n---\nInformacion del sistema / System info:\nPlatform: ${Platform.isAndroid ? 'Android' : 'iOS'}\n',
+        'body':
+            'Por favor, describe el bug aqui / Please describe the bug here:\n\n\n\n---\nInformacion del sistema / System info:\nPlatform: ${Platform.isAndroid ? 'Android' : 'iOS'}\n',
       },
     );
     _launchUrl(context, emailUri);
@@ -829,7 +822,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       path: AppConst.reportErrorEmail,
       queryParameters: {
         'subject': 'MacroTracker - Feature Request',
-        'body': 'Describe la funcionalidad que te gustaria ver / Describe the feature you would like to see:\n\n\n',
+        'body':
+            'Describe la funcionalidad que te gustaria ver / Describe the feature you would like to see:\n\n\n',
       },
     );
     _launchUrl(context, emailUri);
@@ -892,21 +886,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _buildHealthConnectSyncMessage(HealthConnectSyncReport report) {
     if (!report.didUpdate) {
       if (_isEs(context)) {
-        return '${_healthIntegrationName(context)}: 0 cambios. Leidos ${report.workoutsRead}, importables ${report.workoutsFiltered}, descartados ${report.discardedWorkoutIds}.';
+        return 'Tus datos de ${_healthIntegrationName(context)} ya están al día.';
       }
-      return '${_healthIntegrationName(context)}: 0 changes. Read ${report.workoutsRead}, importable ${report.workoutsFiltered}, discarded ${report.discardedWorkoutIds}.';
+      return 'Your ${_healthIntegrationName(context)} data is already up to date.';
     }
     if (report.workoutsImported > 0 || report.workoutsUpdated > 0) {
       final imported = report.workoutsImported;
       final updated = report.workoutsUpdated;
       if (_isEs(context)) {
-        return '${_healthIntegrationName(context)}: $imported actividades nuevas y $updated reparadas.';
+        return '${_healthIntegrationName(context)}: $imported actividades nuevas y $updated actualizadas.';
       }
-      return '${_healthIntegrationName(context)}: $imported new workouts and $updated repaired.';
+      return '${_healthIntegrationName(context)}: $imported new workouts and $updated updated.';
     }
     return _isEs(context)
-        ? 'Datos de ${_healthIntegrationName(context)} sincronizados, incluidas actividades.'
-        : '${_healthIntegrationName(context)} data synced, including workouts.';
+        ? 'Datos de ${_healthIntegrationName(context)} sincronizados con éxito.'
+        : '${_healthIntegrationName(context)} data successfully synced.';
   }
 
   void _refreshHealthConnectStatus() {
@@ -1172,7 +1166,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               NavigationOptions.professionalPlanRoute,
             ),
           ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivacyAndDataSection(
+    BuildContext context,
+    SettingsLoadedState state,
+  ) {
+    final isEs = _isEs(context);
+
+    return _SettingsSection(
+      title: isEs ? 'Privacidad y datos' : 'Privacy and data',
+      child: Column(
+        children: [
           SwitchListTile(
             secondary: const Icon(Icons.bug_report_outlined),
             title: Text(S.of(context).sendAnonymousUserData),
@@ -1188,21 +1196,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _settingsBloc.add(LoadSettingsEvent());
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: Text(S.of(context).settingsDisclaimerLabel),
-            onTap: () => _showDisclaimerDialog(context),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(
+            child: Material(
+              color: Colors.red.withValues(alpha: 0.04),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(
                   color: Colors.red.withValues(alpha: 0.35),
                   width: 1.5,
                 ),
-                borderRadius: BorderRadius.circular(12),
-                color: Colors.red.withValues(alpha: 0.04),
               ),
               child: ListTile(
                 leading: const Icon(
@@ -1264,22 +1267,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(14),
                     color: _isPremium
-                        ? const Color(0xFFF2BF2E).withValues(alpha: 0.18)
+                        ? const Color(0xFFF2BF2E).withValues(alpha: 0.12)
                         : colorScheme.primaryContainer.withValues(alpha: 0.45),
                   ),
                   alignment: Alignment.center,
                   child: Icon(
-                    _isPremium
-                        ? Icons.star_rounded
-                        : Icons.auto_awesome_outlined,
-                    color: _isPremium
-                        ? const Color(0xFFB77900)
-                        : colorScheme.primary,
+                    _isPremium ? Icons.star_rounded : Icons.auto_awesome_outlined,
+                    color: _isPremium ? const Color(0xFFD97706) : colorScheme.primary,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -1288,11 +1288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isPremium
-                            ? (isEs
-                                ? 'MacroTracker Premium'
-                                : 'MacroTracker Premium')
-                            : (isEs ? 'Plan gratuito' : 'Free plan'),
+                        _isPremium ? 'MacroTracker Premium' : (isEs ? 'Plan gratuito' : 'Free plan'),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -1327,9 +1323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                isEs
-                    ? '$used usados - $remaining restantes'
-                    : '$used used - $remaining remaining',
+                isEs ? '$used usados - $remaining restantes' : '$used used - $remaining remaining',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
@@ -1340,8 +1334,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _PlanMetricRow(
                   icon: Icons.timer_outlined,
                   label: isEs
-                      ? '$aiMealsSaved comidas IA guardadas - unos $minutesSaved min ahorrados'
-                      : '$aiMealsSaved AI meals saved - about $minutesSaved min saved',
+                      ? '$aiMealsSaved comidas IA guardadas - $minutesSaved min ahorrados'
+                      : '$aiMealsSaved AI meals saved - $minutesSaved min saved',
                 ),
               ],
               const SizedBox(height: 16),
@@ -1350,26 +1344,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? null
                     : () => _showSettingsPaywall(context),
                 icon: const Icon(Icons.auto_awesome_outlined),
-                label: Text(isEs
-                    ? 'Activar MacroTracker Premium'
-                    : 'Activate MacroTracker Premium'),
+                label: Text(
+                  isEs ? 'Activar MacroTracker Premium' : 'Activate MacroTracker Premium',
+                ),
               ),
             ] else ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: colorScheme.surfaceContainerHighest
-                      .withValues(alpha: 0.55),
+                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.check_circle_outline,
-                            color: colorScheme.primary),
+                        Icon(
+                          Icons.check_circle_outline_rounded,
+                          color: colorScheme.primary,
+                          size: 20,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -1390,13 +1386,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2BF2E).withValues(alpha: 0.18),
+                              color: const Color(0xFFF2BF2E).withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFFB77900).withValues(alpha: 0.5),
+                                color: const Color(0xFFD97706).withValues(alpha: 0.4),
                               ),
                             ),
                             child: Row(
@@ -1404,14 +1399,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               children: [
                                 const Icon(
                                   Icons.workspace_premium_rounded,
-                                  color: Color(0xFFB77900),
-                                  size: 16,
+                                  color: Color(0xFFD97706),
+                                  size: 14,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   isEs ? 'Miembro Fundador' : 'Founding Member',
                                   style: theme.textTheme.labelMedium?.copyWith(
-                                    color: const Color(0xFFB77900),
+                                    color: const Color(0xFFD97706),
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -1425,13 +1420,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ],
-            TextButton.icon(
-              onPressed: _isPlanActionLoading
-                  ? null
-                  : () => _restorePurchases(context),
-              icon: const Icon(Icons.restore_outlined),
-              label: Text(isEs ? 'Restaurar compras' : 'Restore purchases'),
-            ),
+            if (!_isPremium) ...[
+              const SizedBox(height: 4),
+              TextButton.icon(
+                onPressed: _isPlanActionLoading ? null : () => _restorePurchases(context),
+                icon: const Icon(Icons.restore_outlined, size: 18),
+                label: Text(
+                  isEs ? 'Restaurar compras' : 'Restore purchases',
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1459,7 +1457,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Referral code box
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1475,7 +1473,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEs ? 'TU CÓDIGO DE INVITACIÓN' : 'YOUR REFERRAL CODE',
+                          isEs
+                              ? 'TU CÓDIGO DE INVITACIÓN'
+                              : 'YOUR REFERRAL CODE',
                           style: theme.textTheme.labelSmall?.copyWith(
                             letterSpacing: 1.2,
                             fontWeight: FontWeight.w700,
@@ -1498,7 +1498,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     IconButton(
                       onPressed: () {
                         final referralService = locator<ReferralService>();
-                        final msg = referralService.buildShareMessage(_referralCode!, isEs: isEs);
+                        final msg = referralService
+                            .buildShareMessage(_referralCode!, isEs: isEs);
                         Clipboard.setData(ClipboardData(text: msg));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -1517,11 +1518,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-            
+
             const SizedBox(height: 18),
             Divider(color: colorScheme.outlineVariant),
             const SizedBox(height: 12),
-            
+
             // Redeem Section
             if (_hasRedeemedCode) ...[
               Row(
@@ -1543,7 +1544,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ] else ...[
               Text(
-                isEs ? '¿Te ha invitado un amigo?' : 'Were you invited by a friend?',
+                isEs
+                    ? '¿Te ha invitado un amigo?'
+                    : 'Were you invited by a friend?',
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -1557,7 +1560,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: TextField(
                         controller: _redeemController,
                         decoration: InputDecoration(
-                          hintText: isEs ? 'Introduce su código' : 'Enter their code',
+                          hintText:
+                              isEs ? 'Introduce su código' : 'Enter their code',
                           border: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
@@ -1617,7 +1621,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : 'Could not open Google.')),
         ),
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('Error linking Google account: $e\n$s');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1632,14 +1637,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _redeemFriendCode() async {
     final code = _redeemController.text.trim();
     if (code.isEmpty) return;
-    
+
     setState(() => _isRedeeming = true);
     final referralService = locator<ReferralService>();
     final result = await referralService.redeemCode(code);
-    
+
     if (!mounted) return;
     setState(() => _isRedeeming = false);
-    
+
     final isEs = _isEs(context);
     String message;
     switch (result) {
@@ -1677,8 +1682,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             : 'Error redeeming code. Please try again.';
         break;
     }
-    
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _showSettingsPaywall(BuildContext context) async {
@@ -1739,7 +1745,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return AlertDialog(
               title: Text(
                 isEs ? '¿Eliminar cuenta y datos?' : 'Delete account and data?',
-                style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.red, fontWeight: FontWeight.bold),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1778,9 +1785,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Text(isEs ? 'Cancelar' : 'Cancel'),
                 ),
                 FilledButton(
-                  onPressed: isValid ? () => Navigator.of(context).pop(true) : null,
+                  onPressed:
+                      isValid ? () => Navigator.of(context).pop(true) : null,
                   style: FilledButton.styleFrom(
-                    backgroundColor: isValid ? Colors.red : Colors.grey.shade400,
+                    backgroundColor:
+                        isValid ? Colors.red : Colors.grey.shade400,
                     foregroundColor: Colors.white,
                   ),
                   child: Text(isEs ? 'Eliminar todo' : 'Delete all'),

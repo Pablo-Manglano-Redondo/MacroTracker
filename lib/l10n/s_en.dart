@@ -18,7 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appDescription =>
-      'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.';
+      'MacroTracker by EPSAIT is a professional calorie and nutrient tracker with local-first privacy.';
 
   @override
   String get alphaVersionName => '[Alpha]';

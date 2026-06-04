@@ -113,7 +113,7 @@ abstract class AppLocalizations {
   /// No description provided for @appDescription.
   ///
   /// In en, this message translates to:
-  /// **'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.'**
+  /// **'MacroTracker by EPSAIT is a professional calorie and nutrient tracker with local-first privacy.'**
   String get appDescription;
 
   /// No description provided for @alphaVersionName.
