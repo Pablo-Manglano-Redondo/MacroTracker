@@ -6,12 +6,16 @@ import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_tracked_day_usecase.dart';
+import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
 
 class UpdateHomeWidgetUsecase {
   static const androidWidgetProviderName = 'MacroTrackerSummaryWidgetProvider';
+  static const quickActionsWidgetProviderName = 'MacroTrackerQuickActionsWidgetProvider';
+  static const circularProgressWidgetProviderName = 'MacroTrackerCircularProgressWidgetProvider';
+  static const habitsWidgetProviderName = 'MacroTrackerHabitsWidgetProvider';
 
   static const _kcalRemainingKey = 'widget_kcal_remaining';
   static const _carbsProgressKey = 'widget_carbs_progress';
@@ -19,18 +23,27 @@ class UpdateHomeWidgetUsecase {
   static const _proteinProgressKey = 'widget_protein_progress';
   static const _waterProgressKey = 'widget_water_progress';
 
+  // New keys for circular calorie and habits widgets
+  static const _kcalGoalKey = 'widget_kcal_goal';
+  static const _kcalConsumedKey = 'widget_kcal_consumed';
+  static const _stepsProgressKey = 'widget_steps_progress';
+  static const _sleepProgressKey = 'widget_sleep_progress';
+  static const _focusLabelKey = 'widget_focus_label';
+
   final _log = Logger('UpdateHomeWidgetUsecase');
 
   final GetTrackedDayUsecase _getTrackedDayUsecase;
   final GetDailyHabitLogUsecase _getDailyHabitLogUsecase;
   final GetGymTargetsUsecase _getGymTargetsUsecase;
   final GetConfigUsecase _getConfigUsecase;
+  final GetUserUsecase _getUserUsecase;
 
   UpdateHomeWidgetUsecase(
     this._getTrackedDayUsecase,
     this._getDailyHabitLogUsecase,
     this._getGymTargetsUsecase,
     this._getConfigUsecase,
+    this._getUserUsecase,
   );
 
   Future<void> refreshToday() async {
@@ -42,6 +55,7 @@ class UpdateHomeWidgetUsecase {
 
     try {
       final config = await _getConfigUsecase.getConfig();
+      final user = await _getUserUsecase.getUserData();
       final trackedDay = await _getTrackedDayUsecase.getTrackedDay(today);
       final needsFallbackTargets = trackedDay == null ||
           trackedDay.carbsGoal == null ||
@@ -62,6 +76,11 @@ class UpdateHomeWidgetUsecase {
       final proteinTracked = trackedDay?.proteinTracked ?? 0;
       final hydrationGoal = _hydrationGoalForFocus(config.dailyFocus);
 
+      // Steps goal and Sleep goal
+      final stepsGoal = user.targetSteps ?? _stepGoalForFocus(config.dailyFocus);
+      final sleepGoal = user.targetSleepHours ?? 8.0;
+
+      // Base widget values
       await HomeWidget.saveWidgetData<String>(
         _kcalRemainingKey,
         _formatKcalRemaining(kcalGoal - kcalTracked),
@@ -87,8 +106,44 @@ class UpdateHomeWidgetUsecase {
         ),
       );
 
+      // Circular calorie progress widget values
+      await HomeWidget.saveWidgetData<String>(
+        _kcalGoalKey,
+        kcalGoal.round().toString(),
+      );
+      await HomeWidget.saveWidgetData<String>(
+        _kcalConsumedKey,
+        kcalTracked.round().toString(),
+      );
+
+      // Habits & Recovery widget values
+      await HomeWidget.saveWidgetData<String>(
+        _stepsProgressKey,
+        '${habitLog.steps} / $stepsGoal',
+      );
+      await HomeWidget.saveWidgetData<String>(
+        _sleepProgressKey,
+        '${habitLog.sleepHours.toStringAsFixed(1)} / ${sleepGoal.toStringAsFixed(1)}h',
+      );
+      
+      final isEs = Platform.localeName.startsWith('es');
+      await HomeWidget.saveWidgetData<String>(
+        _focusLabelKey,
+        _formatFocusLabel(config.dailyFocus, isEs),
+      );
+
+      // Trigger updates for all 4 registered widgets
       await HomeWidget.updateWidget(
         androidName: androidWidgetProviderName,
+      );
+      await HomeWidget.updateWidget(
+        androidName: quickActionsWidgetProviderName,
+      );
+      await HomeWidget.updateWidget(
+        androidName: circularProgressWidgetProviderName,
+      );
+      await HomeWidget.updateWidget(
+        androidName: habitsWidgetProviderName,
       );
     } catch (error, stackTrace) {
       _log.warning('Failed to refresh home widget', error, stackTrace);
@@ -134,6 +189,31 @@ class UpdateHomeWidgetUsecase {
         return 3.75;
       case DailyFocusEntity.rest:
         return 2.75;
+    }
+  }
+
+  int _stepGoalForFocus(DailyFocusEntity focus) {
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+      case DailyFocusEntity.upperBody:
+        return 10000;
+      case DailyFocusEntity.cardio:
+        return 12000;
+      case DailyFocusEntity.rest:
+        return 8000;
+    }
+  }
+
+  String _formatFocusLabel(DailyFocusEntity focus, bool isEs) {
+    switch (focus) {
+      case DailyFocusEntity.lowerBody:
+        return isEs ? 'Pierna' : 'Lower Body';
+      case DailyFocusEntity.upperBody:
+        return isEs ? 'Torso' : 'Upper Body';
+      case DailyFocusEntity.cardio:
+        return isEs ? 'Cardio' : 'Cardio';
+      case DailyFocusEntity.rest:
+        return isEs ? 'Descanso' : 'Rest';
     }
   }
 }

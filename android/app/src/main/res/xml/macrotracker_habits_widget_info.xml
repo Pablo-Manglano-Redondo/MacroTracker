@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_macrotracker_habits_name"
+    android:initialLayout="@layout/macrotracker_habits_widget"
+    android:minHeight="40dp"
+    android:minWidth="250dp"
+    android:previewLayout="@layout/macrotracker_habits_widget"
+    android:resizeMode="horizontal"
+    android:targetCellHeight="1"
+    android:targetCellWidth="4"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

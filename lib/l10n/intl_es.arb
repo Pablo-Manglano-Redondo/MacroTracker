@@ -169,7 +169,7 @@
   "mealKcalLabel": "kcal por",
   "mealCarbsLabel": "carbos por",
   "mealFatLabel": "grasas por",
-  "mealProteinLabel": "proteínas por 100 g/ml",
+  "mealProteinLabel": "proteínas por ",
   "errorMealSave": "Error al guardar el plato. ¿Has introducido la información correcta?",
   "bmiLabel": "IMC",
   "bmiInfo": "El Índice de Masa Corporal (IMC) es un índice para clasificar el sobrepeso y la obesidad en adultos. Se define como el peso en kilogramos dividido por el cuadrado de la altura en metros (kg/m²).\n\nEl IMC no diferencia entre masa grasa y muscular y puede ser engañoso para algunas personas.",

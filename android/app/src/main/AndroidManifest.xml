@@ -106,6 +106,36 @@
                 android:resource="@xml/macrotracker_summary_widget_info" />
         </receiver>
         <receiver
+            android:name=".MacroTrackerQuickActionsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/macrotracker_quick_actions_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".MacroTrackerCircularProgressWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/macrotracker_circular_progress_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".MacroTrackerHabitsWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/macrotracker_habits_widget_info" />
+        </receiver>
+        <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false" />
         <receiver

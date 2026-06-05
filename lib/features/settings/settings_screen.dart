@@ -7,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
-import 'package:macrotracker/core/presentation/widgets/data_safety_status.dart';
 
 import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -272,6 +271,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 18),
                 ],
                 _buildAccountSecuritySection(context, state),
+                const SizedBox(height: 18),
+                _buildProfessionalNutritionistSection(context),
                 const SizedBox(height: 18),
                 _SettingsSection(
                   title: _isEs(context)
@@ -1086,13 +1087,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _driveBackupSubtitle(BuildContext context) {
     if (Platform.isAndroid) {
-      return _isEs(context)
-          ? 'Copia cifrada manual o diaria en tu Drive'
-          : 'Manual or daily encrypted backup to your Drive';
+      return _isEs(context) ? 'Drive diario' : 'Daily Drive';
     }
-    return _isEs(context)
-        ? 'Copia cifrada manual en tu Drive'
-        : 'Manual encrypted backup to your Drive';
+    return _isEs(context) ? 'Drive manual' : 'Manual Drive';
   }
 
   Widget _buildAccountSecuritySection(
@@ -1100,73 +1097,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SettingsLoadedState state,
   ) {
     final isEs = _isEs(context);
-    final colorScheme = Theme.of(context).colorScheme;
     final status = _cloudAccountStatus;
     final isProtected = status?.isProtected == true;
 
     return _SettingsSection(
-      title: isEs ? 'Cuenta y seguridad' : 'Account and security',
+      title: isEs ? 'Cuenta y copias' : 'Account and backups',
       child: Column(
         children: [
-          DataSafetyStatus(
-            icon: isProtected
-                ? Icons.verified_user_outlined
-                : Icons.shield_outlined,
-            title: isEs ? 'Cuenta cloud' : 'Cloud account',
-            body: isProtected
-                ? (status?.email?.isNotEmpty == true
-                    ? status!.email!
-                    : (isEs
-                        ? 'Identidad vinculada para recuperacion y conexiones profesionales.'
-                        : 'Linked identity for recovery and coach connections.'))
-                : (isEs
-                    ? 'Recupera la cuenta y permite conexiones profesionales. No activa Drive.'
-                    : 'Enables recovery and coach connections. This does not enable Drive.'),
-            statusLabel: isProtected
-                ? (isEs ? 'Protegida' : 'Protected')
-                : (isEs ? 'Opcional' : 'Optional'),
-            accentColor:
-                isProtected ? colorScheme.primary : colorScheme.tertiary,
-            onTap: isProtected
+          _DataProtectionPanel(
+            isEs: isEs,
+            isProtected: isProtected,
+            accountEmail: status?.email,
+            driveSubtitle: _driveBackupSubtitle(context),
+            onProtectAccount: isProtected
                 ? _loadCloudAccountStatus
                 : () => _protectCloudAccount(context),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          DataSafetyStatus(
-            icon: Icons.cloud_upload_outlined,
-            title: isEs ? 'Google Drive backup' : 'Google Drive backup',
-            body: isEs
-                ? 'Backup cifrado en tu Drive. Es independiente de la cuenta cloud.'
-                : 'Encrypted backup in your Drive. Separate from the cloud account.',
-            statusLabel: _driveBackupSubtitle(context),
-            accentColor: const Color(0xFF0EA5E9),
-            onTap: () => _showDriveBackupDialog(context),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          DataSafetyStatus(
-            icon: Icons.folder_zip_outlined,
-            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
-            body: isEs
-                ? 'Copia local/manual para guardar o mover datos entre dispositivos.'
-                : 'Manual local copy to store or move data between devices.',
-            statusLabel: isEs ? 'Manual' : 'Manual',
-            accentColor: const Color(0xFFF59E0B),
-            onTap: () => _showExportImportDialog(context),
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          DataSafetyStatus(
-            icon: Icons.assignment_ind_outlined,
-            title: isEs ? 'Conexion profesional' : 'Coach connection',
-            body: isEs
-                ? 'Comparte resumenes agregados solo con invitacion y consentimiento.'
-                : 'Shares aggregate summaries only by invite and consent.',
-            statusLabel: isEs ? 'Consentimiento' : 'Consent',
-            accentColor: colorScheme.primary,
-            onTap: () => Navigator.of(context).pushNamed(
-              NavigationOptions.professionalPlanRoute,
-            ),
+            onConfigureBackup: () => _showDriveBackupDialog(context),
+            onExportZip: () => _showExportImportDialog(context),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildProfessionalNutritionistSection(BuildContext context) {
+    final isEs = _isEs(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return _SettingsSection(
+      title: isEs ? 'Nutricionista profesional' : 'Professional nutritionist',
+      child: _ProtectionActionTile(
+        icon: Icons.assignment_ind_outlined,
+        title: isEs ? 'Conexion con nutricionista' : 'Nutritionist connection',
+        body: isEs
+            ? 'Vincula tu cuenta con un profesional por invitacion y consentimiento.'
+            : 'Connect your account with a professional by invite and consent.',
+        statusLabel: isEs ? 'Profesional' : 'Professional',
+        accentColor: colorScheme.primary,
+        onTap: () => Navigator.of(context).pushNamed(
+          NavigationOptions.professionalPlanRoute,
+        ),
       ),
     );
   }
@@ -1873,6 +1843,275 @@ class _AboutInfoRow extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _DataProtectionPanel extends StatelessWidget {
+  final bool isEs;
+  final bool isProtected;
+  final String? accountEmail;
+  final String driveSubtitle;
+  final VoidCallback onProtectAccount;
+  final VoidCallback onConfigureBackup;
+  final VoidCallback onExportZip;
+
+  const _DataProtectionPanel({
+    required this.isEs,
+    required this.isProtected,
+    required this.accountEmail,
+    required this.driveSubtitle,
+    required this.onProtectAccount,
+    required this.onConfigureBackup,
+    required this.onExportZip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final accountLabel = accountEmail?.isNotEmpty == true
+        ? accountEmail!
+        : (isEs
+            ? 'Identidad para recuperacion y conexiones profesionales'
+            : 'Identity for recovery and coach connections');
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isProtected
+                      ? Icons.verified_user_outlined
+                      : Icons.shield_outlined,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            isEs ? 'Proteccion de datos' : 'Data protection',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusPill(
+                          label: isProtected
+                              ? (isEs ? 'Cuenta protegida' : 'Protected')
+                              : (isEs ? 'Sin cuenta' : 'No account'),
+                          color: isProtected
+                              ? colorScheme.primary
+                              : colorScheme.tertiary,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isEs
+                          ? 'Gestiona desde aqui la recuperacion de cuenta, las copias cifradas y la exportacion manual.'
+                          : 'Manage account recovery, encrypted backups, and manual export from one place.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _ProtectionActionTile(
+            icon: isProtected
+                ? Icons.verified_user_outlined
+                : Icons.g_mobiledata_outlined,
+            title: isEs ? 'Cuenta cloud' : 'Cloud account',
+            body: isProtected
+                ? accountLabel
+                : (isEs
+                    ? 'Recupera la cuenta al cambiar de movil.'
+                    : 'Recover your account when changing phones.'),
+            statusLabel: isProtected
+                ? (isEs ? 'Activa' : 'Active')
+                : (isEs ? 'Opcional' : 'Optional'),
+            accentColor:
+                isProtected ? colorScheme.primary : colorScheme.tertiary,
+            onTap: onProtectAccount,
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          _ProtectionActionTile(
+            icon: Icons.cloud_upload_outlined,
+            title: isEs ? 'Backup cifrado' : 'Encrypted backup',
+            body: isEs
+                ? 'Guarda una copia en tu propio Google Drive.'
+                : 'Store a copy in your own Google Drive.',
+            statusLabel: driveSubtitle,
+            accentColor: const Color(0xFF0EA5E9),
+            onTap: onConfigureBackup,
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          _ProtectionActionTile(
+            icon: Icons.folder_zip_outlined,
+            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
+            body: isEs
+                ? 'Copia local/manual para guardar o mover datos.'
+                : 'Manual local copy to store or move data.',
+            statusLabel: isEs ? 'Manual' : 'Manual',
+            accentColor: const Color(0xFFF59E0B),
+            onTap: onExportZip,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProtectionActionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final String statusLabel;
+  final Color accentColor;
+  final VoidCallback? onTap;
+
+  const _ProtectionActionTile({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.statusLabel,
+    required this.accentColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  color: accentColor.withValues(alpha: 0.12),
+                ),
+                child: Icon(icon, color: accentColor, size: 21),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusPill(label: statusLabel),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onTap != null) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  final String label;
+  final Color? color;
+
+  const _StatusPill({
+    required this.label,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final effectiveColor = color ?? colorScheme.onSurfaceVariant;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 150),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: color == null
+              ? colorScheme.surfaceContainerHighest
+              : effectiveColor.withValues(alpha: 0.12),
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: effectiveColor,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }

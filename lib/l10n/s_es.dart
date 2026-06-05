@@ -554,7 +554,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get mealFatLabel => 'grasas por';
 
   @override
-  String get mealProteinLabel => 'proteínas por 100 g/ml';
+  String get mealProteinLabel => 'proteínas por ';
 
   @override
   String get errorMealSave =>

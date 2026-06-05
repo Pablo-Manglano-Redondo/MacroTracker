@@ -15,6 +15,8 @@ import 'package:macrotracker/features/recipes/domain/usecase/log_recipe_usecase.
 import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_pinned_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_saved_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
+import 'package:macrotracker/core/presentation/widgets/recipe_detail_bottom_sheet.dart';
+import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
 
 import 'recipe_editor_screen.dart';
 
@@ -209,7 +211,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         ),
         child: InkWell(
           borderRadius: const BorderRadius.all(Radius.circular(16)),
-          onTap: () => _showAddRecipeDialog(recipe),
+          onTap: () => _showRecipeDetailSheet(recipe),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -433,6 +435,78 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
       Navigator.of(context)
           .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
     }
+  }
+
+  void _showRecipeDetailSheet(RecipeEntity recipe) {
+    final category = RecipeSaveCategoryEntityX.fromRecipe(recipe).quickCategory;
+    final intakeType = RecipeSaveCategoryEntityX.fromRecipe(recipe).explicitIntakeType ?? _intakeTypeEntity;
+    final aggregateMeal = MealAggregateFactory.fromRecipe(recipe);
+    final servings = recipe.defaultServings;
+    final kcal = (aggregateMeal.nutriments.energyPerUnit ?? 0) * servings;
+    final carbs = (aggregateMeal.nutriments.carbohydratesPerUnit ?? 0) * servings;
+    final fat = (aggregateMeal.nutriments.fatPerUnit ?? 0) * servings;
+    final protein = (aggregateMeal.nutriments.proteinsPerUnit ?? 0) * servings;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => RecipeDetailBottomSheet(
+        recipe: recipe,
+        category: category,
+        intakeType: intakeType,
+        servings: servings,
+        kcal: kcal,
+        carbs: carbs,
+        fat: fat,
+        protein: protein,
+        rationale: _displayRecipeNotes(recipe.notes),
+        rationaleTitle: isEs ? 'Notas de la receta' : 'Recipe notes',
+        onLogPressed: () async {
+          Navigator.of(sheetContext).pop();
+          await locator<LogRecipeUsecase>()
+              .logRecipe(recipe, servings, _intakeTypeEntity, _day);
+          locator<HomeBloc>().add(const LoadItemsEvent());
+          locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+          locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name)),
+              ),
+            );
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
+          }
+        },
+        onEditPressed: () async {
+          Navigator.of(sheetContext).pop();
+          await _openEditor(recipe);
+        },
+      ),
+    );
+  }
+
+  String? _displayRecipeNotes(String? notes) {
+    if (notes == null) {
+      return null;
+    }
+
+    final cleaned = notes
+        .replaceAll(RegExp(r'#breakfast\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#desayuno\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#lunch\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#comida\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#dinner\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#cena\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#snack\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempie\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempiÃ©\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    return cleaned.isEmpty ? null : cleaned;
   }
 
   Future<void> _togglePinned(RecipeEntity recipe) async {

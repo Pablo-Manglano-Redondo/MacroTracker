@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_macrotracker_summary_name">MacroTracker Summary</string>
+    <string name="widget_macrotracker_quick_actions_name">MacroTracker Acciones Rápidas</string>
+    <string name="widget_macrotracker_circular_progress_name">MacroTracker Progreso de Calorías</string>
+    <string name="widget_macrotracker_habits_name">MacroTracker Hábitos y Recuperación</string>
     <string name="widget_kcal_remaining_label">Restantes</string>
     <string name="widget_carbs_label">Carbs</string>
     <string name="widget_fats_label">Fats</string>

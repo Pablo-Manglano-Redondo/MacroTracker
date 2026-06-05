@@ -1,4 +1,5 @@
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
@@ -6,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalPlanDataSource {
   static const _activeConnectionKey = 'activeProfessionalConnection';
+  static const debugInviteCode = 'DEBUG';
 
   final Box<dynamic> _box;
   final SupabaseClient _supabaseClient;
@@ -35,6 +37,9 @@ class ProfessionalPlanDataSource {
   Future<void> clearActiveConnection() async {
     final connection = await getActiveConnection();
     await _box.delete(_activeConnectionKey);
+    if (kDebugMode && connection?.relationshipId == 'debug-relationship') {
+      return;
+    }
     if (connection != null && connection.relationshipId.isNotEmpty) {
       await _identityService.ensureUserSession();
       await _supabaseClient
@@ -51,6 +56,9 @@ class ProfessionalPlanDataSource {
   Future<ProfessionalInvitePreviewEntity?> fetchInvitePreview(
       String inviteCode) async {
     final normalizedCode = _normalizeCode(inviteCode);
+    if (kDebugMode && normalizedCode == debugInviteCode) {
+      return _debugInvitePreview();
+    }
     final response = await _supabaseClient.rpc(
       'preview_client_invite',
       params: {'p_invite_code': normalizedCode},
@@ -69,8 +77,13 @@ class ProfessionalPlanDataSource {
   }
 
   Future<ProfessionalConnectionEntity> acceptInvite(String inviteCode) async {
-    await _identityService.ensureUserSession();
     final normalizedCode = _normalizeCode(inviteCode);
+    if (kDebugMode && normalizedCode == debugInviteCode) {
+      final connection = _debugConnection();
+      await saveActiveConnection(connection);
+      return connection;
+    }
+    await _identityService.ensureUserSession();
     final response = await _supabaseClient.rpc(
       'accept_client_invite',
       params: {'p_invite_code': normalizedCode},
@@ -98,6 +111,9 @@ class ProfessionalPlanDataSource {
   }
 
   Future<NutritionPlanEntity?> fetchActivePlan(String clientId) async {
+    if (kDebugMode && clientId == 'debug-client') {
+      return _debugPlan();
+    }
     if (clientId.isEmpty) {
       return null;
     }
@@ -141,6 +157,9 @@ class ProfessionalPlanDataSource {
     required double proteinTarget,
     required int mealsLogged,
   }) async {
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return;
+    }
     await _identityService.ensureUserSession();
     await _supabaseClient.from('client_shared_snapshots').upsert({
       'professional_client_id': connection.relationshipId,
@@ -166,4 +185,86 @@ class ProfessionalPlanDataSource {
   String _dateKey(DateTime date) => '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
       '${date.day.toString().padLeft(2, '0')}';
+
+  ProfessionalInvitePreviewEntity _debugInvitePreview() {
+    return ProfessionalInvitePreviewEntity(
+      inviteId: 'debug-invite',
+      code: debugInviteCode,
+      professionalId: 'debug-professional',
+      professionalName: 'Nutricionista Debug',
+      expiresAt: DateTime.now().add(const Duration(days: 30)),
+      isExpired: false,
+    );
+  }
+
+  ProfessionalConnectionEntity _debugConnection() {
+    final now = DateTime.now();
+    return ProfessionalConnectionEntity(
+      relationshipId: 'debug-relationship',
+      professionalId: 'debug-professional',
+      clientId: 'debug-client',
+      professionalName: 'Nutricionista Debug',
+      connectedAt: now,
+      consentAcceptedAt: now,
+      activePlan: _debugPlan(),
+    );
+  }
+
+  NutritionPlanEntity _debugPlan() {
+    final now = DateTime.now();
+    return NutritionPlanEntity(
+      id: 'debug-plan',
+      professionalId: 'debug-professional',
+      clientId: 'debug-client',
+      name: 'Plan debug de recomposicion',
+      objective: 'Validar la experiencia del nutricionista profesional.',
+      notes: 'Plan local generado solo en modo debug.',
+      startsOn: DateTime(now.year, now.month, now.day),
+      endsOn: DateTime(now.year, now.month, now.day).add(
+        const Duration(days: 14),
+      ),
+      days: const [
+        NutritionPlanDayEntity(
+          dateKey: null,
+          weekday: null,
+          kcalGoal: 2300,
+          carbsGoal: 260,
+          fatGoal: 70,
+          proteinGoal: 170,
+        ),
+      ],
+      meals: const [
+        NutritionPlanMealEntity(
+          id: 'debug-meal-1',
+          slot: 'breakfast',
+          title: 'Avena proteica',
+          notes: 'Avena, yogur griego y fruta.',
+          kcal: 520,
+          carbs: 62,
+          fat: 12,
+          protein: 38,
+        ),
+        NutritionPlanMealEntity(
+          id: 'debug-meal-2',
+          slot: 'lunch',
+          title: 'Bowl de arroz y pollo',
+          notes: 'Arroz, pollo, verduras y aceite de oliva.',
+          kcal: 760,
+          carbs: 86,
+          fat: 21,
+          protein: 54,
+        ),
+        NutritionPlanMealEntity(
+          id: 'debug-meal-3',
+          slot: 'dinner',
+          title: 'Cena alta en proteina',
+          notes: 'Pescado, patata y ensalada.',
+          kcal: 640,
+          carbs: 58,
+          fat: 18,
+          protein: 52,
+        ),
+      ],
+    );
+  }
 }

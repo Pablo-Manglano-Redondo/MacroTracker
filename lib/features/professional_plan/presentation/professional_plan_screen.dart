@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/disconnect_professional_usecase.dart';
@@ -94,6 +96,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                     isBusy: _protectingAccount,
                     onPreviewInvite: _previewInvite,
                     onAcceptInvite: _acceptInvite,
+                    onUseDebugInvite: kDebugMode ? _useDebugInvite : null,
                   ),
               ],
             ),
@@ -172,7 +175,9 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   }
 
   Future<void> _acceptInvite() async {
-    final accountReady = await _ensureProtectedAccountForConnection();
+    final accountReady = _isDebugInviteCode()
+        ? true
+        : await _ensureProtectedAccountForConnection();
     if (!accountReady) {
       return;
     }
@@ -285,6 +290,17 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     }
   }
 
+  void _useDebugInvite() {
+    _codeController.text = ProfessionalPlanDataSource.debugInviteCode;
+    _previewInvite();
+  }
+
+  bool _isDebugInviteCode() {
+    return kDebugMode &&
+        _codeController.text.trim().toUpperCase() ==
+            ProfessionalPlanDataSource.debugInviteCode;
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -342,6 +358,7 @@ class _InviteEntryView extends StatelessWidget {
   final bool isBusy;
   final VoidCallback onPreviewInvite;
   final VoidCallback onAcceptInvite;
+  final VoidCallback? onUseDebugInvite;
 
   const _InviteEntryView({
     required this.codeController,
@@ -350,6 +367,7 @@ class _InviteEntryView extends StatelessWidget {
     required this.isBusy,
     required this.onPreviewInvite,
     required this.onAcceptInvite,
+    required this.onUseDebugInvite,
   });
 
   @override
@@ -389,6 +407,18 @@ class _InviteEntryView extends StatelessWidget {
           label: Text(
               _copy(context, es: 'Revisar invitacion', en: 'Review invite')),
         ),
+        if (onUseDebugInvite != null) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: isBusy ? null : onUseDebugInvite,
+            icon: const Icon(Icons.bug_report_outlined),
+            label: Text(_copy(
+              context,
+              es: 'Usar invitacion debug',
+              en: 'Use debug invite',
+            )),
+          ),
+        ],
         if (error != null) ...[
           const SizedBox(height: 12),
           Text(error!, style: TextStyle(color: colorScheme.error)),

@@ -755,7 +755,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNameLabel":
             MessageLookupByLibrary.simpleMessage("Nombre del plato"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("proteínas por 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("proteínas por"),
         "mealSizeLabel": MessageLookupByLibrary.simpleMessage("Tamaño (g/ml)"),
         "mealSizeLabelImperial":
             MessageLookupByLibrary.simpleMessage("Tamaño (oz/fl oz)"),

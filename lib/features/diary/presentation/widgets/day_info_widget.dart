@@ -6,6 +6,7 @@ import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
@@ -13,9 +14,12 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:macrotracker/features/home/presentation/widgets/intake_vertical_list.dart';
+import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
+import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
+import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class DayInfoWidget extends StatefulWidget {
@@ -250,9 +254,31 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
             widget.dinnerIntake.isEmpty &&
             widget.snackIntake.isEmpty)
           _DiaryEmptyDayCard(
+            day: widget.selectedDay,
             onAddMeal: () => MealEntryActionSheet.show(
               context,
               day: widget.selectedDay,
+            ),
+            onScanPressed: () => Navigator.of(context).pushNamed(
+              NavigationOptions.scannerRoute,
+              arguments: ScannerScreenArguments(
+                widget.selectedDay,
+                _defaultIntakeType(),
+              ),
+            ),
+            onTextAIPressed: () => Navigator.of(context).pushNamed(
+              NavigationOptions.mealTextCaptureRoute,
+              arguments: MealTextCaptureScreenArguments(
+                widget.selectedDay,
+                _defaultIntakeType(),
+              ),
+            ),
+            onPhotoAIPressed: () => Navigator.of(context).pushNamed(
+              NavigationOptions.mealPhotoCaptureRoute,
+              arguments: MealPhotoCaptureScreenArguments(
+                widget.selectedDay,
+                _defaultIntakeType(),
+              ),
             ),
           )
         else ...[
@@ -508,6 +534,14 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
       ),
     );
   }
+
+  IntakeTypeEntity _defaultIntakeType() {
+    final hour = DateTime.now().hour;
+    if (hour < 11) return IntakeTypeEntity.breakfast;
+    if (hour < 16) return IntakeTypeEntity.lunch;
+    if (hour < 20) return IntakeTypeEntity.snack;
+    return IntakeTypeEntity.dinner;
+  }
 }
 
 class _DaySummaryCard extends StatelessWidget {
@@ -659,10 +693,18 @@ class _DaySummaryCard extends StatelessWidget {
 }
 
 class _DiaryEmptyDayCard extends StatelessWidget {
+  final DateTime day;
   final VoidCallback onAddMeal;
+  final VoidCallback onScanPressed;
+  final VoidCallback onTextAIPressed;
+  final VoidCallback onPhotoAIPressed;
 
   const _DiaryEmptyDayCard({
+    required this.day,
     required this.onAddMeal,
+    required this.onScanPressed,
+    required this.onTextAIPressed,
+    required this.onPhotoAIPressed,
   });
 
   @override
@@ -730,17 +772,17 @@ class _DiaryEmptyDayCard extends StatelessWidget {
                   label: Text(isEs ? 'Añadir comida' : 'Add meal'),
                 ),
                 IconButton.filledTonal(
-                  onPressed: onAddMeal,
+                  onPressed: onScanPressed,
                   icon: const Icon(Icons.qr_code_scanner_outlined),
                   tooltip: isEs ? 'Escanear' : 'Scan',
                 ),
                 IconButton.filledTonal(
-                  onPressed: onAddMeal,
+                  onPressed: onTextAIPressed,
                   icon: const Icon(Icons.edit_note_outlined),
                   tooltip: isEs ? 'IA texto' : 'AI text',
                 ),
                 IconButton.filledTonal(
-                  onPressed: onAddMeal,
+                  onPressed: onPhotoAIPressed,
                   icon: const Icon(Icons.add_a_photo_outlined),
                   tooltip: isEs ? 'IA foto' : 'AI photo',
                 ),

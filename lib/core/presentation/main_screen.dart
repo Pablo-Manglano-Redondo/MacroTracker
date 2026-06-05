@@ -17,6 +17,10 @@ import 'package:macrotracker/features/profile/profile_page.dart';
 import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
+import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/features/scanner/scanner_screen.dart';
+import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
+import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -87,17 +91,61 @@ class _MainScreenState extends State<MainScreen> {
     try {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
-        _openInviteLink(initialUri);
+        _handleDeepLink(initialUri);
       }
-      _appLinkSubscription = _appLinks.uriLinkStream.listen(_openInviteLink);
+      _appLinkSubscription = _appLinks.uriLinkStream.listen(_handleDeepLink);
     } catch (_) {
       // Deep links are a convenience path. Manual invite-code entry remains available.
     }
   }
 
-  void _openInviteLink(Uri uri) {
+  Future<void> _handleDeepLink(Uri uri) async {
+    if (!mounted) return;
+
+    if (uri.scheme == 'macrotracker') {
+      if (uri.host == 'add_water') {
+        try {
+          await locator<UpdateDailyHabitLogUsecase>().adjustWater(
+            day: DateTime.now(),
+            deltaLiters: 0.25,
+          );
+          locator<HomeBloc>().add(const LoadItemsEvent());
+          if (mounted) {
+            final isEs = Localizations.localeOf(context).languageCode == 'es';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(isEs ? '+250 ml de agua registrados' : '+250 ml of water registered'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } catch (_) {
+          // Silent error handling
+        }
+        return;
+      } else if (uri.host == 'scan') {
+        final hour = DateTime.now().hour;
+        IntakeTypeEntity intakeType;
+        if (hour < 11) {
+          intakeType = IntakeTypeEntity.breakfast;
+        } else if (hour < 16) {
+          intakeType = IntakeTypeEntity.lunch;
+        } else if (hour < 20) {
+          intakeType = IntakeTypeEntity.snack;
+        } else {
+          intakeType = IntakeTypeEntity.dinner;
+        }
+
+        Navigator.of(context).pushNamed(
+          NavigationOptions.scannerRoute,
+          arguments: ScannerScreenArguments(DateTime.now(), intakeType),
+        );
+        return;
+      }
+    }
+
     final code = _extractInviteCode(uri);
-    if (code == null || code.isEmpty || !mounted) {
+    if (code == null || code.isEmpty) {
       return;
     }
     Navigator.of(context).pushNamed(
