@@ -86,6 +86,7 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
       remainingCarbs: widget.remainingCarbs,
       remainingFat: widget.remainingFat,
       remainingProtein: widget.remainingProtein,
+      languageCode: PlatformDispatcher.instance.locale.languageCode,
     );
     return _MacroCoachState(isPremium: true, suggestions: suggestions);
   }

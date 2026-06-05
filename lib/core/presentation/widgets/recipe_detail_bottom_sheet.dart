@@ -44,6 +44,8 @@ class RecipeDetailBottomSheet extends StatelessWidget {
     
     final defaultServings = recipe.defaultServings;
     final scaleFactor = defaultServings > 0 ? (servings / defaultServings) : 1.0;
+    final displayedRationale =
+        isCoachSuggestion ? rationale : _cleanRecipeNotes(rationale);
     
     final formattedServings = servings.toStringAsFixed(
       servings % 1 == 0 ? 0 : 1,
@@ -175,7 +177,8 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                           ),
                         ],
                       ),
-                      if (rationale != null && rationale!.isNotEmpty) ...[
+                      if (displayedRationale != null &&
+                          displayedRationale.isNotEmpty) ...[
                         const SizedBox(height: 20),
                         Container(
                           padding: const EdgeInsets.all(16),
@@ -221,7 +224,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                rationale!,
+                                displayedRationale,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       height: 1.4,
                                     ),
@@ -345,6 +348,25 @@ class RecipeDetailBottomSheet extends StatelessWidget {
 
   String _formatAmount(double amount) {
     return amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(1);
+  }
+
+  String? _cleanRecipeNotes(String? notes) {
+    if (notes == null) {
+      return null;
+    }
+    final cleaned = notes
+        .replaceAll(RegExp(r'#breakfast\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#desayuno\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#lunch\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#comida\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#dinner\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#cena\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#snack\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempie\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempi.\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return cleaned.isEmpty ? null : cleaned;
   }
 
   String _slotText(BuildContext context, IntakeTypeEntity intakeType) {

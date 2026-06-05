@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
@@ -20,6 +21,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   late RecipeEntity _recipe;
   late TextEditingController _nameController;
   late TextEditingController _servingsController;
+  late TextEditingController _notesController;
   late RecipeSaveCategoryEntity _selectedCategory;
   late bool _pinned;
   late List<_EditableRecipeIngredient> _ingredients;
@@ -44,6 +46,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     _servingsController = TextEditingController(
       text: _formatServings(_recipe.defaultServings),
     );
+    _notesController = TextEditingController(
+      text: _cleanIntakeTypeTags(_recipe.notes) ?? '',
+    );
     _selectedCategory = RecipeSaveCategoryEntityX.fromRecipe(_recipe);
     _pinned = _recipe.pinned;
     _ingredients = _recipe.ingredients
@@ -57,6 +62,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     if (_didInit) {
       _nameController.dispose();
       _servingsController.dispose();
+      _notesController.dispose();
       for (final ingredient in _ingredients) {
         ingredient.dispose();
       }
@@ -74,15 +80,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isEs(context) ? 'Editar receta' : 'Edit recipe'),
-        actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _save,
-            child: Text(_isEs(context) ? 'Guardar' : 'Save'),
-          ),
-        ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 104),
         children: [
           TextField(
             controller: _nameController,
@@ -128,67 +128,40 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             },
           ),
           const SizedBox(height: 16),
+          TextField(
+            controller: _notesController,
+            minLines: 2,
+            maxLines: 4,
+            decoration: InputDecoration(
+              labelText:
+                  _isEs(context) ? 'Notas de la receta' : 'Recipe notes',
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildIngredientsSection(),
           const SizedBox(height: 16),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            value: _pinned,
-            onChanged: (value) {
-              setState(() {
-                _pinned = value;
-              });
-            },
-            title: Text(_isEs(context) ? 'Fijar arriba' : 'Pin to top'),
-            subtitle: Text(
-              _isEs(context)
-                  ? 'Las recetas fijadas salen primero en la librería y accesos rápidos.'
-                  : 'Pinned recipes appear first in the library and quick access lists.',
-            ),
-          ),
-          const SizedBox(height: 24),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _isEs(context) ? 'Uso' : 'Usage',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _StatChip(
-                        icon: Icons.bookmark_outline,
-                        label: _pinned
-                            ? (_isEs(context) ? 'Fijada' : 'Pinned')
-                            : (_isEs(context) ? 'No fijada' : 'Not pinned'),
-                      ),
-                      _StatChip(
-                        icon: Icons.repeat_outlined,
-                        label: _isEs(context)
-                            ? '${_recipe.timesUsed} usos'
-                            : '${_recipe.timesUsed} uses',
-                      ),
-                      if (_recipe.lastUsedAt != null)
-                        _StatChip(
-                          icon: Icons.schedule_outlined,
-                          label: _isEs(context)
-                              ? 'Último uso: ${_formatDate(_recipe.lastUsedAt!)}'
-                              : 'Last used: ${_formatDate(_recipe.lastUsedAt!)}',
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
+          _buildMacroSummary(),
         ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: FilledButton.icon(
+            onPressed: _isSaving ? null : _save,
+            icon: _isSaving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save_outlined),
+            label: Text(_isEs(context) ? 'Guardar receta' : 'Save recipe'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 52),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -237,10 +210,74 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     );
   }
 
+  Widget _buildMacroSummary() {
+    final isEs = _isEs(context);
+    final totals = _currentTotals();
+    final servings = _parsedServings();
+    final perServing = servings > 0
+        ? _MacroTotals(
+            kcal: totals.kcal / servings,
+            carbs: totals.carbs / servings,
+            fat: totals.fat / servings,
+            protein: totals.protein / servings,
+          )
+        : totals;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isEs ? 'Resumen nutricional' : 'Nutrition summary',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _StatChip(
+                  icon: Icons.local_fire_department_outlined,
+                  label: '${perServing.kcal.toStringAsFixed(0)} kcal',
+                ),
+                _StatChip(
+                  icon: Icons.cookie_outlined,
+                  label: 'C ${perServing.carbs.toStringAsFixed(1)} g',
+                ),
+                _StatChip(
+                  icon: Icons.opacity_outlined,
+                  label: 'F ${perServing.fat.toStringAsFixed(1)} g',
+                ),
+                _StatChip(
+                  icon: Icons.egg_alt_outlined,
+                  label: 'P ${perServing.protein.toStringAsFixed(1)} g',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              isEs
+                  ? 'Por racion. Total receta: ${totals.kcal.toStringAsFixed(0)} kcal.'
+                  : 'Per serving. Full recipe: ${totals.kcal.toStringAsFixed(0)} kcal.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildIngredientEditor(_EditableRecipeIngredient ingredient) {
     final isEs = _isEs(context);
     final colorScheme = Theme.of(context).colorScheme;
     final units = _allowedUnits(ingredient.meal, ingredient.unit);
+    final nutrition = _ingredientNutrition(ingredient);
 
     return Padding(
       padding: const EdgeInsets.only(top: 12),
@@ -254,19 +291,46 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
           child: Column(
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(
-                      ingredient.meal.name ?? (isEs ? 'Alimento' : 'Food'),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          ingredient.meal.name ?? (isEs ? 'Alimento' : 'Food'),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                        ),
+                        if (ingredient.meal.brands?.trim().isNotEmpty == true)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              ingredient.meal.brands!.trim(),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
                           ),
+                      ],
                     ),
                   ),
                   IconButton(
                     tooltip: isEs ? 'Cambiar alimento' : 'Change food',
                     onPressed: () => _replaceIngredient(ingredient),
                     icon: const Icon(Icons.swap_horiz_outlined),
+                  ),
+                  IconButton(
+                    tooltip: isEs ? 'Duplicar' : 'Duplicate',
+                    onPressed: () => _duplicateIngredient(ingredient),
+                    icon: const Icon(Icons.content_copy_outlined),
                   ),
                   IconButton(
                     tooltip: isEs ? 'Eliminar' : 'Remove',
@@ -287,6 +351,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                         labelText: isEs ? 'Cantidad' : 'Amount',
                         border: const OutlineInputBorder(),
                       ),
+                      onChanged: (_) => setState(() {}),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -318,11 +383,77 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _StatChip(
+                    icon: Icons.local_fire_department_outlined,
+                    label: '${nutrition.kcal.toStringAsFixed(0)} kcal',
+                  ),
+                  _StatChip(
+                    icon: Icons.cookie_outlined,
+                    label: 'C ${nutrition.carbs.toStringAsFixed(1)}',
+                  ),
+                  _StatChip(
+                    icon: Icons.opacity_outlined,
+                    label: 'F ${nutrition.fat.toStringAsFixed(1)}',
+                  ),
+                  _StatChip(
+                    icon: Icons.egg_alt_outlined,
+                    label: 'P ${nutrition.protein.toStringAsFixed(1)}',
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  MealPortionNutrition _ingredientNutrition(
+    _EditableRecipeIngredient ingredient,
+  ) {
+    final amount = double.tryParse(
+          ingredient.amountController.text.trim().replaceAll(',', '.'),
+        ) ??
+        0;
+    return MealPortionCalculator.calculate(
+      ingredient.meal,
+      amount,
+      ingredient.unit,
+    );
+  }
+
+  _MacroTotals _currentTotals() {
+    var kcal = 0.0;
+    var carbs = 0.0;
+    var fat = 0.0;
+    var protein = 0.0;
+
+    for (final ingredient in _ingredients) {
+      final nutrition = _ingredientNutrition(ingredient);
+      kcal += nutrition.kcal;
+      carbs += nutrition.carbs;
+      fat += nutrition.fat;
+      protein += nutrition.protein;
+    }
+
+    return _MacroTotals(
+      kcal: kcal,
+      carbs: carbs,
+      fat: fat,
+      protein: protein,
+    );
+  }
+
+  double _parsedServings() {
+    return double.tryParse(
+          _servingsController.text.trim().replaceAll(',', '.'),
+        ) ??
+        1;
   }
 
   Future<void> _addIngredient() async {
@@ -334,7 +465,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       _ingredients.add(_EditableRecipeIngredient(
         id: IdGenerator.getUniqueID(),
         meal: meal,
-        amount: meal.servingQuantity ?? 100,
+        amount: _defaultAmount(meal),
         unit: _defaultUnit(meal),
       ));
     });
@@ -349,7 +480,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       ingredient.meal = meal;
       ingredient.unit = _defaultUnit(meal);
       ingredient.amountController.text = _formatServings(
-        meal.servingQuantity ?? 100,
+        _defaultAmount(meal),
       );
     });
   }
@@ -362,10 +493,26 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   }
 
   Future<MealEntity?> _pickMeal() {
-    return showDialog<MealEntity>(
+    return showModalBottomSheet<MealEntity>(
       context: context,
-      builder: (context) => const _MealPickerDialog(),
+      isScrollControlled: true,
+      builder: (context) => const _MealPickerSheet(),
     );
+  }
+
+  void _duplicateIngredient(_EditableRecipeIngredient ingredient) {
+    final amount = double.tryParse(
+          ingredient.amountController.text.trim().replaceAll(',', '.'),
+        ) ??
+        100;
+    setState(() {
+      _ingredients.add(_EditableRecipeIngredient(
+        id: IdGenerator.getUniqueID(),
+        meal: ingredient.meal,
+        amount: amount,
+        unit: ingredient.unit,
+      ));
+    });
   }
 
   List<String> _allowedUnits(MealEntity meal, String selectedUnit) {
@@ -393,6 +540,10 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       return meal.mealUnit!.trim();
     }
     return meal.isLiquid ? 'ml' : 'g';
+  }
+
+  double _defaultAmount(MealEntity meal) {
+    return meal.hasServingValues ? 1 : 100;
   }
 
   String _unitLabel(String unit) {
@@ -446,7 +597,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
       pinned: _pinned,
       quickCategory: _selectedCategory.quickCategory,
       notes: QuickRecipeCategoryEntityX.applyExplicitIntakeTypeTag(
-        _recipe.notes,
+        _notesController.text.trim().isEmpty
+            ? null
+            : _notesController.text.trim(),
         _selectedCategory.explicitIntakeType,
       ),
       ingredients: ingredients,
@@ -502,6 +655,25 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     return '$day/$month/$year';
   }
 
+  String? _cleanIntakeTypeTags(String? notes) {
+    if (notes == null) {
+      return null;
+    }
+    final cleaned = notes
+        .replaceAll(RegExp(r'#breakfast\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#desayuno\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#lunch\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#comida\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#dinner\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#cena\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#snack\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempie\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempie\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return cleaned.isEmpty ? null : cleaned;
+  }
+
   bool _isEs(BuildContext context) {
     return Localizations.localeOf(context).languageCode == 'es';
   }
@@ -511,6 +683,20 @@ class RecipeEditorScreenArguments {
   final RecipeEntity recipe;
 
   const RecipeEditorScreenArguments(this.recipe);
+}
+
+class _MacroTotals {
+  final double kcal;
+  final double carbs;
+  final double fat;
+  final double protein;
+
+  const _MacroTotals({
+    required this.kcal,
+    required this.carbs,
+    required this.fat,
+    required this.protein,
+  });
 }
 
 class _EditableRecipeIngredient {
@@ -544,18 +730,20 @@ class _EditableRecipeIngredient {
   }
 }
 
-class _MealPickerDialog extends StatefulWidget {
-  const _MealPickerDialog();
+class _MealPickerSheet extends StatefulWidget {
+  const _MealPickerSheet();
 
   @override
-  State<_MealPickerDialog> createState() => _MealPickerDialogState();
+  State<_MealPickerSheet> createState() => _MealPickerSheetState();
 }
 
-class _MealPickerDialogState extends State<_MealPickerDialog> {
+class _MealPickerSheetState extends State<_MealPickerSheet> {
   final _controller = TextEditingController();
   List<MealEntity> _results = const [];
   bool _isLoading = false;
   bool _hasSearched = false;
+  bool _usedOfflineCache = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -567,40 +755,57 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
   Widget build(BuildContext context) {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
 
-    return AlertDialog(
-      title: Text(isEs ? 'Buscar alimento' : 'Search food'),
-      content: SizedBox(
-        width: double.maxFinite,
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.88,
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _controller,
-              autofocus: true,
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                labelText: isEs ? 'Alimento' : 'Food',
-                suffixIcon: IconButton(
-                  onPressed: _isLoading ? null : _search,
-                  icon: const Icon(Icons.search_outlined),
-                ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 12, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      isEs ? 'Buscar alimento' : 'Search food',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
               ),
-              onSubmitted: (_) => _search(),
             ),
-            const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 320),
-              child: _buildResults(isEs),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  labelText: isEs ? 'Alimento' : 'Food',
+                  prefixIcon: const Icon(Icons.search_outlined),
+                  suffixIcon: IconButton(
+                    onPressed: _isLoading ? null : _search,
+                    icon: const Icon(Icons.arrow_forward_outlined),
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
+                onSubmitted: (_) => _search(),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildResults(isEs),
+              ),
             ),
           ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(isEs ? 'Cancelar' : 'Cancel'),
-        ),
-      ],
     );
   }
 
@@ -621,24 +826,68 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
     if (_results.isEmpty) {
       return Align(
         alignment: Alignment.centerLeft,
-        child: Text(isEs ? 'Sin resultados.' : 'No results.'),
+        child: Text(
+          _errorMessage ??
+              (isEs ? 'Sin resultados.' : 'No results.'),
+        ),
       );
     }
 
     return ListView.separated(
       shrinkWrap: true,
-      itemCount: _results.length,
+      itemCount: _results.length + (_usedOfflineCache ? 1 : 0),
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final meal = _results[index];
+        if (_usedOfflineCache && index == 0) {
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.offline_pin_outlined),
+            title: Text(
+              isEs
+                  ? 'Resultados de cache local'
+                  : 'Local cache results',
+            ),
+          );
+        }
+        final meal = _results[_usedOfflineCache ? index - 1 : index];
         return ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(meal.name ?? (isEs ? 'Alimento' : 'Food')),
-          subtitle: meal.brands?.isNotEmpty == true ? Text(meal.brands!) : null,
+          subtitle: Text(_mealSubtitle(meal)),
+          trailing: Text(
+            '${((meal.nutriments.energyPerUnit ?? 0) * _initialAmount(meal)).toStringAsFixed(0)} kcal',
+            style: Theme.of(context).textTheme.labelMedium,
+          ),
           onTap: () => Navigator.of(context).pop(meal),
         );
       },
     );
+  }
+
+  String _mealSubtitle(MealEntity meal) {
+    final parts = <String>[];
+    if (meal.brands?.trim().isNotEmpty == true) {
+      parts.add(meal.brands!.trim());
+    }
+    parts.add(meal.source.name.toUpperCase());
+    final unit = _initialUnit(meal);
+    final amount = _initialAmount(meal);
+    parts.add('${amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(1)} $unit');
+    if (meal.servingSize?.trim().isNotEmpty == true) {
+      parts.add(meal.servingSize!.trim());
+    }
+    return parts.join(' | ');
+  }
+
+  double _initialAmount(MealEntity meal) {
+    return meal.hasServingValues ? 1 : 100;
+  }
+
+  String _initialUnit(MealEntity meal) {
+    if (meal.hasServingValues) {
+      return 'serving';
+    }
+    return meal.isLiquid ? 'ml' : 'g';
   }
 
   Future<void> _search() async {
@@ -649,6 +898,8 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
     setState(() {
       _isLoading = true;
       _hasSearched = true;
+      _usedOfflineCache = false;
+      _errorMessage = null;
     });
 
     try {
@@ -663,6 +914,7 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
       setState(() {
         _results = results;
         _isLoading = false;
+        _usedOfflineCache = false;
       });
     } catch (_) {
       try {
@@ -674,6 +926,7 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
         setState(() {
           _results = results;
           _isLoading = false;
+          _usedOfflineCache = results.isNotEmpty;
         });
       } catch (_) {
         if (!mounted) {
@@ -682,6 +935,10 @@ class _MealPickerDialogState extends State<_MealPickerDialog> {
         setState(() {
           _results = const [];
           _isLoading = false;
+          _usedOfflineCache = false;
+          _errorMessage = Localizations.localeOf(context).languageCode == 'es'
+              ? 'No se pudo buscar ahora. Revisa la conexion e intentalo de nuevo.'
+              : 'Search is unavailable right now. Check the connection and try again.';
         });
       }
     }

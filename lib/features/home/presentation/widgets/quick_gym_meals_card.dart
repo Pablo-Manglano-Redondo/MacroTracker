@@ -127,18 +127,24 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        NavigationOptions.recipeLibraryRoute,
-                        arguments: RecipeLibraryScreenArguments(
-                          DateTime.now(),
-                          IntakeTypeEntity.snack,
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.bookmark_outline),
-                    tooltip: _savedTooltip(context),
+                  Tooltip(
+                    message: _savedTooltip(context),
+                    child: TextButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(
+                          NavigationOptions.recipeLibraryRoute,
+                          arguments: RecipeLibraryScreenArguments(
+                            DateTime.now(),
+                            IntakeTypeEntity.snack,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.bookmark_outline, size: 18),
+                      label: Text(
+                        _isEs(context) ? 'Ver\nguardadas' : 'Saved\nrecipes',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ],
               ),

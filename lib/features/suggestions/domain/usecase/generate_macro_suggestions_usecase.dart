@@ -28,6 +28,7 @@ class GenerateMacroSuggestionsUsecase {
     required double remainingFat,
     required double remainingProtein,
     int limit = 3,
+    String languageCode = 'en',
   }) async {
     if (remainingKcal <= 0 && remainingProtein <= 0) {
       return const [];
@@ -128,6 +129,7 @@ class GenerateMacroSuggestionsUsecase {
           predictedFat: predictedFat,
           predictedProtein: predictedProtein,
           predictedKcal: predictedKcal,
+          languageCode: languageCode,
         ),
         score: score,
       ));
@@ -209,37 +211,53 @@ class GenerateMacroSuggestionsUsecase {
     required double predictedFat,
     required double predictedProtein,
     required double predictedKcal,
+    required String languageCode,
   }) {
+    final isEs = languageCode == 'es';
     if (nutritionPhase == UserWeightGoalEntity.loseWeight &&
         predictedProtein >= 20 &&
         predictedKcal <= max(remainingKcal, 220) &&
         predictedFat <= _remainingFatCap(predictedKcal)) {
-      return 'Lean close for cut days: protein-first with calories kept tight.';
+      return isEs
+          ? 'Cierre limpio para definir: prioridad a la proteina con calorias controladas.'
+          : 'Lean close for cut days: protein-first with calories kept tight.';
     }
     if ((dailyFocus == DailyFocusEntity.lowerBody ||
             dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.postWorkout &&
         predictedProtein >= 20 &&
         predictedCarbs >= 25) {
-      return 'Post-workout recovery hit with enough carbs and protein to reload.';
+      return isEs
+          ? 'Recuperacion post-entreno con carbohidratos y proteina suficientes para recargar.'
+          : 'Post-workout recovery hit with enough carbs and protein to reload.';
     }
     if ((dailyFocus == DailyFocusEntity.lowerBody ||
             dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.preWorkout &&
         predictedCarbs >= 20 &&
         predictedFat <= 18) {
-      return 'Good pre-workout fuel: useful carbs without much digestive drag.';
+      return isEs
+          ? 'Buen combustible pre-entreno: carbohidratos utiles sin mucha carga digestiva.'
+          : 'Good pre-workout fuel: useful carbs without much digestive drag.';
     }
     if (remainingProtein > 25 && predictedProtein > 20) {
-      return 'Protein-first close to finish the day without guessing.';
+      return isEs
+          ? 'Cierre alto en proteina para terminar el dia sin improvisar.'
+          : 'Protein-first close to finish the day without guessing.';
     }
     if (category == QuickRecipeCategoryEntity.shake && predictedKcal < 260) {
-      return 'Fast protein touch when you want something light and easy to log.';
+      return isEs
+          ? 'Batido ligero para sumar proteina rapido y registrarlo facil.'
+          : 'Fast protein touch when you want something light and easy to log.';
     }
     if ((remainingKcal - predictedKcal).abs() < 120) {
-      return 'Clean fit for the calories you still have left.';
+      return isEs
+          ? 'Ajuste limpio para las calorias que te quedan hoy.'
+          : 'Clean fit for the calories you still have left.';
     }
-    return 'Solid gym-friendly option that keeps the day moving in the right direction.';
+    return isEs
+        ? 'Opcion solida para gimnasio que mantiene el dia bien encaminado.'
+        : 'Solid gym-friendly option that keeps the day moving in the right direction.';
   }
 
   (double, double) _servingBounds(

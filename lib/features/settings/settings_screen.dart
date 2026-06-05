@@ -1126,16 +1126,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return _SettingsSection(
       title: isEs ? 'Nutricionista profesional' : 'Professional nutritionist',
-      child: _ProtectionActionTile(
-        icon: Icons.assignment_ind_outlined,
-        title: isEs ? 'Conexion con nutricionista' : 'Nutritionist connection',
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: _ProtectionActionTile(
+        icon: Icons.medical_information_outlined,
+        title: isEs ? 'Conexión con nutricionista' : 'Nutritionist connection',
         body: isEs
-            ? 'Vincula tu cuenta con un profesional por invitacion y consentimiento.'
+            ? 'Vincula tu cuenta con un profesional por invitación y consentimiento.'
             : 'Connect your account with a professional by invite and consent.',
         statusLabel: isEs ? 'Profesional' : 'Professional',
         accentColor: colorScheme.primary,
+        centerIcon: true,
         onTap: () => Navigator.of(context).pushNamed(
           NavigationOptions.professionalPlanRoute,
+        ),
         ),
       ),
     );
@@ -1995,6 +1999,7 @@ class _ProtectionActionTile extends StatelessWidget {
   final String statusLabel;
   final Color accentColor;
   final VoidCallback? onTap;
+  final bool centerIcon;
 
   const _ProtectionActionTile({
     required this.icon,
@@ -2003,6 +2008,7 @@ class _ProtectionActionTile extends StatelessWidget {
     required this.statusLabel,
     required this.accentColor,
     this.onTap,
+    this.centerIcon = false,
   });
 
   @override
@@ -2018,7 +2024,8 @@ class _ProtectionActionTile extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment:
+                centerIcon ? CrossAxisAlignment.center : CrossAxisAlignment.start,
             children: [
               Container(
                 width: 38,
