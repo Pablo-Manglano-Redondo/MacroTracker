@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 
@@ -18,160 +19,138 @@ class ActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardWidth = compact ? 104.0 : 120.0;
-    final cardHeight = compact ? 104.0 : 120.0;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final cardSize = compact ? 104.0 : 120.0;
+    final borderRadius = compact ? 14.0 : 16.0;
+    final margin = compact ? 6.0 : 8.0;
+
+    final kcalFont = compact
+        ? theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800)
+        : theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800);
+    final titleStyle = compact
+        ? theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)
+        : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold);
+    final durationStyle = compact
+        ? theme.textTheme.bodySmall
+        : theme.textTheme.titleSmall;
+
     return Row(
       children: [
+        SizedBox(width: firstListElement ? 16 : 8),
         SizedBox(
-          width: firstListElement ? 16 : 8, // Add leading padding
-        ),
-        SizedBox(
-          width: cardWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                height: cardHeight,
-                width: cardWidth,
-                decoration: BoxDecoration(
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
-                  color: Theme.of(context).colorScheme.brightness ==
-                          Brightness.dark
-                      ? Theme.of(context).colorScheme.surfaceContainerHigh
-                      : Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(
-                          alpha: Theme.of(context).colorScheme.brightness ==
-                                  Brightness.dark
-                              ? 0.2
-                              : 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outlineVariant
-                        .withValues(alpha: 0.25),
-                  ),
+          width: cardSize,
+          height: cardSize,
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.45),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
-                child: ClipRRect(
-                  borderRadius:
-                      BorderRadius.all(Radius.circular(compact ? 16.0 : 20.0)),
-                  child: InkWell(
-                    onTap: () {
-                      onTappedItem(context);
-                    },
-                    onLongPress: () {
-                      onLongPressedItem(context);
-                    },
-                    child: Stack(
-                      children: [
-                        // Background accent icon
-                        Positioned(
-                          right: -cardHeight * 0.1,
-                          bottom: -cardHeight * 0.1,
-                          child: Icon(
-                            activityEntity.physicalActivityEntity.displayIcon,
-                            size: cardHeight * 0.7,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(alpha: 0.04),
-                          ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius - 1),
+              child: Material(
+                color: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface,
+                child: InkWell(
+                  onTap: onItemTapped != null
+                      ? () => onTappedItem(context)
+                      : null,
+                  onLongPress: () => onLongPressedItem(context),
+                  child: Stack(
+                    children: [
+                      // Subtle Tint for Activity
+                      Container(
+                        decoration: BoxDecoration(
+                          color: colorScheme.tertiary.withValues(alpha: 0.03),
                         ),
-                        Positioned(
-                          top: 8,
-                          left: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .tertiaryContainer
-                                  .withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(8),
+                      ),
+
+                      // Background Watermark Icon in the Center
+                      Center(
+                        child: Icon(
+                          activityEntity.physicalActivityEntity.displayIcon,
+                          size: compact ? 38 : 46,
+                          color: colorScheme.tertiary.withValues(alpha: 0.08),
+                        ),
+                      ),
+
+                      // Calorie Burned Badge (Top Left)
+                      Positioned(
+                        top: margin,
+                        left: margin,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: colorScheme.tertiary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: colorScheme.tertiary.withValues(alpha: 0.12),
+                              width: 0.8,
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text("🔥",
-                                    style: TextStyle(fontSize: 10)),
-                                const SizedBox(width: 2),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    "${activityEntity.burnedKcal.toInt()} kcal",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onTertiaryContainer,
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: compact ? 9 : 10,
-                                        ),
-                                  ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text("🔥", style: TextStyle(fontSize: 10)),
+                              const SizedBox(width: 2),
+                              Text(
+                                '${activityEntity.burnedKcal.toInt()} kcal',
+                                style: kcalFont?.copyWith(
+                                  color: colorScheme.tertiary,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                        Center(
-                          child: Container(
-                            padding: EdgeInsets.all(compact ? 10 : 12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .secondaryContainer
-                                  .withValues(alpha: 0.5),
-                              shape: BoxShape.circle,
+                      ),
+
+                      // Title & Duration (Bottom Left)
+                      Positioned(
+                        bottom: margin,
+                        left: margin,
+                        right: margin,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AutoSizeText(
+                              activityEntity.physicalActivityEntity.getName(context),
+                              style: titleStyle?.copyWith(
+                                color: colorScheme.onSurface,
+                                fontSize: compact ? 12.5 : 14,
+                                height: 1.15,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            child: Icon(
-                              activityEntity.physicalActivityEntity.displayIcon,
-                              size: compact ? 22 : 28,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSecondaryContainer,
+                            const SizedBox(height: 2),
+                            Text(
+                              '${activityEntity.duration.toInt()} min',
+                              style: durationStyle?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
+                                fontSize: compact ? 10.5 : 12,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: Text(
-                  activityEntity.physicalActivityEntity.getName(context),
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.2,
-                        fontSize: compact ? 13 : 14,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: Text(
-                  '${activityEntity.duration.toInt()} min',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                  maxLines: 1,
-                ),
-              )
-            ],
+            ),
           ),
         ),
       ],

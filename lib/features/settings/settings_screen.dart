@@ -1126,9 +1126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return _SettingsSection(
       title: isEs ? 'Nutricionista profesional' : 'Professional nutritionist',
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: _ProtectionActionTile(
+      child: _ProtectionActionTile(
         icon: Icons.medical_information_outlined,
         title: isEs ? 'Conexión con nutricionista' : 'Nutritionist connection',
         body: isEs
@@ -1139,7 +1137,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         centerIcon: true,
         onTap: () => Navigator.of(context).pushNamed(
           NavigationOptions.professionalPlanRoute,
-        ),
         ),
       ),
     );
@@ -1922,8 +1919,7 @@ class _DataProtectionPanel extends StatelessWidget {
         ),
       ),
     );
-
-}
+  }
 }
 
 class _AccountBackupsSheet extends StatelessWidget {
@@ -1950,24 +1946,25 @@ class _AccountBackupsSheet extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(999),
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.28),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 10),
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.28),
               ),
             ),
-            Row(
+          ),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
               children: [
                 Expanded(
                   child: Text(
@@ -1983,48 +1980,49 @@ class _AccountBackupsSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _ProtectionActionTile(
-              icon: isProtected
-                  ? Icons.verified_user_outlined
-                  : Icons.g_mobiledata_outlined,
-              title: isEs ? 'Cuenta Google' : 'Google account',
-              body: isProtected
-                  ? accountLabel
-                  : (isEs
-                      ? 'Vincula Google para recuperar tu cuenta.'
-                      : 'Link Google to recover your account.'),
-              statusLabel: isProtected
-                  ? (isEs ? 'Activa' : 'Active')
-                  : (isEs ? 'Sin vincular' : 'Not linked'),
-              accentColor:
-                  isProtected ? colorScheme.primary : colorScheme.tertiary,
-              onTap: onProtectAccount,
-            ),
-            Divider(height: 1, color: colorScheme.outlineVariant),
-            _ProtectionActionTile(
-              icon: Icons.cloud_upload_outlined,
-              title: 'Google Drive',
-              body: isEs
-                  ? 'Guarda una copia cifrada en tu propio Drive.'
-                  : 'Store an encrypted copy in your own Drive.',
-              statusLabel: driveSubtitle,
-              accentColor: const Color(0xFF0EA5E9),
-              onTap: onConfigureBackup,
-            ),
-            Divider(height: 1, color: colorScheme.outlineVariant),
-            _ProtectionActionTile(
-              icon: Icons.folder_zip_outlined,
-              title: isEs ? 'Exportar ZIP' : 'Export ZIP',
-              body: isEs
-                  ? 'Copia local/manual para guardar o mover datos.'
-                  : 'Manual local copy to store or move data.',
-              statusLabel: isEs ? 'Manual' : 'Manual',
-              accentColor: const Color(0xFFF59E0B),
-              onTap: onExportZip,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          _ProtectionActionTile(
+            icon: isProtected
+                ? Icons.verified_user_outlined
+                : Icons.g_mobiledata_outlined,
+            title: isEs ? 'Cuenta Google' : 'Google account',
+            body: isProtected
+                ? accountLabel
+                : (isEs
+                    ? 'Vincula Google para recuperar tu cuenta.'
+                    : 'Link Google to recover your account.'),
+            statusLabel: isProtected
+                ? (isEs ? 'Activa' : 'Active')
+                : (isEs ? 'Sin vincular' : 'Not linked'),
+            accentColor:
+                isProtected ? colorScheme.primary : colorScheme.tertiary,
+            onTap: onProtectAccount,
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          _ProtectionActionTile(
+            icon: Icons.cloud_upload_outlined,
+            title: 'Google Drive',
+            body: isEs
+                ? 'Guarda una copia cifrada en tu propio Drive.'
+                : 'Store an encrypted copy in your own Drive.',
+            statusLabel: driveSubtitle,
+            accentColor: const Color(0xFF0EA5E9),
+            onTap: onConfigureBackup,
+          ),
+          Divider(height: 1, color: colorScheme.outlineVariant),
+          _ProtectionActionTile(
+            icon: Icons.folder_zip_outlined,
+            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
+            body: isEs
+                ? 'Copia local/manual para guardar o mover datos.'
+                : 'Manual local copy to store or move data.',
+            statusLabel: isEs ? 'Manual' : 'Manual',
+            accentColor: const Color(0xFFF59E0B),
+            onTap: onExportZip,
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
@@ -2051,74 +2049,21 @@ class _ProtectionActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-          child: Row(
-            crossAxisAlignment:
-                centerIcon ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: accentColor.withValues(alpha: 0.12),
-                ),
-                child: Icon(icon, color: accentColor, size: 21),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        _StatusPill(label: statusLabel),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.25,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (onTap != null) ...[
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ],
-            ],
-          ),
-        ),
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(body),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _StatusPill(label: statusLabel),
+          if (onTap != null) ...[
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right),
+          ],
+        ],
       ),
+      onTap: onTap,
     );
   }
 }

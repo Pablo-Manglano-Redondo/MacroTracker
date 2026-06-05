@@ -409,6 +409,8 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
   Widget build(BuildContext context) {
     super.build(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
     return FutureBuilder<WeeklyInsightsEntity>(
       future: _future,
       builder: (context, snapshot) {
@@ -420,38 +422,72 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
         }
         final weekly = snapshot.data!;
         return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  S.of(context).diaryCurrentWeek,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
+                Row(
                   children: [
-                    _WeeklyPill(
-                      icon: Icons.track_changes_outlined,
-                      label: S.of(context).diaryAdherencePill(
-                          (weekly.goalAdherenceRate * 100).round()),
-                      color: colorScheme.primary,
+                    Icon(
+                      Icons.insights_rounded,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
                     ),
-                    _WeeklyPill(
-                      icon: Icons.egg_alt_outlined,
-                      label: S.of(context).diaryProteinPill(
-                          weekly.averageProtein.toStringAsFixed(0)),
-                      color: colorScheme.tertiary,
+                    const SizedBox(width: 8),
+                    Text(
+                      S.of(context).diaryCurrentWeek,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.2,
+                          ),
                     ),
-                    _WeeklyPill(
-                      icon: Icons.calendar_view_week_outlined,
-                      label: S.of(context).diaryDaysPill(weekly.trackedDays),
-                      color: colorScheme.secondary,
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _WeeklyMetricTile(
+                        icon: Icons.track_changes_rounded,
+                        value: "${(weekly.goalAdherenceRate * 100).round()}%",
+                        label: isEs ? "adherencia" : "adherence",
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    Container(
+                      height: 48,
+                      width: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                    Expanded(
+                      child: _WeeklyMetricTile(
+                        icon: Icons.egg_alt_rounded,
+                        value: "${weekly.averageProtein.toStringAsFixed(0)}g",
+                        label: isEs ? "proteína" : "protein",
+                        color: colorScheme.tertiary,
+                      ),
+                    ),
+                    Container(
+                      height: 48,
+                      width: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                    Expanded(
+                      child: _WeeklyMetricTile(
+                        icon: Icons.calendar_view_week_rounded,
+                        value: "${weekly.trackedDays}/7",
+                        label: isEs ? "días" : "days",
+                        color: colorScheme.secondary,
+                      ),
                     ),
                   ],
                 ),
@@ -464,41 +500,63 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
   }
 }
 
-class _WeeklyPill extends StatelessWidget {
+class _WeeklyMetricTile extends StatelessWidget {
   final IconData icon;
+  final String value;
   final String label;
   final Color color;
 
-  const _WeeklyPill({
+  const _WeeklyMetricTile({
     required this.icon,
+    required this.value,
     required this.label,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: color.withValues(alpha: 0.10),
-        border: Border.all(
-          color: color.withValues(alpha: 0.16),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color.withValues(alpha: 0.08),
           ),
-        ],
-      ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: colorScheme.onSurface,
+            fontSize: 18,
+            height: 1.1,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+        ),
+      ],
     );
   }
 }

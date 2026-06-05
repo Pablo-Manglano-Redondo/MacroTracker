@@ -10,15 +10,12 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/custom_icons.dart';
-import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/activity_detail/activity_detail_screen.dart';
 import 'package:macrotracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:macrotracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
-import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -67,114 +64,6 @@ class DayInfoWidget extends StatefulWidget {
   State<DayInfoWidget> createState() => _DayInfoWidgetState();
 }
 
-class _DiaryProfessionalPlanComparison extends StatelessWidget {
-  final DateTime selectedDay;
-  final TrackedDayEntity trackedDay;
-
-  const _DiaryProfessionalPlanComparison({
-    required this.selectedDay,
-    required this.trackedDay,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ProfessionalConnectionEntity?>(
-      future: locator<GetProfessionalPlanUsecase>().getActiveConnection(),
-      builder: (context, snapshot) {
-        final connection = snapshot.data;
-        final target = connection?.activePlan?.targetForDate(selectedDay);
-        if (target == null) {
-          return const SizedBox.shrink();
-        }
-        final colorScheme = Theme.of(context).colorScheme;
-        final isEs = Localizations.localeOf(context).languageCode == 'es';
-        final kcalActual = trackedDay.caloriesTracked;
-        final kcalDelta = kcalActual - target.kcalGoal;
-        final adherence = target.kcalGoal <= 0
-            ? 0.0
-            : (1 - (kcalDelta.abs() / target.kcalGoal)).clamp(0, 1).toDouble();
-
-        return Padding(
-          padding: const EdgeInsets.only(top: 12),
-          child: Card(
-            color: colorScheme.surfaceContainerLow,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.assignment_turned_in_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isEs ? 'Plan del profesional' : 'Coach plan',
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                      ),
-                      Text('${(adherence * 100).round()}%'),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  LinearProgressIndicator(value: adherence),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _PlanCompareChip(
-                        label: 'Kcal',
-                        value:
-                            '${kcalActual.round()}/${target.kcalGoal.round()}',
-                      ),
-                      _PlanCompareChip(
-                        label: isEs ? 'P' : 'P',
-                        value:
-                            '${(trackedDay.proteinTracked ?? 0).round()}/${target.proteinGoal.round()}g',
-                      ),
-                      _PlanCompareChip(
-                        label: isEs ? 'C' : 'C',
-                        value:
-                            '${(trackedDay.carbsTracked ?? 0).round()}/${target.carbsGoal.round()}g',
-                      ),
-                      _PlanCompareChip(
-                        label: isEs ? 'G' : 'F',
-                        value:
-                            '${(trackedDay.fatTracked ?? 0).round()}/${target.fatGoal.round()}g',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PlanCompareChip extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _PlanCompareChip({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(label: Text('$label $value'));
-  }
-}
 
 class _DayInfoWidgetState extends State<DayInfoWidget>
     with AutomaticKeepAliveClientMixin {
@@ -291,11 +180,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
                   !DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
               onCopyDayToToday: widget.onCopyDayToToday,
             ),
-            _DiaryProfessionalPlanComparison(
-              selectedDay: widget.selectedDay,
-              trackedDay: trackedDay,
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
           ],
           _DiaryExpandableSection(
             title: S.of(context).activityLabel,
@@ -561,16 +446,24 @@ class _DaySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final kcalTracked = trackedDay.caloriesTracked.isNegative
         ? 0
         : trackedDay.caloriesTracked.toInt();
     final kcalGoal = trackedDay.calorieGoal.toInt();
     final kcalDelta = kcalTracked - kcalGoal;
-    final proteinTracked = trackedDay.proteinTracked?.floor() ?? 0;
-    final proteinGoal = trackedDay.proteinGoal?.floor() ?? 0;
 
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -581,10 +474,10 @@ class _DaySummaryCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     S.of(context).diarySummaryTitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.2,
+                        ),
                   ),
                 ),
                 Container(
@@ -596,62 +489,121 @@ class _DaySummaryCard extends StatelessWidget {
                   ),
                   child: Text(
                     _statusLabel(context),
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    style: theme.textTheme.labelMedium?.copyWith(
                           color: trackedDay.getRatingDayTextColor(context),
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                   ),
                 ),
               ],
             ),
             if (canCopyDay && onCopyDayToToday != null) ...[
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: onCopyDayToToday,
-                  icon: const Icon(Icons.content_copy_outlined, size: 18),
-                  label: Text(S.of(context).diaryCopyDayToToday),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: onCopyDayToToday,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 32),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                icon: const Icon(Icons.content_copy_outlined, size: 16),
+                label: Text(
+                  S.of(context).diaryCopyDayToToday,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: _SummaryMetricTile(
-                    label: 'Kcal',
-                    value: '$kcalTracked/$kcalGoal',
-                    helper: kcalDelta == 0
+            const SizedBox(height: 16),
+            // Primary Calorie Progress Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: colorScheme.primary.withValues(alpha: 0.05),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isEs ? 'Calorías' : 'Calories',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        '$kcalTracked / $kcalGoal kcal',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: kcalGoal <= 0 ? 0.0 : (kcalTracked / kcalGoal).clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: colorScheme.primary.withValues(alpha: 0.08),
+                      valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    kcalDelta == 0
                         ? S.of(context).diaryInGoal
                         : kcalDelta > 0
                             ? S.of(context).diaryKcalOver(kcalDelta)
                             : S.of(context).diaryKcalRemaining(kcalDelta.abs()),
-                    accent: colorScheme.primary,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Macronutrients row
+            Row(
+              children: [
+                Expanded(
+                  child: _MacroDetailTile(
+                    label: isEs ? 'Carbos' : 'Carbs',
+                    tracked: trackedDay.carbsTracked ?? 0,
+                    goal: trackedDay.carbsGoal ?? 0,
+                    color: const Color(0xFF0EA5E9),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: _SummaryMetricTile(
-                    label: 'Proteína',
-                    value: '$proteinTracked/$proteinGoal g',
-                    helper: proteinGoal > 0 && proteinTracked >= proteinGoal
-                        ? S.of(context).diaryGoalReached
-                        : S.of(context).diaryGramsRemaining(
-                            (proteinGoal - proteinTracked).clamp(0, 9999)),
-                    accent: colorScheme.tertiary,
+                  child: _MacroDetailTile(
+                    label: isEs ? 'Grasas' : 'Fats',
+                    tracked: trackedDay.fatTracked ?? 0,
+                    goal: trackedDay.fatGoal ?? 0,
+                    color: const Color(0xFFF59E0B),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _MacroDetailTile(
+                    label: isEs ? 'Proteína' : 'Protein',
+                    tracked: trackedDay.proteinTracked ?? 0,
+                    goal: trackedDay.proteinGoal ?? 0,
+                    color: colorScheme.tertiary,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              _macroTrackedDisplayString(context),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -659,10 +611,12 @@ class _DaySummaryCard extends StatelessWidget {
                 _Pill(
                   icon: Icons.restaurant_outlined,
                   label: S.of(context).diaryMealsPill(mealCount),
+                  color: colorScheme.primary,
                 ),
                 _Pill(
                   icon: Icons.fitness_center_outlined,
                   label: S.of(context).diaryActivitiesPill(activityCount),
+                  color: colorScheme.secondary,
                 ),
               ],
             ),
@@ -677,18 +631,6 @@ class _DaySummaryCard extends StatelessWidget {
     if (difference.abs() <= 150) return S.of(context).diaryStatusInRange;
     if (difference > 150) return S.of(context).diaryStatusBelow;
     return S.of(context).diaryStatusAbove;
-  }
-
-  String _macroTrackedDisplayString(BuildContext context) {
-    final carbsTracked = trackedDay.carbsTracked?.floor().toString() ?? '?';
-    final fatTracked = trackedDay.fatTracked?.floor().toString() ?? '?';
-    final proteinTracked = trackedDay.proteinTracked?.floor().toString() ?? '?';
-    final carbsGoal = trackedDay.carbsGoal?.floor().toString() ?? '?';
-    final fatGoal = trackedDay.fatGoal?.floor().toString() ?? '?';
-    final proteinGoal = trackedDay.proteinGoal?.floor().toString() ?? '?';
-
-    return S.of(context).diaryMacrosSummary(carbsTracked, carbsGoal, fatTracked,
-        fatGoal, proteinTracked, proteinGoal);
   }
 }
 
@@ -795,51 +737,94 @@ class _DiaryEmptyDayCard extends StatelessWidget {
   }
 }
 
-class _SummaryMetricTile extends StatelessWidget {
+class _MacroDetailTile extends StatelessWidget {
   final String label;
-  final String value;
-  final String helper;
-  final Color accent;
+  final double tracked;
+  final double goal;
+  final Color color;
 
-  const _SummaryMetricTile({
+  const _MacroDetailTile({
     required this.label,
-    required this.value,
-    required this.helper,
-    required this.accent,
+    required this.tracked,
+    required this.goal,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final progress = goal <= 0 ? 0.0 : (tracked / goal).clamp(0.0, 1.0);
+    final remaining = (goal - tracked).clamp(0.0, 9999.0);
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(14),
+        color: color.withValues(alpha: 0.05),
         border: Border.all(
-          color: accent.withValues(alpha: 0.14),
+          color: color.withValues(alpha: 0.1),
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w700,
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color,
                 ),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${tracked.round()}/${goal.round()}g',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 4,
+              backgroundColor: color.withValues(alpha: 0.08),
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
           ),
           const SizedBox(height: 6),
           Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            helper,
-            style: Theme.of(context).textTheme.bodySmall,
+            remaining <= 0
+                ? S.of(context).diaryGoalReached
+                : S.of(context).diaryGramsRemaining(remaining.round()),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -902,6 +887,7 @@ class _DiaryExpandableSection extends StatelessWidget {
               _Pill(
                 icon: Icons.grid_view_rounded,
                 label: '$count',
+                color: colorScheme.onSurfaceVariant,
               ),
               if (trailing != null) trailing!,
               Icon(
@@ -922,29 +908,41 @@ class _DiaryExpandableSection extends StatelessWidget {
 class _Pill extends StatelessWidget {
   final IconData icon;
   final String label;
+  final Color? color;
 
   const _Pill({
     required this.icon,
     required this.label,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final activeColor = color ?? colorScheme.primary;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.45),
+        color: activeColor.withValues(alpha: 0.08),
+        border: Border.all(
+          color: activeColor.withValues(alpha: 0.14),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 14, color: activeColor),
           const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
         ],
       ),
     );

@@ -26,7 +26,7 @@ class ActivityVerticalList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sectionHeight = compact ? 136.0 : 160.0;
+    final sectionHeight = compact ? 104.0 : 120.0;
     final titleStyle = compact
         ? Theme.of(context).textTheme.titleMedium
         : Theme.of(context).textTheme.titleLarge;
@@ -73,31 +73,34 @@ class ActivityVerticalList extends StatelessWidget {
               ],
             ),
           ),
-        SizedBox(
-          height: sectionHeight + 24,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...List.generate(userActivityList.length, (index) {
-                  final userActivity = userActivityList[index];
-                  return ActivityCard(
-                    activityEntity: userActivity,
-                    onItemLongPressed: onItemLongPressedCallback,
-                    onItemTapped: onItemTappedCallback,
-                    firstListElement: index == 0,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            height: sectionHeight + 24,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...List.generate(userActivityList.length, (index) {
+                    final userActivity = userActivityList[index];
+                    return ActivityCard(
+                      activityEntity: userActivity,
+                      onItemLongPressed: onItemLongPressedCallback,
+                      onItemTapped: onItemTappedCallback,
+                      firstListElement: index == 0,
+                      compact: compact,
+                    );
+                  }),
+                  PlaceholderCard(
+                    day: day,
+                    onTap: () => _onPlaceholderCardTapped(context),
+                    firstListElement: userActivityList.isEmpty,
                     compact: compact,
-                  );
-                }),
-                PlaceholderCard(
-                  day: day,
-                  onTap: () => _onPlaceholderCardTapped(context),
-                  firstListElement: userActivityList.isEmpty,
-                  compact: compact,
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         )

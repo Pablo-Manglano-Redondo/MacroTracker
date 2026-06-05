@@ -25,18 +25,25 @@ class IntakeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
     final cardSize = compact ? 104.0 : 120.0;
     final borderRadius = compact ? 14.0 : 16.0;
     final margin = compact ? 6.0 : 8.0;
+
     final kcalFont = compact
-        ? Theme.of(context).textTheme.labelSmall
-        : Theme.of(context).textTheme.bodySmall;
+        ? theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800)
+        : theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800);
     final titleStyle = compact
-        ? Theme.of(context).textTheme.titleSmall
-        : Theme.of(context).textTheme.titleMedium;
+        ? theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)
+        : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold);
     final amountStyle = compact
-        ? Theme.of(context).textTheme.bodySmall
-        : Theme.of(context).textTheme.titleSmall;
+        ? theme.textTheme.bodySmall
+        : theme.textTheme.titleSmall;
+
+    final hasImage = intake.meal.mainImageUrl != null;
 
     return Row(
       children: [
@@ -44,98 +51,142 @@ class IntakeCard extends StatelessWidget {
         SizedBox(
           width: cardSize,
           height: cardSize,
-          child: Card(
-            semanticContainer: true,
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            shape: RoundedRectangleBorder(
+          child: Container(
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(borderRadius),
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.45),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
-            elevation: 1,
-            child: InkWell(
-              onLongPress: onItemLongPressed != null
-                  ? () => onLongPressedItem(context)
-                  : null,
-              onTap: onItemTapped != null
-                  ? () => onTappedItem(context, usesImperialUnits)
-                  : null,
-              child: Stack(
-                children: [
-                  intake.meal.mainImageUrl != null
-                      ? CachedNetworkImage(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius - 1),
+              child: Material(
+                color: hasImage
+                    ? Colors.black
+                    : (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface),
+                child: InkWell(
+                  onLongPress: onItemLongPressed != null
+                      ? () => onLongPressedItem(context)
+                      : null,
+                  onTap: onItemTapped != null
+                      ? () => onTappedItem(context, usesImperialUnits)
+                      : null,
+                  child: Stack(
+                    children: [
+                      // Image or Icon Background
+                      if (hasImage)
+                        CachedNetworkImage(
                           cacheManager: locator<CacheManager>(),
-                          imageUrl: intake.meal.mainImageUrl ?? "",
-                          imageBuilder: (context, imageProvider) => Container(
-                            decoration: BoxDecoration(
-                                image: DecorationImage(
-                              image: imageProvider,
-                              fit: BoxFit.cover,
-                            )),
+                          imageUrl: intake.meal.mainImageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        )
+                      else
+                        Center(
+                          child: Icon(
+                            Icons.restaurant_outlined,
+                            size: compact ? 32 : 38,
+                            color: colorScheme.primary.withValues(alpha: 0.08),
+                          ),
+                        ),
+
+                      // Gradient Overlay for Image / Subtle Tint for No Image
+                      if (hasImage)
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.15),
+                                Colors.black.withValues(alpha: 0.75),
+                              ],
+                              stops: const [0.0, 0.4, 1.0],
+                            ),
                           ),
                         )
-                      : Center(
-                          child: Icon(Icons.restaurant_outlined,
-                              size: 42,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .secondary
-                                  .withValues(alpha: 0.15))),
-                  Container(
-                    // Add color shade
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .secondaryContainer
-                          .withValues(alpha: 0.5),
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.all(margin),
-                    padding:
-                        EdgeInsets.fromLTRB(margin + 2, 4.0, margin + 2, 4.0),
-                    decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .tertiaryContainer
-                            .withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20)),
-                    child: Text(
-                      '${intake.totalKcal.toInt()} kcal',
-                      style: kcalFont?.copyWith(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onTertiaryContainer),
-                    ),
-                  ),
-                  Container(
-                      padding: EdgeInsets.all(margin),
-                      alignment: Alignment.bottomLeft,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AutoSizeText(
-                            intake.meal.name ?? "?",
-                            style: titleStyle?.copyWith(
+                      else
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colorScheme.primary.withValues(alpha: 0.03),
+                          ),
+                        ),
+
+                      // Calorie Badge (Top Left)
+                      Positioned(
+                        top: margin,
+                        left: margin,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: hasImage
+                                ? Colors.black.withValues(alpha: 0.65)
+                                : colorScheme.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: hasImage
+                                  ? Colors.white.withValues(alpha: 0.15)
+                                  : colorScheme.primary.withValues(alpha: 0.12),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Text(
+                            '${intake.totalKcal.toInt()} kcal',
+                            style: kcalFont?.copyWith(
+                              color: hasImage ? Colors.white : colorScheme.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Title & Amount (Bottom Left)
+                      Positioned(
+                        bottom: margin,
+                        left: margin,
+                        right: margin,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AutoSizeText(
+                              intake.meal.name ?? "?",
+                              style: titleStyle?.copyWith(
+                                color: hasImage ? Colors.white : colorScheme.onSurface,
+                                fontSize: compact ? 12.5 : 14,
+                                height: 1.15,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            MealValueUnitText(
+                              value: intake.amount,
+                              meal: intake.meal,
+                              usesImperialUnits: usesImperialUnits,
+                              textStyle: amountStyle?.copyWith(
+                                color: hasImage
+                                    ? Colors.white.withValues(alpha: 0.7)
+                                    : colorScheme.onSurfaceVariant,
+                                fontSize: compact ? 10.5 : 12,
                                 fontWeight: FontWeight.w500,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          MealValueUnitText(
-                            value: intake.amount,
-                            meal: intake.meal,
-                            usesImperialUnits: usesImperialUnits,
-                            textStyle: amountStyle?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSecondaryContainer
-                                    .withValues(alpha: 0.7)),
-                          ),
-                        ],
-                      ))
-                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

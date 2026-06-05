@@ -11,7 +11,6 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:macrotracker/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart';
-import 'package:macrotracker/features/activity_detail/presentation/widget/activity_info_button.dart';
 import 'package:macrotracker/features/activity_detail/presentation/widget/activity_title_expanded.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
@@ -190,8 +189,6 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                   durationMinutes: _loggedActivity?.duration ?? totalQuantity,
                   burnedKcal: _loggedActivity?.burnedKcal ?? totalKcal,
                 ),
-                const SizedBox(height: 48.0),
-                const ActivityInfoButton(),
                 const SizedBox(height: 200.0) // height added to scroll
               ],
             ),

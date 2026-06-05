@@ -33,6 +33,29 @@ class MealDetailBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+
+    final inputDecoration = InputDecoration(
+      filled: true,
+      fillColor: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLow,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
+      ),
+      labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+
     final productMissingRequiredInfo = _hasRequiredProductInfoMissing();
     return BottomSheet(
         elevation: 10,
@@ -42,24 +65,36 @@ class MealDetailBottomSheet extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: Theme.of(context).colorScheme.outline,
-                width: 0.5,
+                color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.45),
+                width: 1,
               ),
-              color: Theme.of(context).colorScheme.surface,
+              color: colorScheme.surface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(32),
                 topRight: Radius.circular(32),
               ),
             ),
-            child: Wrap(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
+                const SizedBox(height: 12),
+                // Drag handle indicator
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16.0, 32.0, 16.0, 8.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 16.0),
                   child: Column(
                     children: [
                       Row(
                         children: [
                           Expanded(
+                            flex: 3,
                             child: TextFormField(
                               enabled: !productMissingRequiredInfo,
                               controller: quantityTextController
@@ -68,26 +103,29 @@ class MealDetailBottomSheet extends StatelessWidget {
                                       quantityTextController.text,
                                       selectedUnit);
                                 }),
-                              keyboardType: TextInputType.numberWithOptions(
+                              keyboardType: const TextInputType.numberWithOptions(
                                   decimal: true),
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
                                     RegExp(r'^\d+([.,]\d{0,2})?$'))
                               ],
-                              decoration: InputDecoration(
-                                border: const OutlineInputBorder(),
+                              decoration: inputDecoration.copyWith(
                                 labelText: S.of(context).quantityLabel,
                               ),
                             ),
                           ),
                           const SizedBox(width: 16.0),
                           Expanded(
-                              child: DropdownButtonFormField(
+                              flex: 2,
+                              child: DropdownButtonFormField<String>(
                                   isExpanded: true,
                                   initialValue: selectedUnit,
-                                  decoration: InputDecoration(
-                                      border: const OutlineInputBorder(),
+                                  decoration: inputDecoration.copyWith(
                                       labelText: S.of(context).unitLabel),
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                   items: <DropdownMenuItem<String>>[
                                     if (product.hasServingValues)
                                       _getServingDropdownItem(context),
@@ -105,35 +143,38 @@ class MealDetailBottomSheet extends StatelessWidget {
                                   }))
                         ],
                       ),
+                      const SizedBox(height: 20),
                       SizedBox(
                         width: double.infinity, // Make button full width
-                        child: ElevatedButton.icon(
+                        child: FilledButton.icon(
                             onPressed: !productMissingRequiredInfo
                                 ? () {
                                     onAddButtonPressed(context);
                                   }
                                 : null,
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
-                              backgroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                            ).copyWith(
-                                elevation: ButtonStyleButton.allOrNull(0.0)),
-                            icon: const Icon(Icons.add_outlined),
-                            label: Text(S.of(context).addLabel)),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            icon: const Icon(Icons.add_rounded),
+                            label: Text(
+                              S.of(context).addLabel,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            )),
                       ),
-                      productMissingRequiredInfo
-                          ? Text(S.of(context).missingProductInfo,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                      color:
-                                          Theme.of(context).colorScheme.error))
-                          : const SizedBox()
+                      if (productMissingRequiredInfo) ...[
+                        const SizedBox(height: 12),
+                        Text(S.of(context).missingProductInfo,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                    color: colorScheme.error)),
+                      ],
                     ],
                   ),
                 ),

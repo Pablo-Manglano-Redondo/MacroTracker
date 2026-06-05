@@ -297,6 +297,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         NavigationOptions.professionalPlanRoute,
                       ),
                     ),
+                  const SizedBox(height: 25.0),
                   _HomeSectionHeader(
                     padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
                     title: _homeCopy(
@@ -332,6 +333,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 25.0),
                   _HomeSectionHeader(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                     title: _homeCopy(

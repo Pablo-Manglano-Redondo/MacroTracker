@@ -381,62 +381,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     );
   }
 
-  Future<void> _showAddRecipeDialog(RecipeEntity recipe) async {
-    final controller = TextEditingController(
-        text: recipe.defaultServings.toStringAsFixed(
-      recipe.defaultServings % 1 == 0 ? 0 : 1,
-    ));
-    final confirmed = await showDialog<double>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(recipe.name),
-          content: TextField(
-            controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: S.of(context).servingsLabel,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(
-                    double.tryParse(controller.text.replaceAll(',', '.')) ?? 1);
-              },
-              child: Text(S.of(context).addLabel),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == null) {
-      return;
-    }
-
-    await locator<LogRecipeUsecase>()
-        .logRecipe(recipe, confirmed, _intakeTypeEntity, _day);
-    locator<HomeBloc>().add(const LoadItemsEvent());
-    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context).recipeLibraryAddedSnackbar(recipe.name)),
-        ),
-      );
-      Navigator.of(context)
-          .popUntil(ModalRoute.withName(NavigationOptions.mainRoute));
-    }
-  }
-
   void _showRecipeDetailSheet(RecipeEntity recipe) {
     final category = RecipeSaveCategoryEntityX.fromRecipe(recipe).quickCategory;
     final intakeType = RecipeSaveCategoryEntityX.fromRecipe(recipe).explicitIntakeType ?? _intakeTypeEntity;
