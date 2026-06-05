@@ -1882,111 +1882,149 @@ class _DataProtectionPanel extends StatelessWidget {
             : 'Identity for recovery and coach connections');
 
     return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: _ProtectionActionTile(
+        icon: isProtected
+            ? Icons.verified_user_outlined
+            : Icons.shield_outlined,
+        title: isEs ? 'Cuenta y copias' : 'Account and backups',
+        body: isProtected
+            ? '$accountLabel - $driveSubtitle'
+            : (isEs
+                ? 'Protege tu cuenta y configura copias de seguridad.'
+                : 'Protect your account and configure backups.'),
+        statusLabel: isProtected
+            ? (isEs ? 'Protegida' : 'Protected')
+            : (isEs ? 'Sin cuenta' : 'No account'),
+        accentColor: isProtected ? colorScheme.primary : colorScheme.tertiary,
+        centerIcon: true,
+        onTap: () => showModalBottomSheet<void>(
+          context: context,
+          isScrollControlled: true,
+          builder: (sheetContext) => _AccountBackupsSheet(
+            isEs: isEs,
+            isProtected: isProtected,
+            accountLabel: accountLabel,
+            driveSubtitle: driveSubtitle,
+            onProtectAccount: () {
+              Navigator.of(sheetContext).pop();
+              onProtectAccount();
+            },
+            onConfigureBackup: () {
+              Navigator.of(sheetContext).pop();
+              onConfigureBackup();
+            },
+            onExportZip: () {
+              Navigator.of(sheetContext).pop();
+              onExportZip();
+            },
+          ),
+        ),
+      ),
+    );
+
+}
+}
+
+class _AccountBackupsSheet extends StatelessWidget {
+  final bool isEs;
+  final bool isProtected;
+  final String accountLabel;
+  final String driveSubtitle;
+  final VoidCallback onProtectAccount;
+  final VoidCallback onConfigureBackup;
+  final VoidCallback onExportZip;
+
+  const _AccountBackupsSheet({
+    required this.isEs,
+    required this.isProtected,
+    required this.accountLabel,
+    required this.driveSubtitle,
+    required this.onProtectAccount,
+    required this.onConfigureBackup,
+    required this.onExportZip,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 14),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  isProtected
-                      ? Icons.verified_user_outlined
-                      : Icons.shield_outlined,
-                  color: colorScheme.primary,
+                  borderRadius: BorderRadius.circular(999),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.28),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            isEs ? 'Proteccion de datos' : 'Data protection',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    isEs ? 'Cuenta y copias' : 'Account and backups',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
-                        const SizedBox(width: 8),
-                        _StatusPill(
-                          label: isProtected
-                              ? (isEs ? 'Cuenta protegida' : 'Protected')
-                              : (isEs ? 'Sin cuenta' : 'No account'),
-                          color: isProtected
-                              ? colorScheme.primary
-                              : colorScheme.tertiary,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      isEs
-                          ? 'Gestiona desde aqui la recuperacion de cuenta, las copias cifradas y la exportacion manual.'
-                          : 'Manage account recovery, encrypted backups, and manual export from one place.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _ProtectionActionTile(
-            icon: isProtected
-                ? Icons.verified_user_outlined
-                : Icons.g_mobiledata_outlined,
-            title: isEs ? 'Cuenta cloud' : 'Cloud account',
-            body: isProtected
-                ? accountLabel
-                : (isEs
-                    ? 'Recupera la cuenta al cambiar de movil.'
-                    : 'Recover your account when changing phones.'),
-            statusLabel: isProtected
-                ? (isEs ? 'Activa' : 'Active')
-                : (isEs ? 'Opcional' : 'Optional'),
-            accentColor:
-                isProtected ? colorScheme.primary : colorScheme.tertiary,
-            onTap: onProtectAccount,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _ProtectionActionTile(
-            icon: Icons.cloud_upload_outlined,
-            title: isEs ? 'Backup cifrado' : 'Encrypted backup',
-            body: isEs
-                ? 'Guarda una copia en tu propio Google Drive.'
-                : 'Store a copy in your own Google Drive.',
-            statusLabel: driveSubtitle,
-            accentColor: const Color(0xFF0EA5E9),
-            onTap: onConfigureBackup,
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          _ProtectionActionTile(
-            icon: Icons.folder_zip_outlined,
-            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
-            body: isEs
-                ? 'Copia local/manual para guardar o mover datos.'
-                : 'Manual local copy to store or move data.',
-            statusLabel: isEs ? 'Manual' : 'Manual',
-            accentColor: const Color(0xFFF59E0B),
-            onTap: onExportZip,
-          ),
-        ],
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _ProtectionActionTile(
+              icon: isProtected
+                  ? Icons.verified_user_outlined
+                  : Icons.g_mobiledata_outlined,
+              title: isEs ? 'Cuenta Google' : 'Google account',
+              body: isProtected
+                  ? accountLabel
+                  : (isEs
+                      ? 'Vincula Google para recuperar tu cuenta.'
+                      : 'Link Google to recover your account.'),
+              statusLabel: isProtected
+                  ? (isEs ? 'Activa' : 'Active')
+                  : (isEs ? 'Sin vincular' : 'Not linked'),
+              accentColor:
+                  isProtected ? colorScheme.primary : colorScheme.tertiary,
+              onTap: onProtectAccount,
+            ),
+            Divider(height: 1, color: colorScheme.outlineVariant),
+            _ProtectionActionTile(
+              icon: Icons.cloud_upload_outlined,
+              title: 'Google Drive',
+              body: isEs
+                  ? 'Guarda una copia cifrada en tu propio Drive.'
+                  : 'Store an encrypted copy in your own Drive.',
+              statusLabel: driveSubtitle,
+              accentColor: const Color(0xFF0EA5E9),
+              onTap: onConfigureBackup,
+            ),
+            Divider(height: 1, color: colorScheme.outlineVariant),
+            _ProtectionActionTile(
+              icon: Icons.folder_zip_outlined,
+              title: isEs ? 'Exportar ZIP' : 'Export ZIP',
+              body: isEs
+                  ? 'Copia local/manual para guardar o mover datos.'
+                  : 'Manual local copy to store or move data.',
+              statusLabel: isEs ? 'Manual' : 'Manual',
+              accentColor: const Color(0xFFF59E0B),
+              onTap: onExportZip,
+            ),
+          ],
+        ),
       ),
     );
   }
