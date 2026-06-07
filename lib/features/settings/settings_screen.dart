@@ -70,6 +70,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _authSubscription =
         locator<SupabaseClient>().auth.onAuthStateChange.listen((_) {
       _loadCloudAccountStatus();
+      _refreshPlanStatus();
     });
     if (_supportsHealthIntegration) {
       _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
@@ -123,8 +124,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               SnackBar(
                 content: Text(
                   _isEs(context)
-                      ? 'Cuenta y datos eliminados con éxito.'
-                      : 'Account and data successfully deleted.',
+                      ? 'Cuenta cloud y datos del dispositivo eliminados.'
+                      : 'Cloud account and device data deleted.',
                 ),
               ),
             );
@@ -132,12 +133,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
               NavigationOptions.onboardingRoute,
               (route) => false,
             );
+          } else if (state is SettingsAccountDeletionFailedState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _isEs(context)
+                      ? _mapDeletionErrorToSpanish(state.message)
+                      : state.message,
+                ),
+                duration: const Duration(seconds: 6),
+              ),
+            );
+            _settingsBloc.add(LoadSettingsEvent());
           }
         },
         builder: (context, state) {
           if (state is SettingsInitial) {
             _settingsBloc.add(LoadSettingsEvent());
           } else if (state is SettingsLoadingState) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state is SettingsAccountDeletionFailedState) {
             return const Center(child: CircularProgressIndicator());
           } else if (state is SettingsLoadedState) {
             return ListView(
@@ -164,10 +179,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: Text(S.of(context).settingsCalculationsLabel),
                         subtitle: Text(
                           _isEs(context)
-                              ? (state.macroGoalMode == MacroGoalModeEntity.percentage
+                              ? (state.macroGoalMode ==
+                                      MacroGoalModeEntity.percentage
                                   ? 'Distribución por porcentaje (%)'
                                   : 'Distribución por gramos por kilo (g/kg)')
-                              : (state.macroGoalMode == MacroGoalModeEntity.percentage
+                              : (state.macroGoalMode ==
+                                      MacroGoalModeEntity.percentage
                                   ? 'Percentage distribution (%)'
                                   : 'Grams per kg distribution (g/kg)'),
                         ),
@@ -686,8 +703,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         });
   }
 
-
-
   void _showAboutDialog(BuildContext context) async {
     final packageInfo = await PackageInfo.fromPlatform();
     final versionLabel = packageInfo.buildNumber.isNotEmpty
@@ -1184,7 +1199,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.red,
                 ),
                 title: Text(
-                  isEs ? 'Eliminar cuenta y datos' : 'Delete account and data',
+                  isEs
+                      ? 'Eliminar cuenta cloud y datos'
+                      : 'Delete cloud account and data',
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
@@ -1223,9 +1240,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final remaining = trialState?.remaining ?? 0;
     final used = trialState?.used ?? 0;
     final limit = trialState?.limit ?? MonetizationService.freeAiTrialLimit;
+    final fullLimit = trialState?.fullLimit ?? limit;
     final progress = limit == 0 ? 0.0 : (used / limit).clamp(0.0, 1.0);
     final aiMealsSaved = trialState?.aiMealsSaved ?? 0;
     final minutesSaved = trialState?.estimatedMinutesSaved ?? 0;
+    final needsProtectedAccount = trialState?.requiresProtectedAccount == true;
 
     return _SettingsSection(
       title: isEs ? 'Mi plan' : 'My plan',
@@ -1248,8 +1267,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   alignment: Alignment.center,
                   child: Icon(
-                    _isPremium ? Icons.star_rounded : Icons.auto_awesome_outlined,
-                    color: _isPremium ? const Color(0xFFD97706) : colorScheme.primary,
+                    _isPremium
+                        ? Icons.star_rounded
+                        : Icons.auto_awesome_outlined,
+                    color: _isPremium
+                        ? const Color(0xFFD97706)
+                        : colorScheme.primary,
                     size: 22,
                   ),
                 ),
@@ -1259,7 +1282,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isPremium ? 'MacroTracker Premium' : (isEs ? 'Plan gratuito' : 'Free plan'),
+                        _isPremium
+                            ? 'MacroTracker Premium'
+                            : (isEs ? 'Plan gratuito' : 'Free plan'),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -1270,9 +1295,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ? (isEs
                                 ? 'IA por texto y foto desbloqueada.'
                                 : 'Text and photo AI logging is unlocked.')
-                            : (isEs
-                                ? '$remaining de $limit usos gratuitos de IA disponibles.'
-                                : '$remaining of $limit free AI uses available.'),
+                            : needsProtectedAccount
+                                ? (isEs
+                                    ? 'Has agotado el cupo de invitado. Protege tu cuenta para desbloquear ${trialState?.lockedFreeUses ?? 0} usos gratis mas.'
+                                    : 'You have used the guest allowance. Protect your account to unlock ${trialState?.lockedFreeUses ?? 0} more free uses.')
+                                : (trialState != null &&
+                                        !trialState.isProtectedAccount &&
+                                        fullLimit > limit)
+                                    ? (isEs
+                                        ? '$remaining de $limit usos gratis disponibles ahora. Protege tu cuenta para conservarlos y desbloquear ${fullLimit - limit} mas.'
+                                        : '$remaining of $limit free uses available now. Protect your account to keep them and unlock ${fullLimit - limit} more.')
+                                    : (isEs
+                                        ? '$remaining de $limit usos gratuitos de IA disponibles.'
+                                        : '$remaining of $limit free AI uses available.'),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -1294,7 +1329,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                isEs ? '$used usados - $remaining restantes' : '$used used - $remaining remaining',
+                needsProtectedAccount
+                    ? (isEs
+                        ? '$used usados - desbloquea ${trialState?.lockedFreeUses ?? 0} mas con Google'
+                        : '$used used - unlock ${trialState?.lockedFreeUses ?? 0} more with Google')
+                    : (isEs
+                        ? '$used usados - $remaining restantes'
+                        : '$used used - $remaining remaining'),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
@@ -1310,22 +1351,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
               const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _isPlanActionLoading
-                    ? null
-                    : () => _showSettingsPaywall(context),
-                icon: const Icon(Icons.auto_awesome_outlined),
-                label: Text(
-                  isEs ? 'Activar MacroTracker Premium' : 'Activate MacroTracker Premium',
+              if (trialState != null && !trialState.isProtectedAccount) ...[
+                FilledButton.tonalIcon(
+                  onPressed: _isPlanActionLoading
+                      ? null
+                      : () => _protectCloudAccount(context),
+                  icon: const Icon(Icons.verified_user_outlined),
+                  label: Text(
+                    isEs ? 'Proteger con Google' : 'Protect with Google',
+                  ),
                 ),
-              ),
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: _isPlanActionLoading
+                      ? null
+                      : () => _showSettingsPaywall(context),
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                  label: Text(
+                    isEs ? 'Ver Premium' : 'View Premium',
+                  ),
+                ),
+              ] else
+                FilledButton.icon(
+                  onPressed: _isPlanActionLoading
+                      ? null
+                      : () => _showSettingsPaywall(context),
+                  icon: const Icon(Icons.auto_awesome_outlined),
+                  label: Text(
+                    isEs
+                        ? 'Activar MacroTracker Premium'
+                        : 'Activate MacroTracker Premium',
+                  ),
+                ),
             ] else ...[
               const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1357,12 +1423,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF2BF2E).withValues(alpha: 0.12),
+                              color: const Color(0xFFF2BF2E)
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: const Color(0xFFD97706).withValues(alpha: 0.4),
+                                color: const Color(0xFFD97706)
+                                    .withValues(alpha: 0.4),
                               ),
                             ),
                             child: Row(
@@ -1394,7 +1463,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             if (!_isPremium) ...[
               const SizedBox(height: 4),
               TextButton.icon(
-                onPressed: _isPlanActionLoading ? null : () => _restorePurchases(context),
+                onPressed: _isPlanActionLoading
+                    ? null
+                    : () => _restorePurchases(context),
                 icon: const Icon(Icons.restore_outlined, size: 18),
                 label: Text(
                   isEs ? 'Restaurar compras' : 'Restore purchases',
@@ -1580,6 +1651,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final opened = await locator<CloudAccountService>().protectWithGoogle();
       if (!mounted) return;
       await _loadCloudAccountStatus();
+      await _refreshPlanStatus();
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1715,7 +1787,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             return AlertDialog(
               title: Text(
-                isEs ? '¿Eliminar cuenta y datos?' : 'Delete account and data?',
+                isEs
+                    ? '¿Eliminar cuenta cloud y datos?'
+                    : 'Delete cloud account and data?',
                 style: const TextStyle(
                     color: Colors.red, fontWeight: FontWeight.bold),
               ),
@@ -1725,8 +1799,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Text(
                     isEs
-                        ? 'Esta acción es irreversible y borrará para siempre todos tus registros de comidas, actividades, recetas, pesos y tu perfil de usuario.'
-                        : 'This action is irreversible and will permanently delete all your logged meals, activities, recipes, weight history, and user profile.',
+                        ? 'Esta acción es irreversible. Primero intentaremos borrar tu cuenta cloud actual y sus datos remotos vinculados. Solo si ese paso termina bien borraremos también los datos locales de este dispositivo.'
+                        : 'This action is irreversible. We will first delete your current cloud account and its linked remote data. Only after that succeeds will MacroTracker erase the local data on this device.',
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    isEs
+                        ? 'Si el borrado cloud falla, no mostraremos la cuenta como eliminada y tus datos locales seguirán en el dispositivo.'
+                        : 'If cloud deletion fails, MacroTracker will not show the account as deleted and your local device data will be kept.',
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -1776,6 +1856,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _settingsBloc.add(DeleteAccountEvent());
     }
   }
+}
+
+String _mapDeletionErrorToSpanish(String message) {
+  if (message.contains('cloud session is no longer valid')) {
+    return 'La sesión cloud ya no es válida. Vuelve a iniciar sesión y repite el borrado.';
+  }
+  if (message.contains('Could not reach the cloud service')) {
+    return 'No se pudo contactar con el servicio cloud. Revisa la conexión e inténtalo otra vez.';
+  }
+  if (message.contains('local data was kept')) {
+    return 'No se pudo borrar la cuenta cloud ahora mismo. Los datos locales se han conservado en este dispositivo.';
+  }
+  return 'No se pudo borrar la cuenta cloud ahora mismo.';
 }
 
 class _PlanMetricRow extends StatelessWidget {
@@ -1881,9 +1974,8 @@ class _DataProtectionPanel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: _ProtectionActionTile(
-        icon: isProtected
-            ? Icons.verified_user_outlined
-            : Icons.shield_outlined,
+        icon:
+            isProtected ? Icons.verified_user_outlined : Icons.shield_outlined,
         title: isEs ? 'Cuenta y copias' : 'Account and backups',
         body: isProtected
             ? '$accountLabel - $driveSubtitle'
@@ -2070,18 +2162,16 @@ class _ProtectionActionTile extends StatelessWidget {
 
 class _StatusPill extends StatelessWidget {
   final String label;
-  final Color? color;
 
   const _StatusPill({
     required this.label,
-    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final effectiveColor = color ?? colorScheme.onSurfaceVariant;
+    final effectiveColor = colorScheme.onSurfaceVariant;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 150),
@@ -2089,9 +2179,7 @@ class _StatusPill extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          color: color == null
-              ? colorScheme.surfaceContainerHighest
-              : effectiveColor.withValues(alpha: 0.12),
+          color: colorScheme.surfaceContainerHighest,
         ),
         child: Text(
           label,

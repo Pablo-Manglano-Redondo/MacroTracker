@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
@@ -39,6 +40,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
   Package? _selectedPackage;
   bool _isLoadingOfferings = true;
   bool _isPurchasing = false;
+  bool _isProtectingAccount = false;
   String? _errorMessage;
 
   @override
@@ -159,6 +161,51 @@ class _PaywallSheetState extends State<PaywallSheet> {
     }
   }
 
+  Future<void> _protectAccount() async {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    if (_isProtectingAccount) {
+      return;
+    }
+    setState(() {
+      _isProtectingAccount = true;
+    });
+    try {
+      final opened = await locator<CloudAccountService>().protectWithGoogle();
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            opened
+                ? (isEs
+                    ? 'Completa Google y vuelve a MacroTracker.'
+                    : 'Complete Google and return to MacroTracker.')
+                : (isEs
+                    ? 'No se pudo abrir Google.'
+                    : 'Could not open Google.'),
+          ),
+        ),
+      );
+      Navigator.of(context).pop(false);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _errorMessage = isEs
+            ? 'No se pudo iniciar la vinculacion con Google.'
+            : 'Could not start Google linking.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProtectingAccount = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -216,6 +263,68 @@ class _PaywallSheetState extends State<PaywallSheet> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
+            if (widget.trialState?.requiresProtectedAccount == true) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                  border: Border.all(
+                    color: colorScheme.tertiary.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.verified_user_outlined,
+                          color: colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            isEs
+                                ? 'Desbloquea tus usos gratis restantes con Google'
+                                : 'Unlock your remaining free uses with Google',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      isEs
+                          ? 'Ya has usado el cupo de invitado. Protege tu cuenta y desbloquea ${widget.trialState!.lockedFreeUses} usos gratis mas sin perder tu progreso.'
+                          : 'You have used the guest allowance. Protect your account and unlock ${widget.trialState!.lockedFreeUses} more free uses without losing progress.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.tonalIcon(
+                      onPressed: _isProtectingAccount ? null : _protectAccount,
+                      icon: _isProtectingAccount
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.login_outlined),
+                      label: Text(
+                        isEs
+                            ? 'Proteger con Google'
+                            : 'Protect with Google',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (copy.badge != null) ...[
               const SizedBox(height: 12),
               Align(

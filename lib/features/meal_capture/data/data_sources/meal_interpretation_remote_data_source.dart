@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logging/logging.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
@@ -14,8 +16,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class MealInterpretationRemoteDataSource {
   static const _textFunctionName = 'meal-interpretations-text';
   static const _photoFunctionName = 'meal-interpretations-photo';
+  static const _textTimeout = Duration(seconds: 18);
+  static const _photoTimeout = Duration(seconds: 35);
 
   final _log = Logger('MealInterpretationRemoteDataSource');
+  final SupabaseClient? _supabaseClient;
+  final ConversionAnalyticsService? _analyticsService;
+
+  MealInterpretationRemoteDataSource({
+    SupabaseClient? supabaseClient,
+    ConversionAnalyticsService? analyticsService,
+  })  : _supabaseClient = supabaseClient,
+        _analyticsService = analyticsService;
 
   Future<MealInterpretationRemoteResult> interpretText({
     required String text,
@@ -25,31 +37,27 @@ class MealInterpretationRemoteDataSource {
     String? analysisContext,
     List<Map<String, dynamic>> personalExamples = const [],
   }) async {
-    try {
-      final supabaseClient = locator<SupabaseClient>();
-      final response = await supabaseClient.functions.invoke(
-        _textFunctionName,
-        body: {
-          'text': text,
-          'locale': locale,
-          'unitSystem': unitSystem,
-          'mealTypeHint': mealTypeHint,
-          if (analysisContext != null && analysisContext.trim().isNotEmpty)
-            'analysisContext': analysisContext,
-          if (personalExamples.isNotEmpty) 'personalExamples': personalExamples,
-        },
-      );
-
-      final payload = _normalizePayload(response.data);
-      return MealInterpretationRemoteResult(
-        draft: mapDraftResponse(payload, fallbackTitle: text),
-        estimatedCostUsd: _extractEstimatedCost(payload),
-      );
-    } catch (exception, stacktrace) {
-      _log.severe('Exception while interpreting text meal $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
-      return Future.error(exception);
-    }
+    return _runInterpretation(
+      inputType: 'text',
+      timeout: _textTimeout,
+      fallbackTitle: text,
+      invoke: () async {
+        final response = await _client.functions.invoke(
+          _textFunctionName,
+          body: {
+            'text': text,
+            'locale': locale,
+            'unitSystem': unitSystem,
+            'mealTypeHint': mealTypeHint,
+            if (analysisContext != null && analysisContext.trim().isNotEmpty)
+              'analysisContext': analysisContext,
+            if (personalExamples.isNotEmpty)
+              'personalExamples': personalExamples,
+          },
+        );
+        return response.data;
+      },
+    );
   }
 
   Future<MealInterpretationRemoteResult> interpretPhoto({
@@ -62,34 +70,161 @@ class MealInterpretationRemoteDataSource {
     String? analysisContext,
     List<Map<String, dynamic>> personalExamples = const [],
   }) async {
-    try {
-      final supabaseClient = locator<SupabaseClient>();
-      final response = await supabaseClient.functions.invoke(
-        _photoFunctionName,
-        body: {
-          'imageBase64': base64Encode(imageBytes),
-          'fileName': fileName,
-          'mimeType': mimeType,
-          'locale': locale,
-          'unitSystem': unitSystem,
-          'mealTypeHint': mealTypeHint,
-          if (analysisContext != null && analysisContext.trim().isNotEmpty)
-            'analysisContext': analysisContext,
-          if (personalExamples.isNotEmpty) 'personalExamples': personalExamples,
-        },
-      );
+    return _runInterpretation(
+      inputType: 'photo',
+      timeout: _photoTimeout,
+      fallbackTitle: 'Photo meal',
+      invoke: () async {
+        final response = await _client.functions.invoke(
+          _photoFunctionName,
+          body: {
+            'imageBase64': base64Encode(imageBytes),
+            'fileName': fileName,
+            'mimeType': mimeType,
+            'locale': locale,
+            'unitSystem': unitSystem,
+            'mealTypeHint': mealTypeHint,
+            if (analysisContext != null && analysisContext.trim().isNotEmpty)
+              'analysisContext': analysisContext,
+            if (personalExamples.isNotEmpty)
+              'personalExamples': personalExamples,
+          },
+        );
+        return response.data;
+      },
+    );
+  }
 
-      final payload = _normalizePayload(response.data);
-      return MealInterpretationRemoteResult(
-        draft: mapDraftResponse(payload, fallbackTitle: 'Photo meal'),
-        estimatedCostUsd: _extractEstimatedCost(payload),
-      );
-    } catch (exception, stacktrace) {
-      _log.severe('Exception while interpreting photo meal $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
-      return Future.error(exception);
+  SupabaseClient get _client => _supabaseClient ?? locator<SupabaseClient>();
+
+  ConversionAnalyticsService get _analytics =>
+      _analyticsService ?? locator<ConversionAnalyticsService>();
+
+  Future<MealInterpretationRemoteResult> _runInterpretation({
+    required String inputType,
+    required Duration timeout,
+    required String fallbackTitle,
+    required Future<dynamic> Function() invoke,
+  }) async {
+    await _analytics.logAiInterpretationStarted(inputType: inputType);
+
+    var attempt = 0;
+    while (true) {
+      attempt += 1;
+      try {
+        final rawPayload = await invoke().timeout(timeout);
+        final payload = _normalizePayload(rawPayload);
+        final result = MealInterpretationRemoteResult(
+          draft: mapDraftResponse(payload, fallbackTitle: fallbackTitle),
+          estimatedCostUsd: _extractEstimatedCost(payload),
+        );
+        await _analytics.logAiInterpretationCompleted(inputType: inputType);
+        return result;
+      } catch (error, stackTrace) {
+        final failure = classifyFailure(error);
+        _log.warning(
+          'Meal interpretation failed for $inputType on attempt $attempt',
+          error,
+          stackTrace,
+        );
+
+        if (attempt == 1 && failure.isTransient) {
+          await _analytics.logAiInterpretationRetried(
+            inputType: inputType,
+            category: failure.category.analyticsValue,
+          );
+          continue;
+        }
+
+        await _analytics.logAiInterpretationFailed(
+          inputType: inputType,
+          category: failure.category.analyticsValue,
+        );
+        if (failure.reportToSentry) {
+          await Sentry.captureException(error, stackTrace: stackTrace);
+        }
+        throw failure;
+      }
     }
   }
+
+  @visibleForTesting
+  MealInterpretationRemoteException classifyFailure(Object error) {
+    if (error is MealInterpretationRemoteException) {
+      return error;
+    }
+    if (error is TimeoutException) {
+      return const MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.timeout,
+      );
+    }
+
+    final raw = error.toString();
+    final message = raw.toLowerCase();
+    if (_containsAny(message, const [
+      'socketexception',
+      'failed host lookup',
+      'connection closed',
+      'connection reset',
+      'network',
+      'timed out attempting to connect',
+    ])) {
+      return const MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.noNetwork,
+      );
+    }
+    if (_containsAny(message, const [
+      '401',
+      '403',
+      'jwt',
+      'auth',
+      'unauthorized',
+      'forbidden',
+      'session',
+      'invalid refresh token',
+    ])) {
+      return const MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.authInvalid,
+      );
+    }
+    if (_containsAny(message, const [
+      'formatexception',
+      'invalid draft response format',
+      'invalid draft item format',
+      'unexpected end of input',
+      'json',
+      'invalid response',
+    ])) {
+      return const MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.invalidResponse,
+      );
+    }
+    if (_containsAny(message, const [
+      '429',
+      '500',
+      '502',
+      '503',
+      '504',
+      'resource_exhausted',
+      'quota',
+      'unavailable',
+      'internal',
+      'payload is too large',
+    ])) {
+      return const MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.unavailable,
+      );
+    }
+
+    return MealInterpretationRemoteException(
+      category: MealInterpretationFailureCategory.unavailable,
+      reportToSentry: true,
+      debugMessage: raw,
+    );
+  }
+
+  bool _containsAny(String message, List<String> needles) =>
+      needles.any(message.contains);
 
   @visibleForTesting
   InterpretationDraftEntity mapDraftResponse(dynamic data,
@@ -228,4 +363,49 @@ class MealInterpretationRemoteResult {
     required this.draft,
     required this.estimatedCostUsd,
   });
+}
+
+enum MealInterpretationFailureCategory {
+  timeout,
+  noNetwork,
+  authInvalid,
+  invalidResponse,
+  unavailable,
+}
+
+extension on MealInterpretationFailureCategory {
+  String get analyticsValue {
+    switch (this) {
+      case MealInterpretationFailureCategory.timeout:
+        return 'timeout';
+      case MealInterpretationFailureCategory.noNetwork:
+        return 'no_network';
+      case MealInterpretationFailureCategory.authInvalid:
+        return 'auth_invalid';
+      case MealInterpretationFailureCategory.invalidResponse:
+        return 'invalid_response';
+      case MealInterpretationFailureCategory.unavailable:
+        return 'unavailable';
+    }
+  }
+}
+
+class MealInterpretationRemoteException implements Exception {
+  final MealInterpretationFailureCategory category;
+  final bool reportToSentry;
+  final String? debugMessage;
+
+  const MealInterpretationRemoteException({
+    required this.category,
+    this.reportToSentry = false,
+    this.debugMessage,
+  });
+
+  bool get isTransient =>
+      category == MealInterpretationFailureCategory.timeout ||
+      category == MealInterpretationFailureCategory.noNetwork ||
+      category == MealInterpretationFailureCategory.unavailable;
+
+  @override
+  String toString() => debugMessage ?? category.analyticsValue;
 }

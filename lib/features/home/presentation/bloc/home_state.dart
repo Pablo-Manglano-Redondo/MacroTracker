@@ -40,6 +40,7 @@ class HomeLoadedState extends HomeState {
   final ProfessionalPlanSummaryEntity? professionalPlanSummary;
   final int? targetSteps;
   final double? targetSleepHours;
+  final double? targetWaterLiters;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -67,6 +68,7 @@ class HomeLoadedState extends HomeState {
     required this.professionalPlanSummary,
     this.targetSteps,
     this.targetSleepHours,
+    this.targetWaterLiters,
   });
 
   @override
@@ -96,5 +98,6 @@ class HomeLoadedState extends HomeState {
         professionalPlanSummary,
         targetSteps,
         targetSleepHours,
+        targetWaterLiters,
       ];
 }

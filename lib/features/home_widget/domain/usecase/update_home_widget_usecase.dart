@@ -74,7 +74,7 @@ class UpdateHomeWidgetUsecase {
       final fatTracked = trackedDay?.fatTracked ?? 0;
       final proteinGoal = trackedDay?.proteinGoal ?? targets!.proteinGoal;
       final proteinTracked = trackedDay?.proteinTracked ?? 0;
-      final hydrationGoal = _hydrationGoalForFocus(config.dailyFocus);
+      final hydrationGoal = user.targetWaterLiters ?? _hydrationGoalForFocus(config.dailyFocus);
 
       // Steps goal and Sleep goal
       final stepsGoal = user.targetSteps ?? _stepGoalForFocus(config.dailyFocus);

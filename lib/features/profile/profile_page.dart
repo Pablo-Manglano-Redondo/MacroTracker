@@ -223,6 +223,14 @@ class _ProfilePageState extends State<ProfilePage> {
               icon: Icons.hotel_outlined,
               onTap: () => _showSetTargetSleepDialog(context, user),
             ),
+            _ProfileActionTile(
+              title: isEs ? 'Objetivo de agua' : 'Water goal',
+              subtitle: user.targetWaterLiters != null
+                  ? _formatWater(user.targetWaterLiters!, usesImperialUnits)
+                  : (isEs ? 'Por defecto' : 'Default'),
+              icon: Icons.water_drop_outlined,
+              onTap: () => _showSetTargetWaterDialog(context, user, usesImperialUnits),
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -584,6 +592,120 @@ class _ProfilePageState extends State<ProfilePage> {
   void _removeProfilePhoto(UserEntity userEntity) {
     userEntity.profileImagePath = null;
     _profileBloc.updateUser(userEntity);
+  }
+
+  String _formatWater(double liters, bool usesImperialUnits) {
+    if (usesImperialUnits) {
+      final flOz = UnitCalc.mlToFlOz(liters * 1000);
+      return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} fl oz';
+    }
+    return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} L';
+  }
+
+  Future<void> _showSetTargetWaterDialog(
+      BuildContext context, UserEntity userEntity, bool usesImperialUnits) async {
+    final double? currentLiters = userEntity.targetWaterLiters;
+    String initialText = '';
+    if (currentLiters != null) {
+      if (usesImperialUnits) {
+        final flOz = UnitCalc.mlToFlOz(currentLiters * 1000);
+        initialText = flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1);
+      } else {
+        initialText = currentLiters.toStringAsFixed(currentLiters % 1 == 0 ? 0 : 1);
+      }
+    }
+
+    final controller = TextEditingController(text: initialText);
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final selectedWater = await showDialog<double>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            isEs ? 'Objetivo de agua diario' : 'Daily Water Goal',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isEs
+                    ? 'Establece tu meta diaria de agua (${usesImperialUnits ? "fl oz" : "L"}). Si la dejas vacía, se usará el valor predeterminado según el día.'
+                    : 'Set your daily water goal (${usesImperialUnits ? "fl oz" : "L"}). If left empty, the default value based on the day will be used.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: usesImperialUnits ? 'e.g. 100' : 'e.g. 3.0',
+                  labelText: isEs
+                      ? 'Meta de agua (${usesImperialUnits ? "fl oz" : "L"})'
+                      : 'Water target (${usesImperialUnits ? "fl oz" : "L"})',
+                  prefixIcon: const Icon(Icons.water_drop_outlined),
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(-1.0);
+              },
+              child: Text(
+                isEs ? 'Restablecer' : 'Reset',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(S.of(context).dialogCancelLabel),
+            ),
+            FilledButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isEmpty) {
+                  Navigator.of(context).pop(-1.0);
+                } else {
+                  final val = double.tryParse(text);
+                  if (val != null && val > 0) {
+                    Navigator.of(context).pop(val);
+                  }
+                }
+              },
+              child: Text(S.of(context).dialogOKLabel),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (selectedWater != null) {
+      if (selectedWater == -1.0) {
+        userEntity.targetWaterLiters = null;
+      } else {
+        if (usesImperialUnits) {
+          // Convert from fl oz to Liters
+          final ml = UnitCalc.flOzToMl(selectedWater);
+          userEntity.targetWaterLiters = ml / 1000;
+        } else {
+          userEntity.targetWaterLiters = selectedWater;
+        }
+      }
+      _profileBloc.updateUser(userEntity);
+    }
   }
 
   String _goalChipLabel(BuildContext context, UserWeightGoalEntity goal) {

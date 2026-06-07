@@ -75,3 +75,12 @@ class SettingsAccountDeletedState extends SettingsState {
   @override
   List<Object?> get props => [];
 }
+
+class SettingsAccountDeletionFailedState extends SettingsState {
+  final String message;
+
+  const SettingsAccountDeletionFailedState(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}

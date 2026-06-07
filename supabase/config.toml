@@ -27,3 +27,6 @@ verify_jwt = false
 
 [functions.stripe-pro-checkout]
 verify_jwt = true
+
+[functions.delete-current-account]
+verify_jwt = true

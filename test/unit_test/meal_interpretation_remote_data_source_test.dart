@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -140,6 +141,38 @@ void main() {
             fallbackTitle: 'fallback'),
         throwsFormatException,
       );
+    });
+
+    test('classifies timeout failures as transient timeout errors', () {
+      final failure = dataSource.classifyFailure(
+        TimeoutException('request timed out'),
+      );
+
+      expect(failure.category, MealInterpretationFailureCategory.timeout);
+      expect(failure.isTransient, isTrue);
+      expect(failure.reportToSentry, isFalse);
+    });
+
+    test('classifies auth failures without treating them as transient', () {
+      final failure = dataSource.classifyFailure(
+        Exception('401 unauthorized jwt expired'),
+      );
+
+      expect(failure.category, MealInterpretationFailureCategory.authInvalid);
+      expect(failure.isTransient, isFalse);
+      expect(failure.reportToSentry, isFalse);
+    });
+
+    test('classifies malformed payloads as invalid responses', () {
+      final failure = dataSource.classifyFailure(
+        const FormatException('Invalid draft response format'),
+      );
+
+      expect(
+        failure.category,
+        MealInterpretationFailureCategory.invalidResponse,
+      );
+      expect(failure.reportToSentry, isFalse);
     });
   });
 }

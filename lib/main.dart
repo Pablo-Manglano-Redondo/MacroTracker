@@ -39,6 +39,14 @@ import 'package:macrotracker/generated/l10n.dart';
 import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
+final _defaultReleaseSentryTraceSampleRate = double.tryParse(
+      const String.fromEnvironment(
+        'SENTRY_TRACE_SAMPLE_RATE',
+        defaultValue: '0.05',
+      ),
+    ) ??
+    0.05;
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   LoggerConfig.intiLogger();
@@ -125,7 +133,7 @@ Future<void> _runAppWithSentryReporting(bool isUserInitialized,
   try {
     await SentryFlutter.init((options) {
       options.dsn = Env.sentryDns.startsWith('http') ? Env.sentryDns : '';
-      options.tracesSampleRate = 1.0;
+      options.tracesSampleRate = _defaultReleaseSentryTraceSampleRate;
     },
         appRunner: () => runAppWithChangeNotifiers(
             isUserInitialized, savedAppTheme, locale));

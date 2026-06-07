@@ -14,10 +14,7 @@ import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/health_connect_sync_status_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
-import 'package:macrotracker/core/utils/locator.dart';
-import 'package:macrotracker/core/utils/hive_db_provider.dart';
-import 'package:macrotracker/core/utils/secure_app_storage_provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:macrotracker/core/services/cloud_account_deletion_service.dart';
 
 part 'settings_event.dart';
 
@@ -34,6 +31,7 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   final GetUserUsecase _getUserUsecase;
   final SyncSleepFromHealthConnectUsecase _syncSleepFromHealthConnectUsecase;
   final MealReminderService _mealReminderService;
+  final CloudAccountDeletionService _cloudAccountDeletionService;
 
   SettingsBloc(
       this._getConfigUsecase,
@@ -43,7 +41,8 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       this._getMacroGoalUsecase,
       this._getUserUsecase,
       this._syncSleepFromHealthConnectUsecase,
-      this._mealReminderService)
+      this._mealReminderService,
+      this._cloudAccountDeletionService)
       : super(SettingsInitial()) {
     on<LoadSettingsEvent>((event, emit) async {
       emit(SettingsLoadingState());
@@ -75,18 +74,17 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     on<DeleteAccountEvent>((event, emit) async {
       emit(SettingsLoadingState());
       try {
-        // 1. Clear all Hive data
-        await locator<HiveDBProvider>().clearAllData();
-
-        // 2. Wipe secure storage (including Hive encryption keys)
-        await SecureAppStorageProvider.secureAppStorage.deleteAll();
-
-        // 3. Sign out of Supabase
-        await locator<SupabaseClient>().auth.signOut();
+        await _cloudAccountDeletionService.deleteCurrentAccount();
+        emit(SettingsAccountDeletedState());
+      } on CloudAccountDeletionException catch (e, stackTrace) {
+        log.warning('Account deletion failed', e, stackTrace);
+        emit(SettingsAccountDeletionFailedState(e.message));
       } catch (e, stackTrace) {
-        log.severe('Error deleting account and data', e, stackTrace);
+        log.severe('Unexpected account deletion error', e, stackTrace);
+        emit(const SettingsAccountDeletionFailedState(
+          'We could not delete your account right now.',
+        ));
       }
-      emit(SettingsAccountDeletedState());
     });
   }
 

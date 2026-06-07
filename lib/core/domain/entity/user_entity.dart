@@ -13,6 +13,7 @@ class UserEntity {
   UserPALEntity pal;
   int? targetSteps;
   double? targetSleepHours;
+  double? targetWaterLiters;
 
   UserEntity({
     required this.birthday,
@@ -24,6 +25,7 @@ class UserEntity {
     required this.pal,
     this.targetSteps,
     this.targetSleepHours,
+    this.targetWaterLiters,
   });
 
   factory UserEntity.fromUserDBO(UserDBO userDBO) {
@@ -37,6 +39,7 @@ class UserEntity {
       pal: UserPALEntity.fromUserPALDBO(userDBO.pal),
       targetSteps: userDBO.targetSteps,
       targetSleepHours: userDBO.targetSleepHours,
+      targetWaterLiters: userDBO.targetWaterLiters,
     );
   }
 

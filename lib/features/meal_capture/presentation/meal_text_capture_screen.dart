@@ -7,6 +7,7 @@ import 'package:macrotracker/core/presentation/widgets/ai_usage_gate.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_text_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
@@ -171,15 +172,20 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
           ),
         );
       }
-    } catch (_) {
-      await _createLocalDraft(input);
+    } on MealInterpretationRemoteException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              S.current.aiTextCaptureError,
-            ),
-          ),
+        await _showAiFailureDialog(
+          message: _buildFailureMessage(error),
+          onRetry: _createDraft,
+          onContinueManually: () => _createLocalDraft(input),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        await _showAiFailureDialog(
+          message: S.current.aiTextCaptureError,
+          onRetry: _createDraft,
+          onContinueManually: () => _createLocalDraft(input),
         );
       }
     } finally {
@@ -211,6 +217,52 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
         ),
       );
     }
+  }
+
+  String _buildFailureMessage(MealInterpretationRemoteException error) {
+    switch (error.category) {
+      case MealInterpretationFailureCategory.timeout:
+        return 'The AI request timed out. Retry or continue with a manual review.';
+      case MealInterpretationFailureCategory.noNetwork:
+        return 'No network connection. Retry when you are back online or continue manually.';
+      case MealInterpretationFailureCategory.authInvalid:
+        return 'Your cloud session expired. Protect or reopen your cloud account and try again.';
+      case MealInterpretationFailureCategory.invalidResponse:
+        return 'The AI response could not be used. Retry or continue with a manual draft.';
+      case MealInterpretationFailureCategory.unavailable:
+        return 'AI meal interpretation is temporarily unavailable. Retry or continue manually.';
+    }
+  }
+
+  Future<void> _showAiFailureDialog({
+    required String message,
+    required Future<void> Function() onRetry,
+    required Future<void> Function() onContinueManually,
+  }) async {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(isEs ? 'IA no disponible' : 'AI unavailable'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await onContinueManually();
+            },
+            child: Text(isEs ? 'Seguir manual' : 'Continue manually'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await onRetry();
+            },
+            child: Text(isEs ? 'Reintentar' : 'Retry'),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -37,6 +37,26 @@ class AiUsageGate {
       'ai_limit_reached',
       parameters: {'placement': _placementName(placement)},
     );
+    return _showBlockedSheetAndRecheck(
+      context,
+      placement: placement,
+      state: state,
+    );
+  }
+
+  static Future<void> consumeTrialUse(AiAccessResult access) async {
+    if (!access.shouldConsumeTrial) {
+      return;
+    }
+    await locator<MonetizationService>().consumeAiTrialUse();
+    await locator<ConversionAnalyticsService>().logEvent('ai_trial_used');
+  }
+
+  static Future<AiAccessResult> _showBlockedSheetAndRecheck(
+    BuildContext context, {
+    required PaywallPlacement placement,
+    required AiTrialState state,
+  }) async {
     if (!context.mounted) {
       return const AiAccessResult.denied();
     }
@@ -48,17 +68,17 @@ class AiUsageGate {
         trialState: state,
       ),
     );
-    return purchased == true
-        ? const AiAccessResult.allowed(shouldConsumeTrial: false)
-        : const AiAccessResult.denied();
-  }
-
-  static Future<void> consumeTrialUse(AiAccessResult access) async {
-    if (!access.shouldConsumeTrial) {
-      return;
+    if (purchased == true) {
+      return const AiAccessResult.allowed(shouldConsumeTrial: false);
     }
-    await locator<MonetizationService>().consumeAiTrialUse();
-    await locator<ConversionAnalyticsService>().logEvent('ai_trial_used');
+    final refreshed = await locator<MonetizationService>().getAiTrialState();
+    if (refreshed.isPremium) {
+      return const AiAccessResult.allowed(shouldConsumeTrial: false);
+    }
+    if (refreshed.remaining > 0) {
+      return const AiAccessResult.allowed(shouldConsumeTrial: true);
+    }
+    return const AiAccessResult.denied();
   }
 }
 
@@ -128,9 +148,13 @@ class AiTrialBanner extends StatelessWidget {
               Expanded(
                 child: Text(
                   isBlocked
-                      ? (isEs
-                          ? 'Has usado tus ${state.limit} pruebas de IA.'
-                          : 'You have used your ${state.limit} AI trials.')
+                      ? state.requiresProtectedAccount
+                          ? (isEs
+                              ? 'Has agotado el cupo de invitado. Protege tu cuenta para desbloquear ${state.lockedFreeUses} usos gratis mas.'
+                              : 'You have used the guest allowance. Protect your account to unlock ${state.lockedFreeUses} more free uses.')
+                          : (isEs
+                              ? 'Has usado tus ${state.limit} pruebas de IA.'
+                              : 'You have used your ${state.limit} AI trials.')
                       : (isEs
                           ? '$remaining pruebas de IA gratis restantes.'
                           : '$remaining free AI trials remaining.'),
@@ -148,7 +172,11 @@ class AiTrialBanner extends StatelessWidget {
                     trialState: state,
                   ),
                 ),
-                child: Text(isEs ? 'Premium' : 'Upgrade'),
+                child: Text(
+                  state.requiresProtectedAccount
+                      ? (isEs ? 'Google' : 'Google')
+                      : (isEs ? 'Premium' : 'Upgrade'),
+                ),
               ),
             ],
           ),

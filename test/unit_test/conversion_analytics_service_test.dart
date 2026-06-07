@@ -48,6 +48,37 @@ void main() {
         'custom': '2026-06-03 00:00:00.000',
       });
     });
+
+    test('emits ai request lifecycle events with normalized parameters',
+        () async {
+      final client = _FakeAnalyticsClient();
+      final config = _FakeGetConfigUsecase(acceptedAnonymousData: true);
+      final service = ConversionAnalyticsService(client, config);
+
+      await service.initializeFromConsent();
+      await service.logAiInterpretationStarted(inputType: 'photo');
+      await service.logAiInterpretationRetried(
+        inputType: 'photo',
+        category: 'timeout',
+      );
+      await service.logAiInterpretationFailed(
+        inputType: 'photo',
+        category: 'timeout',
+      );
+      await service.logAiInterpretationCompleted(inputType: 'photo');
+
+      expect(
+        client.events.map((event) => event.name).toList(),
+        [
+          'ai_request_started',
+          'ai_request_retried',
+          'ai_request_failed',
+          'ai_request_completed',
+        ],
+      );
+      expect(client.events[1].parameters['failure_category'], 'timeout');
+      expect(client.events[2].parameters['input_type'], 'photo');
+    });
   });
 }
 

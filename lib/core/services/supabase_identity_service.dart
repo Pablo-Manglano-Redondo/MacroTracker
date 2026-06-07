@@ -7,6 +7,8 @@ class SupabaseIdentityService {
 
   String? get currentUserId => _client.auth.currentUser?.id;
 
+  User? get currentUser => _client.auth.currentUser;
+
   Future<String> ensureUserSession() async {
     final currentUser = _client.auth.currentUser;
     if (currentUser != null) {
@@ -21,5 +23,15 @@ class SupabaseIdentityService {
       );
     }
     return user.id;
+  }
+
+  String requireActiveUserSession() {
+    final currentUser = _client.auth.currentUser;
+    if (currentUser == null) {
+      throw StateError(
+        'No active cloud session is available.',
+      );
+    }
+    return currentUser.id;
   }
 }

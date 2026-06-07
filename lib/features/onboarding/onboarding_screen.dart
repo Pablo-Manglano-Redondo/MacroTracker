@@ -288,32 +288,124 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _offerCloudAccountProtection(BuildContext context) async {
-    final shouldProtect = await showDialog<bool>(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    final shouldProtect = await showModalBottomSheet<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(_copy(
-          context,
-          es: 'Guarda tu cuenta cloud',
-          en: 'Protect your cloud account',
-        )),
-        content: Text(_copy(
-          context,
-          es: 'MacroTracker ya esta listo sin registro. Si guardas tu cuenta con Google podras recuperarla al cambiar de movil y usar conexiones profesionales. Esto no activa Google Drive.',
-          en: 'MacroTracker is ready without sign-up. If you protect your account with Google, you can recover it on a new phone and use coach connections. This does not enable Google Drive.',
-        )),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(_copy(context, es: 'Ahora no', en: 'Not now')),
-          ),
-          FilledButton.icon(
-            onPressed: () => Navigator.of(context).pop(true),
-            icon: const Icon(Icons.g_mobiledata_outlined),
-            label: Text(_copy(context, es: 'Guardar con Google', en: 'Use Google')),
-          ),
-        ],
+      backgroundColor: theme.scaffoldBackgroundColor,
+      barrierColor: Colors.black54,
+      isDismissible: false,
+      enableDrag: false,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 48,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(2.5),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.cloud_done_outlined,
+                      color: colorScheme.primary,
+                      size: 48,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  _copy(
+                    context,
+                    es: 'Guarda tu cuenta cloud',
+                    en: 'Protect your cloud account',
+                  ),
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _copy(
+                    context,
+                    es: 'MacroTracker ya esta listo sin registro. Si guardas tu cuenta con Google podras recuperarla al cambiar de movil y usar conexiones profesionales. Esto no activa Google Drive.',
+                    en: 'MacroTracker is ready without sign-up. If you protect your account with Google, you can recover it on a new phone and use coach connections. This does not enable Google Drive.',
+                  ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Text(
+                          _copy(context, es: 'Ahora no', en: 'Not now'),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 50),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
+                        label: Text(
+                          _copy(context, es: 'Guardar con Google', en: 'Use Google'),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
 
     if (shouldProtect != true || !context.mounted) {

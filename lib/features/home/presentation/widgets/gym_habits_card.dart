@@ -20,6 +20,7 @@ class GymHabitsCard extends StatefulWidget {
   final GymHabitsCardController? controller;
   final int? targetSteps;
   final double? targetSleepHours;
+  final double? targetWaterLiters;
 
   const GymHabitsCard({
     super.key,
@@ -29,6 +30,7 @@ class GymHabitsCard extends StatefulWidget {
     this.controller,
     this.targetSteps,
     this.targetSleepHours,
+    this.targetWaterLiters,
   });
 
   @override
@@ -65,7 +67,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
 
   @override
   Widget build(BuildContext context) {
-    final hydrationGoalLiters = _hydrationGoalForFocus(widget.dailyFocus);
+    final hydrationGoalLiters = widget.targetWaterLiters ?? _hydrationGoalForFocus(widget.dailyFocus);
     final sleepGoalHours = widget.targetSleepHours ?? _sleepGoalForFocus(widget.dailyFocus);
     final stepGoal = widget.targetSteps ?? _stepGoalForFocus(widget.dailyFocus);
 

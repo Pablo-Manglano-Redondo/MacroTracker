@@ -833,8 +833,8 @@ class _MealInterpretationReviewScreenState
         trialState: trialState,
       ),
     );
-    if (purchased != true) {
-      return const _AiSaveAccess.denied();
+    if (purchased == true) {
+      return const _AiSaveAccess.allowed(consumeTrialUse: false);
     }
 
     trialState = await monetizationService.getAiTrialState();

@@ -26,9 +26,11 @@ import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
+import 'dart:async';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
 
 part 'home_event.dart';
 
@@ -50,6 +52,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final CalculateFoodQualityScoreUsecase _calculateFoodQualityScoreUsecase;
   final GetProfessionalPlanUsecase _getProfessionalPlanUsecase;
   final UploadProfessionalSnapshotUsecase _uploadProfessionalSnapshotUsecase;
+  final ProcessPendingSyncsUsecase _processPendingSyncsUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -68,13 +71,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._getMacroGoalUsecase,
       this._calculateFoodQualityScoreUsecase,
       this._getProfessionalPlanUsecase,
-      this._uploadProfessionalSnapshotUsecase)
+      this._uploadProfessionalSnapshotUsecase,
+      this._processPendingSyncsUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       final shouldShowBlockingLoader = state is! HomeLoadedState;
       if (shouldShowBlockingLoader) {
         emit(HomeLoadingState());
       }
+
+      unawaited(_processPendingSyncsUsecase.execute().catchError((_) {}));
 
       currentDay = DateTime.now();
       final configData = await _getConfigUsecase.getConfig();
@@ -223,7 +229,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           usesImperialUnits: usesImperialUnits,
           professionalPlanSummary: professionalPlanSummary,
           targetSteps: user.targetSteps,
-          targetSleepHours: user.targetSleepHours));
+          targetSleepHours: user.targetSleepHours,
+          targetWaterLiters: user.targetWaterLiters));
     });
   }
 

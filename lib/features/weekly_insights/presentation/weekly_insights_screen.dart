@@ -14,6 +14,8 @@ import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insig
 import 'package:macrotracker/features/weekly_insights/domain/usecase/apply_weekly_kcal_adjustment_usecase.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
+import 'package:macrotracker/features/weekly_insights/presentation/widgets/weekly_progress_share_sheet.dart';
+
 
 class WeeklyInsightsScreenArguments {
   final DateTime focusedDate;
@@ -51,6 +53,25 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).weeklyInsightsTitle),
+        actions: [
+          FutureBuilder<_WeeklyInsightsViewState>(
+            future: _viewStateFuture,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return IconButton(
+                  icon: const Icon(Icons.share_outlined),
+                  onPressed: () {
+                    WeeklyProgressShareSheet.show(
+                      context,
+                      snapshot.data!.insights,
+                    );
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       body: FutureBuilder<_WeeklyInsightsViewState>(
         future: _viewStateFuture,

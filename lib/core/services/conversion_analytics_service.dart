@@ -41,7 +41,8 @@ class FirebaseConversionAnalyticsClient implements ConversionAnalyticsClient {
       if (errorStr.contains('Failed to load FirebaseOptions') ||
           errorStr.contains('google-services.json') ||
           errorStr.contains('GoogleService-Info.plist')) {
-        _log.info('Firebase is not configured for this project. Analytics is disabled.');
+        _log.info(
+            'Firebase is not configured for this project. Analytics is disabled.');
       } else {
         _log.warning(
             'Firebase Analytics initialization failed', error, stackTrace);
@@ -217,6 +218,50 @@ class ConversionAnalyticsService {
 
   Future<void> logReferralRedeemed() {
     return logEvent('referral_redeemed');
+  }
+
+  Future<void> logAiInterpretationStarted({
+    required String inputType,
+  }) {
+    return logEvent(
+      'ai_request_started',
+      parameters: {'input_type': inputType},
+    );
+  }
+
+  Future<void> logAiInterpretationFailed({
+    required String inputType,
+    required String category,
+  }) {
+    return logEvent(
+      'ai_request_failed',
+      parameters: {
+        'input_type': inputType,
+        'failure_category': category,
+      },
+    );
+  }
+
+  Future<void> logAiInterpretationRetried({
+    required String inputType,
+    required String category,
+  }) {
+    return logEvent(
+      'ai_request_retried',
+      parameters: {
+        'input_type': inputType,
+        'failure_category': category,
+      },
+    );
+  }
+
+  Future<void> logAiInterpretationCompleted({
+    required String inputType,
+  }) {
+    return logEvent(
+      'ai_request_completed',
+      parameters: {'input_type': inputType},
+    );
   }
 
   Map<String, Object> _cleanParameters(Map<String, Object?> parameters) {

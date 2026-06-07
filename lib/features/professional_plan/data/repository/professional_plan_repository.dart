@@ -53,4 +53,8 @@ class ProfessionalPlanRepository {
       mealsLogged: mealsLogged,
     );
   }
+
+  Future<void> processPendingSyncs() {
+    return _dataSource.processPendingSyncs();
+  }
 }

@@ -33,6 +33,7 @@ import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
 import 'package:macrotracker/core/services/app_review_service.dart';
 import 'package:macrotracker/core/services/backup_nudge_service.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
+import 'package:macrotracker/core/services/cloud_account_deletion_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
@@ -89,7 +90,9 @@ import 'package:macrotracker/features/professional_plan/domain/usecase/accept_pr
 import 'package:macrotracker/features/professional_plan/domain/usecase/disconnect_professional_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
+import 'package:macrotracker/features/recipes/data/data_source/recipe_scraper_data_source.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_quick_recipe_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
@@ -135,6 +138,10 @@ Future<void> initLocator() async {
       () => SupabaseIdentityService(locator()));
   locator.registerLazySingleton<CloudAccountService>(
       () => CloudAccountService(locator(), locator()));
+  locator.registerLazySingleton<LocalAccountDataResetter>(
+      () => HiveAndSecureStorageResetter(locator()));
+  locator.registerLazySingleton<CloudAccountDeletionService>(
+      () => CloudAccountDeletionService(locator(), locator(), locator()));
 
   // Cache manager
   locator.registerLazySingleton<CacheManager>(
@@ -158,6 +165,7 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
+      locator(),
       locator()));
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(() => CalendarDayBloc(locator(), locator(),
@@ -165,7 +173,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
-      locator(), locator(), locator(), locator(), locator(), locator()));
+      locator(), locator(), locator(), locator(), locator(), locator(), locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -316,6 +324,8 @@ Future<void> initLocator() async {
       () => DisconnectProfessionalUsecase(locator()));
   locator.registerLazySingleton<UploadProfessionalSnapshotUsecase>(
       () => UploadProfessionalSnapshotUsecase(locator()));
+  locator.registerLazySingleton<ProcessPendingSyncsUsecase>(
+      () => ProcessPendingSyncsUsecase(locator()));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));
@@ -360,6 +370,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
   locator.registerLazySingleton<RecipeDataSource>(
       () => RecipeDataSource(hiveDBProvider.recipeBox));
+  locator.registerLazySingleton<RecipeScraperDataSource>(
+      () => RecipeScraperDataSource());
   locator.registerLazySingleton<InterpretationDraftDataSource>(() =>
       InterpretationDraftDataSource(hiveDBProvider.interpretationDraftBox));
   locator.registerLazySingleton<MealInterpretationRemoteDataSource>(
@@ -374,14 +386,22 @@ Future<void> initLocator() async {
       () => HealthConnectSleepDataSource());
   locator.registerLazySingleton<ProfessionalPlanDataSource>(() =>
       ProfessionalPlanDataSource(
-          hiveDBProvider.professionalPlanBox, locator(), locator()));
+          hiveDBProvider.professionalPlanBox,
+          hiveDBProvider.professionalPlanSyncQueueBox,
+          locator(),
+          locator()));
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.initialize();
   locator.registerLazySingleton<SubscriptionService>(() => subscriptionService);
   locator.registerLazySingleton<MonetizationService>(
     () => MonetizationService(
-        subscriptionService, hiveDBProvider.monetizationBox),
+      subscriptionService,
+      hiveDBProvider.monetizationBox,
+      locator(),
+      locator(),
+      analyticsService: locator(),
+    ),
   );
   locator.registerLazySingleton<ConversionAnalyticsService>(
     () => ConversionAnalyticsService(

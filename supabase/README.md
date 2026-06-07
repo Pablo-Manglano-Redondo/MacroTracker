@@ -6,11 +6,14 @@ This directory contains the backend functions used by the app-side AI capture fl
 
 - `meal-interpretations-text`
 - `meal-interpretations-photo`
+- `delete-current-account`
 - `stripe-pro-checkout`
 - `stripe-pro-webhook`
 
 Both functions return the same structured meal draft contract so the Flutter client does not depend on a specific AI provider.
 The Stripe webhook updates professional Pro subscription state in Supabase.
+`delete-current-account` requires a valid user JWT and a configured
+`SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Tooling
 
@@ -90,6 +93,7 @@ The script will:
 - push function secrets from `supabase/.env.functions`
 - deploy `meal-interpretations-text`
 - deploy `meal-interpretations-photo`
+- deploy `delete-current-account`
 - deploy `stripe-pro-checkout`
 - deploy `stripe-pro-webhook`
 
@@ -179,10 +183,29 @@ flow because it needs the `drive.file` scope.
 
 ## Security Notes
 
-- `verify_jwt = false` is enabled because the mobile app currently calls these endpoints without user auth.
+- `verify_jwt = false` is enabled only for `meal-interpretations-text`,
+  `meal-interpretations-photo`, and `stripe-pro-webhook`.
+- `verify_jwt = true` is required for `stripe-pro-checkout` and
+  `delete-current-account`.
 - Images are sent inline for inference only and are not persisted by these functions.
 - The functions intentionally avoid logging raw meal text or image payloads.
 - Input size is validated before calling Gemini to reduce accidental cost spikes.
+
+## Delete Account Rollout
+
+Before deploying `delete-current-account`:
+
+1. Apply the latest SQL migrations, including
+   `20260606200100_delete_account_hardening.sql`.
+2. Confirm the project has `SUPABASE_SERVICE_ROLE_KEY` available to functions.
+3. Deploy functions with `pwsh ./supabase/deploy.functions.ps1 -ProjectRef your-project-ref`.
+
+Expected behavior:
+
+- authenticated guest and Google-linked users can delete their current cloud account
+- remote rows with `on delete cascade` are removed automatically
+- `client_invites.accepted_by` is preserved as historical metadata via
+  `on delete set null`
 
 ## Cost Notes
 

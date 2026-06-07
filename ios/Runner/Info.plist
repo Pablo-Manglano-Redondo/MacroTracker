@@ -85,5 +85,7 @@
 	<string>Photo library access is used to choose meal photos for AI-assisted logging and to export app data when requested.</string>
 	<key>NSHealthShareUsageDescription</key>
 	<string>Health data access is used to import sleep, steps, and workouts into MacroTracker when you grant permission.</string>
+	<key>SentryDsn</key>
+	<string>https://b51586cd2e102f9d247e515196af6162@o4511508222181376.ingest.de.sentry.io/4511508224671824</string>
 </dict>
 </plist>

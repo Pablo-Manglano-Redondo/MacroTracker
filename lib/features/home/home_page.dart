@@ -93,7 +93,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.usesImperialUnits,
               state.professionalPlanSummary,
               state.targetSteps,
-              state.targetSleepHours);
+              state.targetSleepHours,
+              state.targetWaterLiters);
         } else {
           return _getLoadingContent();
         }
@@ -231,7 +232,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       bool usesImperialUnits,
       ProfessionalPlanSummaryEntity? professionalPlanSummary,
       int? targetSteps,
-      double? targetSleepHours) {
+      double? targetSleepHours,
+      double? targetWaterLiters) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -355,6 +357,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     dailyFocus: dailyFocus,
                     targetSteps: targetSteps,
                     targetSleepHours: targetSleepHours,
+                    targetWaterLiters: targetWaterLiters,
                   ),
                   const SizedBox(height: 48.0),
                 ],
@@ -456,6 +459,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     required DailyFocusEntity dailyFocus,
     int? targetSteps,
     double? targetSleepHours,
+    double? targetWaterLiters,
   }) {
     final bodyProgressCard = SizedBox(
       width: overviewCardWidth,
@@ -473,6 +477,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         controller: _gymHabitsCardController,
         targetSteps: targetSteps,
         targetSleepHours: targetSleepHours,
+        targetWaterLiters: targetWaterLiters,
       ),
     );
     final weeklyInsightsCard = SizedBox(

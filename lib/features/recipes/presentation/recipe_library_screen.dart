@@ -19,6 +19,7 @@ import 'package:macrotracker/core/presentation/widgets/recipe_detail_bottom_shee
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
 
 import 'recipe_editor_screen.dart';
+import 'widgets/recipe_scraper_dialog.dart';
 
 class RecipeLibraryScreen extends StatefulWidget {
   const RecipeLibraryScreen({super.key});
@@ -70,7 +71,16 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(S.of(context).recipeLibraryTitle)),
+      appBar: AppBar(
+        title: Text(S.of(context).recipeLibraryTitle),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.cloud_download_outlined),
+            tooltip: _isEs(context) ? 'Importar de la Web' : 'Import from Web',
+            onPressed: () => _importRecipeFromWeb(context),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Padding(
@@ -475,6 +485,12 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     );
     if (didSave == true && mounted) {
       setState(() {});
+    }
+  }
+  Future<void> _importRecipeFromWeb(BuildContext context) async {
+    final recipe = await RecipeScraperDialog.show(context);
+    if (recipe != null && mounted) {
+      await _openEditor(recipe);
     }
   }
 

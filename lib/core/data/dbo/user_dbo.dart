@@ -26,6 +26,8 @@ class UserDBO extends HiveObject {
   int? targetSteps;
   @HiveField(8)
   double? targetSleepHours;
+  @HiveField(9)
+  double? targetWaterLiters;
 
   UserDBO({
     required this.birthday,
@@ -37,6 +39,7 @@ class UserDBO extends HiveObject {
     required this.pal,
     this.targetSteps,
     this.targetSleepHours,
+    this.targetWaterLiters,
   });
 
   factory UserDBO.fromUserEntity(UserEntity entity) {
@@ -50,6 +53,7 @@ class UserDBO extends HiveObject {
       pal: UserPALDBO.fromUserPALEntity(entity.pal),
       targetSteps: entity.targetSteps,
       targetSleepHours: entity.targetSleepHours,
+      targetWaterLiters: entity.targetWaterLiters,
     );
   }
 
@@ -64,6 +68,7 @@ class UserDBO extends HiveObject {
       pal: UserPALDBO.values.byName(json['pal'] as String),
       targetSteps: json['targetSteps'] as int?,
       targetSleepHours: (json['targetSleepHours'] as num?)?.toDouble(),
+      targetWaterLiters: (json['targetWaterLiters'] as num?)?.toDouble(),
     );
   }
 
@@ -77,5 +82,6 @@ class UserDBO extends HiveObject {
         'pal': pal.name,
         'targetSteps': targetSteps,
         'targetSleepHours': targetSleepHours,
+        'targetWaterLiters': targetWaterLiters,
       };
 }

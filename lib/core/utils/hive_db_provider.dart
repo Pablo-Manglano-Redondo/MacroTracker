@@ -21,6 +21,7 @@ import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft
 import 'package:macrotracker/features/meal_capture/data/dbo/interpretation_draft_item_dbo.dart';
 import 'package:macrotracker/features/recipes/data/dbo/recipe_dbo.dart';
 import 'package:macrotracker/features/recipes/data/dbo/recipe_ingredient_dbo.dart';
+import 'package:macrotracker/features/professional_plan/data/dbo/pending_snapshot_sync_dbo.dart';
 
 class HiveDBProvider extends ChangeNotifier {
   static const configBoxName = 'ConfigBox';
@@ -35,6 +36,7 @@ class HiveDBProvider extends ChangeNotifier {
   static const monetizationBoxName = 'MonetizationBox';
   static const professionalPlanBoxName = 'ProfessionalPlanBox';
   static const productSearchCacheBoxName = 'ProductSearchCacheBox';
+  static const professionalPlanSyncQueueBoxName = 'ProfessionalPlanSyncQueueBox';
 
   late Box<ConfigDBO> configBox;
   late Box<IntakeDBO> intakeBox;
@@ -48,34 +50,42 @@ class HiveDBProvider extends ChangeNotifier {
   late Box<dynamic> monetizationBox;
   late Box<dynamic> professionalPlanBox;
   late Box<dynamic> productSearchCacheBox;
+  late Box<PendingSnapshotSyncDBO> professionalPlanSyncQueueBox;
 
   Future<void> initHiveDB(Uint8List encryptionKey) async {
     final encryptionCypher = HiveAesCipher(encryptionKey);
     await Hive.initFlutter();
-    Hive.registerAdapter(ConfigDBOAdapter());
-    Hive.registerAdapter(IntakeDBOAdapter());
-    Hive.registerAdapter(MealDBOAdapter());
-    Hive.registerAdapter(MealNutrimentsDBOAdapter());
-    Hive.registerAdapter(MealSourceDBOAdapter());
-    Hive.registerAdapter(IntakeTypeDBOAdapter());
-    Hive.registerAdapter(UserDBOAdapter());
-    Hive.registerAdapter(UserGenderDBOAdapter());
-    Hive.registerAdapter(UserWeightGoalDBOAdapter());
-    Hive.registerAdapter(UserPALDBOAdapter());
-    Hive.registerAdapter(TrackedDayDBOAdapter());
-    Hive.registerAdapter(UserActivityDBOAdapter());
-    Hive.registerAdapter(PhysicalActivityDBOAdapter());
-    Hive.registerAdapter(PhysicalActivityTypeDBOAdapter());
-    Hive.registerAdapter(AppThemeDBOAdapter());
-    Hive.registerAdapter(ConfidenceBandDBOAdapter());
-    Hive.registerAdapter(RecipeIngredientDBOAdapter());
-    Hive.registerAdapter(RecipeDBOAdapter());
-    Hive.registerAdapter(BodyMeasurementDBOAdapter());
-    Hive.registerAdapter(DailyHabitLogDBOAdapter());
-    Hive.registerAdapter(DraftSourceDBOAdapter());
-    Hive.registerAdapter(DraftStatusDBOAdapter());
-    Hive.registerAdapter(InterpretationDraftItemDBOAdapter());
-    Hive.registerAdapter(InterpretationDraftDBOAdapter());
+    void registerSafe<T>(TypeAdapter<T> adapter) {
+      if (!Hive.isAdapterRegistered(adapter.typeId)) {
+        Hive.registerAdapter(adapter);
+      }
+    }
+
+    registerSafe(ConfigDBOAdapter());
+    registerSafe(IntakeDBOAdapter());
+    registerSafe(MealDBOAdapter());
+    registerSafe(MealNutrimentsDBOAdapter());
+    registerSafe(MealSourceDBOAdapter());
+    registerSafe(IntakeTypeDBOAdapter());
+    registerSafe(UserDBOAdapter());
+    registerSafe(UserGenderDBOAdapter());
+    registerSafe(UserWeightGoalDBOAdapter());
+    registerSafe(UserPALDBOAdapter());
+    registerSafe(TrackedDayDBOAdapter());
+    registerSafe(UserActivityDBOAdapter());
+    registerSafe(PhysicalActivityDBOAdapter());
+    registerSafe(PhysicalActivityTypeDBOAdapter());
+    registerSafe(AppThemeDBOAdapter());
+    registerSafe(ConfidenceBandDBOAdapter());
+    registerSafe(RecipeIngredientDBOAdapter());
+    registerSafe(RecipeDBOAdapter());
+    registerSafe(BodyMeasurementDBOAdapter());
+    registerSafe(DailyHabitLogDBOAdapter());
+    registerSafe(DraftSourceDBOAdapter());
+    registerSafe(DraftStatusDBOAdapter());
+    registerSafe(InterpretationDraftItemDBOAdapter());
+    registerSafe(InterpretationDraftDBOAdapter());
+    registerSafe(PendingSnapshotSyncDBOAdapter());
 
     configBox = await _openEncryptedBox(configBoxName, encryptionCypher);
     intakeBox = await _openEncryptedBox(intakeBoxName, encryptionCypher);
@@ -97,6 +107,8 @@ class HiveDBProvider extends ChangeNotifier {
         professionalPlanBoxName, encryptionCypher);
     productSearchCacheBox = await _openEncryptedBox<dynamic>(
         productSearchCacheBoxName, encryptionCypher);
+    professionalPlanSyncQueueBox = await _openEncryptedBox<PendingSnapshotSyncDBO>(
+        professionalPlanSyncQueueBoxName, encryptionCypher);
   }
 
   Future<Box<T>> _openEncryptedBox<T>(
@@ -126,6 +138,7 @@ class HiveDBProvider extends ChangeNotifier {
     await monetizationBox.clear();
     await professionalPlanBox.clear();
     await productSearchCacheBox.clear();
+    await professionalPlanSyncQueueBox.clear();
   }
 
   static generateNewHiveEncryptionKey() => Hive.generateSecureKey();

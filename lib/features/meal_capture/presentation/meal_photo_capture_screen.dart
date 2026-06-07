@@ -12,6 +12,7 @@ import 'package:macrotracker/core/presentation/widgets/ai_usage_gate.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
+import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
@@ -333,28 +334,30 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           ),
         );
       }
-    } catch (exception) {
-      await _createLocalDraft(imagePath: filePath, fileName: fileName);
+    } on MealInterpretationRemoteException catch (exception) {
       if (mounted) {
-        final message = _buildRemoteFailureMessage(exception.toString());
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            duration: const Duration(seconds: 8),
-            action: SnackBarAction(
-              label: S.of(context).aiRetry,
-              onPressed: () {
-                Navigator.of(context).popUntil((route) =>
-                    route.settings.name ==
-                    NavigationOptions.mealPhotoCaptureRoute);
-                _interpretPickedFile(
-                  fileName: fileName,
-                  filePath: filePath,
-                  bytes: bytes,
-                );
-              },
-            ),
+        await _showAiFailureDialog(
+          message: _buildRemoteFailureMessage(exception),
+          onRetry: () => _interpretPickedFile(
+            fileName: fileName,
+            filePath: filePath,
+            bytes: bytes,
           ),
+          onContinueManually: () =>
+              _createLocalDraft(imagePath: filePath, fileName: fileName),
+        );
+      }
+    } catch (exception) {
+      if (mounted) {
+        await _showAiFailureDialog(
+          message: _buildRemoteFailureMessage(exception),
+          onRetry: () => _interpretPickedFile(
+            fileName: fileName,
+            filePath: filePath,
+            bytes: bytes,
+          ),
+          onContinueManually: () =>
+              _createLocalDraft(imagePath: filePath, fileName: fileName),
         );
       }
     } finally {
@@ -410,9 +413,33 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     );
   }
 
-  String _buildRemoteFailureMessage(String rawError) {
-    final extractedError = _extractBackendError(rawError);
-    final normalized = extractedError.toLowerCase();
+  String _buildRemoteFailureMessage(Object error) {
+    if (error is MealInterpretationRemoteException) {
+      switch (error.category) {
+        case MealInterpretationFailureCategory.timeout:
+          return _isSpanish
+              ? 'La petición de IA tardó demasiado. Reintenta o sigue con revisión manual.'
+              : 'The AI request timed out. Retry or continue with a manual review.';
+        case MealInterpretationFailureCategory.noNetwork:
+          return _isSpanish
+              ? 'No hay conexión. Reintenta cuando vuelvas a tener red o sigue con revisión manual.'
+              : 'No network connection. Retry when you are back online or continue with a manual review.';
+        case MealInterpretationFailureCategory.authInvalid:
+          return _isSpanish
+              ? 'La sesión cloud ya no es válida. Vuelve a abrir o proteger tu cuenta y reintenta.'
+              : 'Your cloud session is no longer valid. Reopen or protect your cloud account and retry.';
+        case MealInterpretationFailureCategory.invalidResponse:
+          return _isSpanish
+              ? 'La respuesta de IA no se pudo usar. Reintenta o sigue con borrador manual.'
+              : 'The AI response could not be used. Retry or continue with a manual draft.';
+        case MealInterpretationFailureCategory.unavailable:
+          return _isSpanish
+              ? 'La interpretación por IA no está disponible temporalmente. Reintenta o sigue manual.'
+              : 'AI meal interpretation is temporarily unavailable. Retry or continue manually.';
+      }
+    }
+
+    final normalized = _extractBackendError(error.toString()).toLowerCase();
     if (normalized.contains('payload is too large') ||
         normalized.contains('413')) {
       return S.current.aiErrorPayloadTooLarge;
@@ -431,6 +458,38 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       return S.current.aiErrorUnsupportedFormat;
     }
     return S.current.aiErrorGeneric;
+  }
+
+  bool get _isSpanish => Localizations.localeOf(context).languageCode == 'es';
+
+  Future<void> _showAiFailureDialog({
+    required String message,
+    required Future<void> Function() onRetry,
+    required Future<void> Function() onContinueManually,
+  }) async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(_isSpanish ? 'IA no disponible' : 'AI unavailable'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await onContinueManually();
+            },
+            child: Text(_isSpanish ? 'Seguir manual' : 'Continue manually'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(dialogContext).pop();
+              await onRetry();
+            },
+            child: Text(_isSpanish ? 'Reintentar' : 'Retry'),
+          ),
+        ],
+      ),
+    );
   }
 
   String _fileExtension(String fileName) {

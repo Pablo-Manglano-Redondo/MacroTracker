@@ -19,8 +19,23 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+def configureProjectJvm = { proj ->
+    if (proj.hasProperty("android")) {
+        proj.android {
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+    }
+}
+
 subprojects {
-    def configureProject = { proj ->
+    configureProjectJvm(it)
+}
+
+gradle.projectsEvaluated {
+    rootProject.subprojects.each { proj ->
         if (proj.hasProperty("android")) {
             proj.android {
                 compileOptions {
@@ -29,17 +44,24 @@ subprojects {
                 }
             }
         }
-        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-            kotlinOptions {
-                jvmTarget = '17'
+        if (proj.extensions.findByName("kotlin") != null) {
+            proj.kotlin {
+                compilerOptions {
+                    jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+                }
             }
         }
-    }
-    if (project.state.executed) {
-        configureProject(project)
-    } else {
-        project.afterEvaluate {
-            configureProject(project)
+        proj.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+            kotlinOptions {
+                jvmTarget = JavaVersion.VERSION_17.toString()
+            }
+            compilerOptions {
+                jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            }
+        }
+        proj.tasks.withType(JavaCompile).configureEach {
+            sourceCompatibility = JavaVersion.VERSION_17.toString()
+            targetCompatibility = JavaVersion.VERSION_17.toString()
         }
     }
 }

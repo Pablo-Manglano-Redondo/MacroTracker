@@ -36,7 +36,7 @@ class MealReminderService {
     if (_initialized) {
       return;
     }
-    if (!Platform.isAndroid) {
+    if (!Platform.isAndroid && !Platform.isIOS) {
       _initialized = true;
       return;
     }
@@ -51,41 +51,61 @@ class MealReminderService {
 
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
+    const darwinSettings = DarwinInitializationSettings(
+      requestAlertPermission: false,
+      requestBadgePermission: false,
+      requestSoundPermission: false,
+    );
     await _notificationsPlugin.initialize(
-      settings: const InitializationSettings(android: androidSettings),
+      settings: const InitializationSettings(
+        android: androidSettings,
+        iOS: darwinSettings,
+      ),
     );
 
-    const channel = AndroidNotificationChannel(
-      _channelId,
-      _channelName,
-      description: _channelDescription,
-      importance: Importance.defaultImportance,
-    );
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    if (Platform.isAndroid) {
+      const channel = AndroidNotificationChannel(
+        _channelId,
+        _channelName,
+        description: _channelDescription,
+        importance: Importance.defaultImportance,
+      );
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+    }
 
     _initialized = true;
   }
 
   Future<bool> requestPermissionIfNeeded() async {
-    if (!Platform.isAndroid) {
-      return true;
-    }
-    final androidPlugin =
-        _notificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    if (Platform.isAndroid) {
+      final androidPlugin =
+          _notificationsPlugin.resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
 
-    final status = await Permission.notification.status;
-    var notificationsGranted = status.isGranted;
-    if (!notificationsGranted) {
-      notificationsGranted =
-          await androidPlugin?.requestNotificationsPermission() ?? false;
-    }
-
-    if (!notificationsGranted) {
-      return false;
+      final status = await Permission.notification.status;
+      var notificationsGranted = status.isGranted;
+      if (!notificationsGranted) {
+        notificationsGranted =
+            await androidPlugin?.requestNotificationsPermission() ?? false;
+      }
+      return notificationsGranted;
+    } else if (Platform.isIOS) {
+      final iosPlugin =
+          _notificationsPlugin.resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>();
+      if (iosPlugin != null) {
+        final granted = await iosPlugin.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return granted ?? false;
+      }
+      final status = await Permission.notification.request();
+      return status.isGranted;
     }
 
     return true;
@@ -180,6 +200,11 @@ class MealReminderService {
           channelDescription: _channelDescription,
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
