@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/data/dbo/pending_snapshot_sync_dbo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalPlanDataSource {
@@ -10,11 +11,13 @@ class ProfessionalPlanDataSource {
   static const debugInviteCode = 'DEBUG';
 
   final Box<dynamic> _box;
+  final Box<PendingSnapshotSyncDBO> _syncQueueBox;
   final SupabaseClient _supabaseClient;
   final SupabaseIdentityService _identityService;
 
   ProfessionalPlanDataSource(
     this._box,
+    this._syncQueueBox,
     this._supabaseClient,
     this._identityService,
   );
@@ -160,23 +163,104 @@ class ProfessionalPlanDataSource {
     if (kDebugMode && connection.relationshipId == 'debug-relationship') {
       return;
     }
-    await _identityService.ensureUserSession();
-    await _supabaseClient.from('client_shared_snapshots').upsert({
-      'professional_client_id': connection.relationshipId,
-      'professional_id': connection.professionalId,
-      'client_id': connection.clientId,
-      'snapshot_date': _dateKey(day),
-      'kcal_actual': kcalActual,
-      'kcal_target': kcalTarget,
-      'carbs_actual': carbsActual,
-      'carbs_target': carbsTarget,
-      'fat_actual': fatActual,
-      'fat_target': fatTarget,
-      'protein_actual': proteinActual,
-      'protein_target': proteinTarget,
-      'meals_logged': mealsLogged,
-      'synced_at': DateTime.now().toUtc().toIso8601String(),
-    }, onConflict: 'professional_client_id,snapshot_date');
+    try {
+      await _identityService.ensureUserSession();
+      await _supabaseClient.from('client_shared_snapshots').upsert({
+        'professional_client_id': connection.relationshipId,
+        'professional_id': connection.professionalId,
+        'client_id': connection.clientId,
+        'snapshot_date': _dateKey(day),
+        'kcal_actual': kcalActual,
+        'kcal_target': kcalTarget,
+        'carbs_actual': carbsActual,
+        'carbs_target': carbsTarget,
+        'fat_actual': fatActual,
+        'fat_target': fatTarget,
+        'protein_actual': proteinActual,
+        'protein_target': proteinTarget,
+        'meals_logged': mealsLogged,
+        'synced_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'professional_client_id,snapshot_date');
+    } catch (error) {
+      final pendingId = '${connection.relationshipId}_${_dateKey(day)}';
+      await _syncQueueBox.put(
+        pendingId,
+        PendingSnapshotSyncDBO(
+          id: pendingId,
+          relationshipId: connection.relationshipId,
+          professionalId: connection.professionalId,
+          clientId: connection.clientId,
+          day: day,
+          kcalActual: kcalActual,
+          kcalTarget: kcalTarget,
+          carbsActual: carbsActual,
+          carbsTarget: carbsTarget,
+          fatActual: fatActual,
+          fatTarget: fatTarget,
+          proteinActual: proteinActual,
+          proteinTarget: proteinTarget,
+          mealsLogged: mealsLogged,
+          createdAt: DateTime.now(),
+        ),
+      );
+      rethrow;
+    }
+  }
+
+  Future<void> processPendingSyncs() async {
+    if (_syncQueueBox.isEmpty) {
+      return;
+    }
+    final keys = List<dynamic>.from(_syncQueueBox.keys);
+    for (final key in keys) {
+      final pending = _syncQueueBox.get(key);
+      if (pending == null) continue;
+
+      try {
+        await _identityService.ensureUserSession();
+        await _supabaseClient.from('client_shared_snapshots').upsert({
+          'professional_client_id': pending.relationshipId,
+          'professional_id': pending.professionalId,
+          'client_id': pending.clientId,
+          'snapshot_date': _dateKey(pending.day),
+          'kcal_actual': pending.kcalActual,
+          'kcal_target': pending.kcalTarget,
+          'carbs_actual': pending.carbsActual,
+          'carbs_target': pending.carbsTarget,
+          'fat_actual': pending.fatActual,
+          'fat_target': pending.fatTarget,
+          'protein_actual': pending.proteinActual,
+          'protein_target': pending.proteinTarget,
+          'meals_logged': pending.mealsLogged,
+          'synced_at': DateTime.now().toUtc().toIso8601String(),
+        }, onConflict: 'professional_client_id,snapshot_date');
+
+        await _syncQueueBox.delete(key);
+      } catch (error) {
+        if (_shouldRetryPendingSync(error)) {
+          break;
+        }
+      }
+    }
+  }
+
+  bool _shouldRetryPendingSync(Object error) {
+    final errorStr = error.toString().toLowerCase();
+    final isNetwork = errorStr.contains('socket') ||
+        errorStr.contains('network') ||
+        errorStr.contains('failed host lookup') ||
+        errorStr.contains('connection') ||
+        errorStr.contains('timeout');
+    final isAuth = errorStr.contains('jwt') ||
+        errorStr.contains('auth') ||
+        errorStr.contains('unauthorized') ||
+        errorStr.contains('forbidden') ||
+        errorStr.contains('session') ||
+        errorStr.contains('token') ||
+        errorStr.contains('sign in') ||
+        errorStr.contains('sign-in') ||
+        errorStr.contains('refresh');
+    return isNetwork || isAuth;
   }
 
   String _normalizeCode(String inviteCode) =>
