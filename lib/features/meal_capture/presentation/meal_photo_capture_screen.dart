@@ -18,8 +18,6 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_interpretation_review_screen.dart';
-import 'package:macrotracker/features/meal_capture/presentation/meal_text_capture_screen.dart';
-import 'package:macrotracker/core/presentation/widgets/shimmer_loading.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MealPhotoCaptureScreen extends StatefulWidget {
@@ -36,6 +34,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
   final ImagePicker _imagePicker = ImagePicker();
   late MealPhotoCaptureScreenArguments _args;
   String? _loadingStatus;
+  Uint8List? _loadingPreviewBytes;
+  _SelectedMealPhoto? _pendingPhoto;
 
   bool get _isLoading => _loadingStatus != null;
 
@@ -57,14 +57,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(S.of(context).aiMealPhotoTitle)),
       body: _isLoading
-          ? _buildLoadingSkeleton(context)
+          ? _buildLoadingState(context)
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                     color: Color.alphaBlend(
                       colorScheme.primary.withValues(alpha: 0.08),
                       colorScheme.surfaceContainerLow,
@@ -77,10 +77,10 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                           color: colorScheme.primary.withValues(alpha: 0.15),
                         ),
                         alignment: Alignment.center,
@@ -89,15 +89,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                           color: colorScheme.primary,
                         ),
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
                       Text(
                         S.of(context).aiCaptureByPhotoTitle,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         S.of(context).aiCaptureByPhotoSubtitle(
                             _args.intakeTypeEntity.name),
@@ -105,24 +104,84 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                               color: colorScheme.onSurfaceVariant,
                             ),
                       ),
-                      const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _CaptureStepChip(
-                            icon: Icons.image_outlined,
-                            label: S.of(context).aiStepPickImage,
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          color: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.45),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Icon(
+                              Icons.verified_user_outlined,
+                              size: 18,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _isSpanish
+                                    ? 'La IA propone ingredientes y macros. Tu revisas todo antes de guardar.'
+                                    : 'AI suggests ingredients and macros. You review everything before saving.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      height: 1.35,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
+                    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    leading: Icon(
+                      Icons.lightbulb_outline,
+                      color: colorScheme.primary,
+                    ),
+                    title: Text(
+                      S.of(context).aiHintRecommendations,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                          _CaptureStepChip(
-                            icon: Icons.tune_outlined,
-                            label: S.of(context).aiStepReviewItems,
-                          ),
-                          _CaptureStepChip(
-                            icon: Icons.restaurant_outlined,
-                            label: S.of(context).aiStepSaveMeal,
-                          ),
-                        ],
+                    ),
+                    subtitle: Text(
+                      _isSpanish
+                          ? 'Abre esto si quieres mejorar la deteccion.'
+                          : 'Open this if you want better detection.',
+                    ),
+                    children: [
+                      _CaptureHintRow(
+                        icon: Icons.crop_free_outlined,
+                        title: S.of(context).aiHintShowFullPlateTitle,
+                        subtitle: S.of(context).aiHintShowFullPlateSubtitle,
+                      ),
+                      const SizedBox(height: 10),
+                      _CaptureHintRow(
+                        icon: Icons.opacity_outlined,
+                        title: S.of(context).aiHintCheckSaucesTitle,
+                        subtitle: S.of(context).aiHintCheckSaucesSubtitle,
+                      ),
+                      const SizedBox(height: 10),
+                      _CaptureHintRow(
+                        icon: Icons.fitness_center_outlined,
+                        title: S.of(context).aiHintGymMealsTitle,
+                        subtitle: S.of(context).aiHintGymMealsSubtitle,
                       ),
                     ],
                   ),
@@ -130,121 +189,187 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 const SizedBox(height: 16),
                 const AiTrialBanner(placement: PaywallPlacement.aiPhoto),
                 const SizedBox(height: 16),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          S.of(context).aiHintRecommendations,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 12),
-                        _CaptureHintRow(
-                          icon: Icons.crop_free_outlined,
-                          title: S.of(context).aiHintShowFullPlateTitle,
-                          subtitle: S.of(context).aiHintShowFullPlateSubtitle,
-                        ),
-                        const SizedBox(height: 10),
-                        _CaptureHintRow(
-                          icon: Icons.opacity_outlined,
-                          title: S.of(context).aiHintCheckSaucesTitle,
-                          subtitle: S.of(context).aiHintCheckSaucesSubtitle,
-                        ),
-                        const SizedBox(height: 10),
-                        _CaptureHintRow(
-                          icon: Icons.fitness_center_outlined,
-                          title: S.of(context).aiHintGymMealsTitle,
-                          subtitle: S.of(context).aiHintGymMealsSubtitle,
-                        ),
-                      ],
+                if (_pendingPhoto != null) ...[
+                  _SelectedPhotoPreview(
+                    photo: _pendingPhoto!,
+                    isSpanish: _isSpanish,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: _isLoading ? null : _captureAndPreviewPhoto,
+                    icon: const Icon(Icons.camera_alt_outlined),
+                    label: Text(
+                      _pendingPhoto == null
+                          ? (_isSpanish ? 'Hacer foto' : 'Take photo')
+                          : (_isSpanish ? 'Repetir foto' : 'Retake photo'),
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
-                FilledButton.icon(
-                  onPressed: _isLoading ? null : _captureAndInterpretPhoto,
-                  icon: Icon(
-                    _isLoading
-                        ? Icons.hourglass_top_outlined
-                        : Icons.auto_awesome,
-                  ),
-                  label: Text(
-                    _isLoading
-                        ? _loadingStatus!
-                        : S.of(context).aiButtonCapture,
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _pickAndPreviewPhoto,
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(
+                      _isSpanish ? 'Elegir de galeria' : 'Choose from gallery',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
-                Center(
-                  child: TextButton.icon(
-                    onPressed: _isLoading ? null : _pickAndInterpretPhoto,
-                    icon: const Icon(Icons.photo_library_outlined),
-                    label: Text(S.of(context).aiButtonPickGallery),
-                  ),
+                Text(
+                  _isSpanish
+                      ? 'Podras corregir ingredientes antes de guardar.'
+                      : 'You will be able to correct ingredients before saving.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                 ),
-                const SizedBox(height: 4),
-                Center(
-                  child: TextButton.icon(
-                    onPressed: _isLoading ? null : _openTextFlow,
-                    icon: const Icon(Icons.notes_outlined),
-                    label: Text(S.of(context).aiButtonUseText),
+                if (_pendingPhoto != null) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed:
+                          _isLoading ? null : _confirmAndInterpretPendingPhoto,
+                      icon: const Icon(Icons.auto_awesome),
+                      label: Text(
+                        _isSpanish ? 'Usar esta foto' : 'Use this photo',
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            setState(() {
+                              _pendingPhoto = null;
+                            });
+                          },
+                    child: Text(
+                      _isSpanish ? 'Quitar foto' : 'Remove photo',
+                    ),
+                  ),
+                ],
               ],
             ),
     );
   }
 
-  Widget _buildLoadingSkeleton(BuildContext context) {
+  Widget _buildLoadingState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const SizedBox(height: 32),
-        Center(
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: colorScheme.surfaceContainerLow,
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+            ),
+          ),
           child: Column(
             children: [
-              const SkeletonBox(width: 72, height: 72, borderRadius: 24),
-              const SizedBox(height: 24),
+              if (_loadingPreviewBytes != null) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: AspectRatio(
+                    aspectRatio: 1.1,
+                    child: Image.memory(
+                      _loadingPreviewBytes!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+              ],
+              SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 18),
               Text(
                 _loadingStatus ?? '',
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: colorScheme.primary,
                       fontWeight: FontWeight.w700,
                     ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isSpanish
+                    ? 'Esto suele tardar entre 5 y 10 segundos.'
+                    : 'This usually takes 5 to 10 seconds.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.5),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.edit_note_outlined,
+                      size: 18,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        _isSpanish
+                            ? 'La IA prepara un borrador. Tu podras revisar, corregir o borrar ingredientes antes de guardar.'
+                            : 'AI is preparing a draft. You will be able to review, edit, or remove ingredients before saving.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              height: 1.35,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 48),
-        const SkeletonBox(
-            width: double.infinity, height: 160, borderRadius: 20),
-        const SizedBox(height: 16),
-        const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
-        const SizedBox(height: 16),
-        const SkeletonBox(width: double.infinity, height: 90, borderRadius: 16),
       ],
     );
   }
 
-  Future<void> _captureAndInterpretPhoto() async {
+  Future<void> _captureAndPreviewPhoto() async {
     final picked = await _imagePicker.pickImage(
       source: ImageSource.camera,
       imageQuality: 92,
     );
     if (picked == null) return;
-    await _interpretPickedFile(
+    await _setPendingPhoto(
       fileName: picked.name.isEmpty ? 'captured.jpg' : picked.name,
       filePath: picked.path,
       bytes: await picked.readAsBytes(),
     );
   }
 
-  Future<void> _pickAndInterpretPhoto() async {
+  Future<void> _pickAndPreviewPhoto() async {
     final picked = await FilePicker.platform.pickFiles(
       type: FileType.image,
       withData: true,
@@ -260,10 +385,39 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     if (bytes == null) {
       return;
     }
-    await _interpretPickedFile(
+    await _setPendingPhoto(
       fileName: file.name,
       filePath: file.path,
       bytes: bytes,
+    );
+  }
+
+  Future<void> _setPendingPhoto({
+    required String fileName,
+    required String? filePath,
+    required Uint8List bytes,
+  }) async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _pendingPhoto = _SelectedMealPhoto(
+        fileName: fileName,
+        filePath: filePath,
+        bytes: bytes,
+      );
+    });
+  }
+
+  Future<void> _confirmAndInterpretPendingPhoto() async {
+    final photo = _pendingPhoto;
+    if (photo == null) {
+      return;
+    }
+    await _interpretPickedFile(
+      fileName: photo.fileName,
+      filePath: photo.filePath,
+      bytes: photo.bytes,
     );
   }
 
@@ -282,6 +436,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
 
     setState(() {
       _loadingStatus = S.of(context).aiStatusPreparing;
+      _loadingPreviewBytes = bytes;
     });
 
     try {
@@ -364,6 +519,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       if (mounted) {
         setState(() {
           _loadingStatus = null;
+          _loadingPreviewBytes = null;
         });
       }
     }
@@ -548,16 +704,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     return rawError;
   }
 
-  void _openTextFlow() {
-    Navigator.of(context).pushNamed(
-      NavigationOptions.mealTextCaptureRoute,
-      arguments: MealTextCaptureScreenArguments(
-        _args.day,
-        _args.intakeTypeEntity,
-      ),
-    );
-  }
-
   Future<void> _createLocalDraft({
     String? imagePath,
     required String fileName,
@@ -597,43 +743,23 @@ class _PreparedUploadImage {
   });
 }
 
+class _SelectedMealPhoto {
+  final String fileName;
+  final String? filePath;
+  final Uint8List bytes;
+
+  const _SelectedMealPhoto({
+    required this.fileName,
+    required this.filePath,
+    required this.bytes,
+  });
+}
+
 class MealPhotoCaptureScreenArguments {
   final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
 
   MealPhotoCaptureScreenArguments(this.day, this.intakeTypeEntity);
-}
-
-class _CaptureStepChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _CaptureStepChip({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.42),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-        ],
-      ),
-    );
-  }
 }
 
 class _CaptureHintRow extends StatelessWidget {
@@ -684,6 +810,58 @@ class _CaptureHintRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _SelectedPhotoPreview extends StatelessWidget {
+  final _SelectedMealPhoto photo;
+  final bool isSpanish;
+
+  const _SelectedPhotoPreview({
+    required this.photo,
+    required this.isSpanish,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: AspectRatio(
+                aspectRatio: 1.1,
+                child: Image.memory(
+                  photo.bytes,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              isSpanish ? 'Vista previa' : 'Preview',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              isSpanish
+                  ? 'Confirma que la foto se ve bien antes de enviarla a IA.'
+                  : 'Confirm the photo looks good before sending it to AI.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

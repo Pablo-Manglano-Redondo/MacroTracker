@@ -5801,6 +5801,946 @@ class S {
     );
   }
 
+  /// `Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages.`
+  String get professionalSectionConnectSubtitle {
+    return Intl.message(
+      'Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages.',
+      name: 'professionalSectionConnectSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is where you control your plan, real follow-up, shared privacy, and professional notes.`
+  String get professionalSectionConnectedSubtitle {
+    return Intl.message(
+      'This is where you control your plan, real follow-up, shared privacy, and professional notes.',
+      name: 'professionalSectionConnectedSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not load the full section`
+  String get professionalSectionLoadErrorTitle {
+    return Intl.message(
+      'Could not load the full section',
+      name: 'professionalSectionLoadErrorTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Try refreshing again.`
+  String get professionalSectionRetryHint {
+    return Intl.message(
+      'Try refreshing again.',
+      name: 'professionalSectionRetryHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current shared data level`
+  String get professionalPrivacyCurrentLevel {
+    return Intl.message(
+      'Current shared data level',
+      name: 'professionalPrivacyCurrentLevel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Revoke access now`
+  String get professionalRevokeNow {
+    return Intl.message(
+      'Revoke access now',
+      name: 'professionalRevokeNow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected, no plan published`
+  String get professionalConnectedNoPlan {
+    return Intl.message(
+      'Connected, no plan published',
+      name: 'professionalConnectedNoPlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite only`
+  String get professionalStatusInviteOnly {
+    return Intl.message(
+      'Invite only',
+      name: 'professionalStatusInviteOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected`
+  String get professionalStatusConnected {
+    return Intl.message(
+      'Connected',
+      name: 'professionalStatusConnected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Summary`
+  String get professionalTabSummary {
+    return Intl.message(
+      'Summary',
+      name: 'professionalTabSummary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Active plan`
+  String get professionalSummaryActivePlan {
+    return Intl.message(
+      'Active plan',
+      name: 'professionalSummaryActivePlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No plan`
+  String get professionalSummaryNoPlan {
+    return Intl.message(
+      'No plan',
+      name: 'professionalSummaryNoPlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today target`
+  String get professionalSummaryTodayTarget {
+    return Intl.message(
+      'Today target',
+      name: 'professionalSummaryTodayTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pending`
+  String get professionalSummaryPending {
+    return Intl.message(
+      'Pending',
+      name: 'professionalSummaryPending',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Offline queue`
+  String get professionalSummaryOfflineQueue {
+    return Intl.message(
+      'Offline queue',
+      name: 'professionalSummaryOfflineQueue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Refresh section`
+  String get professionalActionRefreshSection {
+    return Intl.message(
+      'Refresh section',
+      name: 'professionalActionRefreshSection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Revoke access`
+  String get professionalActionRevokeAccess {
+    return Intl.message(
+      'Revoke access',
+      name: 'professionalActionRevokeAccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nutrition coach`
+  String get professionalScreenTitle {
+    return Intl.message(
+      'Nutrition coach',
+      name: 'professionalScreenTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connect with your nutrition coach`
+  String get professionalHeroConnectTitle {
+    return Intl.message(
+      'Connect with your nutrition coach',
+      name: 'professionalHeroConnectTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your patient-professional section`
+  String get professionalHeroConnectedTitle {
+    return Intl.message(
+      'Your patient-professional section',
+      name: 'professionalHeroConnectedTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No pending invite was found for that code.`
+  String get professionalInviteNotFound {
+    return Intl.message(
+      'No pending invite was found for that code.',
+      name: 'professionalInviteNotFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This invite has expired.`
+  String get professionalInviteExpired {
+    return Intl.message(
+      'This invite has expired.',
+      name: 'professionalInviteExpired',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protect your account`
+  String get professionalProtectAccountTitle {
+    return Intl.message(
+      'Protect your account',
+      name: 'professionalProtectAccountTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.`
+  String get professionalProtectAccountBody {
+    return Intl.message(
+      'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.',
+      name: 'professionalProtectAccountBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Link Google`
+  String get professionalProtectAccountAction {
+    return Intl.message(
+      'Link Google',
+      name: 'professionalProtectAccountAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Complete Google and return to accept the invite.`
+  String get professionalProtectAccountReturnHint {
+    return Intl.message(
+      'Complete Google and return to accept the invite.',
+      name: 'professionalProtectAccountReturnHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not open Google.`
+  String get professionalProtectAccountOpenError {
+    return Intl.message(
+      'Could not open Google.',
+      name: 'professionalProtectAccountOpenError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Revoke professional access`
+  String get professionalDisconnectTitle {
+    return Intl.message(
+      'Revoke professional access',
+      name: 'professionalDisconnectTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access will be revoked, this section will disappear, and aggregate sync will stop.`
+  String get professionalDisconnectBody {
+    return Intl.message(
+      'Access will be revoked, this section will disappear, and aggregate sync will stop.',
+      name: 'professionalDisconnectBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last plan update`
+  String get professionalSummaryLastPlanUpdate {
+    return Intl.message(
+      'Last plan update',
+      name: 'professionalSummaryLastPlanUpdate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last snapshot sent`
+  String get professionalSummaryLastSnapshot {
+    return Intl.message(
+      'Last snapshot sent',
+      name: 'professionalSummaryLastSnapshot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connection status`
+  String get professionalSummaryConnectionStatus {
+    return Intl.message(
+      'Connection status',
+      name: 'professionalSummaryConnectionStatus',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Protein`
+  String get professionalMacroProtein {
+    return Intl.message(
+      'Protein',
+      name: 'professionalMacroProtein',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Carbs`
+  String get professionalMacroCarbs {
+    return Intl.message(
+      'Carbs',
+      name: 'professionalMacroCarbs',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Fat`
+  String get professionalMacroFat {
+    return Intl.message(
+      'Fat',
+      name: 'professionalMacroFat',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your coach sees the real active sharing level. If there are {count} pending snapshots, they will sync when connectivity returns.`
+  String professionalSharingPendingSnapshots(Object count) {
+    return Intl.message(
+      'Your coach sees the real active sharing level. If there are $count pending snapshots, they will sync when connectivity returns.',
+      name: 'professionalSharingPendingSnapshots',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Weekly view`
+  String get professionalPlanWeeklyView {
+    return Intl.message(
+      'Weekly view',
+      name: 'professionalPlanWeeklyView',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Suggested meals`
+  String get professionalPlanSuggestedMeals {
+    return Intl.message(
+      'Suggested meals',
+      name: 'professionalPlanSuggestedMeals',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today follow-up`
+  String get professionalTrackingTodayTitle {
+    return Intl.message(
+      'Today follow-up',
+      name: 'professionalTrackingTodayTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meals logged`
+  String get professionalTrackingMealsLogged {
+    return Intl.message(
+      'Meals logged',
+      name: 'professionalTrackingMealsLogged',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tracked days`
+  String get professionalTrackingTrackedDays {
+    return Intl.message(
+      'Tracked days',
+      name: 'professionalTrackingTrackedDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Current week: plan vs reality`
+  String get professionalTrackingWeekTitle {
+    return Intl.message(
+      'Current week: plan vs reality',
+      name: 'professionalTrackingWeekTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tracked days`
+  String get professionalTrackingFollowUpDays {
+    return Intl.message(
+      'Tracked days',
+      name: 'professionalTrackingFollowUpDays',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Aggregate only`
+  String get professionalPrivacyAggregateOnly {
+    return Intl.message(
+      'Aggregate only',
+      name: 'professionalPrivacyAggregateOnly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Consent active since {date}.`
+  String professionalPrivacyConsentSince(Object date) {
+    return Intl.message(
+      'Consent active since $date.',
+      name: 'professionalPrivacyConsentSince',
+      desc: '',
+      args: [date],
+    );
+  }
+
+  /// `Shared today`
+  String get professionalPrivacySharedNow {
+    return Intl.message(
+      'Shared today',
+      name: 'professionalPrivacySharedNow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Not shared today`
+  String get professionalPrivacyNotSharedYet {
+    return Intl.message(
+      'Not shared today',
+      name: 'professionalPrivacyNotSharedYet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Next available level`
+  String get professionalPrivacyNextAvailable {
+    return Intl.message(
+      'Next available level',
+      name: 'professionalPrivacyNextAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Access control`
+  String get professionalPrivacyAccessControl {
+    return Intl.message(
+      'Access control',
+      name: 'professionalPrivacyAccessControl',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `If you revoke access, this section disappears and the professional stops receiving new snapshots.`
+  String get professionalPrivacyAccessControlBody {
+    return Intl.message(
+      'If you revoke access, this section disappears and the professional stops receiving new snapshots.',
+      name: 'professionalPrivacyAccessControlBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The client shell is ready, but async messaging backend support is not available in this version yet.`
+  String get professionalMessagesUnavailableBody {
+    return Intl.message(
+      'The client shell is ready, but async messaging backend support is not available in this version yet.',
+      name: 'professionalMessagesUnavailableBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `For now, you will receive plan changes and follow-up from the rest of this section.`
+  String get professionalMessagesUnavailableHint {
+    return Intl.message(
+      'For now, you will receive plan changes and follow-up from the rest of this section.',
+      name: 'professionalMessagesUnavailableHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mark read`
+  String get professionalMessagesMarkRead {
+    return Intl.message(
+      'Mark read',
+      name: 'professionalMessagesMarkRead',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Connected with no published plan yet`
+  String get professionalHubNoPublishedPlan {
+    return Intl.message(
+      'Connected with no published plan yet',
+      name: 'professionalHubNoPublishedPlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No target today`
+  String get professionalHubNoTodayTarget {
+    return Intl.message(
+      'No target today',
+      name: 'professionalHubNoTodayTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{kcal} kcal today`
+  String professionalHubKcalToday(Object kcal) {
+    return Intl.message(
+      '$kcal kcal today',
+      name: 'professionalHubKcalToday',
+      desc: '',
+      args: [kcal],
+    );
+  }
+
+  /// `{count} pending`
+  String professionalHubPendingCount(Object count) {
+    return Intl.message(
+      '$count pending',
+      name: 'professionalHubPendingCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `No offline queue`
+  String get professionalHubNoOfflineQueue {
+    return Intl.message(
+      'No offline queue',
+      name: 'professionalHubNoOfflineQueue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Plan`
+  String get professionalTabPlan {
+    return Intl.message(
+      'Plan',
+      name: 'professionalTabPlan',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Tracking`
+  String get professionalTabTracking {
+    return Intl.message(
+      'Tracking',
+      name: 'professionalTabTracking',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Privacy`
+  String get professionalTabPrivacy {
+    return Intl.message(
+      'Privacy',
+      name: 'professionalTabPrivacy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Messages`
+  String get professionalTabMessages {
+    return Intl.message(
+      'Messages',
+      name: 'professionalTabMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Messages ({count})`
+  String professionalMessagesTabWithCount(Object count) {
+    return Intl.message(
+      'Messages ($count)',
+      name: 'professionalMessagesTabWithCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Activate the Nutritionist section`
+  String get professionalInviteSectionTitle {
+    return Intl.message(
+      'Activate the Nutritionist section',
+      name: 'professionalInviteSectionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You need an invite and consent. You will get professional follow-up, plan, privacy, and access control without mixing it with Google Drive.`
+  String get professionalInviteSectionBody {
+    return Intl.message(
+      'You need an invite and consent. You will get professional follow-up, plan, privacy, and access control without mixing it with Google Drive.',
+      name: 'professionalInviteSectionBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite`
+  String get professionalInvitePillInvite {
+    return Intl.message(
+      'Invite',
+      name: 'professionalInvitePillInvite',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Consent`
+  String get professionalInvitePillConsent {
+    return Intl.message(
+      'Consent',
+      name: 'professionalInvitePillConsent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Clear privacy`
+  String get professionalInvitePillClearPrivacy {
+    return Intl.message(
+      'Clear privacy',
+      name: 'professionalInvitePillClearPrivacy',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Invite code`
+  String get professionalInviteCodeLabel {
+    return Intl.message(
+      'Invite code',
+      name: 'professionalInviteCodeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Review invite`
+  String get professionalInviteReviewAction {
+    return Intl.message(
+      'Review invite',
+      name: 'professionalInviteReviewAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use debug invite`
+  String get professionalInviteDebugAction {
+    return Intl.message(
+      'Use debug invite',
+      name: 'professionalInviteDebugAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What is shared today`
+  String get professionalConsentSharedToday {
+    return Intl.message(
+      'What is shared today',
+      name: 'professionalConsentSharedToday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What is not shared today`
+  String get professionalConsentNotSharedToday {
+    return Intl.message(
+      'What is not shared today',
+      name: 'professionalConsentNotSharedToday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `kcal, macros, logged meals, and aggregate adherence by day`
+  String get professionalConsentSharedTodayBody {
+    return Intl.message(
+      'kcal, macros, logged meals, and aggregate adherence by day',
+      name: 'professionalConsentSharedTodayBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `full raw diary, per-meal detail, and bidirectional chat`
+  String get professionalConsentNotSharedTodayBody {
+    return Intl.message(
+      'full raw diary, per-meal detail, and bidirectional chat',
+      name: 'professionalConsentNotSharedTodayBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You can revoke access at any time from the privacy section.`
+  String get professionalConsentRevokeHint {
+    return Intl.message(
+      'You can revoke access at any time from the privacy section.',
+      name: 'professionalConsentRevokeHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Accept and connect`
+  String get professionalAcceptAndConnect {
+    return Intl.message(
+      'Accept and connect',
+      name: 'professionalAcceptAndConnect',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Opening Google`
+  String get professionalOpeningGoogle {
+    return Intl.message(
+      'Opening Google',
+      name: 'professionalOpeningGoogle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Estimated adherence: {percent}%`
+  String professionalTrackingEstimatedAdherence(Object percent) {
+    return Intl.message(
+      'Estimated adherence: $percent%',
+      name: 'professionalTrackingEstimatedAdherence',
+      desc: '',
+      args: [percent],
+    );
+  }
+
+  /// `No target`
+  String get professionalWeekNoTarget {
+    return Intl.message(
+      'No target',
+      name: 'professionalWeekNoTarget',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `template`
+  String get professionalWeekTemplate {
+    return Intl.message(
+      'template',
+      name: 'professionalWeekTemplate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your coach is already connected to you, but has not published an active plan yet. When they do, this section will show daily targets, follow-up, and suggested meals.`
+  String get professionalEmptyPlanBody {
+    return Intl.message(
+      'Your coach is already connected to you, but has not published an active plan yet. When they do, this section will show daily targets, follow-up, and suggested meals.',
+      name: 'professionalEmptyPlanBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Last plan sync: {date}`
+  String professionalEmptyPlanSync(Object date) {
+    return Intl.message(
+      'Last plan sync: $date',
+      name: 'professionalEmptyPlanSync',
+      desc: '',
+      args: [date],
+    );
+  }
+
+  /// `Could not connect. Check your connection and try again.`
+  String get professionalErrorOffline {
+    return Intl.message(
+      'Could not connect. Check your connection and try again.',
+      name: 'professionalErrorOffline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not create the cloud identity required to connect the plan.`
+  String get professionalErrorCloudIdentity {
+    return Intl.message(
+      'Could not create the cloud identity required to connect the plan.',
+      name: 'professionalErrorCloudIdentity',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The action could not be completed. Try again.`
+  String get professionalErrorAction {
+    return Intl.message(
+      'The action could not be completed. Try again.',
+      name: 'professionalErrorAction',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Never`
+  String get professionalNever {
+    return Intl.message(
+      'Never',
+      name: 'professionalNever',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `goal vs actual kcal and macros in aggregate form`
+  String get professionalPrivacyAggregateTargets {
+    return Intl.message(
+      'goal vs actual kcal and macros in aggregate form',
+      name: 'professionalPrivacyAggregateTargets',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `tracked days and number of logged meals`
+  String get professionalPrivacyAggregateTrackedDaysMeals {
+    return Intl.message(
+      'tracked days and number of logged meals',
+      name: 'professionalPrivacyAggregateTrackedDaysMeals',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `aggregate daily adherence`
+  String get professionalPrivacyAggregateDailyAdherence {
+    return Intl.message(
+      'aggregate daily adherence',
+      name: 'professionalPrivacyAggregateDailyAdherence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `your full raw diary`
+  String get professionalPrivacyRawDiary {
+    return Intl.message(
+      'your full raw diary',
+      name: 'professionalPrivacyRawDiary',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `full per-meal or slot detail`
+  String get professionalPrivacyPerMealDetail {
+    return Intl.message(
+      'full per-meal or slot detail',
+      name: 'professionalPrivacyPerMealDetail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `real-time bidirectional messaging`
+  String get professionalPrivacyRealtimeMessages {
+    return Intl.message(
+      'real-time bidirectional messaging',
+      name: 'professionalPrivacyRealtimeMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `per-meal detail when backend, legal copy, and consent are ready`
+  String get professionalPrivacyPerMealDetailWhenReady {
+    return Intl.message(
+      'per-meal detail when backend, legal copy, and consent are ready',
+      name: 'professionalPrivacyPerMealDetailWhenReady',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Daily adjustment updated to {kcal} kcal.`
   String weeklyInsightsAdjustmentSuccess(Object kcal) {
     return Intl.message(

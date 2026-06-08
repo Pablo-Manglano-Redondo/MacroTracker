@@ -119,6 +119,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m45(count) => "${count} servings";
 
+  static String m59(count) =>
+      "Your coach sees the real active sharing level. If there are ${count} pending snapshots, they will sync when connectivity returns.";
+
+  static String m60(date) => "Consent active since ${date}.";
+
+  static String m61(kcal) => "${kcal} kcal today";
+
+  static String m62(count) => "${count} pending";
+
+  static String m63(count) => "Messages (${count})";
+
+  static String m64(percent) => "Estimated adherence: ${percent}%";
+
+  static String m65(date) => "Last plan sync: ${date}";
+
   static String m46(count) => "Photo calls: ${count}";
 
   static String m47(count) => "Text calls: ${count}";
@@ -1209,6 +1224,199 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Your profile"),
         "profileYourProfileSubtitle": MessageLookupByLibrary.simpleMessage(
             "Adjust your base data so that calories, macros and recommendations are consistent."),
+        "professionalAcceptAndConnect":
+            MessageLookupByLibrary.simpleMessage("Accept and connect"),
+        "professionalActionRefreshSection":
+            MessageLookupByLibrary.simpleMessage("Refresh section"),
+        "professionalActionRevokeAccess":
+            MessageLookupByLibrary.simpleMessage("Revoke access"),
+        "professionalConnectedNoPlan":
+            MessageLookupByLibrary.simpleMessage("Connected, no plan published"),
+        "professionalConsentNotSharedToday":
+            MessageLookupByLibrary.simpleMessage("What is not shared today"),
+        "professionalConsentNotSharedTodayBody":
+            MessageLookupByLibrary.simpleMessage(
+                "full raw diary, per-meal detail, and bidirectional chat"),
+        "professionalConsentRevokeHint": MessageLookupByLibrary.simpleMessage(
+            "You can revoke access at any time from the privacy section."),
+        "professionalConsentSharedToday":
+            MessageLookupByLibrary.simpleMessage("What is shared today"),
+        "professionalConsentSharedTodayBody":
+            MessageLookupByLibrary.simpleMessage(
+                "kcal, macros, logged meals, and aggregate adherence by day"),
+        "professionalDisconnectBody": MessageLookupByLibrary.simpleMessage(
+            "Access will be revoked, this section will disappear, and aggregate sync will stop."),
+        "professionalDisconnectTitle":
+            MessageLookupByLibrary.simpleMessage("Revoke professional access"),
+        "professionalEmptyPlanBody": MessageLookupByLibrary.simpleMessage(
+            "Your coach is already connected to you, but has not published an active plan yet. When they do, this section will show daily targets, follow-up, and suggested meals."),
+        "professionalEmptyPlanSync": m65,
+        "professionalErrorAction": MessageLookupByLibrary.simpleMessage(
+            "The action could not be completed. Try again."),
+        "professionalErrorCloudIdentity": MessageLookupByLibrary.simpleMessage(
+            "Could not create the cloud identity required to connect the plan."),
+        "professionalErrorOffline": MessageLookupByLibrary.simpleMessage(
+            "Could not connect. Check your connection and try again."),
+        "professionalHeroConnectTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Connect with your nutrition coach"),
+        "professionalHeroConnectedTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Your patient-professional section"),
+        "professionalHubKcalToday": m61,
+        "professionalHubNoOfflineQueue":
+            MessageLookupByLibrary.simpleMessage("No offline queue"),
+        "professionalHubNoPublishedPlan":
+            MessageLookupByLibrary.simpleMessage(
+                "Connected with no published plan yet"),
+        "professionalHubNoTodayTarget":
+            MessageLookupByLibrary.simpleMessage("No target today"),
+        "professionalHubPendingCount": m62,
+        "professionalInviteCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Invite code"),
+        "professionalInviteDebugAction":
+            MessageLookupByLibrary.simpleMessage("Use debug invite"),
+        "professionalInviteExpired":
+            MessageLookupByLibrary.simpleMessage("This invite has expired."),
+        "professionalInviteNotFound": MessageLookupByLibrary.simpleMessage(
+            "No pending invite was found for that code."),
+        "professionalInvitePillClearPrivacy":
+            MessageLookupByLibrary.simpleMessage("Clear privacy"),
+        "professionalInvitePillConsent":
+            MessageLookupByLibrary.simpleMessage("Consent"),
+        "professionalInvitePillInvite":
+            MessageLookupByLibrary.simpleMessage("Invite"),
+        "professionalInviteReviewAction":
+            MessageLookupByLibrary.simpleMessage("Review invite"),
+        "professionalInviteSectionBody": MessageLookupByLibrary.simpleMessage(
+            "You need an invite and consent. You will get professional follow-up, plan, privacy, and access control without mixing it with Google Drive."),
+        "professionalInviteSectionTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Activate the Nutritionist section"),
+        "professionalMacroCarbs":
+            MessageLookupByLibrary.simpleMessage("Carbs"),
+        "professionalMacroFat": MessageLookupByLibrary.simpleMessage("Fat"),
+        "professionalMacroProtein":
+            MessageLookupByLibrary.simpleMessage("Protein"),
+        "professionalMessagesMarkRead":
+            MessageLookupByLibrary.simpleMessage("Mark read"),
+        "professionalMessagesTabWithCount": m63,
+        "professionalMessagesUnavailableBody":
+            MessageLookupByLibrary.simpleMessage(
+                "The client shell is ready, but async messaging backend support is not available in this version yet."),
+        "professionalMessagesUnavailableHint":
+            MessageLookupByLibrary.simpleMessage(
+                "For now, you will receive plan changes and follow-up from the rest of this section."),
+        "professionalNever": MessageLookupByLibrary.simpleMessage("Never"),
+        "professionalOpeningGoogle":
+            MessageLookupByLibrary.simpleMessage("Opening Google"),
+        "professionalPlanSuggestedMeals":
+            MessageLookupByLibrary.simpleMessage("Suggested meals"),
+        "professionalPlanWeeklyView":
+            MessageLookupByLibrary.simpleMessage("Weekly view"),
+        "professionalPrivacyAccessControl":
+            MessageLookupByLibrary.simpleMessage("Access control"),
+        "professionalPrivacyAccessControlBody":
+            MessageLookupByLibrary.simpleMessage(
+                "If you revoke access, this section disappears and the professional stops receiving new snapshots."),
+        "professionalPrivacyAggregateDailyAdherence":
+            MessageLookupByLibrary.simpleMessage("aggregate daily adherence"),
+        "professionalPrivacyAggregateOnly":
+            MessageLookupByLibrary.simpleMessage("Aggregate only"),
+        "professionalPrivacyAggregateTargets":
+            MessageLookupByLibrary.simpleMessage(
+                "goal vs actual kcal and macros in aggregate form"),
+        "professionalPrivacyAggregateTrackedDaysMeals":
+            MessageLookupByLibrary.simpleMessage(
+                "tracked days and number of logged meals"),
+        "professionalPrivacyConsentSince": m60,
+        "professionalPrivacyCurrentLevel":
+            MessageLookupByLibrary.simpleMessage("Current shared data level"),
+        "professionalPrivacyNextAvailable":
+            MessageLookupByLibrary.simpleMessage("Next available level"),
+        "professionalPrivacyNotSharedYet":
+            MessageLookupByLibrary.simpleMessage("Not shared today"),
+        "professionalPrivacyPerMealDetail":
+            MessageLookupByLibrary.simpleMessage("full per-meal or slot detail"),
+        "professionalPrivacyPerMealDetailWhenReady":
+            MessageLookupByLibrary.simpleMessage(
+                "per-meal detail when backend, legal copy, and consent are ready"),
+        "professionalPrivacyRawDiary":
+            MessageLookupByLibrary.simpleMessage("your full raw diary"),
+        "professionalPrivacyRealtimeMessages":
+            MessageLookupByLibrary.simpleMessage(
+                "real-time bidirectional messaging"),
+        "professionalPrivacySharedNow":
+            MessageLookupByLibrary.simpleMessage("Shared today"),
+        "professionalProtectAccountAction":
+            MessageLookupByLibrary.simpleMessage("Link Google"),
+        "professionalProtectAccountBody": MessageLookupByLibrary.simpleMessage(
+            "To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive."),
+        "professionalProtectAccountOpenError":
+            MessageLookupByLibrary.simpleMessage("Could not open Google."),
+        "professionalProtectAccountReturnHint":
+            MessageLookupByLibrary.simpleMessage(
+                "Complete Google and return to accept the invite."),
+        "professionalProtectAccountTitle":
+            MessageLookupByLibrary.simpleMessage("Protect your account"),
+        "professionalRevokeNow":
+            MessageLookupByLibrary.simpleMessage("Revoke access now"),
+        "professionalScreenTitle":
+            MessageLookupByLibrary.simpleMessage("Nutrition coach"),
+        "professionalSectionConnectSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages."),
+        "professionalSectionConnectedSubtitle": MessageLookupByLibrary.simpleMessage(
+            "This is where you control your plan, real follow-up, shared privacy, and professional notes."),
+        "professionalSectionLoadErrorTitle":
+            MessageLookupByLibrary.simpleMessage("Could not load the full section"),
+        "professionalSectionRetryHint":
+            MessageLookupByLibrary.simpleMessage("Try refreshing again."),
+        "professionalSharingPendingSnapshots": m59,
+        "professionalStatusConnected":
+            MessageLookupByLibrary.simpleMessage("Connected"),
+        "professionalStatusInviteOnly":
+            MessageLookupByLibrary.simpleMessage("Invite only"),
+        "professionalSummaryActivePlan":
+            MessageLookupByLibrary.simpleMessage("Active plan"),
+        "professionalSummaryConnectionStatus":
+            MessageLookupByLibrary.simpleMessage("Connection status"),
+        "professionalSummaryLastPlanUpdate":
+            MessageLookupByLibrary.simpleMessage("Last plan update"),
+        "professionalSummaryLastSnapshot":
+            MessageLookupByLibrary.simpleMessage("Last snapshot sent"),
+        "professionalSummaryNoPlan":
+            MessageLookupByLibrary.simpleMessage("No plan"),
+        "professionalSummaryOfflineQueue":
+            MessageLookupByLibrary.simpleMessage("Offline queue"),
+        "professionalSummaryPending":
+            MessageLookupByLibrary.simpleMessage("Pending"),
+        "professionalSummaryTodayTarget":
+            MessageLookupByLibrary.simpleMessage("Today target"),
+        "professionalTabMessages":
+            MessageLookupByLibrary.simpleMessage("Messages"),
+        "professionalTabPlan": MessageLookupByLibrary.simpleMessage("Plan"),
+        "professionalTabPrivacy":
+            MessageLookupByLibrary.simpleMessage("Privacy"),
+        "professionalTabSummary":
+            MessageLookupByLibrary.simpleMessage("Summary"),
+        "professionalTabTracking":
+            MessageLookupByLibrary.simpleMessage("Tracking"),
+        "professionalTrackingEstimatedAdherence": m64,
+        "professionalTrackingFollowUpDays":
+            MessageLookupByLibrary.simpleMessage("Tracked days"),
+        "professionalTrackingMealsLogged":
+            MessageLookupByLibrary.simpleMessage("Meals logged"),
+        "professionalTrackingTodayTitle":
+            MessageLookupByLibrary.simpleMessage("Today follow-up"),
+        "professionalTrackingTrackedDays":
+            MessageLookupByLibrary.simpleMessage("Tracked days"),
+        "professionalTrackingWeekTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Current week: plan vs reality"),
+        "professionalWeekNoTarget":
+            MessageLookupByLibrary.simpleMessage("No target"),
+        "professionalWeekTemplate":
+            MessageLookupByLibrary.simpleMessage("template"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("protein"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Quantity"),
         "quickCategoryLeanMeal":

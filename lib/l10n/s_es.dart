@@ -1872,6 +1872,332 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get professionalSectionConnectSubtitle =>
+      'Activa esta seccion con invitacion y consentimiento. Aqui veras plan, seguimiento, privacidad y mensajes.';
+
+  @override
+  String get professionalSectionConnectedSubtitle =>
+      'Aqui controlas tu plan, el seguimiento real, la privacidad compartida y las notas del profesional.';
+
+  @override
+  String get professionalSectionLoadErrorTitle =>
+      'No se pudo cargar la seccion completa';
+
+  @override
+  String get professionalSectionRetryHint => 'Intenta actualizar de nuevo.';
+
+  @override
+  String get professionalPrivacyCurrentLevel =>
+      'Nivel actual de datos compartidos';
+
+  @override
+  String get professionalRevokeNow => 'Revocar acceso ahora';
+
+  @override
+  String get professionalConnectedNoPlan =>
+      'Conexion activa, sin plan publicado';
+
+  @override
+  String get professionalStatusInviteOnly => 'Solo por invitacion';
+
+  @override
+  String get professionalStatusConnected => 'Conexion activa';
+
+  @override
+  String get professionalTabSummary => 'Resumen';
+
+  @override
+  String get professionalSummaryActivePlan => 'Plan activo';
+
+  @override
+  String get professionalSummaryNoPlan => 'Sin plan';
+
+  @override
+  String get professionalSummaryTodayTarget => 'Objetivo hoy';
+
+  @override
+  String get professionalSummaryPending => 'Pendiente';
+
+  @override
+  String get professionalSummaryOfflineQueue => 'Cola offline';
+
+  @override
+  String get professionalActionRefreshSection => 'Actualizar seccion';
+
+  @override
+  String get professionalActionRevokeAccess => 'Revocar acceso';
+
+  @override
+  String get professionalScreenTitle => 'Nutricionista';
+
+  @override
+  String get professionalHeroConnectTitle => 'Conecta con tu nutricionista';
+
+  @override
+  String get professionalHeroConnectedTitle =>
+      'Tu espacio paciente-profesional';
+
+  @override
+  String get professionalInviteNotFound =>
+      'No se ha encontrado una invitacion pendiente con ese codigo.';
+
+  @override
+  String get professionalInviteExpired => 'La invitacion ha expirado.';
+
+  @override
+  String get professionalProtectAccountTitle => 'Guarda tu cuenta';
+
+  @override
+  String get professionalProtectAccountBody =>
+      'Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Asi podras recuperar la cuenta y mantener el consentimiento si cambias de movil. Esto no activa Google Drive.';
+
+  @override
+  String get professionalProtectAccountAction => 'Guardar con Google';
+
+  @override
+  String get professionalProtectAccountReturnHint =>
+      'Completa Google y vuelve para aceptar la invitacion.';
+
+  @override
+  String get professionalProtectAccountOpenError => 'No se pudo abrir Google.';
+
+  @override
+  String get professionalDisconnectTitle => 'Revocar acceso profesional';
+
+  @override
+  String get professionalDisconnectBody =>
+      'Se revocara el acceso, desaparecera la seccion y se detendra la sincronizacion agregada pendiente.';
+
+  @override
+  String get professionalSummaryLastPlanUpdate =>
+      'Ultima actualizacion del plan';
+
+  @override
+  String get professionalSummaryLastSnapshot => 'Ultimo resumen enviado';
+
+  @override
+  String get professionalSummaryConnectionStatus => 'Estado de conexion';
+
+  @override
+  String get professionalMacroProtein => 'Proteina';
+
+  @override
+  String get professionalMacroCarbs => 'Carbos';
+
+  @override
+  String get professionalMacroFat => 'Grasa';
+
+  @override
+  String professionalSharingPendingSnapshots(Object count) {
+    return 'Tu nutricionista ve el nivel real de comparticion activo. Si hay $count resumenes pendientes, se enviaran cuando vuelva la conexion.';
+  }
+
+  @override
+  String get professionalPlanWeeklyView => 'Vista semanal';
+
+  @override
+  String get professionalPlanSuggestedMeals => 'Comidas sugeridas';
+
+  @override
+  String get professionalTrackingTodayTitle => 'Seguimiento de hoy';
+
+  @override
+  String get professionalTrackingMealsLogged => 'Comidas registradas';
+
+  @override
+  String get professionalTrackingTrackedDays => 'Dias con datos';
+
+  @override
+  String get professionalTrackingWeekTitle => 'Semana actual: plan vs realidad';
+
+  @override
+  String get professionalTrackingFollowUpDays => 'Dias con seguimiento';
+
+  @override
+  String get professionalPrivacyAggregateOnly => 'Solo agregados';
+
+  @override
+  String professionalPrivacyConsentSince(Object date) {
+    return 'Consentimiento activo desde $date.';
+  }
+
+  @override
+  String get professionalPrivacySharedNow => 'Se comparte hoy';
+
+  @override
+  String get professionalPrivacyNotSharedYet => 'No se comparte hoy';
+
+  @override
+  String get professionalPrivacyNextAvailable => 'Proximo nivel disponible';
+
+  @override
+  String get professionalPrivacyAccessControl => 'Control de acceso';
+
+  @override
+  String get professionalPrivacyAccessControlBody =>
+      'Si revocas el acceso, desaparece esta seccion y el profesional deja de recibir nuevos resumenes.';
+
+  @override
+  String get professionalMessagesUnavailableBody =>
+      'La interfaz ya esta preparada, pero el backend de mensajeria asincrona todavia no esta disponible en esta version.';
+
+  @override
+  String get professionalMessagesUnavailableHint =>
+      'Por ahora recibiras cambios de plan y seguimiento desde el resto de esta seccion.';
+
+  @override
+  String get professionalMessagesMarkRead => 'Marcar leido';
+
+  @override
+  String get professionalHubNoPublishedPlan =>
+      'Conexion activa sin plan publicado';
+
+  @override
+  String get professionalHubNoTodayTarget => 'Sin objetivo hoy';
+
+  @override
+  String professionalHubKcalToday(Object kcal) {
+    return '$kcal kcal hoy';
+  }
+
+  @override
+  String professionalHubPendingCount(Object count) {
+    return '$count pendientes';
+  }
+
+  @override
+  String get professionalHubNoOfflineQueue => 'Sin cola offline';
+
+  @override
+  String get professionalTabPlan => 'Plan';
+
+  @override
+  String get professionalTabTracking => 'Seguimiento';
+
+  @override
+  String get professionalTabPrivacy => 'Privacidad';
+
+  @override
+  String get professionalTabMessages => 'Mensajes';
+
+  @override
+  String professionalMessagesTabWithCount(Object count) {
+    return 'Mensajes ($count)';
+  }
+
+  @override
+  String get professionalInviteSectionTitle =>
+      'Activa la seccion Nutricionista';
+
+  @override
+  String get professionalInviteSectionBody =>
+      'Necesitas invitacion y consentimiento. Veras seguimiento profesional, plan, privacidad y control de acceso sin mezclarlo con Google Drive.';
+
+  @override
+  String get professionalInvitePillInvite => 'Invitacion';
+
+  @override
+  String get professionalInvitePillConsent => 'Consentimiento';
+
+  @override
+  String get professionalInvitePillClearPrivacy => 'Privacidad clara';
+
+  @override
+  String get professionalInviteCodeLabel => 'Codigo de invitacion';
+
+  @override
+  String get professionalInviteReviewAction => 'Revisar invitacion';
+
+  @override
+  String get professionalInviteDebugAction => 'Usar invitacion debug';
+
+  @override
+  String get professionalConsentSharedToday => 'Que se comparte hoy';
+
+  @override
+  String get professionalConsentNotSharedToday => 'Que no se comparte hoy';
+
+  @override
+  String get professionalConsentSharedTodayBody =>
+      'kcal, macros, comidas registradas y adherencia agregada por dia';
+
+  @override
+  String get professionalConsentNotSharedTodayBody =>
+      'diario bruto completo, detalle por comida y chat bidireccional';
+
+  @override
+  String get professionalConsentRevokeHint =>
+      'Puedes revocar el acceso en cualquier momento desde la seccion de privacidad.';
+
+  @override
+  String get professionalAcceptAndConnect => 'Aceptar y conectar';
+
+  @override
+  String get professionalOpeningGoogle => 'Abriendo Google';
+
+  @override
+  String professionalTrackingEstimatedAdherence(Object percent) {
+    return 'Adherencia estimada: $percent%';
+  }
+
+  @override
+  String get professionalWeekNoTarget => 'Sin objetivo';
+
+  @override
+  String get professionalWeekTemplate => 'template';
+
+  @override
+  String get professionalEmptyPlanBody =>
+      'Tu nutricionista ya esta conectado contigo, pero aun no ha publicado un plan activo. Cuando lo haga, esta seccion mostrara objetivos por dia, seguimiento y comidas sugeridas.';
+
+  @override
+  String professionalEmptyPlanSync(Object date) {
+    return 'Ultimo sync del plan: $date';
+  }
+
+  @override
+  String get professionalErrorOffline =>
+      'No se pudo conectar. Revisa la conexion e intentalo de nuevo.';
+
+  @override
+  String get professionalErrorCloudIdentity =>
+      'No se pudo crear la identidad cloud necesaria para conectar el plan.';
+
+  @override
+  String get professionalErrorAction =>
+      'No se pudo completar la accion. Intentalo de nuevo.';
+
+  @override
+  String get professionalNever => 'Nunca';
+
+  @override
+  String get professionalPrivacyAggregateTargets =>
+      'objetivos y registrado por kcal y macros en formato agregado';
+
+  @override
+  String get professionalPrivacyAggregateTrackedDaysMeals =>
+      'dias con seguimiento y numero de comidas registradas';
+
+  @override
+  String get professionalPrivacyAggregateDailyAdherence =>
+      'adherencia diaria agregada';
+
+  @override
+  String get professionalPrivacyRawDiary => 'tu diario bruto completo';
+
+  @override
+  String get professionalPrivacyPerMealDetail =>
+      'detalle completo por comida o slot';
+
+  @override
+  String get professionalPrivacyRealtimeMessages =>
+      'mensajeria bidireccional en tiempo real';
+
+  @override
+  String get professionalPrivacyPerMealDetailWhenReady =>
+      'detalle por comida cuando backend, legal y consentimiento esten listos';
+
+  @override
   String get recipeLibraryTitle => 'Comidas guardadas';
 
   @override

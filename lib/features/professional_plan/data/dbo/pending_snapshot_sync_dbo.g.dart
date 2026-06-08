@@ -33,13 +33,14 @@ class PendingSnapshotSyncDBOAdapter
       proteinTarget: fields[12] as double,
       mealsLogged: fields[13] as int,
       createdAt: fields[14] as DateTime,
+      notes: fields[15] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, PendingSnapshotSyncDBO obj) {
     writer
-      ..writeByte(15)
+      ..writeByte(16)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -69,7 +70,9 @@ class PendingSnapshotSyncDBOAdapter
       ..writeByte(13)
       ..write(obj.mealsLogged)
       ..writeByte(14)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(15)
+      ..write(obj.notes);
   }
 
   @override
@@ -105,6 +108,7 @@ PendingSnapshotSyncDBO _$PendingSnapshotSyncDBOFromJson(
       proteinTarget: (json['proteinTarget'] as num).toDouble(),
       mealsLogged: (json['mealsLogged'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
+      notes: json['notes'] as String?,
     );
 
 Map<String, dynamic> _$PendingSnapshotSyncDBOToJson(
@@ -125,4 +129,5 @@ Map<String, dynamic> _$PendingSnapshotSyncDBOToJson(
       'proteinTarget': instance.proteinTarget,
       'mealsLogged': instance.mealsLogged,
       'createdAt': instance.createdAt.toIso8601String(),
+      'notes': instance.notes,
     };

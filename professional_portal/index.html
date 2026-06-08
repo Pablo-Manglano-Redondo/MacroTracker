@@ -175,26 +175,73 @@
             <div id="clients" class="client-list"></div>
           </section>
         </section>
-
-        <section class="surface plan-surface" id="plan-panel" hidden>
-          <div class="section-title">
+        
+        <!-- Client Detail Section -->
+        <section class="client-detail-section" id="client-detail-section" hidden>
+          <header class="client-header">
             <div>
-              <p class="eyebrow">Plan builder</p>
-              <h3>Publish a weekly macro target.</h3>
+              <p class="eyebrow">Client Details</p>
+              <h2 id="detail-client-name">Select a client</h2>
+              <p class="muted" id="detail-client-status"></p>
             </div>
-            <button id="create-plan">Publish weekly plan</button>
+            <button id="close-client-detail" class="ghost">Close</button>
+          </header>
+
+          <div class="grid two">
+            <!-- Plan Builder -->
+            <section class="surface plan-surface" id="plan-panel">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">Plan builder</p>
+                  <h3>Publish a weekly macro target.</h3>
+                </div>
+                <button id="create-plan">Publish plan</button>
+              </div>
+              <div class="notice blocked" data-pro-gate hidden>
+                Pro must be trialing or active to publish plans.
+              </div>
+              <div class="form-grid plan-grid">
+                <input type="hidden" id="plan-client-id" />
+                <label>Plan name <input id="plan-name" value="Weekly coaching plan" /></label>
+                <label>Kcal <input id="plan-kcal" type="number" value="2200" /></label>
+                <label>Protein g <input id="plan-protein" type="number" value="160" /></label>
+                <label>Carbs g <input id="plan-carbs" type="number" value="250" /></label>
+                <label>Fat g <input id="plan-fat" type="number" value="70" /></label>
+              </div>
+            </section>
+
+            <!-- Snapshots History -->
+            <section class="surface snapshots-surface" id="snapshots-panel">
+              <div class="section-title">
+                <div>
+                  <p class="eyebrow">History</p>
+                  <h3>Shared Snapshots</h3>
+                </div>
+              </div>
+              <div id="client-snapshots-list" class="snapshot-list">
+                <p class="muted">Loading snapshots...</p>
+              </div>
+            </section>
           </div>
-          <div class="notice blocked" data-pro-gate hidden>
-            Pro must be trialing or active to publish plans.
-          </div>
-          <div class="form-grid plan-grid">
-            <label>Client ID <input id="plan-client-id" /></label>
-            <label>Plan name <input id="plan-name" value="Weekly coaching plan" /></label>
-            <label>Kcal <input id="plan-kcal" type="number" value="2200" /></label>
-            <label>Protein g <input id="plan-protein" type="number" value="160" /></label>
-            <label>Carbs g <input id="plan-carbs" type="number" value="250" /></label>
-            <label>Fat g <input id="plan-fat" type="number" value="70" /></label>
-          </div>
+
+          <!-- Messaging -->
+          <section class="surface messages-surface" id="messages-panel">
+             <div class="section-title">
+               <div>
+                 <p class="eyebrow">Chat</p>
+                 <h3>Client Messages</h3>
+               </div>
+             </div>
+             <div class="chat-container">
+               <div id="chat-messages" class="chat-messages">
+                 <!-- Messages go here -->
+               </div>
+               <div class="chat-input-area">
+                 <input type="text" id="chat-input" placeholder="Write a message to your client..." />
+                 <button id="send-message-btn">Send</button>
+               </div>
+             </div>
+          </section>
         </section>
       </section>
     </main>

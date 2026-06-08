@@ -8,6 +8,12 @@ class ProfessionalConnectionEntity extends Equatable {
   final String professionalName;
   final DateTime connectedAt;
   final DateTime consentAcceptedAt;
+  final DateTime? lastPlanSyncAt;
+  final DateTime? lastSnapshotSyncAt;
+  final int pendingSyncCount;
+  final String sharingMode;
+  final bool messagesEnabled;
+  final String connectionStatus;
   final NutritionPlanEntity? activePlan;
 
   const ProfessionalConnectionEntity({
@@ -17,6 +23,12 @@ class ProfessionalConnectionEntity extends Equatable {
     required this.professionalName,
     required this.connectedAt,
     required this.consentAcceptedAt,
+    required this.lastPlanSyncAt,
+    required this.lastSnapshotSyncAt,
+    required this.pendingSyncCount,
+    required this.sharingMode,
+    required this.messagesEnabled,
+    required this.connectionStatus,
     required this.activePlan,
   });
 
@@ -27,6 +39,12 @@ class ProfessionalConnectionEntity extends Equatable {
         'professional_name': professionalName,
         'connected_at': connectedAt.toIso8601String(),
         'consent_accepted_at': consentAcceptedAt.toIso8601String(),
+        'last_plan_sync_at': lastPlanSyncAt?.toIso8601String(),
+        'last_snapshot_sync_at': lastSnapshotSyncAt?.toIso8601String(),
+        'pending_sync_count': pendingSyncCount,
+        'sharing_mode': sharingMode,
+        'messages_enabled': messagesEnabled,
+        'connection_status': connectionStatus,
         'active_plan': activePlan?.toJson(),
       };
 
@@ -42,6 +60,14 @@ class ProfessionalConnectionEntity extends Equatable {
       consentAcceptedAt:
           DateTime.tryParse(json['consent_accepted_at']?.toString() ?? '') ??
               DateTime.now(),
+      lastPlanSyncAt:
+          DateTime.tryParse(json['last_plan_sync_at']?.toString() ?? ''),
+      lastSnapshotSyncAt:
+          DateTime.tryParse(json['last_snapshot_sync_at']?.toString() ?? ''),
+      pendingSyncCount: _readInt(json['pending_sync_count']),
+      sharingMode: json['sharing_mode']?.toString() ?? 'detailed',
+      messagesEnabled: true,
+      connectionStatus: json['connection_status']?.toString() ?? 'active',
       activePlan: plan is Map
           ? NutritionPlanEntity.fromJson(Map<String, dynamic>.from(plan))
           : null,
@@ -49,6 +75,12 @@ class ProfessionalConnectionEntity extends Equatable {
   }
 
   ProfessionalConnectionEntity copyWith({
+    DateTime? lastPlanSyncAt,
+    DateTime? lastSnapshotSyncAt,
+    int? pendingSyncCount,
+    String? sharingMode,
+    bool? messagesEnabled,
+    String? connectionStatus,
     NutritionPlanEntity? activePlan,
   }) {
     return ProfessionalConnectionEntity(
@@ -58,8 +90,19 @@ class ProfessionalConnectionEntity extends Equatable {
       professionalName: professionalName,
       connectedAt: connectedAt,
       consentAcceptedAt: consentAcceptedAt,
+      lastPlanSyncAt: lastPlanSyncAt ?? this.lastPlanSyncAt,
+      lastSnapshotSyncAt: lastSnapshotSyncAt ?? this.lastSnapshotSyncAt,
+      pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+      sharingMode: sharingMode ?? this.sharingMode,
+      messagesEnabled: messagesEnabled ?? this.messagesEnabled,
+      connectionStatus: connectionStatus ?? this.connectionStatus,
       activePlan: activePlan ?? this.activePlan,
     );
+  }
+
+  static int _readInt(dynamic value) {
+    if (value is int) return value;
+    return int.tryParse(value?.toString() ?? '') ?? 0;
   }
 
   @override
@@ -70,6 +113,12 @@ class ProfessionalConnectionEntity extends Equatable {
         professionalName,
         connectedAt,
         consentAcceptedAt,
+        lastPlanSyncAt,
+        lastSnapshotSyncAt,
+        pendingSyncCount,
+        sharingMode,
+        messagesEnabled,
+        connectionStatus,
         activePlan,
       ];
 }

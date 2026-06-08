@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,7 +9,9 @@ import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/data/dbo/pending_snapshot_sync_dbo.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FakeSupabaseIdentityService extends Fake implements SupabaseIdentityService {
@@ -75,6 +78,30 @@ class FakePostgrestFilterBuilder<T> extends Fake implements PostgrestFilterBuild
   }
 }
 
+class StubProfessionalPlanDataSource extends ProfessionalPlanDataSource {
+  final ProfessionalMessageThreadEntity stubMessages;
+
+  StubProfessionalPlanDataSource({
+    required Box<dynamic> box,
+    required Box<PendingSnapshotSyncDBO> syncQueueBox,
+    required SupabaseClient supabaseClient,
+    required SupabaseIdentityService identityService,
+    required this.stubMessages,
+  }) : super(
+          box,
+          syncQueueBox,
+          supabaseClient,
+          identityService,
+        );
+
+  @override
+  Future<ProfessionalMessageThreadEntity> getMessages({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    return stubMessages;
+  }
+}
+
 void main() {
   group('ProfessionalPlan Sync Queue Tests', () {
     late Directory tempDir;
@@ -124,6 +151,12 @@ void main() {
         professionalName: 'Dr. John Doe',
         connectedAt: DateTime.now(),
         consentAcceptedAt: DateTime.now(),
+        lastPlanSyncAt: DateTime.now(),
+        lastSnapshotSyncAt: null,
+        pendingSyncCount: 0,
+        sharingMode: 'aggregate',
+        messagesEnabled: false,
+        connectionStatus: 'active',
         activePlan: null,
       );
 
@@ -238,6 +271,143 @@ void main() {
         hiveProvider.professionalPlanSyncQueueBox.get(pendingItem.id)?.relationshipId,
         'rel-123',
       );
+    });
+
+    test('markSectionSeen clears unseen plan badge state', () async {
+      final fakeSupabase = FakeSupabaseClient(
+        onUpsert: (data) async {},
+      );
+
+      final dataSource = ProfessionalPlanDataSource(
+        hiveProvider.professionalPlanBox,
+        hiveProvider.professionalPlanSyncQueueBox,
+        fakeSupabase,
+        FakeSupabaseIdentityService(),
+      );
+
+      final connection = ProfessionalConnectionEntity(
+        relationshipId: 'rel-999',
+        professionalId: 'pro-999',
+        clientId: 'user-999',
+        professionalName: 'Coach Studio',
+        connectedAt: DateTime.now(),
+        consentAcceptedAt: DateTime.now(),
+        lastPlanSyncAt: DateTime.now(),
+        lastSnapshotSyncAt: null,
+        pendingSyncCount: 0,
+        sharingMode: 'aggregate',
+        messagesEnabled: false,
+        connectionStatus: 'active',
+        activePlan: const NutritionPlanEntity(
+          id: 'plan-1',
+          professionalId: 'pro-999',
+          clientId: 'user-999',
+          name: 'Plan 1',
+          objective: 'general_fitness',
+          notes: null,
+          createdAt: null,
+          updatedAt: null,
+          startsOn: null,
+          endsOn: null,
+          days: [],
+          meals: [],
+        ),
+      );
+
+      await dataSource.saveActiveConnection(connection);
+
+      expect(await dataSource.getUnseenSectionCount(), 1);
+
+      await dataSource.markSectionSeen(connection: connection);
+
+      expect(await dataSource.getUnseenSectionCount(), 0);
+    });
+
+    test('unseen section count includes unread professional messages', () async {
+      final fakeSupabase = FakeSupabaseClient(
+        onUpsert: (data) async {},
+      );
+
+      final dataSource = StubProfessionalPlanDataSource(
+        box: hiveProvider.professionalPlanBox,
+        syncQueueBox: hiveProvider.professionalPlanSyncQueueBox,
+        supabaseClient: fakeSupabase,
+        identityService: FakeSupabaseIdentityService(),
+        stubMessages: ProfessionalMessageThreadEntity(
+          threadId: 'rel-msg',
+          isSupported: true,
+          messagesEnabled: true,
+          messages: [
+            ProfessionalMessageEntity(
+              id: 'msg-1',
+              authorRole: 'professional',
+              body: 'Primer mensaje',
+              createdAt: DateTime(2026, 6, 8, 8),
+              isRead: false,
+            ),
+            ProfessionalMessageEntity(
+              id: 'msg-2',
+              authorRole: 'professional',
+              body: 'Segundo mensaje',
+              createdAt: DateTime(2026, 6, 8, 9),
+              isRead: false,
+            ),
+          ],
+        ),
+      );
+
+      final connection = ProfessionalConnectionEntity(
+        relationshipId: 'rel-msg',
+        professionalId: 'pro-msg',
+        clientId: 'user-msg',
+        professionalName: 'Coach Studio',
+        connectedAt: DateTime.now(),
+        consentAcceptedAt: DateTime.now(),
+        lastPlanSyncAt: DateTime.now(),
+        lastSnapshotSyncAt: null,
+        pendingSyncCount: 0,
+        sharingMode: 'aggregate',
+        messagesEnabled: true,
+        connectionStatus: 'active',
+        activePlan: null,
+      );
+
+      await dataSource.saveActiveConnection(connection);
+
+      expect(await dataSource.getUnseenSectionCount(), 2);
+
+      await dataSource.markSectionSeen(connection: connection);
+
+      expect(await dataSource.getUnseenSectionCount(), 0);
+    });
+
+    test('parseMessageRow maps professional_client_messages rows', () {
+      final parsed = ProfessionalPlanDataSource.parseMessageRow({
+        'id': 'msg-remote-1',
+        'author_role': 'professional',
+        'body': 'Revisa el nuevo objetivo de hoy.',
+        'created_at': '2026-06-08T07:30:00Z',
+        'client_read_at': null,
+      });
+
+      expect(parsed, isNotNull);
+      expect(parsed!.id, 'msg-remote-1');
+      expect(parsed.authorRole, 'professional');
+      expect(parsed.body, 'Revisa el nuevo objetivo de hoy.');
+      expect(parsed.createdAt, DateTime.parse('2026-06-08T07:30:00Z'));
+      expect(parsed.isRead, false);
+    });
+
+    test('parseMessageRow treats client-authored messages as already read', () {
+      final parsed = ProfessionalPlanDataSource.parseMessageRow({
+        'id': 'msg-client-1',
+        'author_role': 'client',
+        'body': 'Gracias, lo reviso.',
+        'created_at': '2026-06-08T08:00:00Z',
+      });
+
+      expect(parsed, isNotNull);
+      expect(parsed!.isRead, true);
     });
   });
 }

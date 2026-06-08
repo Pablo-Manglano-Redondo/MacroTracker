@@ -88,7 +88,14 @@ import 'package:macrotracker/features/professional_plan/data/data_source/profess
 import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/disconnect_professional_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_messages_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_section_summary_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_sharing_scope_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_unseen_section_count_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_section_seen_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_message_read_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/send_professional_message_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
@@ -318,6 +325,24 @@ Future<void> initLocator() async {
           ));
   locator.registerLazySingleton<GetProfessionalPlanUsecase>(
       () => GetProfessionalPlanUsecase(locator()));
+  locator.registerLazySingleton<GetProfessionalSectionSummaryUsecase>(
+      () => GetProfessionalSectionSummaryUsecase(
+            locator(),
+            locator(),
+            locator(),
+          ));
+  locator.registerLazySingleton<GetProfessionalMessagesUsecase>(
+      () => GetProfessionalMessagesUsecase(locator()));
+  locator.registerLazySingleton<GetProfessionalUnseenSectionCountUsecase>(
+      () => GetProfessionalUnseenSectionCountUsecase(locator()));
+  locator.registerLazySingleton<MarkProfessionalMessageReadUsecase>(
+      () => MarkProfessionalMessageReadUsecase(locator()));
+  locator.registerLazySingleton<SendProfessionalMessageUsecase>(
+      () => SendProfessionalMessageUsecase(locator()));
+  locator.registerLazySingleton<MarkProfessionalSectionSeenUsecase>(
+      () => MarkProfessionalSectionSeenUsecase(locator()));
+  locator.registerLazySingleton<GetProfessionalSharingScopeUsecase>(
+      () => GetProfessionalSharingScopeUsecase(locator()));
   locator.registerLazySingleton<AcceptProfessionalInviteUsecase>(
       () => AcceptProfessionalInviteUsecase(locator()));
   locator.registerLazySingleton<DisconnectProfessionalUsecase>(

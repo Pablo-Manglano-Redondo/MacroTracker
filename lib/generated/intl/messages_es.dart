@@ -148,6 +148,21 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m58(age) => "${age} años";
 
+  static String m59(count) =>
+      "Tu nutricionista ve el nivel real de comparticion activo. Si hay ${count} resumenes pendientes, se enviaran cuando vuelva la conexion.";
+
+  static String m60(date) => "Consentimiento activo desde ${date}.";
+
+  static String m61(kcal) => "${kcal} kcal hoy";
+
+  static String m62(count) => "${count} pendientes";
+
+  static String m63(count) => "Mensajes (${count})";
+
+  static String m64(percent) => "Adherencia estimada: ${percent}%";
+
+  static String m65(date) => "Ultimo sync del plan: ${date}";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -1454,6 +1469,200 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Comidas más frecuentes"),
         "weeklyInsightsTrackedDays": m56,
         "weeklyInsightsTrend": m57,
+        "professionalAcceptAndConnect":
+            MessageLookupByLibrary.simpleMessage("Aceptar y conectar"),
+        "professionalActionRefreshSection":
+            MessageLookupByLibrary.simpleMessage("Actualizar seccion"),
+        "professionalActionRevokeAccess":
+            MessageLookupByLibrary.simpleMessage("Revocar acceso"),
+        "professionalConnectedNoPlan":
+            MessageLookupByLibrary.simpleMessage("Conexion activa, sin plan publicado"),
+        "professionalConsentNotSharedToday":
+            MessageLookupByLibrary.simpleMessage("Que no se comparte hoy"),
+        "professionalConsentNotSharedTodayBody":
+            MessageLookupByLibrary.simpleMessage(
+                "diario bruto completo, detalle por comida y chat bidireccional"),
+        "professionalConsentRevokeHint": MessageLookupByLibrary.simpleMessage(
+            "Puedes revocar el acceso en cualquier momento desde la seccion de privacidad."),
+        "professionalConsentSharedToday":
+            MessageLookupByLibrary.simpleMessage("Que se comparte hoy"),
+        "professionalConsentSharedTodayBody":
+            MessageLookupByLibrary.simpleMessage(
+                "kcal, macros, comidas registradas y adherencia agregada por dia"),
+        "professionalDisconnectBody": MessageLookupByLibrary.simpleMessage(
+            "Se revocara el acceso, desaparecera la seccion y se detendra la sincronizacion agregada pendiente."),
+        "professionalDisconnectTitle":
+            MessageLookupByLibrary.simpleMessage("Revocar acceso profesional"),
+        "professionalEmptyPlanBody": MessageLookupByLibrary.simpleMessage(
+            "Tu nutricionista ya esta conectado contigo, pero aun no ha publicado un plan activo. Cuando lo haga, esta seccion mostrara objetivos por dia, seguimiento y comidas sugeridas."),
+        "professionalEmptyPlanSync": m65,
+        "professionalErrorAction": MessageLookupByLibrary.simpleMessage(
+            "No se pudo completar la accion. Intentalo de nuevo."),
+        "professionalErrorCloudIdentity": MessageLookupByLibrary.simpleMessage(
+            "No se pudo crear la identidad cloud necesaria para conectar el plan."),
+        "professionalErrorOffline": MessageLookupByLibrary.simpleMessage(
+            "No se pudo conectar. Revisa la conexion e intentalo de nuevo."),
+        "professionalHeroConnectTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Conecta con tu nutricionista"),
+        "professionalHeroConnectedTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Tu espacio paciente-profesional"),
+        "professionalHubKcalToday": m61,
+        "professionalHubNoOfflineQueue":
+            MessageLookupByLibrary.simpleMessage("Sin cola offline"),
+        "professionalHubNoPublishedPlan":
+            MessageLookupByLibrary.simpleMessage(
+                "Conexion activa sin plan publicado"),
+        "professionalHubNoTodayTarget":
+            MessageLookupByLibrary.simpleMessage("Sin objetivo hoy"),
+        "professionalHubPendingCount": m62,
+        "professionalInviteCodeLabel":
+            MessageLookupByLibrary.simpleMessage("Codigo de invitacion"),
+        "professionalInviteDebugAction":
+            MessageLookupByLibrary.simpleMessage("Usar invitacion debug"),
+        "professionalInviteExpired":
+            MessageLookupByLibrary.simpleMessage("La invitacion ha expirado."),
+        "professionalInviteNotFound": MessageLookupByLibrary.simpleMessage(
+            "No se ha encontrado una invitacion pendiente con ese codigo."),
+        "professionalInvitePillClearPrivacy":
+            MessageLookupByLibrary.simpleMessage("Privacidad clara"),
+        "professionalInvitePillConsent":
+            MessageLookupByLibrary.simpleMessage("Consentimiento"),
+        "professionalInvitePillInvite":
+            MessageLookupByLibrary.simpleMessage("Invitacion"),
+        "professionalInviteReviewAction":
+            MessageLookupByLibrary.simpleMessage("Revisar invitacion"),
+        "professionalInviteSectionBody": MessageLookupByLibrary.simpleMessage(
+            "Necesitas invitacion y consentimiento. Veras seguimiento profesional, plan, privacidad y control de acceso sin mezclarlo con Google Drive."),
+        "professionalInviteSectionTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Activa la seccion Nutricionista"),
+        "professionalMacroCarbs":
+            MessageLookupByLibrary.simpleMessage("Carbos"),
+        "professionalMacroFat": MessageLookupByLibrary.simpleMessage("Grasa"),
+        "professionalMacroProtein":
+            MessageLookupByLibrary.simpleMessage("Proteina"),
+        "professionalMessagesMarkRead":
+            MessageLookupByLibrary.simpleMessage("Marcar leido"),
+        "professionalMessagesTabWithCount": m63,
+        "professionalMessagesUnavailableBody":
+            MessageLookupByLibrary.simpleMessage(
+                "La interfaz ya esta preparada, pero el backend de mensajeria asincrona todavia no esta disponible en esta version."),
+        "professionalMessagesUnavailableHint":
+            MessageLookupByLibrary.simpleMessage(
+                "Por ahora recibiras cambios de plan y seguimiento desde el resto de esta seccion."),
+        "professionalNever": MessageLookupByLibrary.simpleMessage("Nunca"),
+        "professionalOpeningGoogle":
+            MessageLookupByLibrary.simpleMessage("Abriendo Google"),
+        "professionalPlanSuggestedMeals":
+            MessageLookupByLibrary.simpleMessage("Comidas sugeridas"),
+        "professionalPlanWeeklyView":
+            MessageLookupByLibrary.simpleMessage("Vista semanal"),
+        "professionalPrivacyAccessControl":
+            MessageLookupByLibrary.simpleMessage("Control de acceso"),
+        "professionalPrivacyAccessControlBody":
+            MessageLookupByLibrary.simpleMessage(
+                "Si revocas el acceso, desaparece esta seccion y el profesional deja de recibir nuevos resumenes."),
+        "professionalPrivacyAggregateDailyAdherence":
+            MessageLookupByLibrary.simpleMessage("adherencia diaria agregada"),
+        "professionalPrivacyAggregateOnly":
+            MessageLookupByLibrary.simpleMessage("Solo agregados"),
+        "professionalPrivacyAggregateTargets":
+            MessageLookupByLibrary.simpleMessage(
+                "objetivos y registrado por kcal y macros en formato agregado"),
+        "professionalPrivacyAggregateTrackedDaysMeals":
+            MessageLookupByLibrary.simpleMessage(
+                "dias con seguimiento y numero de comidas registradas"),
+        "professionalPrivacyConsentSince": m60,
+        "professionalPrivacyCurrentLevel":
+            MessageLookupByLibrary.simpleMessage("Nivel actual de datos compartidos"),
+        "professionalPrivacyNextAvailable":
+            MessageLookupByLibrary.simpleMessage("Proximo nivel disponible"),
+        "professionalPrivacyNotSharedYet":
+            MessageLookupByLibrary.simpleMessage("No se comparte hoy"),
+        "professionalPrivacyPerMealDetail":
+            MessageLookupByLibrary.simpleMessage(
+                "detalle completo por comida o slot"),
+        "professionalPrivacyPerMealDetailWhenReady":
+            MessageLookupByLibrary.simpleMessage(
+                "detalle por comida cuando backend, legal y consentimiento esten listos"),
+        "professionalPrivacyRawDiary":
+            MessageLookupByLibrary.simpleMessage("tu diario bruto completo"),
+        "professionalPrivacyRealtimeMessages":
+            MessageLookupByLibrary.simpleMessage(
+                "mensajeria bidireccional en tiempo real"),
+        "professionalPrivacySharedNow":
+            MessageLookupByLibrary.simpleMessage("Se comparte hoy"),
+        "professionalProtectAccountAction":
+            MessageLookupByLibrary.simpleMessage("Guardar con Google"),
+        "professionalProtectAccountBody": MessageLookupByLibrary.simpleMessage(
+            "Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Asi podras recuperar la cuenta y mantener el consentimiento si cambias de movil. Esto no activa Google Drive."),
+        "professionalProtectAccountOpenError":
+            MessageLookupByLibrary.simpleMessage("No se pudo abrir Google."),
+        "professionalProtectAccountReturnHint":
+            MessageLookupByLibrary.simpleMessage(
+                "Completa Google y vuelve para aceptar la invitacion."),
+        "professionalProtectAccountTitle":
+            MessageLookupByLibrary.simpleMessage("Guarda tu cuenta"),
+        "professionalRevokeNow":
+            MessageLookupByLibrary.simpleMessage("Revocar acceso ahora"),
+        "professionalScreenTitle":
+            MessageLookupByLibrary.simpleMessage("Nutricionista"),
+        "professionalSectionConnectSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Activa esta seccion con invitacion y consentimiento. Aqui veras plan, seguimiento, privacidad y mensajes."),
+        "professionalSectionConnectedSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Aqui controlas tu plan, el seguimiento real, la privacidad compartida y las notas del profesional."),
+        "professionalSectionLoadErrorTitle":
+            MessageLookupByLibrary.simpleMessage("No se pudo cargar la seccion completa"),
+        "professionalSectionRetryHint":
+            MessageLookupByLibrary.simpleMessage("Intenta actualizar de nuevo."),
+        "professionalSharingPendingSnapshots": m59,
+        "professionalStatusConnected":
+            MessageLookupByLibrary.simpleMessage("Conexion activa"),
+        "professionalStatusInviteOnly":
+            MessageLookupByLibrary.simpleMessage("Solo por invitacion"),
+        "professionalSummaryActivePlan":
+            MessageLookupByLibrary.simpleMessage("Plan activo"),
+        "professionalSummaryConnectionStatus":
+            MessageLookupByLibrary.simpleMessage("Estado de conexion"),
+        "professionalSummaryLastPlanUpdate":
+            MessageLookupByLibrary.simpleMessage("Ultima actualizacion del plan"),
+        "professionalSummaryLastSnapshot":
+            MessageLookupByLibrary.simpleMessage("Ultimo resumen enviado"),
+        "professionalSummaryNoPlan":
+            MessageLookupByLibrary.simpleMessage("Sin plan"),
+        "professionalSummaryOfflineQueue":
+            MessageLookupByLibrary.simpleMessage("Cola offline"),
+        "professionalSummaryPending":
+            MessageLookupByLibrary.simpleMessage("Pendiente"),
+        "professionalSummaryTodayTarget":
+            MessageLookupByLibrary.simpleMessage("Objetivo hoy"),
+        "professionalTabMessages":
+            MessageLookupByLibrary.simpleMessage("Mensajes"),
+        "professionalTabPlan": MessageLookupByLibrary.simpleMessage("Plan"),
+        "professionalTabPrivacy":
+            MessageLookupByLibrary.simpleMessage("Privacidad"),
+        "professionalTabSummary":
+            MessageLookupByLibrary.simpleMessage("Resumen"),
+        "professionalTabTracking":
+            MessageLookupByLibrary.simpleMessage("Seguimiento"),
+        "professionalTrackingEstimatedAdherence": m64,
+        "professionalTrackingFollowUpDays":
+            MessageLookupByLibrary.simpleMessage("Dias con seguimiento"),
+        "professionalTrackingMealsLogged":
+            MessageLookupByLibrary.simpleMessage("Comidas registradas"),
+        "professionalTrackingTodayTitle":
+            MessageLookupByLibrary.simpleMessage("Seguimiento de hoy"),
+        "professionalTrackingTrackedDays":
+            MessageLookupByLibrary.simpleMessage("Dias con datos"),
+        "professionalTrackingWeekTitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Semana actual: plan vs realidad"),
+        "professionalWeekNoTarget":
+            MessageLookupByLibrary.simpleMessage("Sin objetivo"),
+        "professionalWeekTemplate":
+            MessageLookupByLibrary.simpleMessage("template"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Peso"),
         "yearsLabel": m58
       };

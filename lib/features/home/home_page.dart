@@ -18,12 +18,12 @@ import 'package:macrotracker/features/home/presentation/widgets/body_progress_ca
 import 'package:macrotracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:macrotracker/features/home/presentation/widgets/gym_habits_card.dart';
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
-import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
-import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_plan_card.dart';
 import 'package:macrotracker/features/home/presentation/widgets/quick_gym_meals_card.dart';
 import 'package:macrotracker/features/suggestions/presentation/macro_suggestions_card.dart';
 import 'package:macrotracker/features/weekly_insights/presentation/weekly_insights_screen.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_plan_card.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -91,10 +91,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               state.snackIntakeList,
               state.userActivityList,
               state.usesImperialUnits,
-              state.professionalPlanSummary,
               state.targetSteps,
               state.targetSleepHours,
-              state.targetWaterLiters);
+              state.targetWaterLiters,
+              state.activeConnection);
         } else {
           return _getLoadingContent();
         }
@@ -230,10 +230,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       List<IntakeEntity> snackIntakeList,
       List<UserActivityEntity> userActivities,
       bool usesImperialUnits,
-      ProfessionalPlanSummaryEntity? professionalPlanSummary,
       int? targetSteps,
       double? targetSleepHours,
-      double? targetWaterLiters) {
+      double? targetWaterLiters,
+      ProfessionalConnectionEntity? activeConnection) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
     }
@@ -290,14 +290,35 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         snackIntakeList.length,
                     sessionsLogged: userActivities.length,
                   ),
-
-                  if (professionalPlanSummary != null)
+                  if (activeConnection != null)
                     ProfessionalPlanCard(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                      summary: professionalPlanSummary,
-                      onOpenPlan: () => Navigator.of(context).pushNamed(
-                        NavigationOptions.professionalPlanRoute,
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                      summary: ProfessionalPlanSummaryEntity(
+                        professionalName: activeConnection.professionalName,
+                        planName: activeConnection.activePlan?.name ?? '',
+                        kcalTarget: totalKcalDaily,
+                        kcalActual: totalKcalSupplied,
+                        carbsTarget: totalCarbsGoal,
+                        carbsActual: totalCarbsIntake,
+                        fatTarget: totalFatsGoal,
+                        fatActual: totalFatsIntake,
+                        proteinTarget: totalProteinsGoal,
+                        proteinActual: totalProteinsIntake,
                       ),
+                      onOpenPlan: () {
+                        Navigator.of(context).pushNamed(
+                          NavigationOptions.professionalPlanRoute,
+                        );
+                      },
+                    )
+                  else
+                    _ConnectNutritionistPromoCard(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          NavigationOptions.professionalPlanRoute,
+                        );
+                      },
                     ),
                   const SizedBox(height: 25.0),
                   _HomeSectionHeader(
@@ -953,6 +974,110 @@ class _WeeklyInsightsCard extends StatelessWidget {
                 size: 20,
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ConnectNutritionistPromoCard extends StatelessWidget {
+  final EdgeInsetsGeometry padding;
+  final VoidCallback onTap;
+
+  const _ConnectNutritionistPromoCard({
+    required this.padding,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    return Padding(
+      padding: padding,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(
+            color: colorScheme.primary.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
+        ),
+        color: Color.alphaBlend(
+          colorScheme.primary.withValues(alpha: 0.04),
+          colorScheme.surface,
+        ),
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                  ),
+                  alignment: Alignment.center,
+                  child: Icon(
+                    Icons.verified_user_outlined,
+                    color: colorScheme.primary,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isEs ? '¿Trabajas con un nutricionista?' : 'Working with a nutritionist?',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.15,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        isEs
+                            ? 'Sincroniza tus macros, recibe planes de comidas personalizados y chatea directamente.'
+                            : 'Sync macros, get tailored meal guides, and chat directly with your professional.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          height: 1.35,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Text(
+                            isEs ? 'Vincular cuenta' : 'Connect account',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: colorScheme.primary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

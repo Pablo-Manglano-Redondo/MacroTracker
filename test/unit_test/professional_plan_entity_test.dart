@@ -12,6 +12,8 @@ void main() {
         name: 'Cut week',
         objective: 'general_fitness',
         notes: null,
+        createdAt: null,
+        updatedAt: null,
         startsOn: null,
         endsOn: null,
         days: const [
@@ -41,6 +43,38 @@ void main() {
       expect(target?.proteinGoal, 170);
     });
 
+    test('builds a consumable weekly view with weekday fallback', () {
+      final plan = NutritionPlanEntity(
+        id: 'plan-1',
+        professionalId: 'pro-1',
+        clientId: 'client-1',
+        name: 'Week template',
+        objective: 'general_fitness',
+        notes: null,
+        createdAt: null,
+        updatedAt: null,
+        startsOn: null,
+        endsOn: null,
+        days: const [
+          NutritionPlanDayEntity(
+            dateKey: null,
+            weekday: DateTime.monday,
+            kcalGoal: 2100,
+            carbsGoal: 240,
+            fatGoal: 65,
+            proteinGoal: 155,
+          ),
+        ],
+        meals: const [],
+      );
+
+      final week = plan.weekView(anchorDate: DateTime(2026, 6, 3));
+
+      expect(week, hasLength(7));
+      expect(week.first.target?.kcalGoal, 2100);
+      expect(week.first.usesWeekdayFallback, true);
+    });
+
     test('falls back to weekday target and then first target', () {
       final plan = NutritionPlanEntity(
         id: 'plan-1',
@@ -49,6 +83,8 @@ void main() {
         name: 'Week template',
         objective: 'general_fitness',
         notes: null,
+        createdAt: null,
+        updatedAt: null,
         startsOn: null,
         endsOn: null,
         days: const [
@@ -76,6 +112,8 @@ void main() {
         'name': 'Performance week',
         'objective': 'general_fitness',
         'notes': 'Keep meals simple',
+        'created_at': '2026-05-31T08:00:00Z',
+        'updated_at': '2026-06-01T09:30:00Z',
         'starts_on': '2026-06-01',
         'ends_on': '2026-06-07',
         'days': [
@@ -105,8 +143,43 @@ void main() {
 
       expect(cached.id, 'plan-1');
       expect(cached.startsOn, DateTime(2026, 6, 1));
+      expect(cached.updatedAt, DateTime.parse('2026-06-01T09:30:00Z'));
       expect(cached.days.single.carbsGoal, 280);
       expect(cached.meals.single.title, 'Yogurt bowl');
+    });
+
+    test('builds stable cache signature from plan metadata', () {
+      final versionedPlan = NutritionPlanEntity.fromJson({
+        'id': 'plan-1',
+        'professional_id': 'pro-1',
+        'client_id': 'client-1',
+        'name': 'Performance week',
+        'objective': 'general_fitness',
+        'created_at': '2026-05-31T08:00:00Z',
+        'updated_at': '2026-06-01T09:30:00Z',
+        'days': const [],
+        'meals': const [],
+      });
+      const fallbackPlan = NutritionPlanEntity(
+        id: 'plan-1',
+        professionalId: 'pro-1',
+        clientId: 'client-1',
+        name: 'Performance week',
+        objective: 'general_fitness',
+        notes: null,
+        createdAt: null,
+        updatedAt: null,
+        startsOn: null,
+        endsOn: null,
+        days: [],
+        meals: [],
+      );
+
+      expect(
+        versionedPlan.cacheSignature,
+        'plan-1|2026-06-01T09:30:00.000Z',
+      );
+      expect(fallbackPlan.cacheSignature, 'plan-1|||0|0');
     });
   });
 
@@ -119,6 +192,12 @@ void main() {
         'professional_name': 'Coach Studio',
         'connected_at': '2026-06-01T10:00:00Z',
         'consent_accepted_at': '2026-06-01T10:00:01Z',
+        'last_plan_sync_at': '2026-06-01T10:05:00Z',
+        'last_snapshot_sync_at': '2026-06-01T10:06:00Z',
+        'pending_sync_count': 2,
+        'sharing_mode': 'aggregate',
+        'messages_enabled': false,
+        'connection_status': 'active',
         'active_plan': {
           'id': 'plan-1',
           'professional_id': 'pro-1',
@@ -134,6 +213,7 @@ void main() {
 
       expect(cached.relationshipId, 'rel-1');
       expect(cached.professionalName, 'Coach Studio');
+      expect(cached.pendingSyncCount, 2);
       expect(cached.activePlan?.name, 'Starter plan');
     });
 

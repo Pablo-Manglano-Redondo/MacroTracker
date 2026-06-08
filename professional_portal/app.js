@@ -1,6 +1,7 @@
 let client;
 let session;
 let professional;
+let selectedClientRow = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -55,7 +56,7 @@ function renderAuthState() {
   $('billing-panel').hidden = !signedIn;
   $('invite-panel').hidden = !signedIn;
   $('clients-panel').hidden = !signedIn;
-  $('plan-panel').hidden = !signedIn;
+  if (!signedIn) closeClientDetail();
 }
 
 async function loadProfile() {
@@ -144,16 +145,44 @@ async function loadClients() {
   $('clients').innerHTML = '<p class="muted">Loading connected clients...</p>';
   const { data, error } = await client
     .from('professional_clients')
-    .select('id, client_id, status, connected_at, client_shared_snapshots(*)')
+    .select('id, client_id, status, connected_at, sharing_mode, messages_enabled, client_shared_snapshots(*)')
     .eq('professional_id', professional.id)
     .order('connected_at', { ascending: false });
   if (error) return alert(error.message);
-  $('clients').innerHTML =
-    (data || []).map(renderClient).join('') ||
-    '<p class="muted">No connected clients yet.</p>';
+  
+  if (!data || data.length === 0) {
+    $('clients').innerHTML = '<p class="muted">No connected clients yet.</p>';
+    return;
+  }
+  
+  // Also load unread messages count per client.
+  const { data: messagesData } = await client
+    .from('professional_client_messages')
+    .select('professional_client_id, id')
+    .eq('professional_id', professional.id)
+    .eq('author_role', 'client')
+    .is('professional_read_at', null);
+    
+  const unreadPerRelationship = {};
+  if (messagesData) {
+    for (const m of messagesData) {
+      unreadPerRelationship[m.professional_client_id] = (unreadPerRelationship[m.professional_client_id] || 0) + 1;
+    }
+  }
+
+  $('clients').innerHTML = data.map(row => {
+    const unreadCount = unreadPerRelationship[row.id] || 0;
+    return renderClient(row, unreadCount);
+  }).join('');
+  
+  // Attach event listeners to new row buttons
+  data.forEach(row => {
+    const btn = document.getElementById(`btn-select-client-${row.id}`);
+    if (btn) btn.addEventListener('click', () => selectClient(row));
+  });
 }
 
-function renderClient(row) {
+function renderClient(row, unreadCount) {
   const latest = (row.client_shared_snapshots || []).sort((a, b) =>
     String(b.snapshot_date).localeCompare(String(a.snapshot_date))
   )[0];
@@ -163,17 +192,127 @@ function renderClient(row) {
   const clientId = escapeHtml(row.client_id);
   const status = escapeHtml(row.status);
   const connected = new Date(row.connected_at).toLocaleDateString();
+  const unreadBadge = unreadCount > 0 ? `<span class="badge error">${unreadCount} new</span>` : '';
+  
   return `<div class="client">
-    <strong>${clientId}</strong>
+    <strong>${clientId} ${unreadBadge}</strong>
     <span class="muted">${status} · ${connected}</span>
     <span class="client-snapshot">${summary}</span>
-    <button onclick="selectClient('${clientId}')">Create plan</button>
+    <button id="btn-select-client-${row.id}">View Client</button>
   </div>`;
 }
 
-function selectClient(clientId) {
-  $('plan-client-id').value = clientId;
+async function selectClient(row) {
+  selectedClientRow = row;
+  $('plan-client-id').value = row.client_id;
+  $('detail-client-name').textContent = `Client: ${row.client_id}`;
+  $('detail-client-status').textContent = `Status: ${row.status} · Sharing: ${row.sharing_mode} · Messages: ${row.messages_enabled ? 'Enabled' : 'Disabled'}`;
+  
+  $('client-detail-section').hidden = false;
   window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  
+  renderSnapshotsHistory(row.client_shared_snapshots || []);
+  if (row.messages_enabled) {
+    $('messages-panel').hidden = false;
+    await loadClientMessages(row.id);
+  } else {
+    $('messages-panel').hidden = true;
+  }
+}
+
+function closeClientDetail() {
+  selectedClientRow = null;
+  $('client-detail-section').hidden = true;
+}
+
+function renderSnapshotsHistory(snapshots) {
+  const container = $('client-snapshots-list');
+  if (!snapshots || snapshots.length === 0) {
+    container.innerHTML = '<p class="muted">No shared snapshots yet.</p>';
+    return;
+  }
+  const sorted = [...snapshots].sort((a, b) => String(b.snapshot_date).localeCompare(String(a.snapshot_date)));
+  
+  container.innerHTML = sorted.map(s => {
+    return `<div class="snapshot-card">
+      <strong>${escapeHtml(s.snapshot_date)}</strong>
+      <span>Kcal: ${Math.round(s.kcal_actual)} / ${Math.round(s.kcal_target)}</span>
+      <span>Protein: ${Math.round(s.protein_actual)} / ${Math.round(s.protein_target)}</span>
+      <span>Fat: ${Math.round(s.fat_actual)} / ${Math.round(s.fat_target)}</span>
+      <span>Carbs: ${Math.round(s.carbs_actual)} / ${Math.round(s.carbs_target)}</span>
+    </div>`;
+  }).join('');
+}
+
+async function loadClientMessages(relationshipId) {
+  const container = $('chat-messages');
+  container.innerHTML = '<p class="muted">Loading chat...</p>';
+  
+  const { data, error } = await client
+    .from('professional_client_messages')
+    .select('*')
+    .eq('professional_client_id', relationshipId)
+    .order('created_at', { ascending: true });
+    
+  if (error) {
+    container.innerHTML = `<p class="error">Failed to load chat: ${escapeHtml(error.message)}</p>`;
+    return;
+  }
+  
+  if (!data || data.length === 0) {
+    container.innerHTML = '<p class="muted">No messages yet.</p>';
+    return;
+  }
+  
+  container.innerHTML = data.map(m => {
+    const isProfessional = m.author_role === 'professional';
+    const msgClass = isProfessional ? 'chat-msg self' : 'chat-msg client';
+    return `<div class="${msgClass}">
+      <p class="body">${escapeHtml(m.body)}</p>
+      <small>${new Date(m.created_at).toLocaleString()}</small>
+    </div>`;
+  }).join('');
+  
+  container.scrollTop = container.scrollHeight;
+  
+  // Mark unread messages logically as read
+  const unreadFromClient = data.filter(m => m.author_role === 'client' && !m.professional_read_at);
+  if (unreadFromClient.length > 0) {
+    await markMessagesAsReadDialog(unreadFromClient.map(m => m.id));
+    loadClients(); // async reload listing badge
+  }
+}
+
+async function markMessagesAsReadDialog(messageIds) {
+  const { error } = await client
+    .from('professional_client_messages')
+    .update({ professional_read_at: new Date().toISOString() })
+    .in('id', messageIds);
+  if (error) console.error('Error marking as read:', error);
+}
+
+async function sendChatMessage() {
+  if (!selectedClientRow) return;
+  const input = $('chat-input');
+  const body = input.value.trim();
+  if (!body) return;
+  
+  const { error } = await client
+    .from('professional_client_messages')
+    .insert({
+      professional_client_id: selectedClientRow.id,
+      professional_id: professional.id,
+      client_id: selectedClientRow.client_id,
+      author_role: 'professional',
+      body: body
+    });
+    
+  if (error) {
+    alert(error.message);
+  } else {
+    input.value = '';
+    await loadClientMessages(selectedClientRow.id);
+  }
 }
 
 function showCheckoutResult() {
@@ -285,6 +424,11 @@ $('save-profile').addEventListener('click', saveProfile);
 $('create-invite').addEventListener('click', createInvite);
 $('refresh').addEventListener('click', loadClients);
 $('create-plan').addEventListener('click', createPlan);
+$('close-client-detail').addEventListener('click', closeClientDetail);
+$('send-message-btn').addEventListener('click', sendChatMessage);
+$('chat-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendChatMessage();
+});
 document.querySelectorAll('.checkout').forEach((button) => {
   button.addEventListener('click', startCheckout);
 });

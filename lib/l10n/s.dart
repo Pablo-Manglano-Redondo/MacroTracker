@@ -3555,6 +3555,570 @@ abstract class AppLocalizations {
   /// **'Daily adjustment updated to {kcal} kcal.'**
   String weeklyInsightsAdjustmentSuccess(Object kcal);
 
+  /// No description provided for @professionalSectionConnectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages.'**
+  String get professionalSectionConnectSubtitle;
+
+  /// No description provided for @professionalSectionConnectedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This is where you control your plan, real follow-up, shared privacy, and professional notes.'**
+  String get professionalSectionConnectedSubtitle;
+
+  /// No description provided for @professionalSectionLoadErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the full section'**
+  String get professionalSectionLoadErrorTitle;
+
+  /// No description provided for @professionalSectionRetryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Try refreshing again.'**
+  String get professionalSectionRetryHint;
+
+  /// No description provided for @professionalPrivacyCurrentLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current shared data level'**
+  String get professionalPrivacyCurrentLevel;
+
+  /// No description provided for @professionalRevokeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke access now'**
+  String get professionalRevokeNow;
+
+  /// No description provided for @professionalConnectedNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected, no plan published'**
+  String get professionalConnectedNoPlan;
+
+  /// No description provided for @professionalStatusInviteOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite only'**
+  String get professionalStatusInviteOnly;
+
+  /// No description provided for @professionalStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get professionalStatusConnected;
+
+  /// No description provided for @professionalTabSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Summary'**
+  String get professionalTabSummary;
+
+  /// No description provided for @professionalSummaryActivePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Active plan'**
+  String get professionalSummaryActivePlan;
+
+  /// No description provided for @professionalSummaryNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No plan'**
+  String get professionalSummaryNoPlan;
+
+  /// No description provided for @professionalSummaryTodayTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Today target'**
+  String get professionalSummaryTodayTarget;
+
+  /// No description provided for @professionalSummaryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get professionalSummaryPending;
+
+  /// No description provided for @professionalSummaryOfflineQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline queue'**
+  String get professionalSummaryOfflineQueue;
+
+  /// No description provided for @professionalActionRefreshSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh section'**
+  String get professionalActionRefreshSection;
+
+  /// No description provided for @professionalActionRevokeAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke access'**
+  String get professionalActionRevokeAccess;
+
+  /// No description provided for @professionalScreenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nutrition coach'**
+  String get professionalScreenTitle;
+
+  /// No description provided for @professionalHeroConnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect with your nutrition coach'**
+  String get professionalHeroConnectTitle;
+
+  /// No description provided for @professionalHeroConnectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your patient-professional section'**
+  String get professionalHeroConnectedTitle;
+
+  /// No description provided for @professionalInviteNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending invite was found for that code.'**
+  String get professionalInviteNotFound;
+
+  /// No description provided for @professionalInviteExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'This invite has expired.'**
+  String get professionalInviteExpired;
+
+  /// No description provided for @professionalProtectAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your account'**
+  String get professionalProtectAccountTitle;
+
+  /// No description provided for @professionalProtectAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.'**
+  String get professionalProtectAccountBody;
+
+  /// No description provided for @professionalProtectAccountAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Link Google'**
+  String get professionalProtectAccountAction;
+
+  /// No description provided for @professionalProtectAccountReturnHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Google and return to accept the invite.'**
+  String get professionalProtectAccountReturnHint;
+
+  /// No description provided for @professionalProtectAccountOpenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open Google.'**
+  String get professionalProtectAccountOpenError;
+
+  /// No description provided for @professionalDisconnectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke professional access'**
+  String get professionalDisconnectTitle;
+
+  /// No description provided for @professionalDisconnectBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Access will be revoked, this section will disappear, and aggregate sync will stop.'**
+  String get professionalDisconnectBody;
+
+  /// No description provided for @professionalSummaryLastPlanUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Last plan update'**
+  String get professionalSummaryLastPlanUpdate;
+
+  /// No description provided for @professionalSummaryLastSnapshot.
+  ///
+  /// In en, this message translates to:
+  /// **'Last snapshot sent'**
+  String get professionalSummaryLastSnapshot;
+
+  /// No description provided for @professionalSummaryConnectionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection status'**
+  String get professionalSummaryConnectionStatus;
+
+  /// No description provided for @professionalMacroProtein.
+  ///
+  /// In en, this message translates to:
+  /// **'Protein'**
+  String get professionalMacroProtein;
+
+  /// No description provided for @professionalMacroCarbs.
+  ///
+  /// In en, this message translates to:
+  /// **'Carbs'**
+  String get professionalMacroCarbs;
+
+  /// No description provided for @professionalMacroFat.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat'**
+  String get professionalMacroFat;
+
+  /// No description provided for @professionalSharingPendingSnapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Your coach sees the real active sharing level. If there are {count} pending snapshots, they will sync when connectivity returns.'**
+  String professionalSharingPendingSnapshots(Object count);
+
+  /// No description provided for @professionalPlanWeeklyView.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly view'**
+  String get professionalPlanWeeklyView;
+
+  /// No description provided for @professionalPlanSuggestedMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested meals'**
+  String get professionalPlanSuggestedMeals;
+
+  /// No description provided for @professionalTrackingTodayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Today follow-up'**
+  String get professionalTrackingTodayTitle;
+
+  /// No description provided for @professionalTrackingMealsLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Meals logged'**
+  String get professionalTrackingMealsLogged;
+
+  /// No description provided for @professionalTrackingTrackedDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked days'**
+  String get professionalTrackingTrackedDays;
+
+  /// No description provided for @professionalTrackingWeekTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Current week: plan vs reality'**
+  String get professionalTrackingWeekTitle;
+
+  /// No description provided for @professionalTrackingFollowUpDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracked days'**
+  String get professionalTrackingFollowUpDays;
+
+  /// No description provided for @professionalPrivacyAggregateOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Aggregate only'**
+  String get professionalPrivacyAggregateOnly;
+
+  /// No description provided for @professionalPrivacyConsentSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent active since {date}.'**
+  String professionalPrivacyConsentSince(Object date);
+
+  /// No description provided for @professionalPrivacySharedNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared today'**
+  String get professionalPrivacySharedNow;
+
+  /// No description provided for @professionalPrivacyNotSharedYet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared today'**
+  String get professionalPrivacyNotSharedYet;
+
+  /// No description provided for @professionalPrivacyNextAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Next available level'**
+  String get professionalPrivacyNextAvailable;
+
+  /// No description provided for @professionalPrivacyAccessControl.
+  ///
+  /// In en, this message translates to:
+  /// **'Access control'**
+  String get professionalPrivacyAccessControl;
+
+  /// No description provided for @professionalPrivacyAccessControlBody.
+  ///
+  /// In en, this message translates to:
+  /// **'If you revoke access, this section disappears and the professional stops receiving new snapshots.'**
+  String get professionalPrivacyAccessControlBody;
+
+  /// No description provided for @professionalMessagesUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The client shell is ready, but async messaging backend support is not available in this version yet.'**
+  String get professionalMessagesUnavailableBody;
+
+  /// No description provided for @professionalMessagesUnavailableHint.
+  ///
+  /// In en, this message translates to:
+  /// **'For now, you will receive plan changes and follow-up from the rest of this section.'**
+  String get professionalMessagesUnavailableHint;
+
+  /// No description provided for @professionalMessagesMarkRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark read'**
+  String get professionalMessagesMarkRead;
+
+  /// No description provided for @professionalHubNoPublishedPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected with no published plan yet'**
+  String get professionalHubNoPublishedPlan;
+
+  /// No description provided for @professionalHubNoTodayTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'No target today'**
+  String get professionalHubNoTodayTarget;
+
+  /// No description provided for @professionalHubKcalToday.
+  ///
+  /// In en, this message translates to:
+  /// **'{kcal} kcal today'**
+  String professionalHubKcalToday(Object kcal);
+
+  /// No description provided for @professionalHubPendingCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} pending'**
+  String professionalHubPendingCount(Object count);
+
+  /// No description provided for @professionalHubNoOfflineQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'No offline queue'**
+  String get professionalHubNoOfflineQueue;
+
+  /// No description provided for @professionalTabPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get professionalTabPlan;
+
+  /// No description provided for @professionalTabTracking.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking'**
+  String get professionalTabTracking;
+
+  /// No description provided for @professionalTabPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get professionalTabPrivacy;
+
+  /// No description provided for @professionalTabMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get professionalTabMessages;
+
+  /// No description provided for @professionalMessagesTabWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages ({count})'**
+  String professionalMessagesTabWithCount(Object count);
+
+  /// No description provided for @professionalInviteSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activate the Nutritionist section'**
+  String get professionalInviteSectionTitle;
+
+  /// No description provided for @professionalInviteSectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You need an invite and consent. You will get professional follow-up, plan, privacy, and access control without mixing it with Google Drive.'**
+  String get professionalInviteSectionBody;
+
+  /// No description provided for @professionalInvitePillInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite'**
+  String get professionalInvitePillInvite;
+
+  /// No description provided for @professionalInvitePillConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Consent'**
+  String get professionalInvitePillConsent;
+
+  /// No description provided for @professionalInvitePillClearPrivacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear privacy'**
+  String get professionalInvitePillClearPrivacy;
+
+  /// No description provided for @professionalInviteCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get professionalInviteCodeLabel;
+
+  /// No description provided for @professionalInviteReviewAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Review invite'**
+  String get professionalInviteReviewAction;
+
+  /// No description provided for @professionalInviteDebugAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Use debug invite'**
+  String get professionalInviteDebugAction;
+
+  /// No description provided for @professionalConsentSharedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'What is shared today'**
+  String get professionalConsentSharedToday;
+
+  /// No description provided for @professionalConsentNotSharedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'What is not shared today'**
+  String get professionalConsentNotSharedToday;
+
+  /// No description provided for @professionalConsentSharedTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'kcal, macros, logged meals, and aggregate adherence by day'**
+  String get professionalConsentSharedTodayBody;
+
+  /// No description provided for @professionalConsentNotSharedTodayBody.
+  ///
+  /// In en, this message translates to:
+  /// **'full raw diary, per-meal detail, and bidirectional chat'**
+  String get professionalConsentNotSharedTodayBody;
+
+  /// No description provided for @professionalConsentRevokeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You can revoke access at any time from the privacy section.'**
+  String get professionalConsentRevokeHint;
+
+  /// No description provided for @professionalAcceptAndConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept and connect'**
+  String get professionalAcceptAndConnect;
+
+  /// No description provided for @professionalOpeningGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Google'**
+  String get professionalOpeningGoogle;
+
+  /// No description provided for @professionalTrackingEstimatedAdherence.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated adherence: {percent}%'**
+  String professionalTrackingEstimatedAdherence(Object percent);
+
+  /// No description provided for @professionalWeekNoTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'No target'**
+  String get professionalWeekNoTarget;
+
+  /// No description provided for @professionalWeekTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'template'**
+  String get professionalWeekTemplate;
+
+  /// No description provided for @professionalEmptyPlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your coach is already connected to you, but has not published an active plan yet. When they do, this section will show daily targets, follow-up, and suggested meals.'**
+  String get professionalEmptyPlanBody;
+
+  /// No description provided for @professionalEmptyPlanSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Last plan sync: {date}'**
+  String professionalEmptyPlanSync(Object date);
+
+  /// No description provided for @professionalErrorOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Check your connection and try again.'**
+  String get professionalErrorOffline;
+
+  /// No description provided for @professionalErrorCloudIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the cloud identity required to connect the plan.'**
+  String get professionalErrorCloudIdentity;
+
+  /// No description provided for @professionalErrorAction.
+  ///
+  /// In en, this message translates to:
+  /// **'The action could not be completed. Try again.'**
+  String get professionalErrorAction;
+
+  /// No description provided for @professionalNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get professionalNever;
+
+  /// No description provided for @professionalPrivacyAggregateTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'goal vs actual kcal and macros in aggregate form'**
+  String get professionalPrivacyAggregateTargets;
+
+  /// No description provided for @professionalPrivacyAggregateTrackedDaysMeals.
+  ///
+  /// In en, this message translates to:
+  /// **'tracked days and number of logged meals'**
+  String get professionalPrivacyAggregateTrackedDaysMeals;
+
+  /// No description provided for @professionalPrivacyAggregateDailyAdherence.
+  ///
+  /// In en, this message translates to:
+  /// **'aggregate daily adherence'**
+  String get professionalPrivacyAggregateDailyAdherence;
+
+  /// No description provided for @professionalPrivacyRawDiary.
+  ///
+  /// In en, this message translates to:
+  /// **'your full raw diary'**
+  String get professionalPrivacyRawDiary;
+
+  /// No description provided for @professionalPrivacyPerMealDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'full per-meal or slot detail'**
+  String get professionalPrivacyPerMealDetail;
+
+  /// No description provided for @professionalPrivacyRealtimeMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'real-time bidirectional messaging'**
+  String get professionalPrivacyRealtimeMessages;
+
+  /// No description provided for @professionalPrivacyPerMealDetailWhenReady.
+  ///
+  /// In en, this message translates to:
+  /// **'per-meal detail when backend, legal copy, and consent are ready'**
+  String get professionalPrivacyPerMealDetailWhenReady;
+
   /// No description provided for @recipeLibraryTitle.
   ///
   /// In en, this message translates to:

@@ -1,13 +1,28 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/disconnect_professional_usecase.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_messages_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_section_summary_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_sharing_scope_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_section_seen_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_message_read_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/send_professional_message_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
+
+// Modular Widget Imports
+import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/invite_entry_view.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/connected_professional_hub.dart';
 
 class ProfessionalPlanScreen extends StatefulWidget {
   const ProfessionalPlanScreen({super.key});
@@ -18,31 +33,50 @@ class ProfessionalPlanScreen extends StatefulWidget {
 
 class ProfessionalPlanScreenArguments {
   final String inviteCode;
+  final bool preferEmbeddedTabAfterAccept;
 
-  const ProfessionalPlanScreenArguments({required this.inviteCode});
+  const ProfessionalPlanScreenArguments({
+    required this.inviteCode,
+    this.preferEmbeddedTabAfterAccept = false,
+  });
 }
 
 class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   final _codeController = TextEditingController();
-  late final GetProfessionalPlanUsecase _getProfessionalPlanUsecase;
+
   late final AcceptProfessionalInviteUsecase _acceptProfessionalInviteUsecase;
   late final DisconnectProfessionalUsecase _disconnectProfessionalUsecase;
+  late final GetProfessionalSectionSummaryUsecase _getProfessionalSectionSummaryUsecase;
+  late final GetProfessionalMessagesUsecase _getProfessionalMessagesUsecase;
+  late final MarkProfessionalMessageReadUsecase _markProfessionalMessageReadUsecase;
+  late final SendProfessionalMessageUsecase _sendProfessionalMessageUsecase;
+  late final GetProfessionalSharingScopeUsecase _getProfessionalSharingScopeUsecase;
+  late final MarkProfessionalSectionSeenUsecase _markProfessionalSectionSeenUsecase;
 
   ProfessionalConnectionEntity? _connection;
+  ProfessionalSectionSummaryEntity? _summary;
+  ProfessionalSharingScopeEntity? _sharingScope;
+  ProfessionalMessageThreadEntity? _messages;
   ProfessionalInvitePreviewEntity? _invitePreview;
   bool _loading = true;
   bool _protectingAccount = false;
+  bool _sendingMessage = false;
   bool _handledRouteArguments = false;
   String? _error;
+  ProfessionalHubTab _selectedTab = ProfessionalHubTab.summary;
 
   @override
   void initState() {
     super.initState();
-    _getProfessionalPlanUsecase = locator<GetProfessionalPlanUsecase>();
-    _acceptProfessionalInviteUsecase =
-        locator<AcceptProfessionalInviteUsecase>();
+    _acceptProfessionalInviteUsecase = locator<AcceptProfessionalInviteUsecase>();
     _disconnectProfessionalUsecase = locator<DisconnectProfessionalUsecase>();
-    _loadConnection();
+    _getProfessionalSectionSummaryUsecase = locator<GetProfessionalSectionSummaryUsecase>();
+    _getProfessionalMessagesUsecase = locator<GetProfessionalMessagesUsecase>();
+    _markProfessionalMessageReadUsecase = locator<MarkProfessionalMessageReadUsecase>();
+    _sendProfessionalMessageUsecase = locator<SendProfessionalMessageUsecase>();
+    _getProfessionalSharingScopeUsecase = locator<GetProfessionalSharingScopeUsecase>();
+    _markProfessionalSectionSeenUsecase = locator<MarkProfessionalSectionSeenUsecase>();
+    _loadSection(refreshRemotePlan: true);
   }
 
   @override
@@ -57,7 +91,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         arguments.inviteCode.trim().isNotEmpty) {
       _codeController.text = arguments.inviteCode.trim();
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
+        if (mounted && _connection == null) {
           _previewInvite();
         }
       });
@@ -72,24 +106,24 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEs ? 'Plan de mi nutricionista' : 'My coach plan'),
+        title: Text(S.of(context).professionalScreenTitle),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
-                if (_connection != null)
-                  _ConnectedPlanView(
-                    connection: _connection!,
-                    onRefresh: _loadConnection,
-                    onDisconnect: _disconnect,
-                  )
-                else
-                  _InviteEntryView(
+                if (_connection == null) ...[
+                  _SectionHero(
+                    title: S.of(context).professionalHeroConnectTitle,
+                    subtitle: S.of(context).professionalSectionConnectSubtitle,
+                    statusLabel: S.of(context).professionalStatusInviteOnly,
+                    icon: Icons.medical_services_outlined,
+                  ),
+                  const SizedBox(height: 16),
+                  InviteEntryView(
                     codeController: _codeController,
                     invitePreview: _invitePreview,
                     error: _error,
@@ -98,33 +132,78 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                     onAcceptInvite: _acceptInvite,
                     onUseDebugInvite: kDebugMode ? _useDebugInvite : null,
                   ),
+                ] else if (_summary != null &&
+                    _sharingScope != null &&
+                    _messages != null)
+                  ConnectedProfessionalHub(
+                    summary: _summary!,
+                    sharingScope: _sharingScope!,
+                    messages: _messages!,
+                    selectedTab: _selectedTab,
+                    error: _error,
+                    onSelectTab: (tab) {
+                      setState(() => _selectedTab = tab);
+                    },
+                    onDisconnect: _disconnect,
+                    onMarkMessageRead: _markMessageRead,
+                    onSendMessage: _sendMessage,
+                    sendingMessage: _sendingMessage,
+                    onUpdateSharingMode: _updateSharingMode,
+                    onUpdateDailyNote: _updateDailyNote,
+                  )
+                else
+                  _InfoCard(
+                    icon: Icons.info_outline,
+                    title: S.of(context).professionalSectionLoadErrorTitle,
+                    body: _error ?? S.of(context).professionalSectionRetryHint,
+                  ),
               ],
             ),
     );
   }
 
-  Future<void> _loadConnection() async {
+  Future<void> _loadSection({bool refreshRemotePlan = false}) async {
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final connection = await _getProfessionalPlanUsecase.getActiveConnection(
-        refreshRemotePlan: true,
+      final summary = await _getProfessionalSectionSummaryUsecase.execute(
+        refreshRemotePlan: refreshRemotePlan,
+      );
+      if (!mounted) return;
+      if (summary == null) {
+        setState(() {
+          _connection = null;
+          _summary = null;
+          _sharingScope = null;
+          _messages = null;
+          _loading = false;
+        });
+        return;
+      }
+      final sharingScope = await _getProfessionalSharingScopeUsecase.execute(
+        connection: summary.connection,
+      );
+      final messages = await _getProfessionalMessagesUsecase.execute(
+        connection: summary.connection,
+      );
+      await _markProfessionalSectionSeenUsecase.execute(
+        connection: summary.connection,
       );
       if (!mounted) return;
       setState(() {
-        _connection = connection;
+        _connection = summary.connection;
+        _summary = summary;
+        _sharingScope = sharingScope;
+        _messages = messages;
+        _selectedTab = ProfessionalHubTab.summary;
         _loading = false;
       });
     } catch (error) {
-      final cachedConnection =
-          await _getProfessionalPlanUsecase.getActiveConnection();
       if (!mounted) return;
       setState(() {
-        _connection = cachedConnection;
-        _error =
-            cachedConnection == null ? _friendlyError(context, error) : null;
+        _error = friendlyError(context, error);
         _loading = false;
       });
     }
@@ -151,24 +230,16 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       setState(() {
         _invitePreview = invite;
         _error = invite == null
-            ? _copy(
-                context,
-                es: 'No se ha encontrado una invitacion pendiente con ese codigo.',
-                en: 'No pending invite was found for that code.',
-              )
+            ? S.of(context).professionalInviteNotFound
             : invite.isExpired
-                ? _copy(
-                    context,
-                    es: 'La invitacion ha expirado.',
-                    en: 'This invite has expired.',
-                  )
+                ? S.of(context).professionalInviteExpired
                 : null;
         _loading = false;
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = _friendlyError(context, error);
+        _error = friendlyError(context, error);
         _loading = false;
       });
     }
@@ -196,16 +267,16 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
           'relationship_id': connection.relationshipId,
         },
       );
-      if (!mounted) return;
-      setState(() {
-        _connection = connection;
-        _invitePreview = null;
-        _loading = false;
-      });
+      if (_shouldReturnToEmbeddedTab) {
+        if (!mounted) return;
+        Navigator.of(context).pop(true);
+        return;
+      }
+      await _loadSection(refreshRemotePlan: true);
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = _friendlyError(context, error);
+        _error = friendlyError(context, error);
         _loading = false;
       });
     }
@@ -224,29 +295,17 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       final shouldProtect = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(_copy(
-            context,
-            es: 'Guarda tu cuenta',
-            en: 'Protect your account',
-          )),
-          content: Text(_copy(
-            context,
-            es: 'Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Asi podras recuperar la cuenta y mantener el consentimiento si cambias de movil. Esto no activa Google Drive.',
-            en: 'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.',
-          )),
+          title: Text(S.of(context).professionalProtectAccountTitle),
+          content: Text(S.of(context).professionalProtectAccountBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: Text(_copy(context, es: 'Cancelar', en: 'Cancel')),
+              child: Text(S.of(context).dialogCancelLabel),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.of(context).pop(true),
               icon: const Icon(Icons.g_mobiledata_outlined),
-              label: Text(_copy(
-                context,
-                es: 'Guardar con Google',
-                en: 'Link Google',
-              )),
+              label: Text(S.of(context).professionalProtectAccountAction),
             ),
           ],
         ),
@@ -268,15 +327,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         return false;
       }
       setState(() => _protectingAccount = false);
-      _showSnackBar(_copy(
-        context,
-        es: opened
-            ? 'Completa Google y vuelve para aceptar la invitacion.'
-            : 'No se pudo abrir Google.',
-        en: opened
-            ? 'Complete Google and return to accept the invite.'
-            : 'Could not open Google.',
-      ));
+      _showSnackBar(
+        opened
+            ? S.of(context).professionalProtectAccountReturnHint
+            : S.of(context).professionalProtectAccountOpenError,
+      );
       return false;
     } catch (error) {
       if (!mounted) {
@@ -284,9 +339,71 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       }
       setState(() {
         _protectingAccount = false;
-        _error = _friendlyError(context, error);
+        _error = friendlyError(context, error);
       });
       return false;
+    }
+  }
+
+  Future<void> _markMessageRead(ProfessionalMessageEntity message) async {
+    final connection = _connection;
+    final messages = _messages;
+    if (connection == null || messages == null || message.isRead) {
+      return;
+    }
+    await _markProfessionalMessageReadUsecase.execute(
+      connection: connection,
+      messageId: message.id,
+    );
+    await _markProfessionalSectionSeenUsecase.execute(connection: connection);
+    if (!mounted) return;
+    setState(() {
+      _messages = ProfessionalMessageThreadEntity(
+        threadId: messages.threadId,
+        isSupported: messages.isSupported,
+        messagesEnabled: messages.messagesEnabled,
+        messages: messages.messages
+            .map((item) => item.id == message.id ? item.copyWith(isRead: true) : item)
+            .toList(),
+      );
+    });
+  }
+
+  Future<void> _sendMessage(String body) async {
+    final connection = _connection;
+    final messages = _messages;
+    if (connection == null || messages == null || body.trim().isEmpty) {
+      return;
+    }
+    setState(() {
+      _sendingMessage = true;
+      _error = null;
+    });
+    try {
+      final sent = await _sendProfessionalMessageUsecase.execute(
+        connection: connection,
+        body: body,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _messages = ProfessionalMessageThreadEntity(
+          threadId: messages.threadId,
+          isSupported: true,
+          messagesEnabled: messages.messagesEnabled,
+          messages: [sent, ...messages.messages],
+        );
+        _sendingMessage = false;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _sendingMessage = false;
+        _error = friendlyError(context, error);
+      });
     }
   }
 
@@ -301,6 +418,13 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
             ProfessionalPlanDataSource.debugInviteCode;
   }
 
+  bool get _shouldReturnToEmbeddedTab {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    return arguments is ProfessionalPlanScreenArguments &&
+        arguments.preferEmbeddedTabAfterAccept &&
+        Navigator.of(context).canPop();
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
@@ -311,24 +435,16 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_copy(
-          context,
-          es: 'Desconectar profesional',
-          en: 'Disconnect professional',
-        )),
-        content: Text(_copy(
-          context,
-          es: 'Se revocara el acceso y se detendra la sincronizacion de resumenes agregados.',
-          en: 'Access will be revoked and aggregate snapshot sync will stop.',
-        )),
+        title: Text(S.of(context).professionalDisconnectTitle),
+        content: Text(S.of(context).professionalDisconnectBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(_copy(context, es: 'Cancelar', en: 'Cancel')),
+            child: Text(S.of(context).dialogCancelLabel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(_copy(context, es: 'Desconectar', en: 'Disconnect')),
+            child: Text(S.of(context).professionalActionRevokeAccess),
           ),
         ],
       ),
@@ -343,570 +459,143 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         'relationship_id': _connection?.relationshipId,
       },
     );
+    if (_shouldReturnToEmbeddedTab && mounted && Navigator.of(context).canPop()) {
+      Navigator.of(context).pop(false);
+      return;
+    }
     if (!mounted) return;
     setState(() {
       _connection = null;
+      _summary = null;
+      _sharingScope = null;
+      _messages = null;
       _loading = false;
+      _selectedTab = ProfessionalHubTab.summary;
     });
   }
-}
 
-class _InviteEntryView extends StatelessWidget {
-  final TextEditingController codeController;
-  final ProfessionalInvitePreviewEntity? invitePreview;
-  final String? error;
-  final bool isBusy;
-  final VoidCallback onPreviewInvite;
-  final VoidCallback onAcceptInvite;
-  final VoidCallback? onUseDebugInvite;
+  Future<void> _updateSharingMode(String sharingMode) async {
+    final connection = _connection;
+    if (connection == null) return;
+    setState(() => _loading = true);
+    try {
+      await locator<ProfessionalPlanRepository>().updateSharingMode(
+        relationshipId: connection.relationshipId,
+        clientId: connection.clientId,
+        sharingMode: sharingMode,
+      );
+      await _loadSection(refreshRemotePlan: false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = friendlyError(context, e);
+        _loading = false;
+      });
+    }
+  }
 
-  const _InviteEntryView({
-    required this.codeController,
-    required this.invitePreview,
-    required this.error,
-    required this.isBusy,
-    required this.onPreviewInvite,
-    required this.onAcceptInvite,
-    required this.onUseDebugInvite,
-  });
+  Future<void> _updateDailyNote(String note) async {
+    final connection = _connection;
+    if (connection == null) return;
+    setState(() => _loading = true);
+    try {
+      final todayActual = _summary?.today;
+      final kcalActual = todayActual?.kcalActual ?? 0.0;
+      final carbsActual = todayActual?.carbsActual ?? 0.0;
+      final fatActual = todayActual?.fatActual ?? 0.0;
+      final proteinActual = todayActual?.proteinActual ?? 0.0;
+      final mealsLogged = todayActual?.mealsLogged ?? 0;
 
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _InfoCard(
-          icon: Icons.verified_user_outlined,
-          title: _copy(
-            context,
-            es: 'Conecta solo con invitacion',
-            en: 'Connect by invite only',
-          ),
-          body: _copy(
-            context,
-            es: 'Introduce el codigo que te ha dado tu nutricionista. Antes de conectar veras exactamente que datos se comparten.',
-            en: 'Enter the code from your coach. Before connecting, you will see exactly what data is shared.',
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          controller: codeController,
-          textCapitalization: TextCapitalization.characters,
-          decoration: InputDecoration(
-            labelText:
-                _copy(context, es: 'Codigo de invitacion', en: 'Invite code'),
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.key_outlined),
-          ),
-        ),
-        const SizedBox(height: 12),
-        FilledButton.icon(
-          onPressed: isBusy ? null : onPreviewInvite,
-          icon: const Icon(Icons.search_outlined),
-          label: Text(
-              _copy(context, es: 'Revisar invitacion', en: 'Review invite')),
-        ),
-        if (onUseDebugInvite != null) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: isBusy ? null : onUseDebugInvite,
-            icon: const Icon(Icons.bug_report_outlined),
-            label: Text(_copy(
-              context,
-              es: 'Usar invitacion debug',
-              en: 'Use debug invite',
-            )),
-          ),
-        ],
-        if (error != null) ...[
-          const SizedBox(height: 12),
-          Text(error!, style: TextStyle(color: colorScheme.error)),
-        ],
-        if (invitePreview != null && !invitePreview!.isExpired) ...[
-          const SizedBox(height: 18),
-          _ConsentCard(
-            invitePreview: invitePreview!,
-            isBusy: isBusy,
-            onAcceptInvite: onAcceptInvite,
-          ),
-        ],
-      ],
-    );
+      final kcalTarget = todayActual?.kcalTarget ?? 0.0;
+      final carbsTarget = todayActual?.carbsTarget ?? 0.0;
+      final fatTarget = todayActual?.fatTarget ?? 0.0;
+      final proteinTarget = todayActual?.proteinTarget ?? 0.0;
+
+      await locator<UploadProfessionalSnapshotUsecase>().uploadDailySnapshot(
+        connection: connection,
+        day: DateTime.now(),
+        kcalActual: kcalActual,
+        kcalTarget: kcalTarget,
+        carbsActual: carbsActual,
+        carbsTarget: carbsTarget,
+        fatActual: fatActual,
+        fatTarget: fatTarget,
+        proteinActual: proteinActual,
+        proteinTarget: proteinTarget,
+        mealsLogged: mealsLogged,
+        notes: note,
+      );
+      await _loadSection(refreshRemotePlan: false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = friendlyError(context, e);
+        _loading = false;
+      });
+    }
   }
 }
 
-class _ConsentCard extends StatelessWidget {
-  final ProfessionalInvitePreviewEntity invitePreview;
-  final bool isBusy;
-  final VoidCallback onAcceptInvite;
-
-  const _ConsentCard({
-    required this.invitePreview,
-    required this.isBusy,
-    required this.onAcceptInvite,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              invitePreview.professionalName,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-            ),
-            const SizedBox(height: 14),
-            _ConsentGroup(
-              title: _copy(
-                context,
-                es: 'Que se comparte',
-                en: 'What is shared',
-              ),
-              rows: [
-                _copy(
-                  context,
-                  es: 'Compartiras kcal, macros, dias registrados y adherencia agregada.',
-                  en: 'You will share calories, macros, logged days, and aggregate adherence.',
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _ConsentGroup(
-              title: _copy(
-                context,
-                es: 'Que no se comparte',
-                en: 'What is not shared',
-              ),
-              rows: [
-                _copy(
-                  context,
-                  es: 'No se comparte el diario bruto ni comidas completas en esta version.',
-                  en: 'Raw diary entries and full meals are not shared in this version.',
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            _ConsentRow(
-              text: _copy(
-                context,
-                es: 'Puedes revocar el acceso en cualquier momento.',
-                en: 'You can revoke access at any time.',
-              ),
-            ),
-            const SizedBox(height: 14),
-            FilledButton.icon(
-              onPressed: isBusy ? null : onAcceptInvite,
-              icon: isBusy
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.check_circle_outline),
-              label: Text(_copy(
-                context,
-                es: isBusy ? 'Abriendo Google' : 'Aceptar y conectar',
-                en: isBusy ? 'Opening Google' : 'Accept and connect',
-              )),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConnectedPlanView extends StatelessWidget {
-  final ProfessionalConnectionEntity connection;
-  final VoidCallback onRefresh;
-  final VoidCallback onDisconnect;
-
-  const _ConnectedPlanView({
-    required this.connection,
-    required this.onRefresh,
-    required this.onDisconnect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final plan = connection.activePlan;
-    final todayTarget = plan?.targetForDate(DateTime.now());
-    final colorScheme = Theme.of(context).colorScheme;
-    final suggestedMeals = plan?.meals.take(3).toList() ?? const [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Card(
-          color: Color.alphaBlend(
-            colorScheme.primary.withValues(alpha: 0.08),
-            colorScheme.surface,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        color: colorScheme.primary.withValues(alpha: 0.14),
-                      ),
-                      child: Icon(
-                        Icons.handshake_outlined,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            connection.professionalName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  height: 1.05,
-                                ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _copy(
-                              context,
-                              es: 'Conexion activa. Tus resumenes agregados se sincronizan con consentimiento.',
-                              en: 'Connection active. Your aggregate snapshots sync with consent.',
-                            ),
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  height: 1.35,
-                                ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _StatusPill(
-                      icon: Icons.shield_outlined,
-                      label: _copy(
-                        context,
-                        es: 'Solo agregados',
-                        en: 'Aggregate only',
-                      ),
-                    ),
-                    _StatusPill(
-                      icon: Icons.link_off_outlined,
-                      label: _copy(
-                        context,
-                        es: 'Revocable',
-                        en: 'Revocable',
-                      ),
-                    ),
-                    _StatusPill(
-                      icon: Icons.today_outlined,
-                      label: _copy(
-                        context,
-                        es: 'Objetivos diarios',
-                        en: 'Daily targets',
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          color: colorScheme.surfaceContainerLow,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _copy(context, es: 'Plan actual', en: 'Current plan'),
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  plan?.name ??
-                      _copy(context,
-                          es: 'Sin plan activo', en: 'No active plan'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                if (plan?.objective.isNotEmpty == true) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    plan!.objective,
-                    style: TextStyle(color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                if (todayTarget != null)
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: 10,
-                    crossAxisSpacing: 10,
-                    childAspectRatio: 2.2,
-                    children: [
-                      _TargetTile(
-                        label: 'Kcal',
-                        value: todayTarget.kcalGoal.round().toString(),
-                        color: colorScheme.primary,
-                      ),
-                      _TargetTile(
-                        label: _copy(context, es: 'Proteína', en: 'Protein'),
-                        value: '${todayTarget.proteinGoal.round()}g',
-                        color: colorScheme.tertiary,
-                      ),
-                      _TargetTile(
-                        label: _copy(context, es: 'Carbos', en: 'Carbs'),
-                        value: '${todayTarget.carbsGoal.round()}g',
-                        color: colorScheme.secondary,
-                      ),
-                      _TargetTile(
-                        label: _copy(context, es: 'Grasa', en: 'Fat'),
-                        value: '${todayTarget.fatGoal.round()}g',
-                        color: colorScheme.error,
-                      ),
-                    ],
-                  )
-                else
-                  Text(_copy(
-                    context,
-                    es: 'Cuando tu nutricionista publique un plan activo aparecera aqui.',
-                    en: 'When your coach publishes an active plan it will appear here.',
-                  )),
-              ],
-            ),
-          ),
-        ),
-        if (suggestedMeals.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _copy(
-                      context,
-                      es: 'Comidas sugeridas',
-                      en: 'Suggested meals',
-                    ),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  for (final meal in suggestedMeals)
-                    _SuggestedMealRow(
-                      slot: meal.slot,
-                      title: meal.title,
-                      kcal: meal.kcal?.round(),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 8,
-          children: [
-            OutlinedButton.icon(
-              onPressed: onRefresh,
-              icon: const Icon(Icons.refresh_outlined),
-              label: Text(
-                  _copy(context, es: 'Actualizar plan', en: 'Refresh plan')),
-            ),
-            TextButton.icon(
-              onPressed: onDisconnect,
-              icon: const Icon(Icons.link_off_outlined),
-              label: Text(
-                  _copy(context, es: 'Revocar acceso', en: 'Revoke access')),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
+class _SectionHero extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String statusLabel;
   final IconData icon;
-  final String label;
 
-  const _StatusPill({
+  const _SectionHero({
+    required this.title,
+    required this.subtitle,
+    required this.statusLabel,
     required this.icon,
-    required this.label,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: colorScheme.surfaceContainerHigh,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TargetTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _TargetTile({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: color.withValues(alpha: 0.09),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
+    return Panel(
+      accent: Color.alphaBlend(
+        colorScheme.primary.withValues(alpha: 0.12),
+        colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  color: colorScheme.primary.withValues(alpha: 0.14),
+                ),
+                alignment: Alignment.center,
+                child: Icon(icon, color: colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              StatusPill(
+                icon: Icons.check_circle_outline,
+                label: statusLabel,
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
           Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
+            title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  height: 1.0,
                 ),
           ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
             child: Text(
-              value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
+              subtitle,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
                   ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SuggestedMealRow extends StatelessWidget {
-  final String slot;
-  final String title;
-  final int? kcal;
-
-  const _SuggestedMealRow({
-    required this.slot,
-    required this.title,
-    required this.kcal,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final normalizedSlot = slot.trim().isEmpty ? '-' : slot.trim();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: colorScheme.secondaryContainer,
-            ),
-            child: Icon(
-              Icons.restaurant_menu_outlined,
-              size: 18,
-              color: colorScheme.onSecondaryContainer,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  kcal == null
-                      ? normalizedSlot
-                      : '$normalizedSlot - $kcal kcal',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ],
             ),
           ),
         ],
@@ -929,118 +618,42 @@ class _InfoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, color: colorScheme.primary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(body),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConsentGroup extends StatelessWidget {
-  final String title;
-  final List<String> rows;
-
-  const _ConsentGroup({
-    required this.title,
-    required this.rows,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.45),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 8),
-          for (final row in rows) _ConsentRow(text: row),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConsentRow extends StatelessWidget {
-  final String text;
-
-  const _ConsentRow({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+    return Panel(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.check_outlined, size: 18),
-          const SizedBox(width: 8),
-          Expanded(child: Text(text)),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              color: colorScheme.primary.withValues(alpha: 0.12),
+            ),
+            child: Icon(icon, color: colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  body,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
-}
-
-String _copy(BuildContext context, {required String es, required String en}) {
-  return Localizations.localeOf(context).languageCode == 'es' ? es : en;
-}
-
-String _friendlyError(BuildContext context, Object error) {
-  final raw = error.toString();
-  final isEs = Localizations.localeOf(context).languageCode == 'es';
-  if (raw.contains('SocketException') ||
-      raw.contains('ClientException') ||
-      raw.contains('Failed host lookup') ||
-      raw.contains('Network')) {
-    return isEs
-        ? 'No se pudo conectar. Revisa la conexion e intentalo de nuevo.'
-        : 'Could not connect. Check your connection and try again.';
-  }
-  if (raw.contains('anonymous auth') || raw.contains('Authentication')) {
-    return isEs
-        ? 'No se pudo crear la identidad cloud necesaria para conectar el plan.'
-        : 'Could not create the cloud identity required to connect the plan.';
-  }
-  if (raw.contains('expired')) {
-    return isEs ? 'La invitacion ha expirado.' : 'This invite has expired.';
-  }
-  return isEs
-      ? 'No se pudo completar la accion. Intentalo de nuevo.'
-      : 'The action could not be completed. Try again.';
 }

@@ -1861,6 +1861,329 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get professionalSectionConnectSubtitle =>
+      'Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages.';
+
+  @override
+  String get professionalSectionConnectedSubtitle =>
+      'This is where you control your plan, real follow-up, shared privacy, and professional notes.';
+
+  @override
+  String get professionalSectionLoadErrorTitle =>
+      'Could not load the full section';
+
+  @override
+  String get professionalSectionRetryHint => 'Try refreshing again.';
+
+  @override
+  String get professionalPrivacyCurrentLevel => 'Current shared data level';
+
+  @override
+  String get professionalRevokeNow => 'Revoke access now';
+
+  @override
+  String get professionalConnectedNoPlan => 'Connected, no plan published';
+
+  @override
+  String get professionalStatusInviteOnly => 'Invite only';
+
+  @override
+  String get professionalStatusConnected => 'Connected';
+
+  @override
+  String get professionalTabSummary => 'Summary';
+
+  @override
+  String get professionalSummaryActivePlan => 'Active plan';
+
+  @override
+  String get professionalSummaryNoPlan => 'No plan';
+
+  @override
+  String get professionalSummaryTodayTarget => 'Today target';
+
+  @override
+  String get professionalSummaryPending => 'Pending';
+
+  @override
+  String get professionalSummaryOfflineQueue => 'Offline queue';
+
+  @override
+  String get professionalActionRefreshSection => 'Refresh section';
+
+  @override
+  String get professionalActionRevokeAccess => 'Revoke access';
+
+  @override
+  String get professionalScreenTitle => 'Nutrition coach';
+
+  @override
+  String get professionalHeroConnectTitle =>
+      'Connect with your nutrition coach';
+
+  @override
+  String get professionalHeroConnectedTitle =>
+      'Your patient-professional section';
+
+  @override
+  String get professionalInviteNotFound =>
+      'No pending invite was found for that code.';
+
+  @override
+  String get professionalInviteExpired => 'This invite has expired.';
+
+  @override
+  String get professionalProtectAccountTitle => 'Protect your account';
+
+  @override
+  String get professionalProtectAccountBody =>
+      'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.';
+
+  @override
+  String get professionalProtectAccountAction => 'Link Google';
+
+  @override
+  String get professionalProtectAccountReturnHint =>
+      'Complete Google and return to accept the invite.';
+
+  @override
+  String get professionalProtectAccountOpenError => 'Could not open Google.';
+
+  @override
+  String get professionalDisconnectTitle => 'Revoke professional access';
+
+  @override
+  String get professionalDisconnectBody =>
+      'Access will be revoked, this section will disappear, and aggregate sync will stop.';
+
+  @override
+  String get professionalSummaryLastPlanUpdate => 'Last plan update';
+
+  @override
+  String get professionalSummaryLastSnapshot => 'Last snapshot sent';
+
+  @override
+  String get professionalSummaryConnectionStatus => 'Connection status';
+
+  @override
+  String get professionalMacroProtein => 'Protein';
+
+  @override
+  String get professionalMacroCarbs => 'Carbs';
+
+  @override
+  String get professionalMacroFat => 'Fat';
+
+  @override
+  String professionalSharingPendingSnapshots(Object count) {
+    return 'Your coach sees the real active sharing level. If there are $count pending snapshots, they will sync when connectivity returns.';
+  }
+
+  @override
+  String get professionalPlanWeeklyView => 'Weekly view';
+
+  @override
+  String get professionalPlanSuggestedMeals => 'Suggested meals';
+
+  @override
+  String get professionalTrackingTodayTitle => 'Today follow-up';
+
+  @override
+  String get professionalTrackingMealsLogged => 'Meals logged';
+
+  @override
+  String get professionalTrackingTrackedDays => 'Tracked days';
+
+  @override
+  String get professionalTrackingWeekTitle => 'Current week: plan vs reality';
+
+  @override
+  String get professionalTrackingFollowUpDays => 'Tracked days';
+
+  @override
+  String get professionalPrivacyAggregateOnly => 'Aggregate only';
+
+  @override
+  String professionalPrivacyConsentSince(Object date) {
+    return 'Consent active since $date.';
+  }
+
+  @override
+  String get professionalPrivacySharedNow => 'Shared today';
+
+  @override
+  String get professionalPrivacyNotSharedYet => 'Not shared today';
+
+  @override
+  String get professionalPrivacyNextAvailable => 'Next available level';
+
+  @override
+  String get professionalPrivacyAccessControl => 'Access control';
+
+  @override
+  String get professionalPrivacyAccessControlBody =>
+      'If you revoke access, this section disappears and the professional stops receiving new snapshots.';
+
+  @override
+  String get professionalMessagesUnavailableBody =>
+      'The client shell is ready, but async messaging backend support is not available in this version yet.';
+
+  @override
+  String get professionalMessagesUnavailableHint =>
+      'For now, you will receive plan changes and follow-up from the rest of this section.';
+
+  @override
+  String get professionalMessagesMarkRead => 'Mark read';
+
+  @override
+  String get professionalHubNoPublishedPlan =>
+      'Connected with no published plan yet';
+
+  @override
+  String get professionalHubNoTodayTarget => 'No target today';
+
+  @override
+  String professionalHubKcalToday(Object kcal) {
+    return '$kcal kcal today';
+  }
+
+  @override
+  String professionalHubPendingCount(Object count) {
+    return '$count pending';
+  }
+
+  @override
+  String get professionalHubNoOfflineQueue => 'No offline queue';
+
+  @override
+  String get professionalTabPlan => 'Plan';
+
+  @override
+  String get professionalTabTracking => 'Tracking';
+
+  @override
+  String get professionalTabPrivacy => 'Privacy';
+
+  @override
+  String get professionalTabMessages => 'Messages';
+
+  @override
+  String professionalMessagesTabWithCount(Object count) {
+    return 'Messages ($count)';
+  }
+
+  @override
+  String get professionalInviteSectionTitle =>
+      'Activate the Nutritionist section';
+
+  @override
+  String get professionalInviteSectionBody =>
+      'You need an invite and consent. You will get professional follow-up, plan, privacy, and access control without mixing it with Google Drive.';
+
+  @override
+  String get professionalInvitePillInvite => 'Invite';
+
+  @override
+  String get professionalInvitePillConsent => 'Consent';
+
+  @override
+  String get professionalInvitePillClearPrivacy => 'Clear privacy';
+
+  @override
+  String get professionalInviteCodeLabel => 'Invite code';
+
+  @override
+  String get professionalInviteReviewAction => 'Review invite';
+
+  @override
+  String get professionalInviteDebugAction => 'Use debug invite';
+
+  @override
+  String get professionalConsentSharedToday => 'What is shared today';
+
+  @override
+  String get professionalConsentNotSharedToday => 'What is not shared today';
+
+  @override
+  String get professionalConsentSharedTodayBody =>
+      'kcal, macros, logged meals, and aggregate adherence by day';
+
+  @override
+  String get professionalConsentNotSharedTodayBody =>
+      'full raw diary, per-meal detail, and bidirectional chat';
+
+  @override
+  String get professionalConsentRevokeHint =>
+      'You can revoke access at any time from the privacy section.';
+
+  @override
+  String get professionalAcceptAndConnect => 'Accept and connect';
+
+  @override
+  String get professionalOpeningGoogle => 'Opening Google';
+
+  @override
+  String professionalTrackingEstimatedAdherence(Object percent) {
+    return 'Estimated adherence: $percent%';
+  }
+
+  @override
+  String get professionalWeekNoTarget => 'No target';
+
+  @override
+  String get professionalWeekTemplate => 'template';
+
+  @override
+  String get professionalEmptyPlanBody =>
+      'Your coach is already connected to you, but has not published an active plan yet. When they do, this section will show daily targets, follow-up, and suggested meals.';
+
+  @override
+  String professionalEmptyPlanSync(Object date) {
+    return 'Last plan sync: $date';
+  }
+
+  @override
+  String get professionalErrorOffline =>
+      'Could not connect. Check your connection and try again.';
+
+  @override
+  String get professionalErrorCloudIdentity =>
+      'Could not create the cloud identity required to connect the plan.';
+
+  @override
+  String get professionalErrorAction =>
+      'The action could not be completed. Try again.';
+
+  @override
+  String get professionalNever => 'Never';
+
+  @override
+  String get professionalPrivacyAggregateTargets =>
+      'goal vs actual kcal and macros in aggregate form';
+
+  @override
+  String get professionalPrivacyAggregateTrackedDaysMeals =>
+      'tracked days and number of logged meals';
+
+  @override
+  String get professionalPrivacyAggregateDailyAdherence =>
+      'aggregate daily adherence';
+
+  @override
+  String get professionalPrivacyRawDiary => 'your full raw diary';
+
+  @override
+  String get professionalPrivacyPerMealDetail => 'full per-meal or slot detail';
+
+  @override
+  String get professionalPrivacyRealtimeMessages =>
+      'real-time bidirectional messaging';
+
+  @override
+  String get professionalPrivacyPerMealDetailWhenReady =>
+      'per-meal detail when backend, legal copy, and consent are ready';
+
+  @override
   String get recipeLibraryTitle => 'Saved meals';
 
   @override

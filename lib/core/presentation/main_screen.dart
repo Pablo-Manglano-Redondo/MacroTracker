@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/services/app_review_service.dart';
 import 'package:macrotracker/core/services/backup_nudge_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
+import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/diary/diary_page.dart';
@@ -15,6 +17,7 @@ import 'package:macrotracker/features/home/home_page.dart';
 import 'package:macrotracker/core/presentation/widgets/main_appbar.dart';
 import 'package:macrotracker/features/profile/profile_page.dart';
 import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_unseen_section_count_usecase.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
@@ -30,18 +33,30 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const _activeProfessionalConnectionKey = 'activeProfessionalConnection';
+
   int _selectedPageIndex = 0;
   late final AppLinks _appLinks;
   StreamSubscription<Uri>? _appLinkSubscription;
-
-  late List<Widget> _bodyPages;
-  late List<PreferredSizeWidget> _appbarPages;
+  StreamSubscription<BoxEvent>? _professionalConnectionSubscription;
+  bool _hasProfessionalTab = false;
+  int _professionalBadgeCount = 0;
 
   @override
   void initState() {
     super.initState();
     _appLinks = AppLinks();
+    _hasProfessionalTab = _hasActiveProfessionalConnection();
+    unawaited(_refreshProfessionalBadgeCount());
     _initInviteLinks();
+    _professionalConnectionSubscription =
+        locator<HiveDBProvider>().professionalPlanBox.watch().listen((_) {
+      if (!mounted) {
+        return;
+      }
+      _syncProfessionalTabVisibility();
+      unawaited(_refreshProfessionalBadgeCount());
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final nudgeService = locator<BackupNudgeService>();
@@ -67,23 +82,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void didChangeDependencies() {
-    _bodyPages = [
-      const HomePage(),
-      const DiaryPage(),
-      const ProfilePage(),
-    ];
-    _appbarPages = [
-      const HomeAppbar(),
-      MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
-      MainAppbar(
-          title: S.of(context).profileLabel, iconData: Icons.account_circle),
-    ];
     super.didChangeDependencies();
   }
 
   @override
   void dispose() {
     _appLinkSubscription?.cancel();
+    _professionalConnectionSubscription?.cancel();
     super.dispose();
   }
 
@@ -148,10 +153,20 @@ class _MainScreenState extends State<MainScreen> {
     if (code == null || code.isEmpty) {
       return;
     }
-    Navigator.of(context).pushNamed(
+    final result = await Navigator.of(context).pushNamed(
       NavigationOptions.professionalPlanRoute,
-      arguments: ProfessionalPlanScreenArguments(inviteCode: code),
+      arguments: ProfessionalPlanScreenArguments(
+        inviteCode: code,
+        preferEmbeddedTabAfterAccept: true,
+      ),
     );
+    _syncProfessionalTabVisibility();
+    await _refreshProfessionalBadgeCount();
+    if (result == true && mounted && _hasProfessionalTab) {
+      setState(() {
+        _selectedPageIndex = 1;
+      });
+    }
   }
 
   String? _extractInviteCode(Uri uri) {
@@ -179,36 +194,84 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bodyPages = _buildBodyPages();
+    final appbarPages = _buildAppbarPages(context);
+    final destinations = _buildDestinations(context);
     return Scaffold(
-      appBar: _appbarPages[_selectedPageIndex],
+      appBar: appbarPages[_selectedPageIndex],
       body: IndexedStack(
         index: _selectedPageIndex,
-        children: _bodyPages,
+        children: bodyPages,
       ),
       floatingActionButton:
           _selectedPageIndex == 0 ? _buildSpeedDial(context) : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedPageIndex,
         onDestinationSelected: _setPage,
-        destinations: [
-          NavigationDestination(
-              icon: _selectedPageIndex == 0
-                  ? const Icon(Icons.home)
-                  : const Icon(Icons.home_outlined),
-              label: S.of(context).homeLabel),
-          NavigationDestination(
-              icon: _selectedPageIndex == 1
-                  ? const Icon(Icons.book)
-                  : const Icon(Icons.book_outlined),
-              label: S.of(context).diaryLabel),
-          NavigationDestination(
-              icon: _selectedPageIndex == 2
-                  ? const Icon(Icons.account_circle)
-                  : const Icon(Icons.account_circle_outlined),
-              label: S.of(context).profileLabel),
-        ],
+        destinations: destinations,
       ),
     );
+  }
+
+  List<Widget> _buildBodyPages() {
+    return [
+      const HomePage(),
+      if (_hasProfessionalTab) const ProfessionalPlanScreen(),
+      const DiaryPage(),
+      const ProfilePage(),
+    ];
+  }
+
+  List<PreferredSizeWidget> _buildAppbarPages(BuildContext context) {
+    return [
+      const HomeAppbar(),
+      if (_hasProfessionalTab)
+        MainAppbar(
+          title: _isEs(context) ? 'Nutricionista' : 'Nutrition coach',
+          iconData: Icons.medical_services_outlined,
+        ),
+      MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
+      MainAppbar(
+        title: S.of(context).profileLabel,
+        iconData: Icons.account_circle,
+      ),
+    ];
+  }
+
+  List<NavigationDestination> _buildDestinations(BuildContext context) {
+    final destinations = <NavigationDestination>[
+      NavigationDestination(
+        icon: _selectedPageIndex == 0
+            ? const Icon(Icons.home)
+            : const Icon(Icons.home_outlined),
+        label: S.of(context).homeLabel,
+      ),
+    ];
+    if (_hasProfessionalTab) {
+      destinations.add(
+        NavigationDestination(
+          icon: _professionalTabIcon(selected: _selectedPageIndex == 1),
+          label: _isEs(context) ? 'Nutricionista' : 'Coach',
+        ),
+      );
+    }
+    final diaryIndex = _hasProfessionalTab ? 2 : 1;
+    final profileIndex = _hasProfessionalTab ? 3 : 2;
+    destinations.addAll([
+      NavigationDestination(
+        icon: _selectedPageIndex == diaryIndex
+            ? const Icon(Icons.book)
+            : const Icon(Icons.book_outlined),
+        label: S.of(context).diaryLabel,
+      ),
+      NavigationDestination(
+        icon: _selectedPageIndex == profileIndex
+            ? const Icon(Icons.account_circle)
+            : const Icon(Icons.account_circle_outlined),
+        label: S.of(context).profileLabel,
+      ),
+    ]);
+    return destinations;
   }
 
   Widget _buildSpeedDial(BuildContext context) {
@@ -233,4 +296,84 @@ class _MainScreenState extends State<MainScreen> {
       _selectedPageIndex = selectedIndex;
     });
   }
+
+  bool _hasActiveProfessionalConnection() {
+    final value = locator<HiveDBProvider>()
+        .professionalPlanBox
+        .get(_activeProfessionalConnectionKey);
+    return value is Map && value.isNotEmpty;
+  }
+
+  void _syncProfessionalTabVisibility() {
+    final hasProfessionalConnection = _hasActiveProfessionalConnection();
+    if (hasProfessionalConnection == _hasProfessionalTab) {
+      return;
+    }
+    setState(() {
+      if (!_hasProfessionalTab && hasProfessionalConnection) {
+        if (_selectedPageIndex > 0) {
+          _selectedPageIndex += 1;
+        }
+      } else if (_hasProfessionalTab && !hasProfessionalConnection) {
+        if (_selectedPageIndex == 1) {
+          _selectedPageIndex = 0;
+        } else if (_selectedPageIndex > 1) {
+          _selectedPageIndex -= 1;
+        }
+      }
+      _hasProfessionalTab = hasProfessionalConnection;
+    });
+  }
+
+  Future<void> _refreshProfessionalBadgeCount() async {
+    final count =
+        await locator<GetProfessionalUnseenSectionCountUsecase>().execute();
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _professionalBadgeCount = count;
+    });
+  }
+
+  Widget _professionalTabIcon({required bool selected}) {
+    final icon = Icon(
+      selected ? Icons.medical_services : Icons.medical_services_outlined,
+    );
+    if (_professionalBadgeCount <= 0) {
+      return icon;
+    }
+    final badgeText =
+        _professionalBadgeCount > 9 ? '9+' : _professionalBadgeCount.toString();
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        icon,
+        Positioned(
+          right: -8,
+          top: -4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.error,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+            alignment: Alignment.center,
+            child: Text(
+              badgeText,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onError,
+                    fontWeight: FontWeight.w800,
+                    height: 1,
+                  ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  bool _isEs(BuildContext context) =>
+      Localizations.localeOf(context).languageCode == 'es';
 }

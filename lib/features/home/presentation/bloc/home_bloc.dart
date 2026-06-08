@@ -31,6 +31,7 @@ import 'package:macrotracker/features/professional_plan/domain/entity/profession
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
 
 part 'home_event.dart';
 
@@ -181,14 +182,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         appTargets: appTargets,
         connection: professionalConnection,
       );
-      final professionalPlanSummary = _buildProfessionalPlanSummary(
-        connection: professionalConnection,
-        targets: targets,
-        kcalActual: totalKcalIntake,
-        carbsActual: totalCarbsIntake,
-        fatActual: totalFatsIntake,
-        proteinActual: totalProteinsIntake,
-      );
       if (event.uploadProfessionalSnapshot) {
         await _uploadSnapshotIfConsented(
           connection: professionalConnection,
@@ -227,10 +220,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           snackIntakeList: snackIntakeList,
           userActivityList: userActivities,
           usesImperialUnits: usesImperialUnits,
-          professionalPlanSummary: professionalPlanSummary,
           targetSteps: user.targetSteps,
           targetSleepHours: user.targetSleepHours,
-          targetWaterLiters: user.targetWaterLiters));
+          targetWaterLiters: user.targetWaterLiters,
+          activeConnection: professionalConnection));
     });
   }
 
@@ -400,34 +393,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-  ProfessionalPlanSummaryEntity? _buildProfessionalPlanSummary({
-    required ProfessionalConnectionEntity? connection,
-    required GymTargetsEntity targets,
-    required double kcalActual,
-    required double carbsActual,
-    required double fatActual,
-    required double proteinActual,
-  }) {
-    final plan = connection?.activePlan;
-    if (connection == null ||
-        plan == null ||
-        plan.targetForDate(currentDay) == null) {
-      return null;
-    }
-    return ProfessionalPlanSummaryEntity(
-      professionalName: connection.professionalName,
-      planName: plan.name,
-      kcalTarget: targets.kcalGoal,
-      kcalActual: kcalActual,
-      carbsTarget: targets.carbsGoal,
-      carbsActual: carbsActual,
-      fatTarget: targets.fatGoal,
-      fatActual: fatActual,
-      proteinTarget: targets.proteinGoal,
-      proteinActual: proteinActual,
-    );
-  }
-
   Future<void> _uploadSnapshotIfConsented({
     required ProfessionalConnectionEntity? connection,
     required GymTargetsEntity targets,
@@ -441,6 +406,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return;
     }
     try {
+      final dailyNote = await locator<ProfessionalPlanRepository>().getDailyNote(currentDay);
       await _uploadProfessionalSnapshotUsecase.uploadDailySnapshot(
         connection: connection,
         day: currentDay,
@@ -453,6 +419,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         proteinActual: proteinActual,
         proteinTarget: targets.proteinGoal,
         mealsLogged: mealsLogged,
+        notes: dailyNote,
       );
     } catch (_) {
       // Snapshot sync is consented but non-blocking; local tracking must keep working.

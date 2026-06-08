@@ -7,6 +7,8 @@ class NutritionPlanEntity extends Equatable {
   final String name;
   final String objective;
   final String? notes;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final DateTime? startsOn;
   final DateTime? endsOn;
   final List<NutritionPlanDayEntity> days;
@@ -19,6 +21,8 @@ class NutritionPlanEntity extends Equatable {
     required this.name,
     required this.objective,
     required this.notes,
+    required this.createdAt,
+    required this.updatedAt,
     required this.startsOn,
     required this.endsOn,
     required this.days,
@@ -39,6 +43,41 @@ class NutritionPlanEntity extends Equatable {
     return days.isNotEmpty ? days.first : null;
   }
 
+  List<NutritionPlanResolvedDayEntity> weekView({DateTime? anchorDate}) {
+    final anchor = anchorDate ?? DateTime.now();
+    final start = DateTime(anchor.year, anchor.month, anchor.day)
+        .subtract(Duration(days: anchor.weekday - DateTime.monday));
+    return List.generate(7, (index) {
+      final effectiveDate = start.add(Duration(days: index));
+      final exact = days.where((day) => day.dateKey == _dateKey(effectiveDate));
+      final weekdayFallback =
+          days.where((day) => day.weekday == effectiveDate.weekday);
+      final resolved = exact.isNotEmpty
+          ? exact.first
+          : weekdayFallback.isNotEmpty
+              ? weekdayFallback.first
+              : (days.isNotEmpty ? days.first : null);
+      if (resolved == null) {
+        return NutritionPlanResolvedDayEntity.empty(effectiveDate);
+      }
+      return NutritionPlanResolvedDayEntity(
+        effectiveDate: effectiveDate,
+        target: resolved,
+        usesWeekdayFallback: exact.isEmpty && weekdayFallback.isNotEmpty,
+        isToday: _dateKey(effectiveDate) == _dateKey(DateTime.now()),
+      );
+    });
+  }
+
+  String get cacheSignature {
+    final version = updatedAt ?? createdAt;
+    if (version != null) {
+      return '$id|${version.toUtc().toIso8601String()}';
+    }
+    return '$id|${startsOn?.toIso8601String() ?? ''}|'
+        '${endsOn?.toIso8601String() ?? ''}|${days.length}|${meals.length}';
+  }
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'professional_id': professionalId,
@@ -46,6 +85,8 @@ class NutritionPlanEntity extends Equatable {
         'name': name,
         'objective': objective,
         'notes': notes,
+        'created_at': createdAt?.toIso8601String(),
+        'updated_at': updatedAt?.toIso8601String(),
         'starts_on': startsOn?.toIso8601String(),
         'ends_on': endsOn?.toIso8601String(),
         'days': days.map((day) => day.toJson()).toList(),
@@ -62,6 +103,8 @@ class NutritionPlanEntity extends Equatable {
       name: json['name']?.toString() ?? '',
       objective: json['objective']?.toString() ?? '',
       notes: json['notes']?.toString(),
+      createdAt: _parseDate(json['created_at']),
+      updatedAt: _parseDate(json['updated_at']),
       startsOn: _parseDate(json['starts_on']),
       endsOn: _parseDate(json['ends_on']),
       days: (rawDays as List)
@@ -93,6 +136,8 @@ class NutritionPlanEntity extends Equatable {
         name,
         objective,
         notes,
+        createdAt,
+        updatedAt,
         startsOn,
         endsOn,
         days,
@@ -151,6 +196,37 @@ class NutritionPlanDayEntity extends Equatable {
   @override
   List<Object?> get props =>
       [dateKey, weekday, kcalGoal, carbsGoal, fatGoal, proteinGoal];
+}
+
+class NutritionPlanResolvedDayEntity extends Equatable {
+  final DateTime effectiveDate;
+  final NutritionPlanDayEntity? target;
+  final bool usesWeekdayFallback;
+  final bool isToday;
+
+  const NutritionPlanResolvedDayEntity({
+    required this.effectiveDate,
+    required this.target,
+    required this.usesWeekdayFallback,
+    required this.isToday,
+  });
+
+  factory NutritionPlanResolvedDayEntity.empty(DateTime date) {
+    return NutritionPlanResolvedDayEntity(
+      effectiveDate: date,
+      target: null,
+      usesWeekdayFallback: false,
+      isToday: _dateKey(date) == _dateKey(DateTime.now()),
+    );
+  }
+
+  static String _dateKey(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+
+  @override
+  List<Object?> get props => [effectiveDate, target, usesWeekdayFallback, isToday];
 }
 
 class NutritionPlanMealEntity extends Equatable {

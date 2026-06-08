@@ -3,11 +3,15 @@ import 'package:flutter/foundation.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/data/dbo/pending_snapshot_sync_dbo.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalPlanDataSource {
   static const _activeConnectionKey = 'activeProfessionalConnection';
+  static const _lastSeenPlanSignatureKey = 'professionalLastSeenPlanSignature';
+  static const _lastSeenMessagesCountKey = 'professionalLastSeenMessagesCount';
+  static const _messageTable = 'professional_client_messages';
   static const debugInviteCode = 'DEBUG';
 
   final Box<dynamic> _box;
@@ -40,6 +44,8 @@ class ProfessionalPlanDataSource {
   Future<void> clearActiveConnection() async {
     final connection = await getActiveConnection();
     await _box.delete(_activeConnectionKey);
+    await _box.delete(_lastSeenPlanSignatureKey);
+    await _box.delete(_lastSeenMessagesCountKey);
     if (kDebugMode && connection?.relationshipId == 'debug-relationship') {
       return;
     }
@@ -107,6 +113,13 @@ class ProfessionalPlanDataSource {
       consentAcceptedAt:
           DateTime.tryParse(row['consent_accepted_at']?.toString() ?? '') ??
               now,
+      lastPlanSyncAt: now,
+      lastSnapshotSyncAt: null,
+      pendingSyncCount: _syncQueueBox.length,
+      sharingMode: row['sharing_mode']?.toString() ?? 'detailed',
+      messagesEnabled: true,
+      connectionStatus:
+          row['connection_status']?.toString() ?? row['status']?.toString() ?? 'active',
       activePlan: plan,
     );
     await saveActiveConnection(connection);
@@ -124,7 +137,7 @@ class ProfessionalPlanDataSource {
     final response = await _supabaseClient
         .from('nutrition_plans')
         .select(
-            'id, professional_id, client_id, name, objective, notes, starts_on, ends_on, nutrition_plan_days(plan_date, weekday, kcal_goal, carbs_goal, fat_goal, protein_goal), nutrition_plan_meals(id, slot, title, notes, kcal, carbs, fat, protein)')
+            'id, professional_id, client_id, name, objective, notes, created_at, updated_at, starts_on, ends_on, nutrition_plan_days(plan_date, weekday, kcal_goal, carbs_goal, fat_goal, protein_goal), nutrition_plan_meals(id, slot, title, notes, kcal, carbs, fat, protein)')
         .eq('client_id', clientId)
         .eq('status', 'active')
         .order('created_at', ascending: false)
@@ -142,7 +155,11 @@ class ProfessionalPlanDataSource {
       return null;
     }
     final plan = await fetchActivePlan(connection.clientId);
-    final refreshed = connection.copyWith(activePlan: plan);
+    final refreshed = connection.copyWith(
+      activePlan: plan,
+      lastPlanSyncAt: DateTime.now(),
+      pendingSyncCount: _syncQueueBox.length,
+    );
     await saveActiveConnection(refreshed);
     return refreshed;
   }
@@ -159,11 +176,14 @@ class ProfessionalPlanDataSource {
     required double proteinActual,
     required double proteinTarget,
     required int mealsLogged,
+    String? notes,
   }) async {
     if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      await saveDailyNote(day, notes ?? '');
       return;
     }
     try {
+      await saveDailyNote(day, notes ?? '');
       await _identityService.ensureUserSession();
       await _supabaseClient.from('client_shared_snapshots').upsert({
         'professional_client_id': connection.relationshipId,
@@ -179,8 +199,13 @@ class ProfessionalPlanDataSource {
         'protein_actual': proteinActual,
         'protein_target': proteinTarget,
         'meals_logged': mealsLogged,
+        'notes': notes,
         'synced_at': DateTime.now().toUtc().toIso8601String(),
       }, onConflict: 'professional_client_id,snapshot_date');
+      await _updateSyncStatus(
+        relationshipId: connection.relationshipId,
+        lastSnapshotSyncAt: DateTime.now(),
+      );
     } catch (error) {
       final pendingId = '${connection.relationshipId}_${_dateKey(day)}';
       await _syncQueueBox.put(
@@ -201,7 +226,12 @@ class ProfessionalPlanDataSource {
           proteinTarget: proteinTarget,
           mealsLogged: mealsLogged,
           createdAt: DateTime.now(),
+          notes: notes,
         ),
+      );
+      await _updateSyncStatus(
+        relationshipId: connection.relationshipId,
+        pendingSyncCount: _syncQueueBox.length,
       );
       rethrow;
     }
@@ -232,16 +262,296 @@ class ProfessionalPlanDataSource {
           'protein_actual': pending.proteinActual,
           'protein_target': pending.proteinTarget,
           'meals_logged': pending.mealsLogged,
+          'notes': pending.notes,
           'synced_at': DateTime.now().toUtc().toIso8601String(),
         }, onConflict: 'professional_client_id,snapshot_date');
 
         await _syncQueueBox.delete(key);
+        await _updateSyncStatus(
+          relationshipId: pending.relationshipId,
+          lastSnapshotSyncAt: DateTime.now(),
+          pendingSyncCount: _syncQueueBox.length,
+        );
       } catch (error) {
         if (_shouldRetryPendingSync(error)) {
           break;
         }
       }
     }
+  }
+
+  Future<void> saveDailyNote(DateTime day, String note) async {
+    await _box.put('professional_daily_note_${_dateKey(day)}', note);
+  }
+
+  Future<String?> getDailyNote(DateTime day) async {
+    final note = _box.get('professional_daily_note_${_dateKey(day)}');
+    return note as String?;
+  }
+
+  Future<int> getPendingSyncCount() async => _syncQueueBox.length;
+
+  Future<int> getUnseenSectionCount() async {
+    final connection = await getActiveConnection();
+    if (connection == null) {
+      return 0;
+    }
+
+    // Only count unseen messages for the bottom-nav badge. Plan signature
+    // changes are informational but should not trigger the small badge.
+    final messages = await getMessages(connection: connection);
+    final seenMessagesCount = _readInt(_box.get(_lastSeenMessagesCountKey));
+    if (messages.unreadCount > seenMessagesCount) {
+      return messages.unreadCount - seenMessagesCount;
+    }
+    return 0;
+  }
+
+  Future<void> markSectionSeen({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    await _box.put(
+      _lastSeenPlanSignatureKey,
+      _planSignature(connection.activePlan),
+    );
+    final messages = await getMessages(connection: connection);
+    await _box.put(_lastSeenMessagesCountKey, messages.unreadCount);
+  }
+
+  Future<ProfessionalMessageThreadEntity> getMessages({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    if (connection.relationshipId.isEmpty) {
+      return ProfessionalMessageThreadEntity(
+        threadId: connection.relationshipId,
+        isSupported: false,
+        messagesEnabled: true,
+        messages: const [],
+      );
+    }
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      final debugMessages = [
+        ProfessionalMessageEntity(
+          id: 'debug-message-1',
+          authorRole: 'professional',
+          body: 'Plan actualizado. Revisa la vista semanal.',
+          createdAt: DateTime.now().subtract(const Duration(hours: 6)),
+          isRead: true,
+        ),
+        ProfessionalMessageEntity(
+          id: 'debug-message-2',
+          authorRole: 'professional',
+          body: 'Hoy prioriza adherencia y deja la cena simple.',
+          createdAt: DateTime.now().subtract(const Duration(hours: 1)),
+          isRead: false,
+        ),
+      ];
+
+      // Apply local read overrides even in debug mode so UI behaves the same
+      // as in production when a user marks a debug message as read.
+      final localReadKey = _localReadKey(connection.relationshipId);
+      final localReadList = _box.get(localReadKey) as List<dynamic>?;
+      final localReadIds = <String>{
+        if (localReadList != null) ...localReadList.map((e) => e.toString())
+      };
+
+      final applied = debugMessages
+          .map((m) => localReadIds.contains(m.id) ? m.copyWith(isRead: true) : m)
+          .toList();
+
+      return ProfessionalMessageThreadEntity(
+        threadId: connection.relationshipId,
+        isSupported: true,
+        messagesEnabled: true,
+        messages: applied,
+      );
+    }
+
+    try {
+      await _identityService.ensureUserSession();
+    } catch (_) {
+      return ProfessionalMessageThreadEntity(
+        threadId: connection.relationshipId,
+        isSupported: false,
+        messagesEnabled: true,
+        messages: const [],
+      );
+    }
+
+    final rows = await _tryFetchMessagesRows(
+      relationshipId: connection.relationshipId,
+    );
+    if (rows == null) {
+      return ProfessionalMessageThreadEntity(
+        threadId: connection.relationshipId,
+        isSupported: false,
+        messagesEnabled: true,
+        messages: const [],
+      );
+    }
+    final rawMessages = rows
+        .map(parseMessageRow)
+        .whereType<ProfessionalMessageEntity>()
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    // Apply locally persisted read flags so reads survive reloads even if
+    // the server update failed or is delayed.
+    final localReadKey = _localReadKey(connection.relationshipId);
+    final localReadList = _box.get(localReadKey) as List<dynamic>?;
+    final localReadIds = <String>{
+      if (localReadList != null) ...localReadList.map((e) => e.toString())
+    };
+
+    final messages = rawMessages
+        .map((m) => localReadIds.contains(m.id) ? m.copyWith(isRead: true) : m)
+        .toList();
+
+    return ProfessionalMessageThreadEntity(
+      threadId: connection.relationshipId,
+      isSupported: true,
+      messagesEnabled: true,
+      messages: messages,
+    );
+  }
+
+  Future<void> markMessageRead({
+    required ProfessionalConnectionEntity connection,
+    required String messageId,
+  }) async {
+    if (connection.relationshipId.isEmpty || messageId.isEmpty) {
+      return;
+    }
+    if (kDebugMode &&
+        (connection.relationshipId == 'debug-relationship' ||
+            messageId.startsWith('debug-'))) {
+      // In debug mode we do not call the backend, but we should still
+      // persist the read state locally so reads survive reloads.
+      try {
+        final key = _localReadKey(connection.relationshipId);
+        final current = _box.get(key) as List<dynamic>? ?? <dynamic>[];
+        if (!current.map((e) => e.toString()).contains(messageId)) {
+          current.add(messageId);
+          await _box.put(key, current);
+        }
+      } catch (_) {}
+      return;
+    }
+    try {
+      await _identityService.ensureUserSession();
+    } catch (_) {
+      return;
+    }
+
+    await _tryMarkMessageRead(
+      relationshipId: connection.relationshipId,
+      messageId: messageId,
+      clientReadAt: DateTime.now().toUtc().toIso8601String(),
+    );
+    // Persist locally as a fallback so the UI reflects the read state after
+    // a reload even if the backend update didn't persist or is delayed.
+    try {
+      final key = _localReadKey(connection.relationshipId);
+      final current = _box.get(key) as List<dynamic>? ?? <dynamic>[];
+      if (!current.map((e) => e.toString()).contains(messageId)) {
+        current.add(messageId);
+        await _box.put(key, current);
+      }
+    } catch (_) {
+      // Do not fail the whole flow if local persistence fails.
+    }
+  }
+
+  String _localReadKey(String relationshipId) =>
+      'professional_client_message_reads_$relationshipId';
+
+  Future<ProfessionalMessageEntity> sendMessage({
+    required ProfessionalConnectionEntity connection,
+    required String body,
+  }) async {
+    final trimmedBody = body.trim();
+    if (connection.relationshipId.isEmpty || trimmedBody.isEmpty) {
+      throw ArgumentError('Message body cannot be empty.');
+    }
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return ProfessionalMessageEntity(
+        id: 'debug-client-${DateTime.now().millisecondsSinceEpoch}',
+        authorRole: 'client',
+        body: trimmedBody,
+        createdAt: DateTime.now(),
+        isRead: true,
+      );
+    }
+    await _identityService.ensureUserSession();
+    final response = await _supabaseClient
+        .from(_messageTable)
+        .insert({
+          'professional_client_id': connection.relationshipId,
+          'professional_id': connection.professionalId,
+          'client_id': connection.clientId,
+          'author_role': 'client',
+          'body': trimmedBody,
+        })
+        .select('id, author_role, body, created_at, client_read_at')
+        .single();
+    final parsed = parseMessageRow(Map<String, dynamic>.from(response));
+    if (parsed == null) {
+      throw StateError('Could not parse inserted professional message.');
+    }
+    return parsed;
+  }
+
+  Future<ProfessionalSharingScopeEntity> getSharingScope({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    final isDetailed = connection.sharingMode == 'detailed';
+    const isMessagesEnabled = true;
+
+    return ProfessionalSharingScopeEntity(
+      sharingMode: connection.sharingMode,
+      messagesEnabled: true,
+      consentAcceptedAt: connection.consentAcceptedAt,
+      sharedNow: [
+        'aggregate_targets_vs_actuals',
+        'aggregate_tracked_days_and_meals',
+        'aggregate_daily_adherence',
+        if (isDetailed) ...[
+          'per_meal_detail',
+          'raw_diary_entries',
+        ],
+        'realtime_bidirectional_messages',
+      ],
+      notSharedYet: [
+        if (!isDetailed) ...[
+          'raw_diary_entries',
+          'per_meal_detail',
+        ],
+      ],
+      nextAvailable: const [],
+    );
+  }
+
+  Future<void> updateSharingMode({
+    required String relationshipId,
+    required String clientId,
+    required String sharingMode,
+  }) async {
+    final connection = await getActiveConnection();
+    if (connection != null && connection.relationshipId == relationshipId) {
+      final updated = connection.copyWith(sharingMode: sharingMode);
+      await saveActiveConnection(updated);
+    }
+    if (kDebugMode && relationshipId == 'debug-relationship') {
+      return;
+    }
+    await _identityService.ensureUserSession();
+    await _supabaseClient
+        .from('professional_clients')
+        .update({
+          'sharing_mode': sharingMode,
+        })
+        .eq('id', relationshipId)
+        .eq('client_id', clientId);
   }
 
   bool _shouldRetryPendingSync(Object error) {
@@ -265,6 +575,58 @@ class ProfessionalPlanDataSource {
 
   String _normalizeCode(String inviteCode) =>
       inviteCode.trim().replaceAll(' ', '').toUpperCase();
+
+  int _readInt(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  Future<List<Map<String, dynamic>>?> _tryFetchMessagesRows({
+    required String relationshipId,
+  }) async {
+    try {
+      final response = await _supabaseClient
+          .from(_messageTable)
+          .select(
+            'id, author_role, body, created_at, client_read_at',
+          )
+          .eq('professional_client_id', relationshipId)
+          .order('created_at', ascending: false);
+      if (response is! List) {
+        return null;
+      }
+      return response
+          .map((row) => Map<String, dynamic>.from(row as Map))
+          .toList();
+    } catch (error) {
+      if (isIgnorableMessagesBackendError(error)) {
+        return null;
+      }
+      return null;
+    }
+  }
+
+  Future<void> _tryMarkMessageRead({
+    required String relationshipId,
+    required String messageId,
+    required String clientReadAt,
+  }) async {
+    try {
+      await _supabaseClient
+          .from(_messageTable)
+          .update({'client_read_at': clientReadAt})
+          .eq('id', messageId)
+          .eq('professional_client_id', relationshipId);
+    } catch (error, stack) {
+      debugPrint('ERROR in _tryMarkMessageRead: $error');
+      debugPrint(stack.toString());
+      if (isIgnorableMessagesBackendError(error)) {
+        return;
+      }
+    }
+  }
 
   String _dateKey(DateTime date) => '${date.year.toString().padLeft(4, '0')}-'
       '${date.month.toString().padLeft(2, '0')}-'
@@ -290,6 +652,12 @@ class ProfessionalPlanDataSource {
       professionalName: 'Nutricionista Debug',
       connectedAt: now,
       consentAcceptedAt: now,
+      lastPlanSyncAt: now,
+      lastSnapshotSyncAt: now.subtract(const Duration(minutes: 12)),
+      pendingSyncCount: 0,
+      sharingMode: 'detailed',
+      messagesEnabled: true,
+      connectionStatus: 'active',
       activePlan: _debugPlan(),
     );
   }
@@ -303,6 +671,8 @@ class ProfessionalPlanDataSource {
       name: 'Plan debug de recomposicion',
       objective: 'Validar la experiencia del nutricionista profesional.',
       notes: 'Plan local generado solo en modo debug.',
+      createdAt: now.subtract(const Duration(days: 2)),
+      updatedAt: now.subtract(const Duration(hours: 3)),
       startsOn: DateTime(now.year, now.month, now.day),
       endsOn: DateTime(now.year, now.month, now.day).add(
         const Duration(days: 14),
@@ -350,5 +720,79 @@ class ProfessionalPlanDataSource {
         ),
       ],
     );
+  }
+
+  Future<void> _updateSyncStatus({
+    required String relationshipId,
+    DateTime? lastSnapshotSyncAt,
+    int? pendingSyncCount,
+  }) async {
+    final connection = await getActiveConnection();
+    if (connection == null || connection.relationshipId != relationshipId) {
+      return;
+    }
+    await saveActiveConnection(
+      connection.copyWith(
+        lastSnapshotSyncAt: lastSnapshotSyncAt ?? connection.lastSnapshotSyncAt,
+        pendingSyncCount: pendingSyncCount ?? _syncQueueBox.length,
+      ),
+    );
+  }
+
+  String? _planSignature(NutritionPlanEntity? plan) {
+    if (plan == null) {
+      return null;
+    }
+    return plan.cacheSignature;
+  }
+
+  @visibleForTesting
+  static ProfessionalMessageEntity? parseMessageRow(Map<String, dynamic> row) {
+    final id = _firstString(row, const ['id']);
+    final body = _firstString(row, const ['body']);
+    if (id == null || id.isEmpty || body == null || body.trim().isEmpty) {
+      return null;
+    }
+    final authorRole = _firstString(row, const ['author_role']) ??
+        'professional';
+    final createdAt = DateTime.tryParse(
+          _firstString(row, const ['created_at']) ?? '',
+        ) ??
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+    final isRead =
+        row['client_read_at'] != null || authorRole.toLowerCase() == 'client';
+
+    return ProfessionalMessageEntity(
+      id: id,
+      authorRole: authorRole,
+      body: body.trim(),
+      createdAt: createdAt,
+      isRead: isRead,
+    );
+  }
+
+  @visibleForTesting
+  static bool isIgnorableMessagesBackendError(Object error) {
+    final raw = error.toString().toLowerCase();
+    return raw.contains('relation') ||
+        raw.contains('column') ||
+        raw.contains('schema cache') ||
+        raw.contains('does not exist') ||
+        raw.contains('could not find') ||
+        raw.contains('pgrst');
+  }
+
+  static String? _firstString(Map<String, dynamic> row, List<String> keys) {
+    for (final key in keys) {
+      final value = row[key];
+      if (value == null) {
+        continue;
+      }
+      final text = value.toString();
+      if (text.isNotEmpty) {
+        return text;
+      }
+    }
+    return null;
   }
 }

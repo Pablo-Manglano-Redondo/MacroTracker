@@ -1,5 +1,6 @@
 import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 
 class ProfessionalPlanRepository {
   final ProfessionalPlanDataSource _dataSource;
@@ -38,6 +39,7 @@ class ProfessionalPlanRepository {
     required double proteinActual,
     required double proteinTarget,
     required int mealsLogged,
+    String? notes,
   }) {
     return _dataSource.uploadDailySnapshot(
       connection: connection,
@@ -51,10 +53,77 @@ class ProfessionalPlanRepository {
       proteinActual: proteinActual,
       proteinTarget: proteinTarget,
       mealsLogged: mealsLogged,
+      notes: notes,
     );
+  }
+
+  Future<void> saveDailyNote(DateTime day, String note) {
+    return _dataSource.saveDailyNote(day, note);
+  }
+
+  Future<String?> getDailyNote(DateTime day) {
+    return _dataSource.getDailyNote(day);
   }
 
   Future<void> processPendingSyncs() {
     return _dataSource.processPendingSyncs();
+  }
+
+  Future<int> getPendingSyncCount() {
+    return _dataSource.getPendingSyncCount();
+  }
+
+  Future<ProfessionalMessageThreadEntity> getMessages({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.getMessages(connection: connection);
+  }
+
+  Future<void> markMessageRead({
+    required ProfessionalConnectionEntity connection,
+    required String messageId,
+  }) {
+    return _dataSource.markMessageRead(
+      connection: connection,
+      messageId: messageId,
+    );
+  }
+
+  Future<ProfessionalMessageEntity> sendMessage({
+    required ProfessionalConnectionEntity connection,
+    required String body,
+  }) {
+    return _dataSource.sendMessage(
+      connection: connection,
+      body: body,
+    );
+  }
+
+  Future<ProfessionalSharingScopeEntity> getSharingScope({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.getSharingScope(connection: connection);
+  }
+
+  Future<void> updateSharingMode({
+    required String relationshipId,
+    required String clientId,
+    required String sharingMode,
+  }) {
+    return _dataSource.updateSharingMode(
+      relationshipId: relationshipId,
+      clientId: clientId,
+      sharingMode: sharingMode,
+    );
+  }
+
+  Future<int> getUnseenSectionCount() {
+    return _dataSource.getUnseenSectionCount();
+  }
+
+  Future<void> markSectionSeen({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.markSectionSeen(connection: connection);
   }
 }
