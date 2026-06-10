@@ -12,7 +12,7 @@ import 'package:macrotracker/core/presentation/widgets/ai_usage_gate.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
-import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/data_source/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal_from_photo_usecase.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/meal_interpretation_personalization_usecase.dart';

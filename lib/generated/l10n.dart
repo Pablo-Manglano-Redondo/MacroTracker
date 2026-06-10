@@ -70,10 +70,10 @@ class S {
     );
   }
 
-  /// `MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.`
+  /// `MacroTracker by EPSAIT is a professional calorie and nutrient tracker with local-first privacy.`
   String get appDescription {
     return Intl.message(
-      'MacroTracker by EPSAIT is a free calorie and nutrient tracker with local-first privacy.',
+      'MacroTracker by EPSAIT is a professional calorie and nutrient tracker with local-first privacy.',
       name: 'appDescription',
       desc: '',
       args: [],
@@ -5801,6 +5801,16 @@ class S {
     );
   }
 
+  /// `Daily adjustment updated to {kcal} kcal.`
+  String weeklyInsightsAdjustmentSuccess(Object kcal) {
+    return Intl.message(
+      'Daily adjustment updated to $kcal kcal.',
+      name: 'weeklyInsightsAdjustmentSuccess',
+      desc: '',
+      args: [kcal],
+    );
+  }
+
   /// `Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages.`
   String get professionalSectionConnectSubtitle {
     return Intl.message(
@@ -6738,16 +6748,6 @@ class S {
       name: 'professionalPrivacyPerMealDetailWhenReady',
       desc: '',
       args: [],
-    );
-  }
-
-  /// `Daily adjustment updated to {kcal} kcal.`
-  String weeklyInsightsAdjustmentSuccess(Object kcal) {
-    return Intl.message(
-      'Daily adjustment updated to $kcal kcal.',
-      name: 'weeklyInsightsAdjustmentSuccess',
-      desc: '',
-      args: [kcal],
     );
   }
 
@@ -8899,6 +8899,186 @@ class S {
     return Intl.message(
       'Delta',
       name: 'bodyProgressDelta',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check-in`
+  String get professionalTabCheckin {
+    return Intl.message(
+      'Check-in',
+      name: 'professionalTabCheckin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notes`
+  String get professionalTabNotes {
+    return Intl.message(
+      'Notes',
+      name: 'professionalTabNotes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recipes`
+  String get professionalTabRecipes {
+    return Intl.message(
+      'Recipes',
+      name: 'professionalTabRecipes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Check-in submitted!`
+  String get checkinTabSubmitted {
+    return Intl.message(
+      'Check-in submitted!',
+      name: 'checkinTabSubmitted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your nutritionist will review it shortly.`
+  String get checkinTabReviewShortly {
+    return Intl.message(
+      'Your nutritionist will review it shortly.',
+      name: 'checkinTabReviewShortly',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submit another`
+  String get checkinTabSubmitAnother {
+    return Intl.message(
+      'Submit another',
+      name: 'checkinTabSubmitAnother',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weekly Check-in`
+  String get checkinTabWeeklyTitle {
+    return Intl.message(
+      'Weekly Check-in',
+      name: 'checkinTabWeeklyTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Share how your week went`
+  String get checkinTabShareSubtitle {
+    return Intl.message(
+      'Share how your week went',
+      name: 'checkinTabShareSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Energy Level`
+  String get checkinTabEnergyLevel {
+    return Intl.message(
+      'Energy Level',
+      name: 'checkinTabEnergyLevel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Low`
+  String get checkinTabLow {
+    return Intl.message(
+      'Low',
+      name: 'checkinTabLow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `High`
+  String get checkinTabHigh {
+    return Intl.message(
+      'High',
+      name: 'checkinTabHigh',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sleep Hours`
+  String get checkinTabSleepHours {
+    return Intl.message(
+      'Sleep Hours',
+      name: 'checkinTabSleepHours',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `How are you feeling?`
+  String get checkinTabHowFeeling {
+    return Intl.message(
+      'How are you feeling?',
+      name: 'checkinTabHowFeeling',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `e.g. Energized, tired, motivated...`
+  String get checkinTabMoodHint {
+    return Intl.message(
+      'e.g. Energized, tired, motivated...',
+      name: 'checkinTabMoodHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Additional notes`
+  String get checkinTabAdditionalNotes {
+    return Intl.message(
+      'Additional notes',
+      name: 'checkinTabAdditionalNotes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Any challenges or wins this week?`
+  String get checkinTabNotesHint {
+    return Intl.message(
+      'Any challenges or wins this week?',
+      name: 'checkinTabNotesHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submitting...`
+  String get checkinTabSubmitting {
+    return Intl.message(
+      'Submitting...',
+      name: 'checkinTabSubmitting',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submit Check-in`
+  String get checkinTabSubmitButton {
+    return Intl.message(
+      'Submit Check-in',
+      name: 'checkinTabSubmitButton',
       desc: '',
       args: [],
     );

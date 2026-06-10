@@ -34,13 +34,15 @@ class PendingSnapshotSyncDBOAdapter
       mealsLogged: fields[13] as int,
       createdAt: fields[14] as DateTime,
       notes: fields[15] as String?,
+      weightKg: fields[16] as double?,
+      waistCm: fields[17] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, PendingSnapshotSyncDBO obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(18)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -72,7 +74,11 @@ class PendingSnapshotSyncDBOAdapter
       ..writeByte(14)
       ..write(obj.createdAt)
       ..writeByte(15)
-      ..write(obj.notes);
+      ..write(obj.notes)
+      ..writeByte(16)
+      ..write(obj.weightKg)
+      ..writeByte(17)
+      ..write(obj.waistCm);
   }
 
   @override
@@ -109,6 +115,8 @@ PendingSnapshotSyncDBO _$PendingSnapshotSyncDBOFromJson(
       mealsLogged: (json['mealsLogged'] as num).toInt(),
       createdAt: DateTime.parse(json['createdAt'] as String),
       notes: json['notes'] as String?,
+      weightKg: (json['weightKg'] as num?)?.toDouble(),
+      waistCm: (json['waistCm'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$PendingSnapshotSyncDBOToJson(
@@ -130,4 +138,6 @@ Map<String, dynamic> _$PendingSnapshotSyncDBOToJson(
       'mealsLogged': instance.mealsLogged,
       'createdAt': instance.createdAt.toIso8601String(),
       'notes': instance.notes,
+      'weightKg': instance.weightKg,
+      'waistCm': instance.waistCm,
     };

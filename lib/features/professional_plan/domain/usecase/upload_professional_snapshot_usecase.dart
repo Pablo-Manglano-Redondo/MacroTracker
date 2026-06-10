@@ -19,6 +19,8 @@ class UploadProfessionalSnapshotUsecase {
     required double proteinTarget,
     required int mealsLogged,
     String? notes,
+    double? weightKg,
+    double? waistCm,
   }) {
     return _repository.uploadDailySnapshot(
       connection: connection,
@@ -33,6 +35,8 @@ class UploadProfessionalSnapshotUsecase {
       proteinTarget: proteinTarget,
       mealsLogged: mealsLogged,
       notes: notes,
+      weightKg: weightKg,
+      waistCm: waistCm,
     );
   }
 }

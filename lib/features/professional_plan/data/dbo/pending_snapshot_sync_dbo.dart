@@ -54,6 +54,12 @@ class PendingSnapshotSyncDBO extends HiveObject {
   @HiveField(15)
   final String? notes;
 
+  @HiveField(16)
+  final double? weightKg;
+
+  @HiveField(17)
+  final double? waistCm;
+
   PendingSnapshotSyncDBO({
     required this.id,
     required this.relationshipId,
@@ -71,6 +77,8 @@ class PendingSnapshotSyncDBO extends HiveObject {
     required this.mealsLogged,
     required this.createdAt,
     this.notes,
+    this.weightKg,
+    this.waistCm,
   });
 
   factory PendingSnapshotSyncDBO.fromJson(Map<String, dynamic> json) =>

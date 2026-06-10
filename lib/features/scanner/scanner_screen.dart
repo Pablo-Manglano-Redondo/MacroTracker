@@ -7,7 +7,7 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/meal_detail/meal_detail_screen.dart';
-import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:macrotracker/features/scanner/presentation/bloc/scanner_bloc.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';

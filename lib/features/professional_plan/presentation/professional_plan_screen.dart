@@ -16,6 +16,7 @@ import 'package:macrotracker/features/professional_plan/domain/usecase/get_profe
 import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_section_seen_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/mark_professional_message_read_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/send_professional_message_usecase.dart';
+import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
@@ -112,7 +113,9 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : RefreshIndicator(
+              onRefresh: () => _loadSection(refreshRemotePlan: true),
+              child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (_connection == null) ...[
@@ -159,6 +162,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                   ),
               ],
             ),
+          ),
     );
   }
 
@@ -246,7 +250,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   }
 
   Future<void> _acceptInvite() async {
-    final accountReady = _isDebugInviteCode()
+    final isDemoProfessional = _invitePreview?.professionalName == 'Demo Professional';
+    final accountReady = (_isDebugInviteCode() || isDemoProfessional)
         ? true
         : await _ensureProtectedAccountForConnection();
     if (!accountReady) {
@@ -511,6 +516,9 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       final fatTarget = todayActual?.fatTarget ?? 0.0;
       final proteinTarget = todayActual?.proteinTarget ?? 0.0;
 
+      final bodyProgress = await locator<GetBodyProgressUsecase>().getSummary();
+      final weightKg = bodyProgress.latestWeightKg;
+      final waistCm = bodyProgress.latestWaistCm;
       await locator<UploadProfessionalSnapshotUsecase>().uploadDailySnapshot(
         connection: connection,
         day: DateTime.now(),
@@ -524,6 +532,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         proteinTarget: proteinTarget,
         mealsLogged: mealsLogged,
         notes: note,
+        weightKg: weightKg,
+        waistCm: waistCm,
       );
       await _loadSection(refreshRemotePlan: false);
     } catch (e) {

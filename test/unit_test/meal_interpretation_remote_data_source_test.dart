@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/data_source/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 

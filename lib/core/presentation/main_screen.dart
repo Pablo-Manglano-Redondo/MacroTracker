@@ -11,11 +11,11 @@ import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.d
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
-import 'package:macrotracker/features/diary/diary_page.dart';
+import 'package:macrotracker/features/diary/diary_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/home_appbar.dart';
-import 'package:macrotracker/features/home/home_page.dart';
+import 'package:macrotracker/features/home/home_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/main_appbar.dart';
-import 'package:macrotracker/features/profile/profile_page.dart';
+import 'package:macrotracker/features/profile/profile_screen.dart';
 import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_unseen_section_count_usecase.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
@@ -215,10 +215,10 @@ class _MainScreenState extends State<MainScreen> {
 
   List<Widget> _buildBodyPages() {
     return [
-      const HomePage(),
+      const HomeScreen(),
       if (_hasProfessionalTab) const ProfessionalPlanScreen(),
-      const DiaryPage(),
-      const ProfilePage(),
+      const DiaryScreen(),
+      const ProfileScreen(),
     ];
   }
 

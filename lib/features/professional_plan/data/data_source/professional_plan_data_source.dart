@@ -137,7 +137,7 @@ class ProfessionalPlanDataSource {
     final response = await _supabaseClient
         .from('nutrition_plans')
         .select(
-            'id, professional_id, client_id, name, objective, notes, created_at, updated_at, starts_on, ends_on, nutrition_plan_days(plan_date, weekday, kcal_goal, carbs_goal, fat_goal, protein_goal), nutrition_plan_meals(id, slot, title, notes, kcal, carbs, fat, protein)')
+            'id, professional_id, client_id, name, objective, notes, created_at, updated_at, starts_on, ends_on, nutrition_plan_days(plan_date, weekday, kcal_goal, carbs_goal, fat_goal, protein_goal), nutrition_plan_meals(id, slot, title, notes, kcal, carbs, fat, protein, recipe_id)')
         .eq('client_id', clientId)
         .eq('status', 'active')
         .order('created_at', ascending: false)
@@ -177,6 +177,8 @@ class ProfessionalPlanDataSource {
     required double proteinTarget,
     required int mealsLogged,
     String? notes,
+    double? weightKg,
+    double? waistCm,
   }) async {
     if (kDebugMode && connection.relationshipId == 'debug-relationship') {
       await saveDailyNote(day, notes ?? '');
@@ -200,6 +202,8 @@ class ProfessionalPlanDataSource {
         'protein_target': proteinTarget,
         'meals_logged': mealsLogged,
         'notes': notes,
+        'weight_kg': weightKg,
+        'waist_cm': waistCm,
         'synced_at': DateTime.now().toUtc().toIso8601String(),
       }, onConflict: 'professional_client_id,snapshot_date');
       await _updateSyncStatus(
@@ -227,6 +231,8 @@ class ProfessionalPlanDataSource {
           mealsLogged: mealsLogged,
           createdAt: DateTime.now(),
           notes: notes,
+          weightKg: weightKg,
+          waistCm: waistCm,
         ),
       );
       await _updateSyncStatus(
@@ -234,6 +240,37 @@ class ProfessionalPlanDataSource {
         pendingSyncCount: _syncQueueBox.length,
       );
       rethrow;
+    }
+  }
+
+  Future<void> uploadDiaryEntries({
+    required ProfessionalConnectionEntity connection,
+    required DateTime day,
+    required List<Map<String, dynamic>> entries,
+  }) async {
+    if (connection.sharingMode != 'detailed') return;
+    if (entries.isEmpty) return;
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') return;
+
+    try {
+      await _identityService.ensureUserSession();
+      // Delete existing entries for this day to avoid duplicates
+      await _supabaseClient
+          .from('client_diary_entries')
+          .delete()
+          .eq('professional_client_id', connection.relationshipId)
+          .eq('entry_date', _dateKey(day));
+      // Insert fresh entries
+      final rows = entries.map((e) => {
+        'professional_client_id': connection.relationshipId,
+        'professional_id': connection.professionalId,
+        'client_id': connection.clientId,
+        'entry_date': _dateKey(day),
+        ...e,
+      }).toList();
+      await _supabaseClient.from('client_diary_entries').insert(rows);
+    } catch (_) {
+      // Non-blocking; diary upload must never break the main sync
     }
   }
 
@@ -263,6 +300,8 @@ class ProfessionalPlanDataSource {
           'protein_target': pending.proteinTarget,
           'meals_logged': pending.mealsLogged,
           'notes': pending.notes,
+          'weight_kg': pending.weightKg,
+          'waist_cm': pending.waistCm,
           'synced_at': DateTime.now().toUtc().toIso8601String(),
         }, onConflict: 'professional_client_id,snapshot_date');
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_recipe_usecase.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/proposed_recipes_data_source.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
 
@@ -829,6 +831,23 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                 fat: fat,
               ),
               const SizedBox(height: 24),
+              if (meal.recipeId != null) ...[
+                OutlinedButton.icon(
+                  onPressed: () => _handleViewRecipe(context, meal.recipeId!),
+                  icon: const Icon(Icons.menu_book_outlined, size: 20),
+                  label: Text(
+                    isEs ? 'Ver Receta' : 'View Recipe',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               FilledButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -850,6 +869,276 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _handleViewRecipe(BuildContext context, String recipeId) async {
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final recipe = await locator<GetProfessionalRecipeUsecase>().execute(recipeId: recipeId);
+
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Dismiss loading
+      }
+
+      if (recipe == null) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isEs ? 'No se pudo cargar la receta.' : 'Could not load recipe.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (context.mounted) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (sheetContext) => ProfessionalRecipeDetailBottomSheet(recipe: recipe),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Dismiss loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isEs ? 'Error al cargar la receta: $e' : 'Error loading recipe: $e',
+            ),
+          ),
+        );
+      }
+    }
+  }
+}
+
+class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
+  final ProfessionalRecipeData recipe;
+
+  const ProfessionalRecipeDetailBottomSheet({
+    super.key,
+    required this.recipe,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = colorScheme.brightness == Brightness.dark;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF161618) : colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          recipe.title,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          isEs ? 'Detalle de Receta' : 'Recipe Details',
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.w800,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close),
+                    style: IconButton.styleFrom(
+                      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                children: [
+                  if (recipe.description?.isNotEmpty == true) ...[
+                    Text(
+                      recipe.description!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      if (recipe.prepTimeMin != null)
+                        _RecipeInfoIcon(
+                          icon: Icons.timer_outlined,
+                          label: isEs ? 'Prep' : 'Prep',
+                          value: '${recipe.prepTimeMin}m',
+                        ),
+                      if (recipe.cookTimeMin != null)
+                        _RecipeInfoIcon(
+                          icon: Icons.soup_kitchen_outlined,
+                          label: isEs ? 'Cocción' : 'Cook',
+                          value: '${recipe.cookTimeMin}m',
+                        ),
+                      if (recipe.servings != null)
+                        _RecipeInfoIcon(
+                          icon: Icons.restaurant_outlined,
+                          label: isEs ? 'Porciones' : 'Servings',
+                          value: '${recipe.servings}',
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    isEs ? 'Ingredientes' : 'Ingredients',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: colorScheme.surfaceContainerLow,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (recipe.ingredients == null || recipe.ingredients!.isEmpty)
+                          Text(isEs ? 'Sin ingredientes especificados' : 'No ingredients specified')
+                        else
+                          for (final rawIng in recipe.ingredients!)
+                            if (rawIng is Map)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.fiber_manual_record, size: 8, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        '${rawIng['name'] ?? ''}',
+                                        style: const TextStyle(fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${rawIng['amount'] ?? ''} ${rawIng['unit'] ?? ''}',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurfaceVariant,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    isEs ? 'Preparación' : 'Instructions',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (recipe.instructions == null || recipe.instructions!.trim().isEmpty)
+                    Text(isEs ? 'Sin instrucciones' : 'No instructions')
+                  else
+                    Text(
+                      recipe.instructions!,
+                      style: const TextStyle(height: 1.5),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecipeInfoIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _RecipeInfoIcon({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Icon(icon, color: colorScheme.primary, size: 24),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 }

@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:macrotracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_activity_dbo.dart';
 import 'package:macrotracker/core/data/dbo/app_theme_dbo.dart';
 import 'package:macrotracker/core/data/dbo/config_dbo.dart';
 import 'package:macrotracker/core/data/dbo/intake_dbo.dart';

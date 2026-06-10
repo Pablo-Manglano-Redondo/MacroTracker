@@ -27,6 +27,7 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'dart:async';
+import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
@@ -54,6 +55,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetProfessionalPlanUsecase _getProfessionalPlanUsecase;
   final UploadProfessionalSnapshotUsecase _uploadProfessionalSnapshotUsecase;
   final ProcessPendingSyncsUsecase _processPendingSyncsUsecase;
+  final GetBodyProgressUsecase _getBodyProgressUsecase;
 
   DateTime currentDay = DateTime.now();
 
@@ -73,7 +75,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       this._calculateFoodQualityScoreUsecase,
       this._getProfessionalPlanUsecase,
       this._uploadProfessionalSnapshotUsecase,
-      this._processPendingSyncsUsecase)
+      this._processPendingSyncsUsecase,
+      this._getBodyProgressUsecase)
       : super(HomeInitial()) {
     on<LoadItemsEvent>((event, emit) async {
       final shouldShowBlockingLoader = state is! HomeLoadedState;
@@ -191,6 +194,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           fatActual: totalFatsIntake,
           proteinActual: totalProteinsIntake,
           mealsLogged: allIntakes.length,
+          allIntakes: allIntakes,
         );
       }
 
@@ -401,12 +405,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required double fatActual,
     required double proteinActual,
     required int mealsLogged,
+    List<IntakeEntity>? allIntakes,
   }) async {
     if (connection == null || connection.activePlan == null) {
       return;
     }
     try {
       final dailyNote = await locator<ProfessionalPlanRepository>().getDailyNote(currentDay);
+      final bodyProgress = await _getBodyProgressUsecase.getSummary(referenceDay: currentDay);
+      final weightKg = bodyProgress.latestWeightKg;
+      final waistCm = bodyProgress.latestWaistCm;
       await _uploadProfessionalSnapshotUsecase.uploadDailySnapshot(
         connection: connection,
         day: currentDay,
@@ -420,9 +428,40 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         proteinTarget: targets.proteinGoal,
         mealsLogged: mealsLogged,
         notes: dailyNote,
+        weightKg: weightKg,
+        waistCm: waistCm,
       );
+
+      // Upload individual diary entries for detailed sharing
+      if (allIntakes != null && allIntakes.isNotEmpty && connection.sharingMode == 'detailed') {
+        await _uploadDiaryEntries(connection, allIntakes);
+      }
     } catch (_) {
       // Snapshot sync is consented but non-blocking; local tracking must keep working.
+    }
+  }
+
+  Future<void> _uploadDiaryEntries(ProfessionalConnectionEntity connection, List<IntakeEntity> intakes) async {
+    try {
+      final entries = intakes.map((e) => {
+        'meal_type': e.type.name,
+        'meal_name': e.meal.name ?? e.meal.code,
+        'meal_brands': e.meal.brands,
+        'amount': e.amount,
+        'unit': e.unit,
+        'kcal': e.totalKcal,
+        'protein': e.totalProteinsGram,
+        'carbs': e.totalCarbsGram,
+        'fat': e.totalFatsGram,
+      }).toList();
+
+      await locator<ProfessionalPlanRepository>().uploadDiaryEntries(
+        connection: connection,
+        day: currentDay,
+        entries: entries,
+      );
+    } catch (_) {
+      // Non-blocking
     }
   }
 }

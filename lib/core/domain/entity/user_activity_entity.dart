@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:macrotracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_activity_dbo.dart';
 import 'package:macrotracker/core/domain/entity/physical_activity_entity.dart';
 
 enum UserActivitySourceEntity {

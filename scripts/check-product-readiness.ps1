@@ -64,7 +64,20 @@ if (-not $SkipFocusedTests) {
             test/unit_test/cloud_account_deletion_service_test.dart `
             test/unit_test/conversion_analytics_service_test.dart `
             test/unit_test/monetization_service_test.dart `
-            test/unit_test/meal_interpretation_remote_data_source_test.dart
+            test/unit_test/meal_interpretation_remote_data_source_test.dart `
+            test/unit_test/bmr_calc_test.dart `
+            test/unit_test/bmi_calc_test.dart `
+            test/unit_test/macro_calc_test.dart `
+            test/unit_test/pal_calc_test.dart `
+            test/unit_test/unit_calc_test.dart `
+            test/unit_test/gym_target_calc_test.dart `
+            test/unit_test/build_weekly_insights_usecase_test.dart `
+            test/unit_test/home_bloc_test.dart `
+            test/unit_test/intake_repository_crud_test.dart `
+            test/unit_test/apply_weekly_kcal_adjustment_usecase_test.dart `
+            test/unit_test/scanner_bloc_test.dart `
+            test/unit_test/save_body_measurement_usecase_test.dart `
+            test/unit_test/professional_usecases_test.dart
     }
 }
 

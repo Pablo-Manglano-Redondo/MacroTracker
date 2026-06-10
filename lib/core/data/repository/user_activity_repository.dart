@@ -1,5 +1,5 @@
 import 'package:macrotracker/core/data/data_source/user_activity_data_source.dart';
-import 'package:macrotracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_activity_dbo.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 
 class UserActivityRepository {

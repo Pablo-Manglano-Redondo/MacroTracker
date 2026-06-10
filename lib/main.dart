@@ -11,6 +11,7 @@ import 'package:macrotracker/core/presentation/main_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
+import 'package:macrotracker/core/services/push_notification_service.dart';
 import 'package:macrotracker/core/styles/color_schemes.dart';
 import 'package:macrotracker/core/styles/fonts.dart';
 import 'package:macrotracker/core/utils/env.dart';
@@ -125,6 +126,12 @@ Future<void> _runDeferredStartupTasks() async {
     await locator<MealReminderService>().syncFromConfig();
   } catch (error, stackTrace) {
     log.severe('Meal reminder startup sync failed', error, stackTrace);
+  }
+
+  try {
+    await locator<PushNotificationService>().initialize();
+  } catch (error, stackTrace) {
+    log.warning('Push notification init failed', error, stackTrace);
   }
 }
 

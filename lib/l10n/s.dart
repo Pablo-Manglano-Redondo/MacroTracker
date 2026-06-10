@@ -5408,6 +5408,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delta'**
   String get bodyProgressDelta;
+
+  /// No description provided for @professionalTabCheckin.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get professionalTabCheckin;
+
+  /// No description provided for @professionalTabNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get professionalTabNotes;
+
+  /// No description provided for @professionalTabRecipes.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipes'**
+  String get professionalTabRecipes;
+
+  /// No description provided for @checkinTabSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in submitted!'**
+  String get checkinTabSubmitted;
+
+  /// No description provided for @checkinTabReviewShortly.
+  ///
+  /// In en, this message translates to:
+  /// **'Your nutritionist will review it shortly.'**
+  String get checkinTabReviewShortly;
+
+  /// No description provided for @checkinTabSubmitAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit another'**
+  String get checkinTabSubmitAnother;
+
+  /// No description provided for @checkinTabWeeklyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Check-in'**
+  String get checkinTabWeeklyTitle;
+
+  /// No description provided for @checkinTabShareSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share how your week went'**
+  String get checkinTabShareSubtitle;
+
+  /// No description provided for @checkinTabEnergyLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy Level'**
+  String get checkinTabEnergyLevel;
+
+  /// No description provided for @checkinTabLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get checkinTabLow;
+
+  /// No description provided for @checkinTabHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get checkinTabHigh;
+
+  /// No description provided for @checkinTabSleepHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep Hours'**
+  String get checkinTabSleepHours;
+
+  /// No description provided for @checkinTabHowFeeling.
+  ///
+  /// In en, this message translates to:
+  /// **'How are you feeling?'**
+  String get checkinTabHowFeeling;
+
+  /// No description provided for @checkinTabMoodHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Energized, tired, motivated...'**
+  String get checkinTabMoodHint;
+
+  /// No description provided for @checkinTabAdditionalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional notes'**
+  String get checkinTabAdditionalNotes;
+
+  /// No description provided for @checkinTabNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Any challenges or wins this week?'**
+  String get checkinTabNotesHint;
+
+  /// No description provided for @checkinTabSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting...'**
+  String get checkinTabSubmitting;
+
+  /// No description provided for @checkinTabSubmitButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Check-in'**
+  String get checkinTabSubmitButton;
 }
 
 class _AppLocalizationsDelegate

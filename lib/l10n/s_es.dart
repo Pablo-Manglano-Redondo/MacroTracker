@@ -2987,4 +2987,59 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bodyProgressDelta => 'Delta';
+
+  @override
+  String get professionalTabCheckin => 'Check-in';
+
+  @override
+  String get professionalTabNotes => 'Notas';
+
+  @override
+  String get professionalTabRecipes => 'Recetas';
+
+  @override
+  String get checkinTabSubmitted => 'Check-in enviado!';
+
+  @override
+  String get checkinTabReviewShortly =>
+      'Tu nutricionista lo revisara en breve.';
+
+  @override
+  String get checkinTabSubmitAnother => 'Enviar otro';
+
+  @override
+  String get checkinTabWeeklyTitle => 'Check-in Semanal';
+
+  @override
+  String get checkinTabShareSubtitle => 'Comparte como fue tu semana';
+
+  @override
+  String get checkinTabEnergyLevel => 'Nivel de Energia';
+
+  @override
+  String get checkinTabLow => 'Bajo';
+
+  @override
+  String get checkinTabHigh => 'Alto';
+
+  @override
+  String get checkinTabSleepHours => 'Horas de Sueno';
+
+  @override
+  String get checkinTabHowFeeling => 'Como te sientes?';
+
+  @override
+  String get checkinTabMoodHint => 'Ej. Con energia, cansado, motivado...';
+
+  @override
+  String get checkinTabAdditionalNotes => 'Notas adicionales';
+
+  @override
+  String get checkinTabNotesHint => 'Algun desafio o logro esta semana?';
+
+  @override
+  String get checkinTabSubmitting => 'Enviando...';
+
+  @override
+  String get checkinTabSubmitButton => 'Enviar Check-in';
 }

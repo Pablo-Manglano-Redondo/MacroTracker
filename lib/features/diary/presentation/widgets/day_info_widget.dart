@@ -3,7 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
-import 'package:macrotracker/core/presentation/widgets/activity_vertial_list.dart';
+import 'package:macrotracker/core/presentation/widgets/activity_vertical_list.dart';
 import 'package:macrotracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:macrotracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';

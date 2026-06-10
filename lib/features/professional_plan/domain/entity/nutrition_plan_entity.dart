@@ -238,6 +238,7 @@ class NutritionPlanMealEntity extends Equatable {
   final double? carbs;
   final double? fat;
   final double? protein;
+  final String? recipeId;
 
   const NutritionPlanMealEntity({
     required this.id,
@@ -248,6 +249,7 @@ class NutritionPlanMealEntity extends Equatable {
     required this.carbs,
     required this.fat,
     required this.protein,
+    this.recipeId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -259,6 +261,7 @@ class NutritionPlanMealEntity extends Equatable {
         'carbs': carbs,
         'fat': fat,
         'protein': protein,
+        'recipe_id': recipeId,
       };
 
   factory NutritionPlanMealEntity.fromJson(Map<String, dynamic> json) {
@@ -271,6 +274,7 @@ class NutritionPlanMealEntity extends Equatable {
       carbs: _readNullableDouble(json['carbs']),
       fat: _readNullableDouble(json['fat']),
       protein: _readNullableDouble(json['protein']),
+      recipeId: json['recipe_id']?.toString(),
     );
   }
 
@@ -282,5 +286,5 @@ class NutritionPlanMealEntity extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, slot, title, notes, kcal, carbs, fat, protein];
+      [id, slot, title, notes, kcal, carbs, fat, protein, recipeId];
 }

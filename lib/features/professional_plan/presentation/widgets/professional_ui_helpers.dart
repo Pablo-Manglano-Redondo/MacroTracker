@@ -5,6 +5,9 @@ enum ProfessionalHubTab {
   summary,
   plan,
   tracking,
+  checkin,
+  notes,
+  recipes,
   privacy,
   messages,
 }

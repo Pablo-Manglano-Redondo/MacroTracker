@@ -137,7 +137,15 @@ graph TD
     flutter pub get
     ```
 
-2.  **Configure Environment Variables:**
+2.  **iOS Pod Setup (macOS only):**
+    ```bash
+    cd ios
+    pod install --repo-update
+    cd ..
+    ```
+    Skip this step on Windows — iOS cannot be built from Windows.
+
+3.  **Configure Environment Variables:**
     Create a `.env` file in the root directory:
     ```ini
     # API Keys
@@ -153,16 +161,21 @@ graph TD
     GOOGLE_DRIVE_IOS_CLIENT_ID="ios-client-id.apps.googleusercontent.com"
     ```
 
-3.  **Run Code Generation:**
+4.  **Place Firebase config files (not tracked by git):**
+    - **Android:** `android/app/google-services.json` from Firebase Console
+    - **iOS:** `ios/Runner/GoogleService-Info.plist` from Firebase Console (macOS required to use)
+
+5.  **Run Code Generation:**
     Generate environment bindings (`env.g.dart`) and database adapters (`*.g.dart`):
     ```bash
     dart run build_runner build --delete-conflicting-outputs
     ```
 
-4.  **Launch the Application:**
+6.  **Launch the Application (with RevenueCat):**
     ```bash
-    flutter run lib/main.dart
+    flutter run --dart-define=REVENUECAT_ANDROID_API_KEY=your_key
     ```
+    > RevenueCat API keys are required for in-app purchases. Without `--dart-define`, the app will crash on launch when it tries to initialize RevenueCat. Get keys from [RevenueCat Dashboard](https://app.revenuecat.com). Android and iOS use separate keys.
 
 ---
 
@@ -174,14 +187,34 @@ graph TD
     pwsh scripts/init-release-signing.ps1
     ```
 *   **Google Services:** Place your `google-services.json` config under `android/app/`.
+*   **RevenueCat (Required):** Pass the API key via `--dart-define`. Get it from [RevenueCat Dashboard](https://app.revenuecat.com) → Project Settings → API Keys.
 *   **Compile command:**
     ```powershell
     pwsh scripts/build-apk.ps1 -Mode release
     ```
+    Or directly:
+    ```powershell
+    flutter build apk --release --dart-define=REVENUECAT_ANDROID_API_KEY=your_key
+    ```
+*   **Run in debug mode (with RevenueCat):**
+    ```powershell
+    flutter run --dart-define=REVENUECAT_ANDROID_API_KEY=your_key
+    ```
+    > Note: `key.properties` and `*.jks` are gitignored to prevent credential leaks.
 
 ### iOS Release Build
+*   **Prerequisites:** iOS builds require macOS with Xcode. **Windows cannot build iOS apps.**
+*   **CocoaPods Setup (first time only):**
+    ```bash
+    cd ios
+    pod install --repo-update
+    cd ..
+    ```
+    This must be run once after cloning and whenever `pubspec.yaml` dependencies change.
+*   **Google Services:** Download `GoogleService-Info.plist` from [Firebase Console](https://console.firebase.google.com) → Project Settings → iOS app → `GoogleService-Info.plist` and place it at `ios/Runner/GoogleService-Info.plist`. This file is gitignored.
 *   **Signing & Provisioning:** Open `ios/Runner.xcworkspace` in Xcode and select your Apple Developer Team (`79AJPC6DP3`) for code-signing.
-*   **Google Drive Setup:** Copy `ios/Flutter/GoogleDrive.xcconfig.template` to `ios/Flutter/GoogleDrive.xcconfig` and populate the OAuth client IDs.
+*   **Google Drive Setup:** Copy `ios/Flutter/GoogleDrive.xcconfig.template` to `ios/Flutter/GoogleDrive.xcconfig` and populate the OAuth client IDs. Get the iOS client ID from [Google Cloud Console](https://console.cloud.google.com) → Credentials → iOS OAuth 2.0 Client ID.
+*   **RevenueCat (Required):** Pass the iOS API key via `--dart-define`. Get it from [RevenueCat Dashboard](https://app.revenuecat.com) → Project Settings → API Keys.
 *   **Universal Links:** Universal links are declared under Associated Domains in Xcode and mapped in `ios/Runner/Runner.entitlements`.
 *   **Compile command:**
     ```bash
@@ -194,7 +227,53 @@ graph TD
 
 ---
 
-## 8. Quality Assurance & Testing
+## 8. CI/CD — GitHub Actions
+
+### Android CI (`.github/workflows/default_workflow.yml`)
+Runs on `ubuntu-latest` on every push/PR to `main` and `develop`:
+- `flutter pub get` → `build_runner` → `flutter analyze` → `flutter test`
+- Secrets needed in GitHub repo: `FDC_API_KEY`, `SENTRY_DNS`, `SUPABASE_PROJECT_ANON_KEY`, `SUPABASE_PROJECT_URL`
+
+### iOS CI (`.github/workflows/ios-build.yml`)
+Runs on `macos-latest`. Builds on every push to `main`/`develop`, plus manual dispatch with optional TestFlight upload:
+
+| Trigger | Action |
+|---------|--------|
+| Push to `main` or `develop` | Debug build + Release build (unsigned `.app` artifact) |
+| `workflow_dispatch` (manual) | Same + optional TestFlight upload |
+
+**Secrets needed in GitHub repo:**
+
+| Secret | Source |
+|--------|--------|
+| `FDC_API_KEY` | `.env` |
+| `SENTRY_DNS` | `.env` |
+| `SUPABASE_PROJECT_ANON_KEY` | `.env` |
+| `SUPABASE_PROJECT_URL` | `.env` |
+| `REVENUECAT_IOS_API_KEY` | RevenueCat Dashboard |
+| `GOOGLE_DRIVE_IOS_CLIENT_ID` | Google Cloud Console |
+| `GOOGLE_DRIVE_IOS_REVERSED_CLIENT_ID` | Google Cloud Console |
+| `GOOGLE_DRIVE_SERVER_CLIENT_ID` | `.env` |
+
+**For TestFlight upload (optional — only if you check "Upload to TestFlight"):**
+
+| Secret | Source |
+|--------|--------|
+| `APPSTORE_ISSUER_ID` | App Store Connect → Users and Access → Keys |
+| `APPSTORE_API_KEY_ID` | Same page (create a new key) |
+| `APPSTORE_API_PRIVATE_KEY` | The `.p8` file content downloaded when you created the key |
+
+### How to run the iOS workflow manually:
+1. Go to GitHub repo → **Actions** → **iOS Build**
+2. Click **Run workflow** → select branch
+3. Optionally check **Upload to TestFlight**
+4. Wait ~30 min → build artifact or TestFlight build ready
+
+> Without a Mac, this is the only way to produce a signed iOS IPA.
+
+---
+
+## 9. Quality Assurance & Testing
 
 For product-critical changes in monetization, AI request handling, cloud account flows, or Android release readiness, use the repository checks below instead of relying only on broad `flutter test` / `flutter analyze` runs.
 

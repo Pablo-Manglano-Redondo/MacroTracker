@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
@@ -8,6 +7,9 @@ import 'package:macrotracker/features/professional_plan/presentation/widgets/pla
 import 'package:macrotracker/features/professional_plan/presentation/widgets/tracking_tab.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/privacy_tab.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/messages_tab.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/recipes_tab.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/checkin_tab.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/notes_tab.dart';
 
 class ConnectedProfessionalHub extends StatelessWidget {
   final ProfessionalSectionSummaryEntity summary;
@@ -75,6 +77,9 @@ class ConnectedProfessionalHub extends StatelessWidget {
             ),
           ProfessionalHubTab.plan => PlanTab(summary: summary),
           ProfessionalHubTab.tracking => TrackingTab(summary: summary),
+          ProfessionalHubTab.checkin => CheckinTab(summary: summary),
+          ProfessionalHubTab.notes => NotesTab(summary: summary),
+          ProfessionalHubTab.recipes => RecipesTab(summary: summary),
           ProfessionalHubTab.privacy => PrivacyTab(
               summary: summary,
               sharingScope: sharingScope,
@@ -243,6 +248,9 @@ class HubTabBar extends StatelessWidget {
       (ProfessionalHubTab.summary, S.of(context).professionalTabSummary, Icons.dashboard_outlined),
       (ProfessionalHubTab.plan, S.of(context).professionalTabPlan, Icons.assignment_outlined),
       (ProfessionalHubTab.tracking, S.of(context).professionalTabTracking, Icons.insights_outlined),
+      (ProfessionalHubTab.checkin, S.of(context).professionalTabCheckin, Icons.assignment_turned_in_outlined),
+      (ProfessionalHubTab.notes, S.of(context).professionalTabNotes, Icons.note_alt_outlined),
+      (ProfessionalHubTab.recipes, S.of(context).professionalTabRecipes, Icons.restaurant_outlined),
       (
         ProfessionalHubTab.messages,
         unreadCount > 0

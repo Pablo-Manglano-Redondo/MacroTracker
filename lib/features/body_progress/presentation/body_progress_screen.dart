@@ -128,6 +128,7 @@ class _BodyProgressScreenState extends State<BodyProgressScreen> {
       day: result.day,
       weightKg: result.weightKg,
       waistCm: result.waistCm,
+      bodyFatPct: result.bodyFatPct,
     );
     locator<HomeBloc>().add(const LoadItemsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());

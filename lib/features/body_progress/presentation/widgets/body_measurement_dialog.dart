@@ -24,6 +24,7 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
   late DateTime _selectedDay;
   late final TextEditingController _weightController;
   late final TextEditingController _waistController;
+  late final TextEditingController _bodyFatController;
 
   @override
   void initState() {
@@ -43,16 +44,22 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
               ? UnitCalc.cmToInches(widget.initialMeasurement!.waistCm!)
               : widget.initialMeasurement!.waistCm!),
     );
+    _bodyFatController = TextEditingController(
+      text: widget.initialMeasurement?.bodyFatPct == null
+          ? ''
+          : _formatValue(widget.initialMeasurement!.bodyFatPct!),
+    );
 
-    // Add listeners to rebuild UI and enable/disable save button when typing
     _weightController.addListener(() => setState(() {}));
     _waistController.addListener(() => setState(() {}));
+    _bodyFatController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _weightController.dispose();
     _waistController.dispose();
+    _bodyFatController.dispose();
     super.dispose();
   }
 
@@ -94,6 +101,15 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
               border: const OutlineInputBorder(),
             ),
           ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _bodyFatController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Body fat (%)',
+              border: OutlineInputBorder(),
+            ),
+          ),
         ],
       ),
       actions: [
@@ -111,7 +127,8 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
 
   bool get _canSave =>
       _weightController.text.trim().isNotEmpty ||
-      _waistController.text.trim().isNotEmpty;
+      _waistController.text.trim().isNotEmpty ||
+      _bodyFatController.text.trim().isNotEmpty;
 
   Future<void> _pickDay() async {
     final picked = await showDatePicker(
@@ -132,6 +149,8 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
         double.tryParse(_weightController.text.trim().replaceAll(',', '.'));
     final parsedWaist =
         double.tryParse(_waistController.text.trim().replaceAll(',', '.'));
+    final parsedBodyFat =
+        double.tryParse(_bodyFatController.text.trim().replaceAll(',', '.'));
 
     Navigator.of(context).pop(
       BodyMeasurementDialogResult(
@@ -146,6 +165,7 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
             : widget.usesImperialUnits
                 ? UnitCalc.inchesToCm(parsedWaist)
                 : parsedWaist,
+        bodyFatPct: parsedBodyFat,
       ),
     );
   }
@@ -159,10 +179,12 @@ class BodyMeasurementDialogResult {
   final DateTime day;
   final double? weightKg;
   final double? waistCm;
+  final double? bodyFatPct;
 
   const BodyMeasurementDialogResult({
     required this.day,
     required this.weightKg,
     required this.waistCm,
+    this.bodyFatPct,
   });
 }

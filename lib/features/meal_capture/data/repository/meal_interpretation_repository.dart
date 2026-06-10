@@ -1,7 +1,7 @@
 import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'dart:typed_data';
 
-import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/data_source/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 

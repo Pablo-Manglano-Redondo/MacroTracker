@@ -20,19 +20,22 @@ class BodyMeasurementDBOAdapter extends TypeAdapter<BodyMeasurementDBO> {
       day: fields[0] as DateTime,
       weightKg: fields[1] as double?,
       waistCm: fields[2] as double?,
+      bodyFatPct: fields[3] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, BodyMeasurementDBO obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.day)
       ..writeByte(1)
       ..write(obj.weightKg)
       ..writeByte(2)
-      ..write(obj.waistCm);
+      ..write(obj.waistCm)
+      ..writeByte(3)
+      ..write(obj.bodyFatPct);
   }
 
   @override
@@ -55,6 +58,7 @@ BodyMeasurementDBO _$BodyMeasurementDBOFromJson(Map<String, dynamic> json) =>
       day: DateTime.parse(json['day'] as String),
       weightKg: (json['weightKg'] as num?)?.toDouble(),
       waistCm: (json['waistCm'] as num?)?.toDouble(),
+      bodyFatPct: (json['bodyFatPct'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$BodyMeasurementDBOToJson(BodyMeasurementDBO instance) =>
@@ -62,4 +66,5 @@ Map<String, dynamic> _$BodyMeasurementDBOToJson(BodyMeasurementDBO instance) =>
       'day': instance.day.toIso8601String(),
       'weightKg': instance.weightKg,
       'waistCm': instance.waistCm,
+      'bodyFatPct': instance.bodyFatPct,
     };

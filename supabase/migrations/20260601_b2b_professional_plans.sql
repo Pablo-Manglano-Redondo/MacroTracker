@@ -333,6 +333,7 @@ returns table (
   consent_accepted_at timestamptz
 )
 language plpgsql security definer set search_path = public as $$
+#variable_conflict use_column
 declare
   v_invite public.client_invites%rowtype;
   v_relationship public.professional_clients%rowtype;
@@ -374,20 +375,31 @@ begin
     raise exception 'Professional client limit reached';
   end if;
 
-  insert into public.professional_clients (
-    professional_id,
-    client_id,
-    status,
-    consent_accepted_at,
-    connected_at
-  )
-  values (v_invite.professional_id, auth.uid(), 'connected', now(), now())
-  on conflict (professional_id, client_id) do update
+  -- Use SELECT followed by INSERT or UPDATE to avoid ON CONFLICT which causes parameter/variable name conflicts in PL/pgSQL
+  select * into v_relationship
+  from public.professional_clients pc
+  where pc.professional_id = v_invite.professional_id
+    and pc.client_id = auth.uid();
+
+  if found then
+    update public.professional_clients pc
     set status = 'connected',
-        consent_accepted_at = excluded.consent_accepted_at,
-        connected_at = excluded.connected_at,
+        consent_accepted_at = now(),
+        connected_at = now(),
         revoked_at = null
-  returning * into v_relationship;
+    where pc.id = v_relationship.id
+    returning * into v_relationship;
+  else
+    insert into public.professional_clients (
+      professional_id,
+      client_id,
+      status,
+      consent_accepted_at,
+      connected_at
+    )
+    values (v_invite.professional_id, auth.uid(), 'connected', now(), now())
+    returning * into v_relationship;
+  end if;
 
   update public.client_invites
   set status = 'accepted',
@@ -395,7 +407,7 @@ begin
       accepted_at = now()
   where id = v_invite.id;
 
-  return query
+  -- Assign results directly to the OUT parameters (table columns) using SELECT ... INTO to prevent RETURN QUERY ambiguity
   select
     v_relationship.id,
     p.id,
@@ -403,8 +415,17 @@ begin
     coalesce(nullif(p.business_name, ''), p.display_name),
     v_relationship.connected_at,
     v_relationship.consent_accepted_at
+  into
+    relationship_id,
+    professional_id,
+    client_id,
+    professional_name,
+    connected_at,
+    consent_accepted_at
   from public.professionals p
   where p.id = v_invite.professional_id;
+
+  return next;
 end;
 $$;
 

@@ -219,6 +219,7 @@ class _BodyProgressCardState extends State<BodyProgressCard> {
       day: DateTime.now(),
       weightKg: result.weightKg,
       waistCm: result.waistCm,
+      bodyFatPct: result.bodyFatPct,
     );
     locator<HomeBloc>().add(const LoadItemsEvent());
     locator<ProfileBloc>().add(LoadProfileEvent());

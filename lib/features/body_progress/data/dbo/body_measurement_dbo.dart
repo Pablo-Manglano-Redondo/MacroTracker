@@ -16,10 +16,14 @@ class BodyMeasurementDBO extends HiveObject {
   @HiveField(2)
   double? waistCm;
 
+  @HiveField(3)
+  double? bodyFatPct;
+
   BodyMeasurementDBO({
     required this.day,
     this.weightKg,
     this.waistCm,
+    this.bodyFatPct,
   });
 
   factory BodyMeasurementDBO.fromEntity(BodyMeasurementEntity entity) {
@@ -27,6 +31,7 @@ class BodyMeasurementDBO extends HiveObject {
       day: entity.day,
       weightKg: entity.weightKg,
       waistCm: entity.waistCm,
+      bodyFatPct: entity.bodyFatPct,
     );
   }
 

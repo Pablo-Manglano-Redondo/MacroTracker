@@ -26,8 +26,9 @@ class SaveBodyMeasurementUsecase {
     required DateTime day,
     double? weightKg,
     double? waistCm,
+    double? bodyFatPct,
   }) async {
-    if (weightKg == null && waistCm == null) {
+    if (weightKg == null && waistCm == null && bodyFatPct == null) {
       return;
     }
 
@@ -36,6 +37,7 @@ class SaveBodyMeasurementUsecase {
       day: DateTime(day.year, day.month, day.day),
       weightKg: weightKg ?? existing?.weightKg,
       waistCm: waistCm ?? existing?.waistCm,
+      bodyFatPct: bodyFatPct ?? existing?.bodyFatPct,
     );
     await _bodyMeasurementRepository.saveMeasurement(measurement);
 

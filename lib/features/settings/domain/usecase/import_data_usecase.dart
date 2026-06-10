@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:macrotracker/core/data/data_source/user_activity_dbo.dart';
+import 'package:macrotracker/core/data/dbo/user_activity_dbo.dart';
 import 'package:macrotracker/core/data/dbo/intake_dbo.dart';
 import 'package:macrotracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:macrotracker/core/data/repository/intake_repository.dart';

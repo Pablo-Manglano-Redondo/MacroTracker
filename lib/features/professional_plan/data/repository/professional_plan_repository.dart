@@ -40,6 +40,8 @@ class ProfessionalPlanRepository {
     required double proteinTarget,
     required int mealsLogged,
     String? notes,
+    double? weightKg,
+    double? waistCm,
   }) {
     return _dataSource.uploadDailySnapshot(
       connection: connection,
@@ -54,6 +56,20 @@ class ProfessionalPlanRepository {
       proteinTarget: proteinTarget,
       mealsLogged: mealsLogged,
       notes: notes,
+      weightKg: weightKg,
+      waistCm: waistCm,
+    );
+  }
+
+  Future<void> uploadDiaryEntries({
+    required ProfessionalConnectionEntity connection,
+    required DateTime day,
+    required List<Map<String, dynamic>> entries,
+  }) {
+    return _dataSource.uploadDiaryEntries(
+      connection: connection,
+      day: day,
+      entries: entries,
     );
   }
 

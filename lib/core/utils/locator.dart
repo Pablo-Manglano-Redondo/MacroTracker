@@ -47,9 +47,9 @@ import 'package:macrotracker/core/utils/secure_app_storage_provider.dart';
 import 'package:macrotracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:macrotracker/features/add_activity/presentation/bloc/activities_bloc.dart';
 import 'package:macrotracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
-import 'package:macrotracker/features/add_meal/data/data_sources/fdc_data_source.dart';
-import 'package:macrotracker/features/add_meal/data/data_sources/off_data_source.dart';
-import 'package:macrotracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/data_source/fdc_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/data_source/off_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/data_source/sp_fdc_data_source.dart';
 import 'package:macrotracker/features/add_meal/data/repository/products_repository.dart';
 import 'package:macrotracker/features/add_meal/domain/usecase/search_products_usecase.dart';
 import 'package:macrotracker/features/add_meal/presentation/bloc/add_meal_bloc.dart';
@@ -72,7 +72,7 @@ import 'package:macrotracker/features/edit_meal/presentation/bloc/edit_meal_bloc
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
-import 'package:macrotracker/features/meal_capture/data/data_sources/meal_interpretation_remote_data_source.dart';
+import 'package:macrotracker/features/meal_capture/data/data_source/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/data/repository/interpretation_draft_repository.dart';
 import 'package:macrotracker/features/meal_capture/data/repository/meal_interpretation_repository.dart';
 import 'package:macrotracker/features/meal_capture/domain/usecase/commit_interpretation_draft_usecase.dart';
@@ -98,6 +98,17 @@ import 'package:macrotracker/features/professional_plan/domain/usecase/mark_prof
 import 'package:macrotracker/features/professional_plan/domain/usecase/send_professional_message_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/proposed_recipes_data_source.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/proposed_recipes_repository.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_proposed_recipes_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_recipe_usecase.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/checkin_data_source.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/checkin_repository.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/submit_checkin_usecase.dart';
+import 'package:macrotracker/features/professional_plan/data/data_source/client_notes_data_source.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/client_notes_repository.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_client_notes_usecase.dart';
+import 'package:macrotracker/features/professional_plan/domain/usecase/get_checkin_template_usecase.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_data_source.dart';
 import 'package:macrotracker/features/recipes/data/data_source/recipe_scraper_data_source.dart';
 import 'package:macrotracker/features/recipes/data/repository/recipe_repository.dart';
@@ -110,7 +121,7 @@ import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_pinned_u
 import 'package:macrotracker/features/recipes/domain/usecase/set_recipe_saved_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
-import 'package:macrotracker/features/scanner/presentation/scanner_bloc.dart';
+import 'package:macrotracker/features/scanner/presentation/bloc/scanner_bloc.dart';
 import 'package:macrotracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:macrotracker/features/settings/domain/usecase/import_data_usecase.dart';
 import 'package:macrotracker/features/settings/domain/usecase/backup_to_drive_usecase.dart';
@@ -158,6 +169,7 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
+      locator(),
       locator(),
       locator(),
       locator(),
@@ -443,6 +455,32 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ReferralService>(
     () => ReferralService(locator(), locator(), locator(), locator()),
   );
+
+  // Professional Plan Features
+  locator.registerLazySingleton<ProposedRecipesDataSource>(
+      () => ProposedRecipesDataSource(locator(), locator()));
+  locator.registerLazySingleton<ProposedRecipesRepository>(
+      () => ProposedRecipesRepository(locator()));
+  locator.registerLazySingleton<GetProposedRecipesUsecase>(
+      () => GetProposedRecipesUsecase(locator()));
+  locator.registerLazySingleton<UpdateProposalStatusUsecase>(
+      () => UpdateProposalStatusUsecase(locator(), locator()));
+  locator.registerLazySingleton<GetProfessionalRecipeUsecase>(
+      () => GetProfessionalRecipeUsecase(locator()));
+  locator.registerLazySingleton<CheckinDataSource>(
+      () => CheckinDataSource(locator(), locator()));
+  locator.registerLazySingleton<CheckinRepository>(
+      () => CheckinRepository(locator()));
+  locator.registerLazySingleton<SubmitCheckinUsecase>(
+      () => SubmitCheckinUsecase(locator()));
+  locator.registerLazySingleton<GetCheckinTemplateUsecase>(
+      () => GetCheckinTemplateUsecase(locator()));
+  locator.registerLazySingleton<ClientNotesDataSource>(
+      () => ClientNotesDataSource(locator(), locator()));
+  locator.registerLazySingleton<ClientNotesRepository>(
+      () => ClientNotesRepository(locator()));
+  locator.registerLazySingleton<GetClientNotesUsecase>(
+      () => GetClientNotesUsecase(locator()));
 
   await _initializeConfig(locator());
 }
