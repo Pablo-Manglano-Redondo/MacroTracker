@@ -67,7 +67,9 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
             selectedUnit: selectedUnit));
       } catch (e) {
         log.severe('Error calculating kcal: $e');
-        Sentry.captureException(e);
+        if (_shouldReportToSentry(e)) {
+          Sentry.captureException(e);
+        }
       }
     });
   }
@@ -107,6 +109,15 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
         carbsTracked: intakeEntity.totalCarbsGram,
         fatTracked: intakeEntity.totalFatsGram,
         proteinTracked: intakeEntity.totalProteinsGram);
+  }
+
+  bool _shouldReportToSentry(Object error) {
+    if (error is FormatException) {
+      return false;
+    }
+    final raw = error.toString().toLowerCase();
+    return !raw.contains('invalid double') &&
+        !raw.contains('formatexception');
   }
 }
 

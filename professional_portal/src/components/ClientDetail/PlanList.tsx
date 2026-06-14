@@ -1,11 +1,29 @@
 import React, { useState } from 'react';
+import {
+  Archive,
+  CheckSquare,
+  Copy,
+  FileText,
+  LayoutList,
+  Loader2,
+  Plus,
+  Square,
+  Trash2,
+} from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { usePlans } from '../../hooks/queries/usePlans';
-import { useArchivePlan, useDeletePlan, useDuplicatePlan, useBatchArchivePlans } from '../../hooks/mutations/useDeletePlan';
+import {
+  useArchivePlan,
+  useBatchArchivePlans,
+  useDeletePlan,
+  useDuplicatePlan,
+} from '../../hooks/mutations/useDeletePlan';
 import type { ProfessionalClient } from '../../types/database.types';
 import { Button } from '../ui/button';
 import { toast } from '../../lib/toast';
-import { FileText, Plus, Copy, Archive, Trash2, Loader2, LayoutList, CheckSquare, Square } from 'lucide-react';
+import { getBillingSummary } from '../../view-models/professional';
+import { getRelationshipStatusLabel } from '../../view-models/clients';
+import { usePortalI18n } from '../../lib/portal-i18n';
 
 interface PlanListProps {
   client: ProfessionalClient;
@@ -15,17 +33,21 @@ interface PlanListProps {
 
 export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPlan }) => {
   const { professional } = useAuth();
-  const { data: plans, isLoading, error } = usePlans(client.client_id);
-  const archivePlan = useArchivePlan(client.client_id);
-  const deletePlan = useDeletePlan(client.client_id);
-  const duplicatePlan = useDuplicatePlan(client.client_id);
-  const batchArchivePlans = useBatchArchivePlans(client.client_id);
+  const { tr, locale } = usePortalI18n();
+  const billingSummary = getBillingSummary(professional);
+  const { data: plans, isLoading, error } = usePlans(client.client_id, client.professional_id);
+  const archivePlan = useArchivePlan();
+  const deletePlan = useDeletePlan();
+  const duplicatePlan = useDuplicatePlan();
+  const batchArchivePlans = useBatchArchivePlans();
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [selectMode, setSelectMode] = useState(false);
   const [selectedPlans, setSelectedPlans] = useState<Set<string>>(new Set());
 
+  const canManagePlans = billingSummary.hasProfessionalAccess && client.status === 'connected';
+
   const toggleSelect = (planId: string) => {
-    setSelectedPlans(prev => {
+    setSelectedPlans((prev) => {
       const next = new Set(prev);
       if (next.has(planId)) next.delete(planId);
       else next.add(planId);
@@ -33,282 +55,333 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
     });
   };
 
+  const activePlans = plans?.filter((plan) => plan.status !== 'archived') ?? [];
+  const archivedPlans = plans?.filter((plan) => plan.status === 'archived') ?? [];
+
   const toggleSelectAll = () => {
-    const active = plans?.filter(p => p.status !== 'archived') ?? [];
-    setSelectedPlans(prev => prev.size === active.length ? new Set() : new Set(active.map(p => p.id)));
+    setSelectedPlans((prev) =>
+      prev.size === activePlans.length ? new Set() : new Set(activePlans.map((plan) => plan.id)),
+    );
   };
 
   const handleBatchArchive = async () => {
     if (selectedPlans.size === 0) return;
     try {
       await batchArchivePlans.mutateAsync(Array.from(selectedPlans));
-      toast.success(`Archived ${selectedPlans.size} plan${selectedPlans.size > 1 ? 's' : ''}`);
+      toast.success(
+        tr(
+          `Archivados ${selectedPlans.size} planes`,
+          `Archived ${selectedPlans.size} plans`,
+        ),
+      );
       setSelectedPlans(new Set());
       setSelectMode(false);
     } catch {
-      toast.error('Failed to archive plans');
+      toast.error(tr('No se pudieron archivar los planes', 'Failed to archive plans'));
     }
   };
 
   const handleDuplicate = async (planId: string) => {
-    if (!professional) return;
+    if (!professional || !canManagePlans) return;
     try {
       await duplicatePlan.mutateAsync({
         professionalId: professional.id,
         clientId: client.client_id,
         planId,
       });
-      toast.success('Plan duplicated');
+      toast.success(tr('Plan duplicado', 'Plan duplicated'));
     } catch {
-      toast.error('Failed to duplicate plan');
+      toast.error(tr('No se pudo duplicar el plan', 'Failed to duplicate plan'));
     }
   };
 
   const handleArchive = async (planId: string) => {
+    if (!canManagePlans) return;
     try {
       await archivePlan.mutateAsync(planId);
-      toast.success('Plan archived');
+      toast.success(tr('Plan archivado', 'Plan archived'));
     } catch {
-      toast.error('Failed to archive plan');
+      toast.error(tr('No se pudo archivar el plan', 'Failed to archive plan'));
     }
   };
 
   const handleDelete = async (planId: string) => {
+    if (!canManagePlans) return;
     try {
       await deletePlan.mutateAsync(planId);
-      toast.success('Plan deleted');
+      toast.success(tr('Plan eliminado', 'Plan deleted'));
       setConfirmDelete(null);
     } catch {
-      toast.error('Failed to delete plan');
+      toast.error(tr('No se pudo eliminar el plan', 'Failed to delete plan'));
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 text-[10px] font-medium">Active</span>;
-      case 'draft':
-        return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400 text-[10px] font-medium">Draft</span>;
-      case 'archived':
-        return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500 text-[10px] font-medium">Archived</span>;
-      default:
-        return <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500 text-[10px] font-medium">{status}</span>;
-    }
-  };
-
-  const activePlans = plans?.filter(p => p.status !== 'archived') ?? [];
-  const archivedPlans = plans?.filter(p => p.status === 'archived') ?? [];
+  const statusLabel = (status: string) =>
+    ({
+      active: tr('Activo', 'Active'),
+      draft: tr('Borrador', 'Draft'),
+      archived: tr('Archivado', 'Archived'),
+    })[status] ?? status;
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border bg-card card-elevated p-6 flex items-center justify-center min-h-[200px]">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+      <div className="portal-panel flex min-h-[220px] items-center justify-center rounded-[1.6rem]">
+        <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border bg-card p-5 text-center text-sm text-destructive">
-        Failed to load plans.
+      <div className="portal-panel rounded-[1.6rem] p-5 text-center text-sm text-muted-foreground">
+        {tr('No se pudieron cargar los planes.', 'Failed to load plans.')}
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border bg-card card-elevated">
-      {/* Header */}
-      <div className="px-5 py-4 border-b flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <LayoutList className="w-4 h-4 text-primary" />
+    <div className="portal-panel rounded-[1.6rem]">
+      <div className="flex items-center justify-between border-b border-border px-5 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
+            <LayoutList className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold leading-none">Plans</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {activePlans.length} active
+            <h3 className="text-base font-bold text-foreground">{tr('Planes', 'Plans')}</h3>
+            <p className="text-sm text-muted-foreground">
+              {tr(
+                `${activePlans.length} no archivados`,
+                `${activePlans.length} non-archived`,
+              )}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+
+        <div className="flex items-center gap-2">
           {selectMode ? (
             <>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 rounded-lg text-xs"
-                onClick={() => { setSelectMode(false); setSelectedPlans(new Set()); }}
+                className="h-9 rounded-xl text-sm font-semibold"
+                onClick={() => {
+                  setSelectMode(false);
+                  setSelectedPlans(new Set());
+                }}
               >
-                Cancel
+                {tr('Cancelar', 'Cancel')}
               </Button>
               <Button
                 size="sm"
                 variant="secondary"
-                className="h-8 rounded-lg text-xs"
+                className="h-9 rounded-xl text-sm font-semibold"
                 disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
                 onClick={handleBatchArchive}
               >
                 {batchArchivePlans.isPending ? (
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                 ) : (
-                  <Archive className="w-3.5 h-3.5 mr-1.5" />
+                  <Archive className="mr-1.5 h-3.5 w-3.5" />
                 )}
-                Archive ({selectedPlans.size})
+                {tr('Archivar', 'Archive')} ({selectedPlans.size})
               </Button>
             </>
           ) : (
             <>
               <button
-                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => setSelectMode(true)}
-                title="Select plans"
+                disabled={!canManagePlans}
+                title={tr('Seleccionar planes', 'Select plans')}
               >
-                <CheckSquare className="w-4 h-4" />
+                <CheckSquare className="h-4 w-4" />
               </button>
-              <Button onClick={onNewPlan} size="sm" className="h-8 rounded-lg text-xs">
-                <Plus className="w-3.5 h-3.5 mr-1.5" />
-                New
+              <Button
+                onClick={onNewPlan}
+                size="sm"
+                disabled={!canManagePlans}
+                className="h-9 rounded-xl bg-primary text-sm font-bold text-primary-foreground"
+              >
+                <Plus className="mr-1.5 h-3.5 w-3.5" />
+                {tr('Nuevo', 'New')}
               </Button>
             </>
           )}
         </div>
       </div>
 
-      {/* Content */}
+      {!canManagePlans && (
+        <div className="mx-5 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+          {client.status !== 'connected'
+            ? tr(
+                `Las acciones de plan están bloqueadas porque esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}.`,
+                `Plan actions are disabled because this relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}.`,
+              )
+            : tr(
+                'Las acciones de plan están bloqueadas hasta que el acceso profesional vuelva a activo o trialing.',
+                'Plan actions are disabled until professional access returns to active or trialing.',
+              )}
+        </div>
+      )}
+
       {plans && plans.length === 0 ? (
         <div className="px-5 py-10 text-center">
-          <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-5 h-5 text-muted-foreground/60" />
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-background text-muted-foreground">
+            <FileText className="h-5 w-5" />
           </div>
-          <p className="text-sm text-muted-foreground">No plans yet</p>
-          <p className="text-xs text-muted-foreground/70 mt-1">Create a plan to set macro targets</p>
+          <p className="mt-3 text-sm font-bold text-foreground">{tr('Todavía no hay planes', 'No plans yet')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {tr(
+              'Crea un plan para definir objetivos semanales de nutrición.',
+              'Create a plan to define weekly nutrition targets.',
+            )}
+          </p>
         </div>
       ) : (
         <div className="p-2">
           {selectMode && activePlans.length > 0 && (
-            <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+            <div className="mb-1 flex items-center gap-2 px-3 py-2">
               <button
-                className="p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors"
+                className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
                 onClick={toggleSelectAll}
               >
                 {selectedPlans.size === activePlans.length ? (
-                  <CheckSquare className="w-4 h-4" />
+                  <CheckSquare className="h-4 w-4 text-primary" />
                 ) : (
-                  <Square className="w-4 h-4" />
+                  <Square className="h-4 w-4" />
                 )}
               </button>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs font-semibold text-muted-foreground">
                 {selectedPlans.size === 0
-                  ? 'Select plans to batch archive'
-                  : `${selectedPlans.size} of ${activePlans.length} selected`
-                }
+                  ? tr('Selecciona planes para archivar en bloque', 'Select plans to batch archive')
+                  : tr(
+                      `${selectedPlans.size} de ${activePlans.length} seleccionados`,
+                      `${selectedPlans.size} of ${activePlans.length} selected`,
+                    )}
               </span>
             </div>
           )}
-          {activePlans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`group flex items-center gap-3 px-3 py-3 rounded-lg transition-colors ${selectMode ? '' : 'hover:bg-secondary/60 cursor-pointer'}`}
-              onClick={selectMode ? () => toggleSelect(plan.id) : () => onEditPlan(plan.id)}
-            >
-              {selectMode ? (
-                <button
-                  className="p-1 rounded-md text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={(e) => { e.stopPropagation(); toggleSelect(plan.id); }}
-                >
-                  {selectedPlans.has(plan.id) ? (
-                    <CheckSquare className="w-4 h-4 text-primary" />
-                  ) : (
-                    <Square className="w-4 h-4" />
-                  )}
-                </button>
-              ) : (
-                <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium truncate">{plan.name}</span>
-                  {getStatusBadge(plan.status)}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  {new Date(plan.created_at).toLocaleDateString()}
-                </p>
-              </div>
-              {!selectMode && (
-                <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                  <button
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
-                    onClick={() => handleDuplicate(plan.id)}
-                    title="Duplicate"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-amber-600 hover:bg-secondary transition-colors"
-                    onClick={() => handleArchive(plan.id)}
-                    title="Archive"
-                  >
-                    <Archive className="w-3.5 h-3.5" />
-                  </button>
-                  {confirmDelete === plan.id ? (
-                    <div className="flex items-center gap-1 ml-1">
-                      <button
-                        className="p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
-                        onClick={() => handleDelete(plan.id)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-md text-muted-foreground hover:bg-secondary transition-colors"
-                        onClick={() => setConfirmDelete(null)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-secondary transition-colors"
-                      onClick={() => setConfirmDelete(plan.id)}
-                      title="Delete"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
 
-          {/* Archived */}
-          {archivedPlans.length > 0 && (
-            <details className="group">
-              <summary className="px-3 py-2 text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none">
-                Archived ({archivedPlans.length})
-              </summary>
-              <div className="mt-1">
-                {archivedPlans.map((plan) => (
-                  <div
-                    key={plan.id}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
+          <div className="space-y-1">
+            {activePlans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${
+                  selectMode ? '' : 'cursor-pointer hover:bg-accent'
+                }`}
+                onClick={selectMode ? () => toggleSelect(plan.id) : () => onEditPlan(plan.id)}
+              >
+                {selectMode ? (
+                  <button
+                    className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSelect(plan.id);
+                    }}
                   >
-                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="text-sm text-muted-foreground truncate flex-1">{plan.name}</span>
-                    {getStatusBadge(plan.status)}
-                    <button
-                      className="p-1 rounded-md text-muted-foreground hover:text-destructive transition-colors"
-                      onClick={() => handleDelete(plan.id)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
+                    {selectedPlans.has(plan.id) ? (
+                      <CheckSquare className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </button>
+                ) : (
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background text-muted-foreground">
+                    <FileText className="h-4 w-4" />
                   </div>
-                ))}
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-bold text-foreground">{plan.name}</span>
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                      {statusLabel(plan.status)}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
+                    {new Date(plan.created_at).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}
+                  </p>
+                </div>
+
+                {!selectMode ? (
+                  <div
+                    className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <IconAction title={tr('Duplicar', 'Duplicate')} onClick={() => handleDuplicate(plan.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </IconAction>
+                    <IconAction title={tr('Archivar', 'Archive')} onClick={() => handleArchive(plan.id)}>
+                      <Archive className="h-3.5 w-3.5" />
+                    </IconAction>
+                    {confirmDelete === plan.id ? (
+                      <div className="ml-1 flex items-center gap-1">
+                        <IconAction title={tr('Confirmar', 'Confirm')} onClick={() => handleDelete(plan.id)} danger>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </IconAction>
+                        <button
+                          className="rounded-lg px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent"
+                          onClick={() => setConfirmDelete(null)}
+                        >
+                          {tr('Cancelar', 'Cancel')}
+                        </button>
+                      </div>
+                    ) : (
+                      <IconAction title={tr('Eliminar', 'Delete')} onClick={() => setConfirmDelete(plan.id)} danger>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </IconAction>
+                    )}
+                  </div>
+                ) : null}
               </div>
-            </details>
-          )}
+            ))}
+
+            {archivedPlans.length > 0 && (
+              <details className="group mt-2">
+                <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground">
+                  {tr(`Archivados (${archivedPlans.length})`, `Archived (${archivedPlans.length})`)}
+                </summary>
+                <div className="mt-1 space-y-1">
+                  {archivedPlans.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
+                    >
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="flex-1 truncate text-sm font-semibold text-muted-foreground">{plan.name}</span>
+                      <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                        {statusLabel(plan.status)}
+                      </span>
+                      <IconAction title={tr('Eliminar', 'Delete')} onClick={() => handleDelete(plan.id)} danger>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </IconAction>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
 };
+
+const IconAction: React.FC<{
+  title: string;
+  onClick: () => void;
+  danger?: boolean;
+  children: React.ReactNode;
+}> = ({ title, onClick, danger = false, children }) => (
+  <button
+    className={`rounded-lg p-1.5 transition-colors ${
+      danger
+        ? 'text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500'
+        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+    }`}
+    onClick={onClick}
+    title={title}
+  >
+    {children}
+  </button>
+);

@@ -6,12 +6,14 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/fdc_data_source.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/off_data_source.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/sp_fdc_data_source.dart';
+import 'package:logging/logging.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
 
 class ProductsRepository {
+  final _log = Logger('ProductsRepository');
   final OFFDataSource _offDataSource;
   final FDCDataSource _fdcDataSource;
   final SpFdcDataSource _spBackendDataSource;
@@ -116,13 +118,26 @@ class ProductsRepository {
       }
     }
 
-    final spFdcWordResponse =
-        await _spBackendDataSource.fetchSearchWordResults(searchString);
-    final products = spFdcWordResponse
-        .map(_tryMapSupabaseFood)
-        .whereType<MealEntity>()
-        .where((meal) => (meal.name ?? '').trim().isNotEmpty)
-        .toList();
+    List<MealEntity> products;
+    try {
+      final spFdcWordResponse =
+          await _spBackendDataSource.fetchSearchWordResults(searchString);
+      products = spFdcWordResponse
+          .map(_tryMapSupabaseFood)
+          .whereType<MealEntity>()
+          .where((meal) => (meal.name ?? '').trim().isNotEmpty)
+          .toList();
+    } on SpFdcBackendUnavailableException catch (error) {
+      _log.warning(
+        'Supabase FDC cache unavailable, falling back to USDA FDC API: $error',
+      );
+      final fdcWordResponse =
+          await _fdcDataSource.fetchSearchWordResults(searchString);
+      products = fdcWordResponse.foods
+          .map((food) => MealEntity.fromFDCFood(food))
+          .where((meal) => (meal.name ?? '').trim().isNotEmpty)
+          .toList();
+    }
 
     try {
       final jsonList = products

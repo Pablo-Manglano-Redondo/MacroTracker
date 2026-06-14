@@ -4,6 +4,8 @@ export interface Professional {
   display_name: string | null;
   business_name: string | null;
   pro_status: 'inactive' | 'active' | 'trialing' | 'past_due' | 'canceled' | string;
+  commercial_tier: 'starter' | 'growth' | 'studio';
+  billing_interval: 'monthly' | 'annual';
   client_limit: number | null;
 }
 
@@ -11,6 +13,7 @@ export interface ClientInvite {
   id: string;
   professional_id: string;
   invite_code: string;
+  status: 'pending' | 'accepted' | 'expired' | 'revoked' | string;
   expires_at: string;
   created_at: string;
 }
@@ -38,7 +41,7 @@ export interface ProfessionalClient {
   professional_id: string;
   client_id: string;
   display_name?: string | null;
-  status: 'pending' | 'active' | 'revoked' | string;
+  status: 'connected' | 'revoked' | 'archived' | string;
   connected_at: string;
   sharing_mode: string;
   messages_enabled: boolean;

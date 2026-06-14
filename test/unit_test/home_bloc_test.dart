@@ -1,8 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:macrotracker/core/data/repository/user_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
+import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
+import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_entity.dart';
@@ -10,118 +11,187 @@ import 'package:macrotracker/core/domain/entity/user_activity_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_gender_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_pal_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
-import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/domain/usecase/add_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/add_user_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/calculate_food_quality_score_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/delete_user_activity_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_intake_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_kcal_goal_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:macrotracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/update_intake_usecase.dart';
-import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
-import 'package:macrotracker/features/body_progress/domain/entity/body_measurement_entity.dart';
-import 'package:macrotracker/features/body_progress/domain/entity/body_progress_summary_entity.dart';
-import 'package:macrotracker/features/body_progress/domain/usecase/get_body_progress_usecase.dart';
+import 'package:macrotracker/features/home/domain/entity/home_dashboard_data_entity.dart';
+import 'package:macrotracker/features/home/domain/usecase/load_home_dashboard_usecase.dart';
+import 'package:macrotracker/features/home/domain/usecase/sync_home_tracked_day_usecase.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/process_pending_syncs_usecase.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/upload_professional_snapshot_usecase.dart';
 
 void main() {
-  group('HomeBloc - total calculation helpers', () {
-    late HomeBloc homeBloc;
-
-    setUp(() {
-      homeBloc = HomeBloc(
-        _FakeGetConfigUsecase(),
-        _FakeAddConfigUsecase(),
-        _FakeGetUserUsecase(),
-        _FakeAddUserUsecase(),
-        _FakeGetIntakeUsecase(),
-        _FakeDeleteIntakeUsecase(),
-        _FakeUpdateIntakeUsecase(),
-        _FakeGetUserActivityUsecase(),
-        _FakeDeleteUserActivityUsecase(),
-        _FakeAddTrackedDayUsecase(),
-        _FakeGetKcalGoalUsecase(),
-        _FakeGetMacroGoalUsecase(),
-        _FakeCalculateFoodQualityScoreUsecase(),
-        _FakeGetProfessionalPlanUsecase(),
-        _FakeUploadProfessionalSnapshotUsecase(),
-        _FakeProcessPendingSyncsUsecase(),
-        _FakeGetBodyProgressUsecase(),
+  group('HomeBloc', () {
+    test('get total helpers aggregate intake macros', () {
+      final bloc = _makeBloc(
+        loadUsecase: _FakeLoadHomeDashboardUsecase(_buildDashboardData()),
       );
-    });
 
-    test('getTotalKcal sums all intake calories', () {
       final intakes = [
-        _makeIntake('1', 100, 10),
-        _makeIntake('2', 200, 5),
-        _makeIntake('3', 300, 20),
+        _makeIntake('1', 100, 10, carbs100: 20, fat100: 15, protein100: 12),
+        _makeIntake('2', 200, 5, carbs100: 30, fat100: 25, protein100: 18),
       ];
 
-      final total = homeBloc.getTotalKcal(intakes);
-
-      expect(total, closeTo((100 * 10 + 200 * 5 + 300 * 20) / 100, 0.01));
+      expect(bloc.getTotalKcal(intakes), closeTo(20, 0.01));
+      expect(bloc.getTotalCarbs(intakes), closeTo(80, 0.01));
+      expect(bloc.getTotalFats(intakes), closeTo(65, 0.01));
+      expect(bloc.getTotalProteins(intakes), closeTo(48, 0.01));
     });
 
-    test('getTotalKcal returns 0 for empty list', () {
-      expect(homeBloc.getTotalKcal([]), 0);
+    test('LoadItemsEvent emits loading and loaded state from dashboard data',
+        () async {
+      final data = _buildDashboardData(
+        config: const ConfigEntity(
+          false,
+          true,
+          true,
+          AppThemeEntity.system,
+          usesImperialUnits: true,
+          dailyFocus: DailyFocusEntity.upperBody,
+        ),
+        user: _buildUser(goal: UserWeightGoalEntity.gainWeight),
+        targets: const GymTargetsEntity(
+          kcalGoal: 2500,
+          carbsGoal: 300,
+          fatGoal: 70,
+          proteinGoal: 160,
+        ),
+        totalKcalIntake: 1800,
+        totalKcalActivities: 320,
+      );
+      final bloc = _makeBloc(
+        loadUsecase: _FakeLoadHomeDashboardUsecase(data),
+      );
+
+      final expectation = expectLater(
+        bloc.stream,
+        emitsInOrder([
+          isA<HomeLoadingState>(),
+          isA<HomeLoadedState>().having(
+            (state) => state.totalKcalLeft,
+            'totalKcalLeft',
+            700,
+          ).having(
+            (state) => state.usesImperialUnits,
+            'usesImperialUnits',
+            true,
+          ).having(
+            (state) => state.nutritionPhase,
+            'nutritionPhase',
+            UserWeightGoalEntity.gainWeight,
+          ),
+        ]),
+      );
+
+      bloc.add(const LoadItemsEvent(
+        refreshRemotePlan: true,
+        uploadProfessionalSnapshot: true,
+      ));
+
+      await expectation;
+      await bloc.close();
     });
 
-    test('getTotalCarbs sums all intake carbs', () {
-      final intakes = [
-        _makeIntake('1', 100, 10, carbs100: 20),
-        _makeIntake('2', 200, 5, carbs100: 30),
-      ];
+    test('setDailyFocus syncs tracked day with the selected focus', () async {
+      final syncUsecase = _FakeSyncHomeTrackedDayUsecase();
+      final bloc = _makeBloc(
+        loadUsecase: _FakeLoadHomeDashboardUsecase(_buildDashboardData()),
+        syncUsecase: syncUsecase,
+      );
 
-      final total = homeBloc.getTotalCarbs(intakes);
+      await bloc.setDailyFocus(DailyFocusEntity.lowerBody);
 
-      expect(total, closeTo(100 * 20 / 100 + 200 * 30 / 100, 0.01));
-    });
-
-    test('getTotalFats sums all intake fats', () {
-      final intakes = [
-        _makeIntake('1', 100, 10, fat100: 15),
-        _makeIntake('2', 200, 5, fat100: 25),
-      ];
-
-      final total = homeBloc.getTotalFats(intakes);
-
-      expect(total, closeTo(100 * 15 / 100 + 200 * 25 / 100, 0.01));
-    });
-
-    test('getTotalProteins sums all intake proteins', () {
-      final intakes = [
-        _makeIntake('1', 100, 10, protein100: 12),
-        _makeIntake('2', 200, 5, protein100: 18),
-      ];
-
-      final total = homeBloc.getTotalProteins(intakes);
-
-      expect(total, closeTo(100 * 12 / 100 + 200 * 18 / 100, 0.01));
-    });
-
-    test('all total helpers handle empty list', () {
-      expect(homeBloc.getTotalCarbs([]), 0);
-      expect(homeBloc.getTotalFats([]), 0);
-      expect(homeBloc.getTotalProteins([]), 0);
-    });
-
-    test('getTotalKcal handles single intake', () {
-      final intakes = [_makeIntake('1', 150, 8)];
-      expect(homeBloc.getTotalKcal(intakes), closeTo(150 * 8 / 100, 0.01));
+      expect(syncUsecase.lastDailyFocus, DailyFocusEntity.lowerBody);
+      await bloc.close();
     });
   });
+}
+
+HomeBloc _makeBloc({
+  required _FakeLoadHomeDashboardUsecase loadUsecase,
+  _FakeSyncHomeTrackedDayUsecase? syncUsecase,
+}) {
+  return HomeBloc(
+    _FakeAddConfigUsecase(),
+    _FakeGetUserUsecase(),
+    _FakeAddUserUsecase(),
+    _FakeGetIntakeUsecase(),
+    _FakeDeleteIntakeUsecase(),
+    _FakeUpdateIntakeUsecase(),
+    _FakeDeleteUserActivityUsecase(),
+    _FakeAddTrackedDayUsecase(),
+    loadUsecase,
+    syncUsecase ?? _FakeSyncHomeTrackedDayUsecase(),
+  );
+}
+
+HomeDashboardDataEntity _buildDashboardData({
+  ConfigEntity? config,
+  UserEntity? user,
+  GymTargetsEntity? targets,
+  double totalKcalIntake = 0,
+  double totalCarbsIntake = 0,
+  double totalFatsIntake = 0,
+  double totalProteinsIntake = 0,
+  double totalKcalActivities = 0,
+}) {
+  return HomeDashboardDataEntity(
+    config: config ??
+        const ConfigEntity(
+          true,
+          true,
+          true,
+          AppThemeEntity.system,
+          dailyFocus: DailyFocusEntity.upperBody,
+        ),
+    user: user ?? _buildUser(),
+    breakfastIntakeList: const [],
+    lunchIntakeList: const [],
+    dinnerIntakeList: const [],
+    snackIntakeList: const [],
+    userActivities: const [],
+    foodQualitySummary: const FoodQualityDailySummaryEntity(
+      score: 85,
+      band: FoodQualityBandEntity.good,
+      mealsCount: 3,
+    ),
+    targets: targets ??
+        const GymTargetsEntity(
+          kcalGoal: 2200,
+          carbsGoal: 250,
+          fatGoal: 65,
+          proteinGoal: 150,
+        ),
+    professionalConnection: null,
+    totalKcalIntake: totalKcalIntake,
+    totalCarbsIntake: totalCarbsIntake,
+    totalFatsIntake: totalFatsIntake,
+    totalProteinsIntake: totalProteinsIntake,
+    totalKcalActivities: totalKcalActivities,
+  );
+}
+
+UserEntity _buildUser({
+  UserWeightGoalEntity goal = UserWeightGoalEntity.maintainWeight,
+}) {
+  return UserEntity(
+    birthday: DateTime(2000, 1, 1),
+    heightCM: 180,
+    weightKG: 80,
+    gender: UserGenderEntity.male,
+    goal: goal,
+    pal: UserPALEntity.active,
+    targetSteps: 8000,
+    targetSleepHours: 8,
+    targetWaterLiters: 2.5,
+  );
 }
 
 IntakeEntity _makeIntake(
@@ -164,67 +234,77 @@ IntakeEntity _makeIntake(
   );
 }
 
-class _FakeGetConfigUsecase implements GetConfigUsecase {
-  @override
-  Future<ConfigEntity> getConfig() async => const ConfigEntity(true, true, true, AppThemeEntity.system);
-}
-
 class _FakeAddConfigUsecase implements AddConfigUsecase {
+  DailyFocusEntity? savedDailyFocus;
+
+  @override
+  Future<void> setConfigDailyFocus(DailyFocusEntity value) async {
+    savedDailyFocus = value;
+  }
+
+  @override
+  Future<void> setConfigDisclaimer(bool value) async {}
+
+  @override
+  Future<void> setConfigKcalAdjustment(double adjustment) async {}
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  Future<void> setConfigKcalAdjustment(double adj) async {}
-  @override
-  Future<void> setConfigDisclaimer(bool v) async {}
-  @override
-  Future<void> setConfigDailyFocus(DailyFocusEntity v) async {}
 }
 
 class _FakeGetUserUsecase implements GetUserUsecase {
   @override
-  UserRepository get userRepository => throw UnimplementedError();
+  Future<UserEntity> getUserData() async => _buildUser();
 
   @override
-  Future<UserEntity> getUserData() async => UserEntity(
-        birthday: DateTime(2000, 1, 1),
-        heightCM: 180, weightKG: 80,
-        gender: UserGenderEntity.male,
-        goal: UserWeightGoalEntity.maintainWeight,
-        pal: UserPALEntity.active,
-      );
-  @override
   Future<bool> hasUserData() async => true;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _FakeAddUserUsecase implements AddUserUsecase {
+  UserEntity? savedUser;
+
   @override
-  Future<void> addUser(UserEntity user) async {}
+  Future<void> addUser(UserEntity user) async {
+    savedUser = user;
+  }
 }
 
 class _FakeGetIntakeUsecase implements GetIntakeUsecase {
   @override
-  Future<List<IntakeEntity>> getAllIntakes() async => [];
+  Future<List<IntakeEntity>> getAllIntakes() async => const [];
+
   @override
-  Future<List<IntakeEntity>> getRecentIntake() async => [];
+  Future<List<IntakeEntity>> getRecentIntake() async => const [];
+
   @override
   Future<IntakeEntity?> getIntakeById(String id) async => null;
+
   @override
-  Future<List<IntakeEntity>> getBreakfastIntakeByDay(day) async => [];
+  Future<List<IntakeEntity>> getBreakfastIntakeByDay(day) async => const [];
+
   @override
-  Future<List<IntakeEntity>> getTodayBreakfastIntake() async => [];
+  Future<List<IntakeEntity>> getTodayBreakfastIntake() async => const [];
+
   @override
-  Future<List<IntakeEntity>> getLunchIntakeByDay(day) async => [];
+  Future<List<IntakeEntity>> getLunchIntakeByDay(day) async => const [];
+
   @override
-  Future<List<IntakeEntity>> getTodayLunchIntake() async => [];
+  Future<List<IntakeEntity>> getTodayLunchIntake() async => const [];
+
   @override
-  Future<List<IntakeEntity>> getDinnerIntakeByDay(day) async => [];
+  Future<List<IntakeEntity>> getDinnerIntakeByDay(day) async => const [];
+
   @override
-  Future<List<IntakeEntity>> getTodayDinnerIntake() async => [];
+  Future<List<IntakeEntity>> getTodayDinnerIntake() async => const [];
+
   @override
-  Future<List<IntakeEntity>> getSnackIntakeByDay(day) async => [];
+  Future<List<IntakeEntity>> getSnackIntakeByDay(day) async => const [];
+
   @override
-  Future<List<IntakeEntity>> getTodaySnackIntake() async => [];
+  Future<List<IntakeEntity>> getTodaySnackIntake() async => const [];
 }
 
 class _FakeDeleteIntakeUsecase implements DeleteIntakeUsecase {
@@ -234,18 +314,11 @@ class _FakeDeleteIntakeUsecase implements DeleteIntakeUsecase {
 
 class _FakeUpdateIntakeUsecase implements UpdateIntakeUsecase {
   @override
-  Future<IntakeEntity?> updateIntake(String id, Map<String, dynamic> fields) async => null;
-}
-
-class _FakeGetUserActivityUsecase implements GetUserActivityUsecase {
-  @override
-  Future<List<UserActivityEntity>> getTodayUserActivity() async => [];
-  @override
-  Future<List<UserActivityEntity>> getUserActivityByDay(DateTime day) async => [];
-  @override
-  Future<List<UserActivityEntity>> getRecentUserActivity() async => [];
-  @override
-  Future<List<UserActivityEntity>> getAllUserActivity() async => [];
+  Future<IntakeEntity?> updateIntake(
+    String id,
+    Map<String, dynamic> fields,
+  ) async =>
+      null;
 }
 
 class _FakeDeleteUserActivityUsecase implements DeleteUserActivityUsecase {
@@ -256,81 +329,105 @@ class _FakeDeleteUserActivityUsecase implements DeleteUserActivityUsecase {
 class _FakeAddTrackedDayUsecase implements AddTrackedDayUsecase {
   @override
   Future<bool> hasTrackedDay(DateTime day) async => false;
+
   @override
   Future<void> updateDayCalorieGoal(DateTime day, double goal) async {}
+
   @override
-  Future<void> updateDayMacroGoals(DateTime day, {double? carbsGoal, double? fatGoal, double? proteinGoal}) async {}
+  Future<void> updateDayMacroGoals(
+    DateTime day, {
+    double? carbsGoal,
+    double? fatGoal,
+    double? proteinGoal,
+  }) async {}
+
   @override
   Future<void> addDayCaloriesTracked(DateTime day, double kcal) async {}
+
   @override
   Future<void> removeDayCaloriesTracked(DateTime day, double kcal) async {}
+
   @override
-  Future<void> addDayMacrosTracked(DateTime day, {double? carbsTracked, double? fatTracked, double? proteinTracked}) async {}
+  Future<void> addDayMacrosTracked(
+    DateTime day, {
+    double? carbsTracked,
+    double? fatTracked,
+    double? proteinTracked,
+  }) async {}
+
   @override
-  Future<void> removeDayMacrosTracked(DateTime day, {double? carbsTracked, double? fatTracked, double? proteinTracked}) async {}
+  Future<void> removeDayMacrosTracked(
+    DateTime day, {
+    double? carbsTracked,
+    double? fatTracked,
+    double? proteinTracked,
+  }) async {}
+
   @override
   Future<void> increaseDayCalorieGoal(DateTime day, double amount) async {}
+
   @override
   Future<void> reduceDayCalorieGoal(DateTime day, double amount) async {}
+
   @override
-  Future<void> addNewTrackedDay(DateTime day, double kcal, double carbs, double fat, double protein) async {}
+  Future<void> addNewTrackedDay(
+    DateTime day,
+    double kcal,
+    double carbs,
+    double fat,
+    double protein,
+  ) async {}
+
   @override
-  Future<void> increaseDayMacroGoals(DateTime day, {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {}
+  Future<void> increaseDayMacroGoals(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {}
+
   @override
-  Future<void> reduceDayMacroGoals(DateTime day, {double? carbsAmount, double? fatAmount, double? proteinAmount}) async {}
+  Future<void> reduceDayMacroGoals(
+    DateTime day, {
+    double? carbsAmount,
+    double? fatAmount,
+    double? proteinAmount,
+  }) async {}
 }
 
-class _FakeGetKcalGoalUsecase implements GetKcalGoalUsecase {
-  @override
-  Future<double> getKcalGoal({UserEntity? userEntity, double? totalKcalActivitiesParam, double? kcalUserAdjustment}) async => 2500;
-}
+class _FakeLoadHomeDashboardUsecase implements LoadHomeDashboardUsecase {
+  final HomeDashboardDataEntity response;
 
-class _FakeGetMacroGoalUsecase implements GetMacroGoalUsecase {
-  @override
-  Future<double> getCarbsGoal(double totalKcalGoal) async => 300;
-  @override
-  Future<double> getFatsGoal(double totalKcalGoal) async => 70;
-  @override
-  Future<double> getProteinsGoal(double totalKcalGoal) async => 150;
-}
+  _FakeLoadHomeDashboardUsecase(this.response);
 
-class _FakeCalculateFoodQualityScoreUsecase implements CalculateFoodQualityScoreUsecase {
+  @override
+  Future<HomeDashboardDataEntity> execute({
+    required DateTime day,
+    bool refreshRemotePlan = false,
+    bool uploadProfessionalSnapshot = false,
+  }) async {
+    return response;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  FoodQualityScoreEntity scoreMeal(MealEntity meal) => const FoodQualityScoreEntity(score: 50, band: FoodQualityBandEntity.fair, reasons: [], isPartial: false);
-  @override
-  FoodQualityDailySummaryEntity summarizeIntakes(Iterable<IntakeEntity> intakes) => const FoodQualityDailySummaryEntity(score: 50, band: FoodQualityBandEntity.fair, mealsCount: 0);
 }
 
-class _FakeGetProfessionalPlanUsecase implements GetProfessionalPlanUsecase {
-  @override
-  Future<ProfessionalConnectionEntity?> getActiveConnection({bool refreshRemotePlan = false}) async => null;
-}
+class _FakeSyncHomeTrackedDayUsecase implements SyncHomeTrackedDayUsecase {
+  DailyFocusEntity? lastDailyFocus;
 
-class _FakeUploadProfessionalSnapshotUsecase implements UploadProfessionalSnapshotUsecase {
   @override
-  Future<void> uploadDailySnapshot({required ProfessionalConnectionEntity connection, required DateTime day, required double kcalActual, required double kcalTarget, required double carbsActual, required double carbsTarget, required double fatActual, required double fatTarget, required double proteinActual, required double proteinTarget, required int mealsLogged, String? notes, double? weightKg, double? waistCm}) async {}
-}
+  Future<bool> execute({
+    required DateTime day,
+    UserWeightGoalEntity? phase,
+    DailyFocusEntity? dailyFocus,
+    UserEntity? user,
+    ProfessionalConnectionEntity? professionalConnection,
+  }) async {
+    lastDailyFocus = dailyFocus;
+    return false;
+  }
 
-class _FakeProcessPendingSyncsUsecase implements ProcessPendingSyncsUsecase {
-  @override
-  Future<void> execute() async {}
-}
-
-class _FakeGetBodyProgressUsecase implements GetBodyProgressUsecase {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  Future<BodyProgressSummaryEntity> getSummary({DateTime? referenceDay}) async => const BodyProgressSummaryEntity(
-    latestMeasurementDay: null, latestWeightKg: null, latestWaistCm: null,
-    rollingWeightAverageKg: null, previousRollingWeightAverageKg: null,
-    weeklyWeightDeltaKg: null, latestWaistDeltaCm: null,
-  );
-  @override
-  Future<List<BodyMeasurementEntity>> getRecentMeasurements({int limit = 30}) async => [];
-  @override
-  Future<BodyMeasurementEntity?> getMeasurementForDay(DateTime day) async => null;
 }

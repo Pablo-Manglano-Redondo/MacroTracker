@@ -12,6 +12,8 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/fdc_data_source.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/off_data_source.dart';
 import 'package:macrotracker/features/add_meal/data/data_source/sp_fdc_data_source.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_food_dto.dart';
+import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_food_nutriment_dto.dart';
 import 'package:macrotracker/features/add_meal/data/dto/fdc/fdc_word_response_dto.dart';
 import 'package:macrotracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
 import 'package:macrotracker/features/add_meal/data/dto/off/off_word_response_dto.dart';
@@ -27,15 +29,31 @@ class MockOFFDataSource extends OFFDataSource {
 }
 
 class MockFDCDataSource extends FDCDataSource {
+  MockFDCDataSource({this.response});
+
+  final FDCWordResponseDTO? response;
+
   @override
   Future<FDCWordResponseDTO> fetchSearchWordResults(String searchString) async {
+    if (response != null) {
+      return response!;
+    }
     throw const SocketException('Mocked FDC Network Failure');
   }
 }
 
 class MockSpFdcDataSource extends SpFdcDataSource {
+  MockSpFdcDataSource({this.throwBackendUnavailable = false});
+
+  final bool throwBackendUnavailable;
+
   @override
   Future<List<SpFdcFoodDTO>> fetchSearchWordResults(String searchString) async {
+    if (throwBackendUnavailable) {
+      throw const SpFdcBackendUnavailableException(
+        'Supabase FDC cache table is unavailable.',
+      );
+    }
     throw const SocketException('Mocked SpFDC Network Failure');
   }
 }
@@ -47,7 +65,8 @@ void main() {
 
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
-      tempDir = await Directory.systemTemp.createTemp('macrotracker_search_test_');
+      tempDir =
+          await Directory.systemTemp.createTemp('macrotracker_search_test_');
 
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -55,7 +74,6 @@ void main() {
         return tempDir.path;
       });
 
-      // Setup GetIt/Locator mock boxes
       hiveProvider = HiveDBProvider();
       final key = Hive.generateSecureKey();
       await hiveProvider.initHiveDB(Uint8List.fromList(key));
@@ -74,17 +92,18 @@ void main() {
       await locator.reset();
     });
 
-    test('searchOfflineCache aggregates matching recipes, previous search caches, and recent intakes', () async {
+    test(
+        'searchOfflineCache aggregates matching recipes, previous search caches, and recent intakes',
+        () async {
       final repo = ProductsRepository(
         MockOFFDataSource(),
         MockFDCDataSource(),
         MockSpFdcDataSource(),
       );
 
-      // 1. Populate custom local recipe
       final recipeDbo = RecipeDBO(
         id: 'rec_1',
-        name: 'Plátano Proteico Shake',
+        name: 'Platano Proteico Shake',
         notes: 'Batido saludable',
         defaultServings: 1.0,
         yieldQuantity: null,
@@ -100,7 +119,7 @@ void main() {
             id: 'ing_1',
             mealSnapshot: MealDBO(
               code: 'food_platano',
-              name: 'Plátano fruta',
+              name: 'Platano fruta',
               brands: 'Generic',
               thumbnailImageUrl: null,
               mainImageUrl: null,
@@ -124,13 +143,12 @@ void main() {
             amount: 1,
             unit: 'serving',
             position: 1,
-          )
+          ),
         ],
         quickCategory: 'breakfast',
       );
       await hiveProvider.recipeBox.put('rec_1', recipeDbo);
 
-      // 2. Populate historical intake
       final intakeDbo = IntakeDBO(
         id: 'int_1',
         unit: 'g',
@@ -139,7 +157,7 @@ void main() {
         dateTime: DateTime.now(),
         meal: MealDBO(
           code: 'food_platano_hist',
-          name: 'Plátano frito canario',
+          name: 'Platano frito canario',
           brands: 'Canarias',
           thumbnailImageUrl: null,
           mainImageUrl: null,
@@ -163,13 +181,51 @@ void main() {
       );
       await hiveProvider.intakeBox.put('int_1', intakeDbo);
 
-      // 3. Perform searchOfflineCache
-      final results = await repo.searchOfflineCache('Plátano');
+      final results = await repo.searchOfflineCache('Platano');
 
       expect(results, hasLength(2));
       final names = results.map((m) => m.name).toList();
-      expect(names, contains('Plátano Proteico Shake'));
-      expect(names, contains('Plátano frito canario'));
+      expect(names, contains('Platano Proteico Shake'));
+      expect(names, contains('Platano frito canario'));
+    });
+
+    test(
+        'getSupabaseFDCFoodsByString falls back to USDA FDC when Supabase cache is unavailable',
+        () async {
+      final repo = ProductsRepository(
+        MockOFFDataSource(),
+        MockFDCDataSource(
+          response: FDCWordResponseDTO(
+            totalHits: 1,
+            currentPage: 1,
+            foods: [
+              FDCFoodDTO(
+                fdcId: 12345,
+                gtinUpc: null,
+                description: 'Chicken breast',
+                brandOwner: null,
+                brandName: null,
+                packageWeight: null,
+                servingSize: 100,
+                foodNutrients: [
+                  FDCFoodNutrimentDTO(nutrientId: 1008, amount: 165),
+                  FDCFoodNutrimentDTO(nutrientId: 1003, amount: 31),
+                  FDCFoodNutrimentDTO(nutrientId: 1004, amount: 3.6),
+                  FDCFoodNutrimentDTO(nutrientId: 1005, amount: 0),
+                ],
+                servingSizeUnit: 'g',
+              ),
+            ],
+          ),
+        ),
+        MockSpFdcDataSource(throwBackendUnavailable: true),
+      );
+
+      final results = await repo.getSupabaseFDCFoodsByString('chicken');
+
+      expect(results, hasLength(1));
+      expect(results.first.name, 'Chicken breast');
+      expect(results.first.code, '12345');
     });
   });
 }

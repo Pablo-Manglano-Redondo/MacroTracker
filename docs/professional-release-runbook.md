@@ -17,6 +17,9 @@ Then verify in Supabase:
 - Anonymous sign-ins are enabled.
 - Email magic-link auth is enabled for the professional portal.
 - Site URL and redirect URLs include the professional portal origin.
+- `professionals.commercial_tier` and `professionals.billing_interval` exist
+  with the expected defaults.
+- `professional_clients.sharing_mode` defaults to `aggregate`.
 - Run or adapt `supabase/rls.professional_smoke_test.sql` in staging to verify
   professional/client isolation with real JWTs.
 
@@ -33,9 +36,12 @@ Set these Supabase function secrets:
 ```powershell
 STRIPE_SECRET_KEY="sk_live_..."
 STRIPE_PRO_WEBHOOK_SECRET="whsec_..."
-STRIPE_PRO_STARTER_PRICE_ID="price_..."
-STRIPE_PRO_GROWTH_PRICE_ID="price_..."
-STRIPE_PRO_STUDIO_PRICE_ID="price_..."
+STRIPE_PRO_STARTER_MONTHLY_PRICE_ID="price_..."
+STRIPE_PRO_STARTER_ANNUAL_PRICE_ID="price_..."
+STRIPE_PRO_GROWTH_MONTHLY_PRICE_ID="price_..."
+STRIPE_PRO_GROWTH_ANNUAL_PRICE_ID="price_..."
+STRIPE_PRO_STUDIO_MONTHLY_PRICE_ID="price_..."
+STRIPE_PRO_STUDIO_ANNUAL_PRICE_ID="price_..."
 ```
 
 Configure Stripe webhook endpoint:
@@ -116,10 +122,13 @@ Install an internal Android/iOS build and verify:
 - `macrotracker://invite/<CODE>` opens the professional plan screen.
 - Manual code entry previews the invite.
 - Accepting an invite creates a connected relationship.
+- New relationships start in `sharing_mode = aggregate`.
+- Switching to detailed sharing from the mobile privacy tab unlocks raw diary
+  rows for that relationship only.
 - Revoking access sets `professional_clients.status = revoked`.
 - Home targets use the active professional plan.
 - Diary shows day-level plan comparison.
-- Snapshots include aggregate totals only.
+- Snapshots include aggregate totals by default.
 - Offline startup still shows the cached active plan.
 
 ## 7. Release Decision

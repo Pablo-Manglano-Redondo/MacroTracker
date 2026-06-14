@@ -1,40 +1,87 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense, useMemo, useState } from 'react';
+import {
+  Briefcase,
+  ChevronRight,
+  FileText,
+  Loader2,
+  Menu,
+  UserPlus,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { Sidebar } from './Sidebar';
-import { ProfessionalClient } from '../types/database.types';
 import { supabase } from '../lib/supabase';
-import { Loader2, Sparkles, Briefcase, ChevronRight, Menu, X } from 'lucide-react';
+import { ProfessionalClient } from '../types/database.types';
 import { NotificationBell } from './NotificationBell';
+import { InviteModal } from './InviteModal';
+import { getBillingSummary, resolveWorkspaceState } from '../view-models/professional';
+import { onOpenInviteModal } from '../lib/portal-events';
+import { usePortalI18n } from '../lib/portal-i18n';
 
-const AuthPanel = lazy(() => import('./AuthPanel').then(m => ({ default: m.AuthPanel })));
-const ProfilePanel = lazy(() => import('./ProfilePanel').then(m => ({ default: m.ProfilePanel })));
-const BillingPanel = lazy(() => import('./BillingPanel').then(m => ({ default: m.BillingPanel })));
-const InvitePanel = lazy(() => import('./InvitePanel').then(m => ({ default: m.InvitePanel })));
-const ClientsPanel = lazy(() => import('./ClientsPanel').then(m => ({ default: m.ClientsPanel })));
-const ClientDetail = lazy(() => import('./ClientDetail').then(m => ({ default: m.ClientDetail })));
-const OnboardingWizard = lazy(() => import('./OnboardingWizard').then(m => ({ default: m.OnboardingWizard })));
-const DashboardPanel = lazy(() => import('./DashboardPanel').then(m => ({ default: m.DashboardPanel })));
-const RecipeLibraryPanel = lazy(() => import('./RecipeLibraryPanel').then(m => ({ default: m.RecipeLibraryPanel })));
-const PlanTemplatesPanel = lazy(() => import('./PlanTemplatesPanel').then(m => ({ default: m.PlanTemplatesPanel })));
-const CheckinTemplatesPanel = lazy(() => import('./CheckinTemplatesPanel').then(m => ({ default: m.CheckinTemplatesPanel })));
+const AuthPanel = lazy(() => import('./AuthPanel').then((m) => ({ default: m.AuthPanel })));
+const ProfilePanel = lazy(() => import('./ProfilePanel').then((m) => ({ default: m.ProfilePanel })));
+const BillingPanel = lazy(() => import('./BillingPanel').then((m) => ({ default: m.BillingPanel })));
+const ClientsPanel = lazy(() => import('./ClientsPanel').then((m) => ({ default: m.ClientsPanel })));
+const DashboardPanel = lazy(() => import('./DashboardPanel').then((m) => ({ default: m.DashboardPanel })));
+const RecipeLibraryPanel = lazy(() => import('./RecipeLibraryPanel').then((m) => ({ default: m.RecipeLibraryPanel })));
+const PlanTemplatesPanel = lazy(() => import('./PlanTemplatesPanel').then((m) => ({ default: m.PlanTemplatesPanel })));
+const CheckinTemplatesPanel = lazy(() => import('./CheckinTemplatesPanel').then((m) => ({ default: m.CheckinTemplatesPanel })));
 
 const PanelFallback = () => (
   <div className="flex items-center justify-center py-16">
-    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
   </div>
 );
 
+const PANEL_IDS = [
+  'profile-panel',
+  'billing-panel',
+  'clients-panel',
+  'dashboard-panel',
+  'recipes-panel',
+  'templates-panel',
+  'checkins-panel',
+] as const;
+
 export const AppShell: React.FC = () => {
   const { session, loading, professional } = useAuth();
+  const { tr } = usePortalI18n();
   const [activePanel, setActivePanel] = useState('dashboard-panel');
   const [selectedClient, setSelectedClient] = useState<ProfessionalClient | null>(null);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+
+  const initials = professional?.display_name
+    ? professional.display_name
+        .split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : professional?.business_name
+      ? professional.business_name.slice(0, 2).toUpperCase()
+      : 'MT';
+
+  const workspaceState = resolveWorkspaceState(professional);
+  const billingSummary = getBillingSummary(professional);
+
+  const panelLabels = useMemo(
+    () => ({
+      'dashboard-panel': tr('Resumen', 'Overview'),
+      'clients-panel': tr('Clientes', 'Clients'),
+      'templates-panel': tr('Plantillas', 'Templates'),
+      'recipes-panel': tr('Recetas', 'Recipes'),
+      'checkins-panel': tr('Check-ins', 'Check-ins'),
+      'profile-panel': tr('Perfil profesional', 'Professional profile'),
+      'billing-panel': tr('Facturación', 'Billing'),
+    }),
+    [tr],
+  );
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '');
-      if (hash && ['profile-panel', 'billing-panel', 'invite-panel', 'clients-panel', 'dashboard-panel', 'recipes-panel', 'templates-panel', 'checkins-panel'].includes(hash)) {
+      if (hash && PANEL_IDS.includes(hash as (typeof PANEL_IDS)[number])) {
         setActivePanel(hash);
       }
     };
@@ -49,37 +96,24 @@ export const AppShell: React.FC = () => {
           .eq('client_id', clientId)
           .single()
           .then(({ data }) => {
-            if (data) setSelectedClient(data as unknown as ProfessionalClient);
+            if (data) {
+              setSelectedClient(data as unknown as ProfessionalClient);
+            }
           });
       }
     };
 
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('select-client', handleSelectClient);
+    const detachInviteListener = onOpenInviteModal(() => setShowInviteModal(true));
     handleHashChange();
 
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
       window.removeEventListener('select-client', handleSelectClient);
+      detachInviteListener();
     };
   }, [professional]);
-
-  const handleOnboardingDone = async (clientId: string) => {
-    if (professional) {
-      const { data } = await supabase
-        .from('professional_clients')
-        .select('*')
-        .eq('professional_id', professional.id)
-        .eq('client_id', clientId)
-        .single();
-
-      if (data) {
-        setSelectedClient(data as unknown as ProfessionalClient);
-      }
-    }
-    setShowOnboarding(false);
-    setActivePanel('clients-panel');
-  };
 
   const handleSetActivePanel = (panel: string) => {
     setActivePanel(panel);
@@ -89,30 +123,90 @@ export const AppShell: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="text-sm font-semibold text-muted-foreground animate-pulse">Initializing Pro Portal...</span>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="text-sm font-semibold text-muted-foreground">
+          {tr('Cargando portal profesional...', 'Loading professional portal...')}
+        </span>
       </div>
     );
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-muted/20 flex flex-col items-center justify-center p-4">
-        <header className="text-center space-y-2 mb-8 select-none">
-          <div className="w-14 h-14 bg-primary text-primary-foreground font-black text-2xl flex items-center justify-center rounded-2xl mx-auto shadow-md">
-            MT
-          </div>
-          <h1 className="text-2xl font-black text-foreground tracking-tight mt-3">MacroTracker Professional Portal</h1>
-          <p className="text-sm text-muted-foreground max-w-[320px]">
-            Private static invite-only portal for the B2B professional practitioner practice.
-          </p>
-        </header>
-        <main className="w-full max-w-4xl">
+      <div className="portal-page min-h-screen px-6 py-8">
+        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.78fr)] lg:items-center">
+          <section className="portal-hero hidden rounded-[2rem] p-10 lg:block">
+            <p className="portal-kicker">{tr('Portal profesional', 'Professional portal')}</p>
+            <h1 className="portal-title mt-4 max-w-xl text-4xl text-foreground">
+              {tr(
+                'Una superficie operativa sobria para nutricionistas.',
+                'A restrained operational surface for nutritionists.',
+              )}
+            </h1>
+            <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-muted-foreground">
+              {tr(
+                'Gestiona relaciones reales, planes, check-ins y snapshots compartidos sin marketing, sin métricas inventadas y sin mezclar privacidad con billing.',
+                'Manage real relationships, plans, check-ins, and shared snapshots without marketing noise, invented metrics, or privacy/billing confusion.',
+              )}
+            </p>
+
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {[
+                [
+                  tr('Relaciones reales', 'Real relationships'),
+                  tr('Solo clientes conectados desde la app móvil.', 'Only clients connected from the mobile app.'),
+                ],
+                [
+                  tr('Privacidad explícita', 'Explicit privacy'),
+                  tr('Aggregate por defecto. Detailed solo por consentimiento.', 'Aggregate by default. Detailed only by consent.'),
+                ],
+                [
+                  tr('Trabajo del día', 'Daily work'),
+                  tr('Planes, notas, mensajes y seguimiento operativo.', 'Plans, notes, messages, and operational follow-up.'),
+                ],
+              ].map(([title, body]) => (
+                <div key={title} className="portal-soft-panel rounded-2xl p-4">
+                  <p className="text-sm font-bold text-foreground">{title}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <main className="mx-auto w-full max-w-[480px]">
+            <Suspense fallback={<PanelFallback />}>
+              <AuthPanel />
+            </Suspense>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (workspaceState === 'needs_profile') {
+    return (
+      <div className="portal-page min-h-screen px-6 py-10">
+        <div className="mx-auto max-w-6xl space-y-6">
+          <section className="portal-hero rounded-[2rem] p-6 md:p-8">
+            <p className="portal-kicker">{tr('Configuración inicial', 'Initial setup')}</p>
+            <h1 className="portal-title mt-3 text-2xl text-foreground">
+              {tr(
+                'Primero completa el perfil profesional.',
+                'Complete the professional profile first.',
+              )}
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground">
+              {tr(
+                'El usuario autenticado existe, pero todavía no hay fila en `professionals`. El portal necesita ese registro para cargar clientes, facturación y paneles operativos.',
+                'The authenticated user exists, but there is still no row in `professionals`. The portal needs that record before loading roster, billing, and operational views.',
+              )}
+            </p>
+          </section>
           <Suspense fallback={<PanelFallback />}>
-            <AuthPanel />
+            <ProfilePanel />
           </Suspense>
-        </main>
+        </div>
       </div>
     );
   }
@@ -131,110 +225,133 @@ export const AppShell: React.FC = () => {
         return <PlanTemplatesPanel />;
       case 'checkins-panel':
         return <CheckinTemplatesPanel />;
-      case 'invite-panel':
-        return <InvitePanel />;
       case 'clients-panel':
       default:
-        if (showOnboarding) {
-          return (
-            <OnboardingWizard
-              onDone={handleOnboardingDone}
-              onCancel={() => setShowOnboarding(false)}
-            />
-          );
-        }
         return (
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-            <div className="xl:col-span-4">
-              <ClientsPanel
-                onSelectClient={(client: ProfessionalClient) => {
-                  setSelectedClient(client);
-                  if (window.innerWidth < 1280) {
-                    setTimeout(() => {
-                      document.getElementById('client-detail-section')?.scrollIntoView({ behavior: 'smooth' });
-                    }, 100);
-                  }
-                }}
-                selectedClient={selectedClient}
-                onAddClient={() => setShowOnboarding(true)}
-              />
-            </div>
-            <div className="xl:col-span-8" id="client-detail-section">
-              {selectedClient ? (
-                <ClientDetail
-                  client={selectedClient}
-                  onClose={() => setSelectedClient(null)}
-                  onMessagesRead={() => {}}
-                />
-              ) : (
-                <div className="border border-dashed rounded-xl p-12 text-center bg-muted/10 text-muted-foreground space-y-4 flex flex-col items-center justify-center min-h-[360px]">
-                  <Sparkles className="w-12 h-12 text-primary/30 animate-pulse" />
-                  <div>
-                    <h4 className="font-bold text-foreground text-base">Select a client to get started</h4>
-                    <p className="text-xs text-muted-foreground mt-1 max-w-[320px] mx-auto leading-relaxed">
-                      Choose an active practitioner roster client on the left list to view aggregate progress snapshots, publish weekly coaching targets, or message them in real-time.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <ClientsPanel
+            selectedClient={selectedClient}
+            onSelectClient={(client: ProfessionalClient | null) => {
+              setSelectedClient(client);
+              if (client && window.innerWidth < 1280) {
+                setTimeout(() => {
+                  document
+                    .getElementById('client-detail-section')
+                    ?.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }
+            }}
+            onAddClient={() => setShowInviteModal(true)}
+          />
         );
     }
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen bg-background">
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-20 xl:hidden"
+          className="fixed inset-0 z-20 bg-black/30 xl:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      <div className={`fixed inset-y-0 left-0 z-30 xl:static xl:z-auto transform transition-transform duration-200 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full xl:translate-x-0'
-      }`}>
-        <Sidebar activePanel={activePanel} setActivePanel={handleSetActivePanel} />
+      <div className="flex min-h-screen">
+        <div
+          className={`fixed inset-y-0 left-0 z-30 transform transition-transform duration-200 xl:static xl:translate-x-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <Sidebar
+            activePanel={activePanel}
+            setActivePanel={handleSetActivePanel}
+            onInviteClient={() => setShowInviteModal(true)}
+          />
+        </div>
+
+        <main className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-20 border-b border-border/80 bg-background/92 px-4 py-3 backdrop-blur md:px-8">
+            <div className="mx-auto flex max-w-[1800px] items-center justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3">
+                <button
+                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm xl:hidden"
+                  onClick={() => setSidebarOpen(true)}
+                  aria-label={tr('Abrir navegación', 'Open navigation')}
+                >
+                  {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </button>
+
+                <button
+                  onClick={() => handleSetActivePanel('profile-panel')}
+                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm xl:hidden"
+                  title={tr('Abrir perfil profesional', 'Open professional profile')}
+                >
+                  <span className="portal-metric text-xs font-extrabold">{initials}</span>
+                </button>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 overflow-hidden">
+                    <span className="portal-kicker hidden sm:inline">{tr('Práctica', 'Practice')}</span>
+                    <ChevronRight className="hidden h-3.5 w-3.5 text-muted-foreground sm:inline" />
+                    <span className="truncate text-sm font-bold text-foreground">
+                      {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
+                    </span>
+                    {professional?.business_name && (
+                      <>
+                        <ChevronRight className="hidden h-3.5 w-3.5 text-muted-foreground md:inline" />
+                        <button
+                          onClick={() => handleSetActivePanel('profile-panel')}
+                          className="hidden items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:flex"
+                          title={tr('Abrir perfil profesional', 'Open professional profile')}
+                        >
+                          <Briefcase className="h-3.5 w-3.5" />
+                          <span className="truncate">{professional.business_name}</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowInviteModal(true)}
+                  disabled={!billingSummary.hasProfessionalAccess}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground shadow-sm transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{tr('Invitar cliente', 'Invite client')}</span>
+                </button>
+                <button
+                  onClick={() => handleSetActivePanel('templates-panel')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:opacity-95"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{tr('Nueva plantilla', 'New template')}</span>
+                </button>
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card shadow-sm">
+                  <NotificationBell />
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-8">
+            <div className="mx-auto max-w-[1800px] space-y-6 animate-fade-in-up">
+              {workspaceState === 'inactive_subscription' && (
+                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-medium leading-relaxed text-amber-900 dark:text-amber-100">
+                  {tr(
+                    `El acceso profesional está en estado "${billingSummary.proStatus}". El portal sigue disponible para perfil y facturación, pero los nuevos envíos de invitaciones y la publicación de nuevos planes deben quedar bloqueados hasta reactivar la suscripción.`,
+                    `Professional access is currently "${billingSummary.proStatus}". The portal remains available for profile and billing work, but new invites and new plan publishing should stay blocked until the subscription is active again.`,
+                  )}
+                </div>
+              )}
+              <Suspense fallback={<PanelFallback />}>{renderActivePanel()}</Suspense>
+            </div>
+          </div>
+        </main>
       </div>
 
-      <main className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 md:h-[76px] border-b bg-card px-4 md:px-8 flex items-center justify-between shrink-0 gap-3">
-          <button
-            className="xl:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-accent shrink-0"
-            onClick={() => setSidebarOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black tracking-widest text-primary uppercase hidden md:block">Professional operations</p>
-            <h2 className="text-xs md:text-sm font-bold text-foreground flex items-center gap-1.5 truncate">
-              <span className="truncate">Client plans, billing, and consent in one unified workspace</span>
-              {professional && (
-                <>
-                  <ChevronRight className="w-3 h-3 text-muted-foreground shrink-0 hidden md:inline" />
-                  <span className="text-muted-foreground font-semibold flex items-center gap-1 shrink-0 hidden md:flex">
-                    <Briefcase className="w-3 h-3" />
-                    {professional.business_name || 'Solo Practice'}
-                  </span>
-                </>
-              )}
-            </h2>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 select-none">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <Suspense fallback={<PanelFallback />}>
-              {renderActivePanel()}
-            </Suspense>
-          </div>
-        </div>
-      </main>
+      {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} />}
     </div>
   );
 };

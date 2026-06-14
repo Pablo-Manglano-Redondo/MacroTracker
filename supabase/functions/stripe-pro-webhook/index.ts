@@ -82,6 +82,7 @@ async function handleCheckoutSession(session: Stripe.Checkout.Session) {
     customerId: asString(session.customer),
     subscriptionId: asString(session.subscription),
     tier: session.metadata?.tier,
+    billingInterval: session.metadata?.billing_interval,
     subscriptionStatus: "active",
   });
 }
@@ -97,6 +98,8 @@ async function handleSubscription(subscription: Stripe.Subscription) {
     customerId: asString(subscription.customer),
     subscriptionId: subscription.id,
     tier: subscription.metadata?.tier,
+    billingInterval: subscriptionInterval(subscription) ??
+      subscription.metadata?.billing_interval,
     subscriptionStatus: subscription.status,
   });
 }
@@ -106,17 +109,25 @@ async function updateProfessionalBilling({
   customerId,
   subscriptionId,
   tier,
+  billingInterval,
   subscriptionStatus,
 }: {
   professionalId: string;
   customerId: string | null;
   subscriptionId: string | null;
   tier?: string | null;
+  billingInterval?: string | null;
   subscriptionStatus: string;
 }) {
-  const config = mapSubscriptionToProConfig(subscriptionStatus, tier);
+  const config = mapSubscriptionToProConfig(
+    subscriptionStatus,
+    tier,
+    billingInterval,
+  );
   const update = {
     pro_status: config.status,
+    commercial_tier: config.tier,
+    billing_interval: config.billingInterval,
     client_limit: config.clientLimit,
     stripe_customer_id: customerId,
     stripe_subscription_id: subscriptionId,
@@ -138,6 +149,13 @@ function asString(value: { id?: string } | string | null) {
     return value;
   }
   return value?.id ?? null;
+}
+
+function subscriptionInterval(subscription: Stripe.Subscription) {
+  const interval = subscription.items.data[0]?.price?.recurring?.interval;
+  if (interval === "year") return "annual";
+  if (interval === "month") return "monthly";
+  return null;
 }
 
 function errorMessage(error: unknown) {

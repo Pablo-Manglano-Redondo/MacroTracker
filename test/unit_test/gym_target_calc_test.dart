@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
-import 'package:macrotracker/core/domain/entity/gym_targets_entity.dart';
 import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/calc/gym_target_calc.dart';
@@ -83,14 +82,18 @@ void main() {
       );
 
       final kcalRatio = targets.kcalGoal / baseKcal;
-      expect(targets.proteinGoal, closeTo((baseProtein * kcalRatio).roundToDouble(), 1));
-      expect(targets.fatGoal, closeTo((baseFat * kcalRatio).roundToDouble(), 1));
-      expect(targets.carbsGoal, closeTo((baseCarbs * kcalRatio).roundToDouble(), 1));
+      expect(targets.proteinGoal,
+          closeTo((baseProtein * kcalRatio).roundToDouble(), 1));
+      expect(
+          targets.fatGoal, closeTo((baseFat * kcalRatio).roundToDouble(), 1));
+      expect(targets.carbsGoal,
+          closeTo((baseCarbs * kcalRatio).roundToDouble(), 1));
     });
   });
 
   group('GymTargetCalc.buildTargets - gramsPerKg mode', () {
-    test('builds targets in gramsPerKg mode without scaling carbs from focus', () {
+    test('builds targets in gramsPerKg mode without scaling carbs from focus',
+        () {
       final targets = GymTargetCalc.buildTargets(
         phase: UserWeightGoalEntity.maintainWeight,
         dailyFocus: DailyFocusEntity.upperBody,
@@ -103,7 +106,8 @@ void main() {
         userHeightCm: 180,
       );
 
-      expect(targets.kcalGoal, closeTo(2650, 1)); // kcal still adjusted by focus
+      expect(
+          targets.kcalGoal, closeTo(2650, 1)); // kcal still adjusted by focus
       expect(targets.proteinGoal, baseProtein.roundToDouble());
       expect(targets.fatGoal, baseFat.roundToDouble());
     });

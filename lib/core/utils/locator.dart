@@ -69,6 +69,8 @@ import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_h
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
+import 'package:macrotracker/features/home/domain/usecase/load_home_dashboard_usecase.dart';
+import 'package:macrotracker/features/home/domain/usecase/sync_home_tracked_day_usecase.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:macrotracker/features/home_widget/domain/usecase/update_home_widget_usecase.dart';
 import 'package:macrotracker/features/meal_capture/data/data_source/interpretation_draft_data_source.dart';
@@ -169,13 +171,6 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
       locator(),
       locator(),
       locator(),
@@ -363,6 +358,32 @@ Future<void> initLocator() async {
       () => UploadProfessionalSnapshotUsecase(locator()));
   locator.registerLazySingleton<ProcessPendingSyncsUsecase>(
       () => ProcessPendingSyncsUsecase(locator()));
+  locator.registerLazySingleton<SyncHomeTrackedDayUsecase>(
+      () => SyncHomeTrackedDayUsecase(
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+          ));
+  locator.registerLazySingleton<LoadHomeDashboardUsecase>(
+      () => LoadHomeDashboardUsecase(
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+            locator(),
+          ));
 
   // Repositories
   locator.registerLazySingleton(() => ConfigRepository(locator()));

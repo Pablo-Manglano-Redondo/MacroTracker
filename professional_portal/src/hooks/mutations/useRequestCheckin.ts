@@ -8,7 +8,7 @@ export function useRequestCheckin() {
     mutationFn: (params: { professionalId: string; clientId: string; professionalClientId: string }) =>
       checkinRepository.requestCheckin(supabase, params.professionalId, params.clientId, params.professionalClientId),
     onSuccess: () => {
-      toast.success('Check-in requested — push notification sent to client');
+      toast.success('Check-in requested â€” push notification sent to client');
     },
     onError: (err: any) => {
       toast.error('Failed to request check-in', { description: err?.message || 'Unknown error' });

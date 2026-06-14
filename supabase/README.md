@@ -78,9 +78,12 @@ Then replace the placeholder values with real secrets:
 - optional `GEMINI_25_FLASH_OUTPUT_TOKEN_USD_PER_1M`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_PRO_WEBHOOK_SECRET`
-- `STRIPE_PRO_STARTER_PRICE_ID`
-- `STRIPE_PRO_GROWTH_PRICE_ID`
-- `STRIPE_PRO_STUDIO_PRICE_ID`
+- `STRIPE_PRO_STARTER_MONTHLY_PRICE_ID`
+- `STRIPE_PRO_STARTER_ANNUAL_PRICE_ID`
+- `STRIPE_PRO_GROWTH_MONTHLY_PRICE_ID`
+- `STRIPE_PRO_GROWTH_ANNUAL_PRICE_ID`
+- `STRIPE_PRO_STUDIO_MONTHLY_PRICE_ID`
+- `STRIPE_PRO_STUDIO_ANNUAL_PRICE_ID`
 
 ## Deploy
 
@@ -114,6 +117,7 @@ Subscriptions should include:
 
 - `metadata.professional_id`
 - `metadata.tier` with `starter`, `growth`, or `studio`
+- `metadata.billing_interval` with `monthly` or `annual`
 
 Configure the Stripe endpoint to:
 

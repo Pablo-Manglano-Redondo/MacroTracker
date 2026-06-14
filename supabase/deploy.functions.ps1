@@ -29,7 +29,7 @@ function Assert-EnvFileReady {
     if ($raw -match "YOUR_GEMINI_API_KEY") {
         throw "supabase/.env.functions still contains placeholder values. Set GEMINI_API_KEY before deploying."
     }
-    if ($raw -match "YOUR_STRIPE_SECRET_KEY|YOUR_WEBHOOK_SECRET|YOUR_STARTER_PRICE|YOUR_GROWTH_PRICE|YOUR_STUDIO_PRICE") {
+    if ($raw -match "YOUR_STRIPE_SECRET_KEY|YOUR_WEBHOOK_SECRET|YOUR_STARTER_MONTHLY_PRICE|YOUR_STARTER_ANNUAL_PRICE|YOUR_GROWTH_MONTHLY_PRICE|YOUR_GROWTH_ANNUAL_PRICE|YOUR_STUDIO_MONTHLY_PRICE|YOUR_STUDIO_ANNUAL_PRICE") {
         throw "supabase/.env.functions still contains Stripe placeholder values. Set Stripe Pro secrets before deploying."
     }
 }

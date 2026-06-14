@@ -116,10 +116,11 @@ class ProfessionalPlanDataSource {
       lastPlanSyncAt: now,
       lastSnapshotSyncAt: null,
       pendingSyncCount: _syncQueueBox.length,
-      sharingMode: row['sharing_mode']?.toString() ?? 'detailed',
+      sharingMode: row['sharing_mode']?.toString() ?? 'aggregate',
       messagesEnabled: true,
-      connectionStatus:
-          row['connection_status']?.toString() ?? row['status']?.toString() ?? 'active',
+      connectionStatus: row['connection_status']?.toString() ??
+          row['status']?.toString() ??
+          'active',
       activePlan: plan,
     );
     await saveActiveConnection(connection);
@@ -154,8 +155,9 @@ class ProfessionalPlanDataSource {
     if (connection == null) {
       return null;
     }
+    final refreshedConnection = await _refreshRemoteConnection(connection);
     final plan = await fetchActivePlan(connection.clientId);
-    final refreshed = connection.copyWith(
+    final refreshed = refreshedConnection.copyWith(
       activePlan: plan,
       lastPlanSyncAt: DateTime.now(),
       pendingSyncCount: _syncQueueBox.length,
@@ -261,13 +263,15 @@ class ProfessionalPlanDataSource {
           .eq('professional_client_id', connection.relationshipId)
           .eq('entry_date', _dateKey(day));
       // Insert fresh entries
-      final rows = entries.map((e) => {
-        'professional_client_id': connection.relationshipId,
-        'professional_id': connection.professionalId,
-        'client_id': connection.clientId,
-        'entry_date': _dateKey(day),
-        ...e,
-      }).toList();
+      final rows = entries
+          .map((e) => {
+                'professional_client_id': connection.relationshipId,
+                'professional_id': connection.professionalId,
+                'client_id': connection.clientId,
+                'entry_date': _dateKey(day),
+                ...e,
+              })
+          .toList();
       await _supabaseClient.from('client_diary_entries').insert(rows);
     } catch (_) {
       // Non-blocking; diary upload must never break the main sync
@@ -336,14 +340,21 @@ class ProfessionalPlanDataSource {
       return 0;
     }
 
-    // Only count unseen messages for the bottom-nav badge. Plan signature
-    // changes are informational but should not trigger the small badge.
+    var unseenCount = 0;
+    final currentPlanSignature = _planSignature(connection.activePlan);
+    final lastSeenPlanSignature =
+        _box.get(_lastSeenPlanSignatureKey) as String?;
+    if (currentPlanSignature != null &&
+        currentPlanSignature != lastSeenPlanSignature) {
+      unseenCount += 1;
+    }
+
     final messages = await getMessages(connection: connection);
     final seenMessagesCount = _readInt(_box.get(_lastSeenMessagesCountKey));
     if (messages.unreadCount > seenMessagesCount) {
-      return messages.unreadCount - seenMessagesCount;
+      unseenCount += messages.unreadCount - seenMessagesCount;
     }
-    return 0;
+    return unseenCount;
   }
 
   Future<void> markSectionSeen({
@@ -395,7 +406,8 @@ class ProfessionalPlanDataSource {
       };
 
       final applied = debugMessages
-          .map((m) => localReadIds.contains(m.id) ? m.copyWith(isRead: true) : m)
+          .map(
+              (m) => localReadIds.contains(m.id) ? m.copyWith(isRead: true) : m)
           .toList();
 
       return ProfessionalMessageThreadEntity(
@@ -584,13 +596,87 @@ class ProfessionalPlanDataSource {
       return;
     }
     await _identityService.ensureUserSession();
-    await _supabaseClient
+    final response = await _supabaseClient
         .from('professional_clients')
         .update({
           'sharing_mode': sharingMode,
         })
+        .select('id, sharing_mode')
         .eq('id', relationshipId)
-        .eq('client_id', clientId);
+        .eq('client_id', clientId)
+        .maybeSingle();
+
+    if (response == null) {
+      throw StateError(
+        'Sharing mode update did not return a relationship row. The relationship may be missing or blocked by permissions.',
+      );
+    }
+
+    final confirmedMode = response['sharing_mode']?.toString();
+    if (confirmedMode != sharingMode) {
+      throw StateError(
+        'Sharing mode update was not persisted. Expected "$sharingMode" but received "$confirmedMode".',
+      );
+    }
+  }
+
+  Future<ProfessionalConnectionEntity> _refreshRemoteConnection(
+    ProfessionalConnectionEntity connection,
+  ) async {
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return connection;
+    }
+
+    await _identityService.ensureUserSession();
+    final response = await _supabaseClient
+        .from('professional_clients')
+        .select(
+          'id, professional_id, client_id, status, connected_at, consent_accepted_at, sharing_mode, messages_enabled, professionals(display_name, business_name)',
+        )
+        .eq('id', connection.relationshipId)
+        .eq('client_id', connection.clientId)
+        .maybeSingle();
+
+    if (response == null) {
+      return connection;
+    }
+
+    final row = Map<String, dynamic>.from(response);
+    final professionalRaw = row['professionals'];
+    final professionalMap = professionalRaw is Map
+        ? Map<String, dynamic>.from(professionalRaw)
+        : professionalRaw is List && professionalRaw.isNotEmpty
+            ? Map<String, dynamic>.from(professionalRaw.first as Map)
+            : const <String, dynamic>{};
+
+    final businessName = professionalMap['business_name']?.toString();
+    final displayName = professionalMap['display_name']?.toString();
+
+    return ProfessionalConnectionEntity(
+      relationshipId: row['id']?.toString() ?? connection.relationshipId,
+      professionalId:
+          row['professional_id']?.toString() ?? connection.professionalId,
+      clientId: row['client_id']?.toString() ?? connection.clientId,
+      professionalName: businessName?.isNotEmpty == true
+          ? businessName!
+          : (displayName?.isNotEmpty == true
+              ? displayName!
+              : connection.professionalName),
+      connectedAt:
+          DateTime.tryParse(row['connected_at']?.toString() ?? '') ??
+              connection.connectedAt,
+      consentAcceptedAt:
+          DateTime.tryParse(row['consent_accepted_at']?.toString() ?? '') ??
+              connection.consentAcceptedAt,
+      lastPlanSyncAt: connection.lastPlanSyncAt,
+      lastSnapshotSyncAt: connection.lastSnapshotSyncAt,
+      pendingSyncCount: connection.pendingSyncCount,
+      sharingMode: row['sharing_mode']?.toString() ?? connection.sharingMode,
+      messagesEnabled:
+          row['messages_enabled'] as bool? ?? connection.messagesEnabled,
+      connectionStatus: row['status']?.toString() ?? connection.connectionStatus,
+      activePlan: connection.activePlan,
+    );
   }
 
   bool _shouldRetryPendingSync(Object error) {
@@ -633,9 +719,6 @@ class ProfessionalPlanDataSource {
           )
           .eq('professional_client_id', relationshipId)
           .order('created_at', ascending: false);
-      if (response is! List) {
-        return null;
-      }
       return response
           .map((row) => Map<String, dynamic>.from(row as Map))
           .toList();
@@ -694,7 +777,7 @@ class ProfessionalPlanDataSource {
       lastPlanSyncAt: now,
       lastSnapshotSyncAt: now.subtract(const Duration(minutes: 12)),
       pendingSyncCount: 0,
-      sharingMode: 'detailed',
+      sharingMode: 'aggregate',
       messagesEnabled: true,
       connectionStatus: 'active',
       activePlan: _debugPlan(),
@@ -792,8 +875,8 @@ class ProfessionalPlanDataSource {
     if (id == null || id.isEmpty || body == null || body.trim().isEmpty) {
       return null;
     }
-    final authorRole = _firstString(row, const ['author_role']) ??
-        'professional';
+    final authorRole =
+        _firstString(row, const ['author_role']) ?? 'professional';
     final createdAt = DateTime.tryParse(
           _firstString(row, const ['created_at']) ?? '',
         ) ??

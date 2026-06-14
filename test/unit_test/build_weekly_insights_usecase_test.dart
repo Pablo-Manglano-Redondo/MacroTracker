@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:macrotracker/core/data/repository/user_repository.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
-import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
@@ -80,7 +79,8 @@ void main() {
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(focusedDate);
 
@@ -141,7 +141,8 @@ void main() {
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(monday);
 
@@ -185,12 +186,14 @@ void main() {
       );
       fakeGetUser.user = UserEntity(
         birthday: DateTime(2000, 1, 1),
-        heightCM: 180, weightKG: 80,
+        heightCM: 180,
+        weightKG: 80,
         gender: UserGenderEntity.male,
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(monday);
 
@@ -227,12 +230,14 @@ void main() {
       );
       fakeGetUser.user = UserEntity(
         birthday: DateTime(2000, 1, 1),
-        heightCM: 180, weightKG: 80,
+        heightCM: 180,
+        weightKG: 80,
         gender: UserGenderEntity.male,
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(monday);
 
@@ -258,12 +263,14 @@ void main() {
       );
       fakeGetUser.user = UserEntity(
         birthday: DateTime(2000, 1, 1),
-        heightCM: 180, weightKG: 80,
+        heightCM: 180,
+        weightKG: 80,
         gender: UserGenderEntity.male,
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(monday);
 
@@ -287,18 +294,23 @@ void main() {
       ];
       fakeGetBodyProgress.summary = const BodyProgressSummaryEntity(
         latestMeasurementDay: null,
-        latestWeightKg: null, latestWaistCm: null,
-        rollingWeightAverageKg: null, previousRollingWeightAverageKg: null,
-        weeklyWeightDeltaKg: null, latestWaistDeltaCm: null,
+        latestWeightKg: null,
+        latestWaistCm: null,
+        rollingWeightAverageKg: null,
+        previousRollingWeightAverageKg: null,
+        weeklyWeightDeltaKg: null,
+        latestWaistDeltaCm: null,
       );
       fakeGetUser.user = UserEntity(
         birthday: DateTime(2000, 1, 1),
-        heightCM: 180, weightKG: 80,
+        heightCM: 180,
+        weightKG: 80,
         gender: UserGenderEntity.male,
         goal: UserWeightGoalEntity.maintainWeight,
         pal: UserPALEntity.active,
       );
-      fakeGetConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+      fakeGetConfig.config =
+          const ConfigEntity(true, true, true, AppThemeEntity.system);
 
       final result = await usecase.build(monday);
 
@@ -392,26 +404,34 @@ class _FakeGetIntakeUsecase implements GetIntakeUsecase {
 class _FakeGetBodyProgressUsecase implements GetBodyProgressUsecase {
   BodyProgressSummaryEntity summary = const BodyProgressSummaryEntity(
     latestMeasurementDay: null,
-    latestWeightKg: null, latestWaistCm: null,
-    rollingWeightAverageKg: null, previousRollingWeightAverageKg: null,
-    weeklyWeightDeltaKg: null, latestWaistDeltaCm: null,
+    latestWeightKg: null,
+    latestWaistCm: null,
+    rollingWeightAverageKg: null,
+    previousRollingWeightAverageKg: null,
+    weeklyWeightDeltaKg: null,
+    latestWaistDeltaCm: null,
   );
 
   @override
-  Future<BodyProgressSummaryEntity> getSummary({DateTime? referenceDay}) async =>
+  Future<BodyProgressSummaryEntity> getSummary(
+          {DateTime? referenceDay}) async =>
       summary;
 
   @override
-  Future<List<BodyMeasurementEntity>> getRecentMeasurements({int limit = 30}) async => [];
+  Future<List<BodyMeasurementEntity>> getRecentMeasurements(
+          {int limit = 30}) async =>
+      [];
 
   @override
-  Future<BodyMeasurementEntity?> getMeasurementForDay(DateTime day) async => null;
+  Future<BodyMeasurementEntity?> getMeasurementForDay(DateTime day) async =>
+      null;
 }
 
 class _FakeGetUserUsecase implements GetUserUsecase {
   UserEntity user = UserEntity(
     birthday: DateTime(2000, 1, 1),
-    heightCM: 170, weightKG: 70,
+    heightCM: 170,
+    weightKG: 70,
     gender: UserGenderEntity.male,
     goal: UserWeightGoalEntity.maintainWeight,
     pal: UserPALEntity.active,
@@ -428,7 +448,8 @@ class _FakeGetUserUsecase implements GetUserUsecase {
 }
 
 class _FakeGetConfigUsecase implements GetConfigUsecase {
-  ConfigEntity config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+  ConfigEntity config =
+      const ConfigEntity(true, true, true, AppThemeEntity.system);
 
   @override
   Future<ConfigEntity> getConfig() async => config;

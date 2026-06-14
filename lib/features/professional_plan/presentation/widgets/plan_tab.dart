@@ -35,7 +35,8 @@ class PlanTab extends StatelessWidget {
     if (plan == null) {
       return _EmptyPlanCard(summary: summary);
     }
-    final fallbackDays = summary.weekPlan.where((day) => day.usesWeekdayFallback).length;
+    final fallbackDays =
+        summary.weekPlan.where((day) => day.usesWeekdayFallback).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,16 +66,19 @@ class PlanTab extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   CompactStat(
-                    label: uiText(context, es: 'Comidas sugeridas', en: 'Suggested meals'),
+                    label: uiText(context,
+                        es: 'Comidas sugeridas', en: 'Suggested meals'),
                     value: plan.meals.length.toString(),
                   ),
                   CompactStat(
-                    label: uiText(context, es: 'Días plantilla', en: 'Template days'),
+                    label: uiText(context,
+                        es: 'Días plantilla', en: 'Template days'),
                     value: fallbackDays.toString(),
                   ),
                   CompactStat(
                     label: uiText(context, es: 'Actualizado', en: 'Updated'),
-                    value: formatShortDate(context, plan.updatedAt ?? plan.createdAt),
+                    value: formatShortDate(
+                        context, plan.updatedAt ?? plan.createdAt),
                   ),
                 ],
               ),
@@ -98,10 +102,11 @@ class PlanTab extends StatelessWidget {
                       Expanded(
                         child: Text(
                           plan.notes!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                height: 1.4,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    height: 1.4,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                         ),
                       ),
                     ],
@@ -117,7 +122,8 @@ class PlanTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Visión semanal', en: 'Weekly view'),
+                eyebrow:
+                    uiText(context, es: 'Visión semanal', en: 'Weekly view'),
                 title: S.of(context).professionalPlanWeeklyView,
                 subtitle: uiText(
                   context,
@@ -139,7 +145,8 @@ class PlanTab extends StatelessWidget {
                         builder: (sheetContext) => WeekdayDetailBottomSheet(
                           day: day,
                           meals: plan.meals,
-                          onLogMeal: (meal) => _handleLogSuggestedMeal(context, meal),
+                          onLogMeal: (meal) =>
+                              _handleLogSuggestedMeal(context, meal),
                         ),
                       );
                     },
@@ -155,7 +162,8 @@ class PlanTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionHeader(
-                  eyebrow: uiText(context, es: 'Guía de comidas', en: 'Meal guide'),
+                  eyebrow:
+                      uiText(context, es: 'Guía de comidas', en: 'Meal guide'),
                   title: S.of(context).professionalPlanSuggestedMeals,
                   subtitle: uiText(
                     context,
@@ -175,9 +183,11 @@ class PlanTab extends StatelessWidget {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (sheetContext) => SuggestedMealDetailBottomSheet(
+                          builder: (sheetContext) =>
+                              SuggestedMealDetailBottomSheet(
                             meal: meal,
-                            onLogPressed: () => _handleLogSuggestedMeal(context, meal),
+                            onLogPressed: () =>
+                                _handleLogSuggestedMeal(context, meal),
                           ),
                         );
                       },
@@ -191,7 +201,8 @@ class PlanTab extends StatelessWidget {
     );
   }
 
-  Future<void> _handleLogSuggestedMeal(BuildContext context, NutritionPlanMealEntity suggestedMeal) async {
+  Future<void> _handleLogSuggestedMeal(
+      BuildContext context, NutritionPlanMealEntity suggestedMeal) async {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
     final slotName = _slotDisplayName(context, suggestedMeal.slot);
     final kcal = suggestedMeal.kcal?.round() ?? 0;
@@ -199,7 +210,8 @@ class PlanTab extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(isEs ? '¿Registrar comida sugerida?' : 'Log suggested meal?'),
+        title:
+            Text(isEs ? '¿Registrar comida sugerida?' : 'Log suggested meal?'),
         content: Text(
           isEs
               ? '¿Deseas añadir "${suggestedMeal.title}" ($kcal kcal) a tu diario de hoy en la sección de "$slotName"?'
@@ -224,10 +236,10 @@ class PlanTab extends StatelessWidget {
       final addIntakeUseCase = locator<AddIntakeUsecase>();
       final addTrackedDayUsecase = locator<AddTrackedDayUsecase>();
       final getGymTargetsUsecase = locator<GetGymTargetsUsecase>();
-      
+
       final today = DateTime.now();
       final type = _parseSlotToType(suggestedMeal.slot);
-      
+
       final carbs = suggestedMeal.carbs ?? 0;
       final fat = suggestedMeal.fat ?? 0;
       final protein = suggestedMeal.protein ?? 0;
@@ -502,14 +514,20 @@ class _SuggestedMealRow extends StatelessWidget {
                           children: [
                             Text(
                               meal.title,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                   ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               slotLabel,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -526,12 +544,15 @@ class _SuggestedMealRow extends StatelessWidget {
                       ],
                     ],
                   ),
-                  if (meal.protein != null || meal.carbs != null || meal.fat != null) ...[
+                  if (meal.protein != null ||
+                      meal.carbs != null ||
+                      meal.fat != null) ...[
                     const SizedBox(height: 8),
                     Text(
                       '${meal.protein?.round() ?? 0}g P | ${meal.carbs?.round() ?? 0}g C | ${meal.fat?.round() ?? 0}g F',
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                            color: colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.8),
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -610,7 +631,8 @@ class _EmptyPlanCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(context, es: 'Sin plan publicado', en: 'No published plan'),
+            eyebrow: uiText(context,
+                es: 'Sin plan publicado', en: 'No published plan'),
             title: S.of(context).professionalConnectedNoPlan,
             subtitle: S.of(context).professionalEmptyPlanBody,
           ),
@@ -622,8 +644,9 @@ class _EmptyPlanCard extends StatelessWidget {
               StatusPill(
                 icon: Icons.schedule_outlined,
                 label: S.of(context).professionalEmptyPlanSync(
-                  formatDateTime(context, summary.syncStatus.lastPlanSyncAt),
-                ),
+                      formatDateTime(
+                          context, summary.syncStatus.lastPlanSyncAt),
+                    ),
               ),
               StatusPill(
                 icon: Icons.link_outlined,
@@ -663,9 +686,13 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
     final fat = meal.fat ?? 0;
 
     final totalMacroKcal = (protein * 4) + (carbs * 4) + (fat * 9);
-    final pPct = totalMacroKcal <= 0 ? 0 : ((protein * 4) / totalMacroKcal * 100).round();
-    final cPct = totalMacroKcal <= 0 ? 0 : ((carbs * 4) / totalMacroKcal * 100).round();
-    final fPct = totalMacroKcal <= 0 ? 0 : ((fat * 9) / totalMacroKcal * 100).round();
+    final pPct = totalMacroKcal <= 0
+        ? 0
+        : ((protein * 4) / totalMacroKcal * 100).round();
+    final cPct =
+        totalMacroKcal <= 0 ? 0 : ((carbs * 4) / totalMacroKcal * 100).round();
+    final fPct =
+        totalMacroKcal <= 0 ? 0 : ((fat * 9) / totalMacroKcal * 100).round();
 
     return Container(
       decoration: BoxDecoration(
@@ -699,18 +726,24 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                       children: [
                         Text(
                           meal.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.5,
                               ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          isEs ? 'Comida sugerida del plan' : 'Suggested plan meal',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          isEs
+                              ? 'Comida sugerida del plan'
+                              : 'Suggested plan meal',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                         ),
                       ],
                     ),
@@ -719,7 +752,8 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      backgroundColor: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
                     ),
                   ),
                 ],
@@ -765,7 +799,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               // Caloric distribution percentages row
               Container(
                 width: double.infinity,
@@ -778,7 +812,9 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs ? 'Aporte de Energía de Macros' : 'Macronutrient Energy Split',
+                      isEs
+                          ? 'Aporte de Energía de Macros'
+                          : 'Macronutrient Energy Split',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurfaceVariant,
@@ -788,15 +824,24 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _PctPill(label: isEs ? 'Proteína' : 'Protein', pct: pPct, color: const Color(0xFF10B981)),
-                        _PctPill(label: isEs ? 'Carbos' : 'Carbs', pct: cPct, color: const Color(0xFFF59E0B)),
-                        _PctPill(label: isEs ? 'Grasas' : 'Fats', pct: fPct, color: const Color(0xFF3B82F6)),
+                        _PctPill(
+                            label: isEs ? 'Proteína' : 'Protein',
+                            pct: pPct,
+                            color: const Color(0xFF10B981)),
+                        _PctPill(
+                            label: isEs ? 'Carbos' : 'Carbs',
+                            pct: cPct,
+                            color: const Color(0xFFF59E0B)),
+                        _PctPill(
+                            label: isEs ? 'Grasas' : 'Fats',
+                            pct: fPct,
+                            color: const Color(0xFF3B82F6)),
                       ],
                     ),
                   ],
                 ),
               ),
-              
+
               if (meal.notes?.isNotEmpty == true) ...[
                 const SizedBox(height: 20),
                 Text(
@@ -811,7 +856,8 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.25),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.25),
                     border: Border.all(
                       color: colorScheme.outlineVariant.withValues(alpha: 0.35),
                     ),
@@ -884,7 +930,8 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
     );
 
     try {
-      final recipe = await locator<GetProfessionalRecipeUsecase>().execute(recipeId: recipeId);
+      final recipe = await locator<GetProfessionalRecipeUsecase>()
+          .execute(recipeId: recipeId);
 
       if (context.mounted) {
         Navigator.of(context).pop(); // Dismiss loading
@@ -895,7 +942,9 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                isEs ? 'No se pudo cargar la receta.' : 'Could not load recipe.',
+                isEs
+                    ? 'No se pudo cargar la receta.'
+                    : 'Could not load recipe.',
               ),
             ),
           );
@@ -908,7 +957,8 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
           context: context,
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
-          builder: (sheetContext) => ProfessionalRecipeDetailBottomSheet(recipe: recipe),
+          builder: (sheetContext) =>
+              ProfessionalRecipeDetailBottomSheet(recipe: recipe),
         );
       }
     } catch (e) {
@@ -917,7 +967,9 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEs ? 'Error al cargar la receta: $e' : 'Error loading recipe: $e',
+              isEs
+                  ? 'Error al cargar la receta: $e'
+                  : 'Error loading recipe: $e',
             ),
           ),
         );
@@ -973,7 +1025,10 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                       children: [
                         Text(
                           recipe.title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.5,
                               ),
@@ -981,10 +1036,11 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           isEs ? 'Detalle de Receta' : 'Recipe Details',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                         ),
                       ],
                     ),
@@ -993,7 +1049,8 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.close),
                     style: IconButton.styleFrom(
-                      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                      backgroundColor: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.4),
                     ),
                   ),
                 ],
@@ -1001,7 +1058,8 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 children: [
                   if (recipe.description?.isNotEmpty == true) ...[
                     Text(
@@ -1054,21 +1112,27 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (recipe.ingredients == null || recipe.ingredients!.isEmpty)
-                          Text(isEs ? 'Sin ingredientes especificados' : 'No ingredients specified')
+                        if (recipe.ingredients == null ||
+                            recipe.ingredients!.isEmpty)
+                          Text(isEs
+                              ? 'Sin ingredientes especificados'
+                              : 'No ingredients specified')
                         else
                           for (final rawIng in recipe.ingredients!)
                             if (rawIng is Map)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4.0),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.fiber_manual_record, size: 8, color: colorScheme.primary),
+                                    Icon(Icons.fiber_manual_record,
+                                        size: 8, color: colorScheme.primary),
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
                                         '${rawIng['name'] ?? ''}',
-                                        style: const TextStyle(fontWeight: FontWeight.w500),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500),
                                       ),
                                     ),
                                     Text(
@@ -1092,7 +1156,8 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 10),
-                  if (recipe.instructions == null || recipe.instructions!.trim().isEmpty)
+                  if (recipe.instructions == null ||
+                      recipe.instructions!.trim().isEmpty)
                     Text(isEs ? 'Sin instrucciones' : 'No instructions')
                   else
                     Text(
@@ -1177,9 +1242,13 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
     final fat = target.fatGoal;
 
     final totalMacroKcal = (protein * 4) + (carbs * 4) + (fat * 9);
-    final pPct = totalMacroKcal <= 0 ? 0 : ((protein * 4) / totalMacroKcal * 100).round();
-    final cPct = totalMacroKcal <= 0 ? 0 : ((carbs * 4) / totalMacroKcal * 100).round();
-    final fPct = totalMacroKcal <= 0 ? 0 : ((fat * 9) / totalMacroKcal * 100).round();
+    final pPct = totalMacroKcal <= 0
+        ? 0
+        : ((protein * 4) / totalMacroKcal * 100).round();
+    final cPct =
+        totalMacroKcal <= 0 ? 0 : ((carbs * 4) / totalMacroKcal * 100).round();
+    final fPct =
+        totalMacroKcal <= 0 ? 0 : ((fat * 9) / totalMacroKcal * 100).round();
 
     return Container(
       decoration: BoxDecoration(
@@ -1217,7 +1286,10 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         children: [
                           Text(
                             formatWeekday(context, day.effectiveDate),
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.5,
                                 ),
@@ -1231,7 +1303,9 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                                     : Icons.today_outlined,
                                 label: day.usesWeekdayFallback
                                     ? S.of(context).professionalWeekTemplate
-                                    : (isEs ? 'Objetivo específico' : 'Specific target'),
+                                    : (isEs
+                                        ? 'Objetivo específico'
+                                        : 'Specific target'),
                               ),
                             ],
                           ),
@@ -1242,7 +1316,8 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                       style: IconButton.styleFrom(
-                        backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                        backgroundColor: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.4),
                       ),
                     ),
                   ],
@@ -1304,8 +1379,13 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEs ? 'Aporte de Energía de Macros' : 'Macronutrient Energy Split',
-                            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            isEs
+                                ? 'Aporte de Energía de Macros'
+                                : 'Macronutrient Energy Split',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -1314,9 +1394,18 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _PctPill(label: isEs ? 'Proteína' : 'Protein', pct: pPct, color: const Color(0xFF10B981)),
-                              _PctPill(label: isEs ? 'Carbos' : 'Carbs', pct: cPct, color: const Color(0xFFF59E0B)),
-                              _PctPill(label: isEs ? 'Grasas' : 'Fats', pct: fPct, color: const Color(0xFF3B82F6)),
+                              _PctPill(
+                                  label: isEs ? 'Proteína' : 'Protein',
+                                  pct: pPct,
+                                  color: const Color(0xFF10B981)),
+                              _PctPill(
+                                  label: isEs ? 'Carbos' : 'Carbs',
+                                  pct: cPct,
+                                  color: const Color(0xFFF59E0B)),
+                              _PctPill(
+                                  label: isEs ? 'Grasas' : 'Fats',
+                                  pct: fPct,
+                                  color: const Color(0xFF3B82F6)),
                             ],
                           ),
                         ],
@@ -1335,8 +1424,11 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Center(
                           child: Text(
-                            isEs ? 'No hay comidas sugeridas' : 'No suggested meals',
-                            style: TextStyle(color: colorScheme.onSurfaceVariant),
+                            isEs
+                                ? 'No hay comidas sugeridas'
+                                : 'No suggested meals',
+                            style:
+                                TextStyle(color: colorScheme.onSurfaceVariant),
                           ),
                         ),
                       )
@@ -1345,26 +1437,35 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(16),
-                              color: isDark ? const Color(0xFF222224) : colorScheme.surfaceContainerLow,
+                              color: isDark
+                                  ? const Color(0xFF222224)
+                                  : colorScheme.surfaceContainerLow,
                             ),
                             child: Row(
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         meal.title,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         '${meal.kcal?.round() ?? 0} kcal | ${meal.protein?.round() ?? 0}P | ${meal.carbs?.round() ?? 0}C | ${meal.fat?.round() ?? 0}F',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              color: colorScheme.onSurfaceVariant,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                       ),
                                     ],
@@ -1517,29 +1618,114 @@ class _SubstituteFood {
 }
 
 final _proteinSubstitutes = [
-  const _SubstituteFood(nameEs: 'Pechuga de pollo', nameEn: 'Chicken breast', density: 23, kcalPer100g: 165, icon: Icons.restaurant),
-  const _SubstituteFood(nameEs: 'Lomo de pavo', nameEn: 'Turkey breast', density: 22, kcalPer100g: 135, icon: Icons.restaurant),
-  const _SubstituteFood(nameEs: 'Tofu firme', nameEn: 'Firm tofu', density: 8, kcalPer100g: 76, icon: Icons.eco),
-  const _SubstituteFood(nameEs: 'Claras de huevo', nameEn: 'Egg whites', density: 11, kcalPer100g: 52, icon: Icons.egg_outlined),
-  const _SubstituteFood(nameEs: 'Salmón fresco', nameEn: 'Salmon fillet', density: 20, kcalPer100g: 208, icon: Icons.set_meal_outlined),
-  const _SubstituteFood(nameEs: 'Yogur griego 0%', nameEn: 'Greek Yogurt 0%', density: 10, kcalPer100g: 59, icon: Icons.egg_alt_outlined),
+  const _SubstituteFood(
+      nameEs: 'Pechuga de pollo',
+      nameEn: 'Chicken breast',
+      density: 23,
+      kcalPer100g: 165,
+      icon: Icons.restaurant),
+  const _SubstituteFood(
+      nameEs: 'Lomo de pavo',
+      nameEn: 'Turkey breast',
+      density: 22,
+      kcalPer100g: 135,
+      icon: Icons.restaurant),
+  const _SubstituteFood(
+      nameEs: 'Tofu firme',
+      nameEn: 'Firm tofu',
+      density: 8,
+      kcalPer100g: 76,
+      icon: Icons.eco),
+  const _SubstituteFood(
+      nameEs: 'Claras de huevo',
+      nameEn: 'Egg whites',
+      density: 11,
+      kcalPer100g: 52,
+      icon: Icons.egg_outlined),
+  const _SubstituteFood(
+      nameEs: 'Salmón fresco',
+      nameEn: 'Salmon fillet',
+      density: 20,
+      kcalPer100g: 208,
+      icon: Icons.set_meal_outlined),
+  const _SubstituteFood(
+      nameEs: 'Yogur griego 0%',
+      nameEn: 'Greek Yogurt 0%',
+      density: 10,
+      kcalPer100g: 59,
+      icon: Icons.egg_alt_outlined),
 ];
 
 final _carbsSubstitutes = [
-  const _SubstituteFood(nameEs: 'Arroz cocido', nameEn: 'Cooked rice', density: 28, kcalPer100g: 130, icon: Icons.rice_bowl_outlined),
-  const _SubstituteFood(nameEs: 'Patata cocida', nameEn: 'Boiled potato', density: 20, kcalPer100g: 87, icon: Icons.restaurant),
-  const _SubstituteFood(nameEs: 'Batata asada', nameEn: 'Sweet potato', density: 20, kcalPer100g: 86, icon: Icons.restaurant),
-  const _SubstituteFood(nameEs: 'Copos de avena', nameEn: 'Oats', density: 60, kcalPer100g: 389, icon: Icons.breakfast_dining_outlined),
-  const _SubstituteFood(nameEs: 'Pasta hervida', nameEn: 'Boiled pasta', density: 25, kcalPer100g: 131, icon: Icons.dinner_dining_outlined),
-  const _SubstituteFood(nameEs: 'Quinoa cocida', nameEn: 'Cooked quinoa', density: 21, kcalPer100g: 120, icon: Icons.grass_outlined),
+  const _SubstituteFood(
+      nameEs: 'Arroz cocido',
+      nameEn: 'Cooked rice',
+      density: 28,
+      kcalPer100g: 130,
+      icon: Icons.rice_bowl_outlined),
+  const _SubstituteFood(
+      nameEs: 'Patata cocida',
+      nameEn: 'Boiled potato',
+      density: 20,
+      kcalPer100g: 87,
+      icon: Icons.restaurant),
+  const _SubstituteFood(
+      nameEs: 'Batata asada',
+      nameEn: 'Sweet potato',
+      density: 20,
+      kcalPer100g: 86,
+      icon: Icons.restaurant),
+  const _SubstituteFood(
+      nameEs: 'Copos de avena',
+      nameEn: 'Oats',
+      density: 60,
+      kcalPer100g: 389,
+      icon: Icons.breakfast_dining_outlined),
+  const _SubstituteFood(
+      nameEs: 'Pasta hervida',
+      nameEn: 'Boiled pasta',
+      density: 25,
+      kcalPer100g: 131,
+      icon: Icons.dinner_dining_outlined),
+  const _SubstituteFood(
+      nameEs: 'Quinoa cocida',
+      nameEn: 'Cooked quinoa',
+      density: 21,
+      kcalPer100g: 120,
+      icon: Icons.grass_outlined),
 ];
 
 final _fatSubstitutes = [
-  const _SubstituteFood(nameEs: 'Aguacate', nameEn: 'Avocado', density: 15, kcalPer100g: 160, icon: Icons.eco_outlined),
-  const _SubstituteFood(nameEs: 'Aceite de oliva', nameEn: 'Olive oil', density: 92, kcalPer100g: 884, icon: Icons.opacity_outlined),
-  const _SubstituteFood(nameEs: 'Almendras', nameEn: 'Almonds', density: 54, kcalPer100g: 579, icon: Icons.grain_outlined),
-  const _SubstituteFood(nameEs: 'Nueces', nameEn: 'Walnuts', density: 65, kcalPer100g: 654, icon: Icons.grain_outlined),
-  const _SubstituteFood(nameEs: 'Crema de cacahuete', nameEn: 'Peanut butter', density: 50, kcalPer100g: 588, icon: Icons.cookie_outlined),
+  const _SubstituteFood(
+      nameEs: 'Aguacate',
+      nameEn: 'Avocado',
+      density: 15,
+      kcalPer100g: 160,
+      icon: Icons.eco_outlined),
+  const _SubstituteFood(
+      nameEs: 'Aceite de oliva',
+      nameEn: 'Olive oil',
+      density: 92,
+      kcalPer100g: 884,
+      icon: Icons.opacity_outlined),
+  const _SubstituteFood(
+      nameEs: 'Almendras',
+      nameEn: 'Almonds',
+      density: 54,
+      kcalPer100g: 579,
+      icon: Icons.grain_outlined),
+  const _SubstituteFood(
+      nameEs: 'Nueces',
+      nameEn: 'Walnuts',
+      density: 65,
+      kcalPer100g: 654,
+      icon: Icons.grain_outlined),
+  const _SubstituteFood(
+      nameEs: 'Crema de cacahuete',
+      nameEn: 'Peanut butter',
+      density: 50,
+      kcalPer100g: 588,
+      icon: Icons.cookie_outlined),
 ];
 
 class _MealSubstitutionsWidget extends StatefulWidget {
@@ -1554,7 +1740,8 @@ class _MealSubstitutionsWidget extends StatefulWidget {
   });
 
   @override
-  State<_MealSubstitutionsWidget> createState() => _MealSubstitutionsWidgetState();
+  State<_MealSubstitutionsWidget> createState() =>
+      _MealSubstitutionsWidgetState();
 }
 
 class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
@@ -1705,7 +1892,8 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
             itemBuilder: (context, index) {
               final food = substitutes[index];
               final portionGrams = (targetGrams / (food.density / 100)).round();
-              final portionKcal = ((portionGrams / 100) * food.kcalPer100g).round();
+              final portionKcal =
+                  ((portionGrams / 100) * food.kcalPer100g).round();
               return Row(
                 children: [
                   Container(
@@ -1740,7 +1928,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
                             ),
                       ),
                       Text(
-                        '${portionKcal} kcal',
+                        '$portionKcal kcal',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -1781,10 +1969,14 @@ class _MacroSelectorButton extends StatelessWidget {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
+          color: isSelected
+              ? color.withValues(alpha: 0.15)
+              : colorScheme.surfaceContainerHigh.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? color : colorScheme.outlineVariant.withValues(alpha: 0.15),
+            color: isSelected
+                ? color
+                : colorScheme.outlineVariant.withValues(alpha: 0.15),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_client_notes_usecase.dart';
-import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_plan_usecase.dart';
 import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
 
@@ -27,16 +26,27 @@ class _NotesTabState extends State<NotesTab> {
   }
 
   Future<void> _fetchNotes() async {
-    final connection = await locator<ProfessionalPlanRepository>().getActiveConnection();
+    final connection =
+        await locator<ProfessionalPlanRepository>().getActiveConnection();
     if (connection == null || !mounted) {
       setState(() => _loading = false);
       return;
     }
     try {
       final notes = await locator<GetClientNotesUsecase>().execute(connection);
-      if (mounted) setState(() { _notes = notes; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _notes = notes;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -65,13 +75,18 @@ class _NotesTabState extends State<NotesTab> {
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
             children: [
-              Icon(Icons.note_alt_outlined, size: 48, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              Icon(Icons.note_alt_outlined,
+                  size: 48,
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text('No notes yet',
-                style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.onSurfaceVariant)),
+                  style: theme.textTheme.titleSmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: 4),
               Text('Your nutritionist has not written any notes.',
-                style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
             ],
           ),
         ),
@@ -102,9 +117,11 @@ class _NotesTabState extends State<NotesTab> {
                     const SizedBox(width: 4),
                   ],
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: _categoryColor(category, colorScheme).withValues(alpha: 0.15),
+                      color: _categoryColor(category, colorScheme)
+                          .withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -120,14 +137,18 @@ class _NotesTabState extends State<NotesTab> {
                   if (note['created_at'] != null)
                     Text(
                       _formatDate(note['created_at'] as String),
-                      style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.labelSmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700)),
+              Text(title,
+                  style: theme.textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 4),
-              Text(body, style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
+              Text(body,
+                  style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
             ],
           ),
         );

@@ -25,7 +25,8 @@ class _SummaryTabState extends State<SummaryTab> {
   @override
   void initState() {
     super.initState();
-    _noteController = TextEditingController(text: widget.summary.dailyNote ?? '');
+    _noteController =
+        TextEditingController(text: widget.summary.dailyNote ?? '');
     _noteController.addListener(_onTextChanged);
   }
 
@@ -77,7 +78,8 @@ class _SummaryTabState extends State<SummaryTab> {
                 children: [
                   StatusPill(
                     icon: Icons.assignment_outlined,
-                    label: widget.summary.activePlan?.name ?? S.of(context).professionalSummaryNoPlan,
+                    label: widget.summary.activePlan?.name ??
+                        S.of(context).professionalSummaryNoPlan,
                   ),
                   StatusPill(
                     icon: Icons.local_fire_department_outlined,
@@ -128,21 +130,21 @@ class _SummaryTabState extends State<SummaryTab> {
                     en: 'Today plan vs reality',
                   ),
                   subtitle: S.of(context).professionalSharingPendingSnapshots(
-                    widget.summary.syncStatus.pendingSyncCount,
-                  ),
+                        widget.summary.syncStatus.pendingSyncCount,
+                      ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Beautiful Calorie Circle and Adherence
                 _CalorieOverviewRing(
                   actual: widget.summary.today.kcalActual,
                   target: widget.summary.today.kcalTarget,
                 ),
-                
+
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 // Row of beautiful concentric-like macro rings
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -170,11 +172,11 @@ class _SummaryTabState extends State<SummaryTab> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 // Daily Context Note Section
                 Text(
                   isEs ? 'Nota de Contexto Diaria' : 'Daily Context Note',
@@ -201,17 +203,20 @@ class _SummaryTabState extends State<SummaryTab> {
                         ? 'Escribe tu nota aquí...'
                         : 'Write your note here...',
                     filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.15),
+                    fillColor: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.15),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        color:
+                            colorScheme.outlineVariant.withValues(alpha: 0.3),
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                       borderSide: BorderSide(
-                        color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                        color:
+                            colorScheme.outlineVariant.withValues(alpha: 0.3),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
@@ -227,11 +232,13 @@ class _SummaryTabState extends State<SummaryTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    if (_noteController.text != (widget.summary.dailyNote ?? ''))
+                    if (_noteController.text !=
+                        (widget.summary.dailyNote ?? ''))
                       TextButton.icon(
                         onPressed: () {
                           setState(() {
-                            _noteController.text = widget.summary.dailyNote ?? '';
+                            _noteController.text =
+                                widget.summary.dailyNote ?? '';
                           });
                         },
                         icon: const Icon(Icons.undo_rounded, size: 18),
@@ -267,7 +274,8 @@ class _SummaryTabState extends State<SummaryTab> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                       ),
                     ),
                   ],
@@ -323,7 +331,8 @@ class _CalorieOverviewRing extends StatelessWidget {
           ),
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: isOver ? colorScheme.error : colorScheme.primary,
-          backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          backgroundColor:
+              colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         ),
         const SizedBox(width: 20),
         Expanded(
@@ -341,7 +350,7 @@ class _CalorieOverviewRing extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                isOver ? '+${remaining.abs()} kcal' : '${remaining} kcal',
+                isOver ? '+${remaining.abs()} kcal' : '$remaining kcal',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: isOver ? colorScheme.error : colorScheme.primary,
@@ -401,7 +410,8 @@ class _MacroRingItem extends StatelessWidget {
           ),
           circularStrokeCap: CircularStrokeCap.round,
           progressColor: color,
-          backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+          backgroundColor:
+              colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
         ),
         const SizedBox(height: 8),
         Text(
@@ -412,7 +422,7 @@ class _MacroRingItem extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          '${actual.round()}${unit} / ${target.round()}${unit}',
+          '${actual.round()}$unit / ${target.round()}$unit',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 10,
@@ -470,7 +480,8 @@ class _SyncRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+            style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
         const SizedBox(width: 12),
@@ -501,7 +512,8 @@ class _EmptyPlanPlaceholder extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(context, es: 'Sin plan publicado', en: 'No published plan'),
+            eyebrow: uiText(context,
+                es: 'Sin plan publicado', en: 'No published plan'),
             title: S.of(context).professionalConnectedNoPlan,
             subtitle: S.of(context).professionalEmptyPlanBody,
           ),
@@ -513,8 +525,9 @@ class _EmptyPlanPlaceholder extends StatelessWidget {
               StatusPill(
                 icon: Icons.schedule_outlined,
                 label: S.of(context).professionalEmptyPlanSync(
-                  formatDateTime(context, summary.syncStatus.lastPlanSyncAt),
-                ),
+                      formatDateTime(
+                          context, summary.syncStatus.lastPlanSyncAt),
+                    ),
               ),
               StatusPill(
                 icon: Icons.link_outlined,

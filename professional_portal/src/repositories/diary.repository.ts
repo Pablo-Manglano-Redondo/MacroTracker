@@ -15,4 +15,19 @@ export const diaryRepository = {
     if (error) throw error;
     return data ?? [];
   },
+
+  listByClientAndDate: async (
+    supabase: SupabaseClient,
+    professionalClientId: string,
+    date: string,
+  ): Promise<ClientDiaryEntry[]> => {
+    const { data, error } = await supabase
+      .from('client_diary_entries')
+      .select('*')
+      .eq('professional_client_id', professionalClientId)
+      .eq('entry_date', date)
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
 };

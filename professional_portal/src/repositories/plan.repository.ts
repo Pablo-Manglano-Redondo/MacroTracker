@@ -93,10 +93,15 @@ export const planRepository = {
   },
 
   // List all plans for a client
-  listByClient: async (supabase: SupabaseClient, clientId: string) => {
+  listByClient: async (
+    supabase: SupabaseClient,
+    professionalId: string,
+    clientId: string,
+  ) => {
     const { data, error } = await supabase
       .from('nutrition_plans')
       .select('*')
+      .eq('professional_id', professionalId)
       .eq('client_id', clientId)
       .order('created_at', { ascending: false });
 

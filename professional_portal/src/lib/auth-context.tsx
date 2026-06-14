@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { Professional } from '../types/database.types';
@@ -10,6 +10,10 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string) => Promise<{ error: Error | null }>;
   loginWithPassword: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUpWithPassword: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: Error | null; requiresEmailConfirmation: boolean }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -21,6 +25,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [loading, setLoading] = useState(true);
+  const initializedRef = useRef(false);
+  const currentUserIdRef = useRef<string | null>(null);
 
   const loadProfile = async (userId: string) => {
     try {
@@ -47,27 +53,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // 1. Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      currentUserIdRef.current = session?.user?.id ?? null;
       if (session?.user) {
-        loadProfile(session.user.id).finally(() => setLoading(false));
+        loadProfile(session.user.id).finally(() => {
+          initializedRef.current = true;
+          setLoading(false);
+        });
       } else {
+        initializedRef.current = true;
         setLoading(false);
       }
     });
 
-    // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      const nextUserId = currentSession?.user?.id ?? null;
+      const sameUser = currentUserIdRef.current === nextUserId;
+
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
-      
-      if (currentSession?.user) {
-        setLoading(true);
-        await loadProfile(currentSession.user.id);
-        setLoading(false);
+
+      if (nextUserId) {
+        const shouldBlockUi = !initializedRef.current || !sameUser;
+        if (shouldBlockUi) {
+          setLoading(true);
+        }
+
+        await loadProfile(nextUserId);
+        currentUserIdRef.current = nextUserId;
+        initializedRef.current = true;
+
+        if (shouldBlockUi) {
+          setLoading(false);
+        }
       } else {
+        currentUserIdRef.current = null;
+        initializedRef.current = true;
         setProfessional(null);
         setLoading(false);
       }
@@ -102,6 +125,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUpWithPassword = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: window.location.href },
+      });
+
+      const requiresEmailConfirmation =
+        !data.session &&
+        !!data.user &&
+        Array.isArray(data.user.identities) &&
+        data.user.identities.length > 0;
+
+      return { error: error as Error | null, requiresEmailConfirmation };
+    } catch (err) {
+      return { error: err as Error, requiresEmailConfirmation: false };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setSession(null);
@@ -110,7 +153,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, professional, loading, login, loginWithPassword, signOut, refreshProfile }}>
+    <AuthContext.Provider
+      value={{
+        session,
+        user,
+        professional,
+        loading,
+        login,
+        loginWithPassword,
+        signUpWithPassword,
+        signOut,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

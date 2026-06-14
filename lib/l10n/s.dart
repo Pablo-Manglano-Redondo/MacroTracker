@@ -3660,13 +3660,13 @@ abstract class AppLocalizations {
   /// No description provided for @professionalScreenTitle.
   ///
   /// In en, this message translates to:
-  /// **'Nutrition coach'**
+  /// **'Nutritionist'**
   String get professionalScreenTitle;
 
   /// No description provided for @professionalHeroConnectTitle.
   ///
   /// In en, this message translates to:
-  /// **'Connect with your nutrition coach'**
+  /// **'Connect with your nutritionist'**
   String get professionalHeroConnectTitle;
 
   /// No description provided for @professionalHeroConnectedTitle.
@@ -3696,7 +3696,7 @@ abstract class AppLocalizations {
   /// No description provided for @professionalProtectAccountBody.
   ///
   /// In en, this message translates to:
-  /// **'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.'**
+  /// **'To connect with a nutritionist, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.'**
   String get professionalProtectAccountBody;
 
   /// No description provided for @professionalProtectAccountAction.
@@ -3975,12 +3975,6 @@ abstract class AppLocalizations {
   /// **'Review invite'**
   String get professionalInviteReviewAction;
 
-  /// No description provided for @professionalInviteDebugAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Use debug invite'**
-  String get professionalInviteDebugAction;
-
   /// No description provided for @professionalConsentSharedToday.
   ///
   /// In en, this message translates to:
@@ -3996,13 +3990,13 @@ abstract class AppLocalizations {
   /// No description provided for @professionalConsentSharedTodayBody.
   ///
   /// In en, this message translates to:
-  /// **'kcal, macros, logged meals, and aggregate adherence by day'**
+  /// **'kcal, macros, logged meals, aggregate adherence by day, and bidirectional messaging'**
   String get professionalConsentSharedTodayBody;
 
   /// No description provided for @professionalConsentNotSharedTodayBody.
   ///
   /// In en, this message translates to:
-  /// **'full raw diary, per-meal detail, and bidirectional chat'**
+  /// **'full raw diary and per-meal detail unless you enable detailed sharing later'**
   String get professionalConsentNotSharedTodayBody;
 
   /// No description provided for @professionalConsentRevokeHint.

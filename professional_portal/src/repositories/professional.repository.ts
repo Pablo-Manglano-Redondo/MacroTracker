@@ -21,6 +21,19 @@ export const professionalRepository = {
       business_name?: string;
     }
   ) => {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error('Auth session is missing. Sign in again before saving the profile.');
+    }
+
+    if (user.id !== payload.user_id) {
+      throw new Error('Auth session is out of sync with the profile form. Sign in again and retry.');
+    }
+
     const { error } = await supabase
       .from('professionals')
       .upsert(payload, { onConflict: 'user_id' });

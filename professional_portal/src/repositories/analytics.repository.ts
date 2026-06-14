@@ -98,13 +98,19 @@ export const analyticsRepository = {
   getPerClientAdherence: async (supabase: SupabaseClient, professionalId: string): Promise<ClientAdherence[]> => {
     const { data: clients } = await supabase
       .from('professional_clients')
-      .select('client_id')
+      .select('client_id, display_name')
       .eq('professional_id', professionalId)
       .eq('status', 'connected');
 
     if (!clients || clients.length === 0) return [];
 
     const clientIds = clients.map(c => c.client_id);
+    const nameMap = new Map<string, string>(
+      clients.map((client) => [
+        client.client_id,
+        client.display_name || client.client_id.slice(0, 8),
+      ]),
+    );
 
     const { data: snapshots } = await supabase
       .from('client_shared_snapshots')
@@ -128,7 +134,7 @@ export const analyticsRepository = {
 
     return Array.from(clientMap.entries()).map(([clientId, stats]) => ({
       clientId,
-      name: clientId,
+      name: nameMap.get(clientId) ?? clientId.slice(0, 8),
       snapshotCount: stats.count,
       avgKcalAdherence: stats.count > 0 ? Math.round((stats.sumRatio / stats.count) * 100) : 0,
       latestDate: stats.latestDate,

@@ -4,7 +4,7 @@ import { planRepository } from '../../repositories/plan.repository';
 import { planQueryKeys } from '../queries/usePlans';
 import type { MealInput } from './usePublishPlan';
 
-export const useUpdatePlan = (clientId?: string) => {
+export const useUpdatePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -33,7 +33,7 @@ export const useUpdatePlan = (clientId?: string) => {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: planQueryKeys.plans(clientId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
       queryClient.invalidateQueries({ queryKey: planQueryKeys.plan(variables.planId) });
     },
   });

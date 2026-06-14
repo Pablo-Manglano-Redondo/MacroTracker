@@ -105,10 +105,6 @@ dev_dependencies:
   envied_generator: ^1.0.1
   intl_utils: ^2.8.8
 
-dependency_overrides:
-  workmanager_android:
-    path: third_party/workmanager_android
-
 flutter:
   generate: true
   uses-material-design: true

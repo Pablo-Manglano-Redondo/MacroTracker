@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
-import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class InviteEntryView extends StatelessWidget {
   final TextEditingController codeController;
@@ -11,7 +10,6 @@ class InviteEntryView extends StatelessWidget {
   final bool isBusy;
   final VoidCallback onPreviewInvite;
   final VoidCallback onAcceptInvite;
-  final VoidCallback? onUseDebugInvite;
 
   const InviteEntryView({
     super.key,
@@ -21,7 +19,6 @@ class InviteEntryView extends StatelessWidget {
     required this.isBusy,
     required this.onPreviewInvite,
     required this.onAcceptInvite,
-    required this.onUseDebugInvite,
   });
 
   @override
@@ -39,7 +36,11 @@ class InviteEntryView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Activación privada', en: 'Private activation'),
+                eyebrow: uiText(
+                  context,
+                  es: 'Activacion privada',
+                  en: 'Private activation',
+                ),
                 title: S.of(context).professionalInviteSectionTitle,
                 subtitle: S.of(context).professionalInviteSectionBody,
               ),
@@ -71,11 +72,11 @@ class InviteEntryView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Código', en: 'Code'),
+                eyebrow: uiText(context, es: 'Codigo', en: 'Code'),
                 title: S.of(context).professionalInviteCodeLabel,
                 subtitle: uiText(
                   context,
-                  es: 'Introduce la invitación para revisar antes de compartir nada.',
+                  es: 'Introduce la invitacion para revisar antes de compartir nada.',
                   en: 'Enter the invite to review it before sharing anything.',
                 ),
               ),
@@ -100,14 +101,6 @@ class InviteEntryView extends StatelessWidget {
                   label: Text(S.of(context).professionalInviteReviewAction),
                 ),
               ),
-              if (onUseDebugInvite != null) ...[
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: isBusy ? null : onUseDebugInvite,
-                  icon: const Icon(Icons.bug_report_outlined),
-                  label: Text(S.of(context).professionalInviteDebugAction),
-                ),
-              ],
             ],
           ),
         ),
@@ -154,16 +147,23 @@ class ConsentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Panel(
-      accent: Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.55),
+      accent: Theme.of(context)
+          .colorScheme
+          .secondaryContainer
+          .withValues(alpha: 0.55),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(context, es: 'Revisión de consentimiento', en: 'Consent review'),
+            eyebrow: uiText(
+              context,
+              es: 'Revision de consentimiento',
+              en: 'Consent review',
+            ),
             title: invitePreview.professionalName,
             subtitle: uiText(
               context,
-              es: 'Antes de conectar puedes revisar exactamente qué se comparte hoy y qué sigue fuera.',
+              es: 'Antes de conectar puedes revisar exactamente que se comparte hoy y que sigue fuera.',
               en: 'Before connecting you can review exactly what is shared today and what stays outside.',
             ),
           ),

@@ -65,7 +65,7 @@ class ProfessionalConnectionEntity extends Equatable {
       lastSnapshotSyncAt:
           DateTime.tryParse(json['last_snapshot_sync_at']?.toString() ?? ''),
       pendingSyncCount: _readInt(json['pending_sync_count']),
-      sharingMode: json['sharing_mode']?.toString() ?? 'detailed',
+      sharingMode: json['sharing_mode']?.toString() ?? 'aggregate',
       messagesEnabled: true,
       connectionStatus: json['connection_status']?.toString() ?? 'active',
       activePlan: plan is Map

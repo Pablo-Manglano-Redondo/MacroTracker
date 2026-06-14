@@ -133,8 +133,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             minLines: 2,
             maxLines: 4,
             decoration: InputDecoration(
-              labelText:
-                  _isEs(context) ? 'Notas de la receta' : 'Recipe notes',
+              labelText: _isEs(context) ? 'Notas de la receta' : 'Recipe notes',
               border: const OutlineInputBorder(),
             ),
           ),
@@ -358,7 +357,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                   SizedBox(
                     width: 120,
                     child: DropdownButtonFormField<String>(
-                      value: units.contains(ingredient.unit)
+                      initialValue: units.contains(ingredient.unit)
                           ? ingredient.unit
                           : units.first,
                       decoration: InputDecoration(
@@ -827,8 +826,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
       return Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          _errorMessage ??
-              (isEs ? 'Sin resultados.' : 'No results.'),
+          _errorMessage ?? (isEs ? 'Sin resultados.' : 'No results.'),
         ),
       );
     }
@@ -843,9 +841,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.offline_pin_outlined),
             title: Text(
-              isEs
-                  ? 'Resultados de cache local'
-                  : 'Local cache results',
+              isEs ? 'Resultados de cache local' : 'Local cache results',
             ),
           );
         }
@@ -872,7 +868,8 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
     parts.add(meal.source.name.toUpperCase());
     final unit = _initialUnit(meal);
     final amount = _initialAmount(meal);
-    parts.add('${amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(1)} $unit');
+    parts.add(
+        '${amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(1)} $unit');
     if (meal.servingSize?.trim().isNotEmpty == true) {
       parts.add(meal.servingSize!.trim());
     }

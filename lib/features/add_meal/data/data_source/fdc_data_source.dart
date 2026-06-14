@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:logging/logging.dart';
 
@@ -20,6 +22,11 @@ class FDCDataSource {
       final response =
           await http.get(searchUrlString).timeout(_timeoutDuration);
       log.fine('Fetching FDC results from: $searchUrlString');
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return Future.error(
+          HttpException('FDC search failed with status ${response.statusCode}'),
+        );
+      }
 
       final wordResponse =
           FDCWordResponseDTO.fromJson(jsonDecode(response.body));
@@ -27,8 +34,22 @@ class FDCDataSource {
       return wordResponse;
     } catch (exception, stacktrace) {
       log.severe('Exception while getting FDC word search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      if (_shouldReportToSentry(exception)) {
+        Sentry.captureException(exception, stackTrace: stacktrace);
+      }
       return Future.error(exception);
     }
+  }
+
+  bool _shouldReportToSentry(Object exception) {
+    if (exception is SocketException || exception is TimeoutException) {
+      return false;
+    }
+    final message = exception.toString().toLowerCase();
+    return !message.contains('socketexception') &&
+        !message.contains('failed host lookup') &&
+        !message.contains('networkisunreachable') &&
+        !message.contains('connection failed') &&
+        !message.contains('timed out');
   }
 }

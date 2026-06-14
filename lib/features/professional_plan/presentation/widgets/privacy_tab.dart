@@ -21,6 +21,8 @@ class PrivacyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isAggregate = sharingScope.sharingMode == 'aggregate';
+    final isDetailed = sharingScope.sharingMode == 'detailed';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -72,6 +74,74 @@ class PrivacyTab extends StatelessWidget {
             rows: sharingScope.sharedNow
                 .map((item) => privacyLabel(context, item))
                 .toList(),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Panel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SectionHeader(
+                eyebrow: uiText(
+                  context,
+                  es: 'Nivel de acceso',
+                  en: 'Access level',
+                ),
+                title: uiText(
+                  context,
+                  es: 'Decide si compartes solo agregados o diario detallado',
+                  en: 'Choose between aggregate-only or detailed diary sharing',
+                ),
+                subtitle: uiText(
+                  context,
+                  es: 'El nivel agregado mantiene objetivos, adherencia, resumenes y mensajeria. El nivel detallado desbloquea el diario crudo para este profesional hasta que lo vuelvas a cambiar.',
+                  en: 'Aggregate keeps targets, adherence, snapshots, and messaging. Detailed also unlocks your raw diary for this professional until you change it again.',
+                ),
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  ChoiceChip(
+                    label: Text(
+                      uiText(context, es: 'Solo agregados', en: 'Aggregate only'),
+                    ),
+                    selected: isAggregate,
+                    onSelected: isAggregate
+                        ? null
+                        : (_) => onUpdateSharingMode('aggregate'),
+                  ),
+                  ChoiceChip(
+                    label: Text(
+                      uiText(context, es: 'Diario detallado', en: 'Detailed diary'),
+                    ),
+                    selected: isDetailed,
+                    onSelected: isDetailed
+                        ? null
+                        : (_) => onUpdateSharingMode('detailed'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isAggregate
+                    ? uiText(
+                        context,
+                        es: 'Ahora mismo el profesional no puede leer tu diario crudo ni el detalle por comida.',
+                        en: 'Right now the professional cannot read your raw diary or per-meal detail.',
+                      )
+                    : uiText(
+                        context,
+                        es: 'Ahora mismo el profesional puede leer tu diario crudo y el detalle por comida de esta relacion.',
+                        en: 'Right now the professional can read your raw diary and per-meal detail for this relationship.',
+                      ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 16),

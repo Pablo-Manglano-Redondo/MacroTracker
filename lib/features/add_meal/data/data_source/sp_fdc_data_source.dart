@@ -9,6 +9,15 @@ import 'package:macrotracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.d
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+class SpFdcBackendUnavailableException implements Exception {
+  final String message;
+
+  const SpFdcBackendUnavailableException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class SpFdcDataSource {
   final log = Logger('SPBackendDataSource');
 
@@ -101,6 +110,11 @@ class SpFdcDataSource {
                 .whereType<SpFdcFoodDTO>(),
           );
         } catch (exception, stacktrace) {
+          if (_isMissingFdcTableError(exception)) {
+            throw const SpFdcBackendUnavailableException(
+              'Supabase FDC cache table is unavailable.',
+            );
+          }
           log.warning('Supabase text search failed for "$query": $exception');
           Sentry.captureException(exception, stackTrace: stacktrace);
         }
@@ -126,6 +140,11 @@ class SpFdcDataSource {
                   .whereType<SpFdcFoodDTO>(),
             );
           } catch (exception, stacktrace) {
+            if (_isMissingFdcTableError(exception)) {
+              throw const SpFdcBackendUnavailableException(
+                'Supabase FDC cache table is unavailable.',
+              );
+            }
             log.warning(
               'Supabase english text search failed for "$query": $exception',
             );
@@ -154,6 +173,11 @@ class SpFdcDataSource {
                   .whereType<SpFdcFoodDTO>(),
             );
           } catch (exception, stacktrace) {
+            if (_isMissingFdcTableError(exception)) {
+              throw const SpFdcBackendUnavailableException(
+                'Supabase FDC cache table is unavailable.',
+              );
+            }
             log.warning(
                 'Supabase ilike search failed for "$query": $exception');
             Sentry.captureException(exception, stackTrace: stacktrace);
@@ -180,10 +204,24 @@ class SpFdcDataSource {
       log.fine('Successful response from Supabase');
       return rankedItems.take(SPConst.maxNumberOfItems).toList(growable: false);
     } catch (exception, stacktrace) {
+      if (exception is SpFdcBackendUnavailableException) {
+        log.warning(exception.toString());
+        rethrow;
+      }
       log.severe('Exception while getting FDC word search $exception');
       Sentry.captureException(exception, stackTrace: stacktrace);
       return Future.error(exception);
     }
+  }
+
+  bool _isMissingFdcTableError(Object exception) {
+    if (exception is! PostgrestException) {
+      return false;
+    }
+    final message = exception.message.toLowerCase();
+    return message.contains("could not find the table 'public.fdc_food'") ||
+        message.contains("could not find the table 'fdc_food'") ||
+        message.contains('schema cache');
   }
 
   SpFdcFoodDTO? _tryParseFood(dynamic json) {
@@ -193,9 +231,8 @@ class SpFdcDataSource {
 
     try {
       return SpFdcFoodDTO.fromJson(json);
-    } catch (exception, stacktrace) {
+    } catch (exception) {
       log.warning('Skipping malformed Supabase food row: $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
       return null;
     }
   }

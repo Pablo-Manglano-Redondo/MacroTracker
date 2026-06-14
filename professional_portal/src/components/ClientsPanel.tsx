@@ -1,179 +1,364 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  ArrowRight,
+  MessageSquare,
+  Search,
+  ShieldAlert,
+  UserPlus,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { useClients, useUnreadCounts } from '../hooks/queries/useClients';
 import type { ProfessionalClient } from '../types/database.types';
-import { Button } from './ui/button';
+import { ClientDetail } from './ClientDetail';
 import { Skeleton } from './ui/skeleton';
-import { MessageSquare, ChevronRight, UserPlus, Users, Search } from 'lucide-react';
-
-function clientDisplayName(c: ProfessionalClient): string {
-  return c.display_name || c.client_id.slice(0, 8);
-}
-
-function clientInitial(c: ProfessionalClient): string {
-  if (c.display_name) return c.display_name.slice(0, 2).toUpperCase();
-  return c.client_id.slice(0, 2).toUpperCase();
-}
+import {
+  getClientDisplayName,
+  getClientInitials,
+  getLatestSnapshot,
+  getRelationshipStatusLabel,
+  getSharingModeLabel,
+  getSnapshotAdherence,
+} from '../view-models/clients';
+import { getBillingSummary } from '../view-models/professional';
+import { usePortalI18n } from '../lib/portal-i18n';
 
 interface ClientsPanelProps {
-  onSelectClient: (client: ProfessionalClient) => void;
+  onSelectClient: (client: ProfessionalClient | null) => void;
   selectedClient: ProfessionalClient | null;
   onAddClient?: () => void;
 }
 
-export const ClientsPanel: React.FC<ClientsPanelProps> = ({ onSelectClient, selectedClient, onAddClient }) => {
+type StatusFilter = 'all' | 'connected' | 'revoked' | 'archived';
+type SharingFilter = 'all' | 'aggregate' | 'detailed';
+
+export const ClientsPanel: React.FC<ClientsPanelProps> = ({
+  onSelectClient,
+  selectedClient,
+  onAddClient,
+}) => {
   const { professional } = useAuth();
+  const { tr } = usePortalI18n();
+  const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
   const { data: clients = [], isLoading, refetch, isRefetching } = useClients(professional?.id);
   const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
-  const [search, setSearch] = useState('');
 
-  const filtered = useMemo(() => {
-    if (!search.trim()) return clients;
-    const q = search.toLowerCase();
-    return clients.filter(c => {
-      const name = clientDisplayName(c).toLowerCase();
-      return name.includes(q) || c.client_id.toLowerCase().includes(q);
-    });
-  }, [clients, search]);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [sharingFilter, setSharingFilter] = useState<SharingFilter>('all');
+
+  const filteredClients = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return clients
+      .filter((client) => {
+        if (statusFilter !== 'all' && client.status !== statusFilter) return false;
+        if (sharingFilter !== 'all' && client.sharing_mode !== sharingFilter) return false;
+        if (!query) return true;
+
+        return (
+          getClientDisplayName(client).toLowerCase().includes(query) ||
+          client.client_id.toLowerCase().includes(query)
+        );
+      })
+      .sort((left, right) => right.connected_at.localeCompare(left.connected_at));
+  }, [clients, search, sharingFilter, statusFilter]);
+
+  const stats = useMemo(() => {
+    const connected = clients.filter((client) => client.status === 'connected').length;
+    const detailed = clients.filter((client) => client.sharing_mode === 'detailed').length;
+    const withRecentSnapshots = clients.filter((client) => getLatestSnapshot(client)).length;
+    const unreadThreads = Object.values(unreadCounts).filter((count) => count > 0).length;
+
+    return {
+      connected,
+      detailed,
+      withRecentSnapshots,
+      unreadThreads,
+    };
+  }, [clients, unreadCounts]);
 
   if (!professional) {
     return (
-      <div className="rounded-xl border bg-card p-5 text-center text-sm text-muted-foreground card-elevated">
-        Save your profile first to load clients.
+      <div className="portal-panel rounded-[1.6rem] p-6 text-sm leading-relaxed text-muted-foreground">
+        {tr(
+          'Primero crea el perfil profesional. Las relaciones cliente-profesional cuelgan del registro profesional, no del usuario auth en bruto.',
+          'Create the professional profile first. Client relationships attach to the professional record, not to the raw auth user.',
+        )}
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border bg-card card-elevated flex flex-col">
-      {/* Header */}
-      <div className="px-5 py-4 border-b flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Users className="w-4 h-4 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold leading-none">Clients</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {filtered.length}/{clients.length} connected
+    <div className="space-y-6 animate-fade-in-up">
+      <section className="portal-hero rounded-[1.8rem] p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <p className="portal-kicker">{tr('Roster clínico', 'Clinical roster')}</p>
+            <h2 className="portal-title text-3xl text-foreground">
+              {tr('Clientes y estado real de la relación.', 'Clients and real relationship state.')}
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {tr(
+                'Este roster solo refleja relaciones `professional_clients`, su modo de sharing y el último snapshot sincronizado.',
+                'This roster only reflects `professional_clients` relationships, their sharing mode, and the latest synced snapshot.',
+              )}
             </p>
           </div>
-        </div>
-        {onAddClient && (
-          <Button onClick={onAddClient} size="sm" className="h-8 rounded-lg text-xs shrink-0">
-            <UserPlus className="w-3.5 h-3.5 mr-1.5" />
-            Add
-          </Button>
-        )}
-      </div>
 
-      {/* Search */}
-      <div className="px-4 pt-3 pb-1">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search clients..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-      </div>
-
-      {/* Client list */}
-      <div className="flex-1 overflow-y-auto max-h-[360px] [scrollbar-width:thin] [scrollbar-color:rgb(200_200_200/0.3)_transparent] dark:[scrollbar-color:rgb(60_60_60/0.3)_transparent]">
-        {isLoading ? (
-          <div className="p-3 space-y-1">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 px-3 py-3 rounded-lg">
-                <Skeleton className="w-9 h-9 rounded-full shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-3.5 w-28" />
-                  <Skeleton className="h-3 w-40" />
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="px-5 py-10 text-center">
-            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
-              <Users className="w-5 h-5 text-muted-foreground/60" />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {search ? 'No clients match your search' : 'No clients yet'}
-            </p>
-            {!search && (
-              <p className="text-xs text-muted-foreground/70 mt-1">Invite your first client to get started</p>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => refetch()}
+              className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-accent"
+            >
+              {isRefetching ? tr('Actualizando...', 'Refreshing...') : tr('Actualizar', 'Refresh')}
+            </button>
+            {onAddClient && (
+              <button
+                onClick={onAddClient}
+                disabled={!billingSummary.hasProfessionalAccess}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground transition-colors hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <UserPlus className="h-4 w-4" />
+                {tr('Invitar cliente', 'Invite client')}
+              </button>
             )}
           </div>
-        ) : (
-          <div className="p-2">
-            {filtered.map((row) => {
-              const unreadCount = unreadCounts[row.id] ?? 0;
-              const isSelected = selectedClient?.id === row.id;
-              const snapshots = row.client_shared_snapshots || [];
-              const latestSnapshot = snapshots.length > 0
-                ? [...snapshots].sort((a, b) => b.snapshot_date.localeCompare(a.snapshot_date))[0]
-                : null;
+        </div>
+      </section>
 
-              return (
-                <button
-                  key={row.id}
-                  onClick={() => onSelectClient(row)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-all duration-100 ${
-                    isSelected
-                      ? 'bg-primary/10'
-                      : 'hover:bg-secondary/60'
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    isSelected
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary text-secondary-foreground'
-                  }`}>
-                    {clientInitial(row)}
+      {!billingSummary.hasProfessionalAccess && (
+        <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
+            <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
+              {tr(
+                'La facturación no está activa, así que las nuevas invitaciones deben seguir bloqueadas. Las relaciones ya conectadas aún pueden aparecer aquí en modo lectura.',
+                'Billing is not active, so new invites should remain blocked. Existing connected relationships may still appear here in read-only mode.',
+              )}
+            </p>
+          </div>
+        </section>
+      )}
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label={tr('Conectados', 'Connected')}
+          value={stats.connected}
+          note={tr('Relaciones activas', 'Active relationships')}
+        />
+        <StatCard
+          label={tr('Sharing detailed', 'Detailed sharing')}
+          value={stats.detailed}
+          note={tr('Diario detallado habilitado', 'Detailed diary enabled')}
+        />
+        <StatCard
+          label={tr('Con snapshots', 'With snapshots')}
+          value={stats.withRecentSnapshots}
+          note={tr('Al menos un sync recibido', 'At least one sync received')}
+        />
+        <StatCard
+          label={tr('Hilos sin leer', 'Unread threads')}
+          value={stats.unreadThreads}
+          note={tr('Mensajes pendientes de revisar', 'Client messages awaiting review')}
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-12">
+        <div className="portal-panel rounded-[1.6rem] p-5 xl:col-span-4 xl:self-start">
+          <div className="flex flex-col gap-3 border-b border-border pb-4">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={tr('Buscar clientes', 'Search clients')}
+                className="portal-input w-full rounded-xl py-2 pl-10 pr-3 text-sm font-medium outline-none transition-colors focus:border-primary"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                className="portal-input rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] outline-none"
+              >
+                <option value="all">{tr('Todos los estados', 'All statuses')}</option>
+                <option value="connected">{tr('Conectado', 'Connected')}</option>
+                <option value="revoked">{tr('Revocado', 'Revoked')}</option>
+                <option value="archived">{tr('Archivado', 'Archived')}</option>
+              </select>
+              <select
+                value={sharingFilter}
+                onChange={(event) => setSharingFilter(event.target.value as SharingFilter)}
+                className="portal-input rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] outline-none"
+              >
+                <option value="all">{tr('Todo el sharing', 'All sharing')}</option>
+                <option value="aggregate">{tr('Agregado', 'Aggregate')}</option>
+                <option value="detailed">{tr('Detallado', 'Detailed')}</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2 xl:max-h-[calc(100vh-22rem)] xl:overflow-y-auto xl:pr-1">
+            {isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((index) => (
+                  <div key={index} className="portal-soft-panel rounded-2xl p-4">
+                    <Skeleton className="h-4 w-32 bg-black/5 dark:bg-white/5" />
+                    <Skeleton className="mt-2 h-3 w-48 bg-black/5 dark:bg-white/5" />
                   </div>
+                ))}
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <EmptyRosterState
+                hasClients={clients.length > 0}
+                canInvite={billingSummary.hasProfessionalAccess}
+                onAddClient={onAddClient}
+              />
+            ) : (
+              filteredClients.map((client) => {
+                const latestSnapshot = getLatestSnapshot(client);
+                const adherence = getSnapshotAdherence(latestSnapshot);
+                const isSelected = selectedClient?.id === client.id;
+                const unreadCount = unreadCounts[client.id] ?? 0;
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">
-                        {clientDisplayName(row)}
-                      </span>
+                return (
+                  <button
+                    key={client.id}
+                    onClick={() => onSelectClient(isSelected ? null : client)}
+                    className={`w-full rounded-2xl border p-4 text-left transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary/8'
+                        : 'border-border bg-card hover:bg-accent'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 font-bold text-primary">
+                          {getClientInitials(client)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-foreground">
+                            {getClientDisplayName(client)}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {getRelationshipStatusLabel(client.status)} · {getSharingModeLabel(client.sharing_mode)}
+                          </p>
+                        </div>
+                      </div>
+
                       {unreadCount > 0 && (
-                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shrink-0">
-                          <MessageSquare className="w-2.5 h-2.5" />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-1 text-[10px] font-bold text-white">
+                          <MessageSquare className="h-3 w-3" />
                           {unreadCount}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">
-                      {latestSnapshot
-                        ? `${latestSnapshot.kcal_actual}/${latestSnapshot.kcal_target} kcal`
-                        : 'No snapshots yet'
-                      }
-                    </p>
-                  </div>
 
-                  <ChevronRight className={`w-4 h-4 shrink-0 transition-colors ${
-                    isSelected ? 'text-primary' : 'text-muted-foreground/40'
-                  }`} />
-                </button>
-              );
-            })}
+                    <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span>
+                        {latestSnapshot
+                          ? tr(
+                              `Snapshot ${latestSnapshot.snapshot_date}`,
+                              `Snapshot ${latestSnapshot.snapshot_date}`,
+                            )
+                          : tr('Todavía no hay snapshots', 'No snapshots synced yet')}
+                      </span>
+                      <span className="font-semibold text-foreground">
+                        {adherence === null ? tr('Sin adherencia', 'No adherence') : `${adherence}% kcal`}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Refresh footer */}
-      {!isLoading && clients.length > 0 && (
-        <div className="px-5 py-3 border-t">
-          <button
-            onClick={() => refetch()}
-            disabled={isRefetching}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            {isRefetching ? 'Refreshing...' : 'Refresh list'}
-          </button>
+        <div className="xl:col-span-8" id="client-detail-section">
+          {selectedClient ? (
+            <ClientDetail
+              client={selectedClient}
+              onClose={() => onSelectClient(null)}
+              onMessagesRead={() => {}}
+              unreadCount={unreadCounts[selectedClient.id] ?? 0}
+            />
+          ) : (
+            <section className="portal-panel flex min-h-[420px] flex-col items-center justify-center rounded-[1.6rem] p-8 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                <Users className="h-6 w-6" />
+              </div>
+              <h3 className="portal-title mt-4 text-2xl text-foreground">
+                {tr('Selecciona un cliente', 'Select a client')}
+              </h3>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+                {tr(
+                  'Usa el roster para abrir el workflow real de planes, notas, snapshots, check-ins, diario detallado y chat. Si una superficie aún no tiene backend suficiente, debe decirlo.',
+                  'Use the roster to open the real workflow for plans, notes, snapshots, check-ins, detailed diary, and chat. If a surface does not yet have enough backend support, it should say so explicitly.',
+                )}
+              </p>
+            </section>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+};
+
+const StatCard: React.FC<{ label: string; value: number; note: string }> = ({
+  label,
+  value,
+  note,
+}) => (
+  <div className="portal-panel rounded-[1.4rem] p-4">
+    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+      {label}
+    </p>
+    <p className="portal-metric mt-2 text-3xl font-extrabold text-foreground">{value}</p>
+    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+  </div>
+);
+
+const EmptyRosterState: React.FC<{
+  hasClients: boolean;
+  canInvite: boolean;
+  onAddClient?: () => void;
+}> = ({ hasClients, canInvite, onAddClient }) => {
+  const { tr } = usePortalI18n();
+
+  return (
+    <div className="portal-soft-panel rounded-2xl p-6 text-center">
+      <p className="text-sm font-bold text-foreground">
+        {hasClients
+          ? tr('Ningún cliente coincide con los filtros', 'No clients match the current filters')
+          : tr('Todavía no hay relaciones cliente-profesional', 'No client relationships yet')}
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        {hasClients
+          ? tr(
+              'Limpia los filtros o la búsqueda para volver a ver el roster completo.',
+              'Clear the filters or search query to see the full roster again.',
+            )
+          : tr(
+              'Las relaciones conectadas aparecerán aquí después de que el cliente acepte la invitación desde la app móvil.',
+              'Connected relationships will appear here after the client accepts an invite from the mobile app.',
+            )}
+      </p>
+      {onAddClient && !hasClients && (
+        <button
+          onClick={onAddClient}
+          disabled={!canInvite}
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <UserPlus className="h-4 w-4" />
+          {tr('Invitar primer cliente', 'Invite first client')}
+        </button>
+      )}
+      {hasClients && (
+        <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+          {tr('Revisar filtros', 'Review filters')}
+          <ArrowRight className="h-4 w-4" />
         </div>
       )}
     </div>

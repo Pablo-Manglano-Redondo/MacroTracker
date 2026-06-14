@@ -1,18 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Minus,
+  Plus,
+  Save,
+  Utensils,
+} from 'lucide-react';
+import { useAuth } from '../../lib/auth-context';
 import { usePlan } from '../../hooks/queries/usePlans';
 import { useUpdatePlan } from '../../hooks/mutations/useUpdatePlan';
 import type { MealInput } from '../../hooks/mutations/usePublishPlan';
-import { ProfessionalClient } from '../../types/database.types';
 import { planRepository } from '../../repositories/plan.repository';
 import { supabase } from '../../lib/supabase';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Card } from '../ui/card';
-import { Badge } from '../ui/badge';
+import type { ProfessionalClient } from '../../types/database.types';
 import { toast } from '../../lib/toast';
-import { ArrowLeft, Save, AlertTriangle, Loader2, Utensils, ChevronDown, ChevronRight, BookOpen } from 'lucide-react';
 import { planSchema } from '../../lib/validation/schemas';
 import { RecipePickerModal } from './RecipePickerModal';
+import { getBillingSummary } from '../../view-models/professional';
+import { getRelationshipStatusLabel } from '../../view-models/clients';
+import { formatDateOnly } from '../../lib/date';
+import { usePortalI18n } from '../../lib/portal-i18n';
 
 interface PlanEditorProps {
   client: ProfessionalClient;
@@ -21,12 +33,14 @@ interface PlanEditorProps {
 }
 
 export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }) => {
+  const { professional } = useAuth();
+  const { tr } = usePortalI18n();
+  const billingSummary = getBillingSummary(professional);
   const { data: plan, isLoading, error } = usePlan(planId);
-  const updatePlan = useUpdatePlan(client.client_id);
+  const updatePlan = useUpdatePlan();
 
   const [planName, setPlanName] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
-
   const [kcal, setKcal] = useState(0);
   const [protein, setProtein] = useState(0);
   const [carbs, setCarbs] = useState(0);
@@ -40,12 +54,17 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
   const [showMeals, setShowMeals] = useState(false);
   const [recipePickerSlot, setRecipePickerSlot] = useState<string | null>(null);
 
-  const mealTotals = useMemo(() => ({
-    kcal: meals.reduce((s, m) => s + (m.kcal || 0), 0),
-    protein: meals.reduce((s, m) => s + (m.protein || 0), 0),
-    carbs: meals.reduce((s, m) => s + (m.carbs || 0), 0),
-    fat: meals.reduce((s, m) => s + (m.fat || 0), 0),
-  }), [meals]);
+  const canEditPlan = billingSummary.hasProfessionalAccess && client.status === 'connected';
+
+  const mealTotals = useMemo(
+    () => ({
+      kcal: meals.reduce((sum, meal) => sum + (meal.kcal || 0), 0),
+      protein: meals.reduce((sum, meal) => sum + (meal.protein || 0), 0),
+      carbs: meals.reduce((sum, meal) => sum + (meal.carbs || 0), 0),
+      fat: meals.reduce((sum, meal) => sum + (meal.fat || 0), 0),
+    }),
+    [meals],
+  );
 
   useEffect(() => {
     if (plan) {
@@ -57,29 +76,52 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
         setCarbs(Number(firstDay.carbs_goal));
         setFat(Number(firstDay.fat_goal));
       }
-      planRepository.listMealsByPlan(supabase, plan.id).then(existing => {
-        if (existing.length > 0) {
-          setMeals(existing.map(m => ({ slot: m.slot as string, title: m.title, kcal: m.kcal || 0, protein: m.protein || 0, carbs: m.carbs || 0, fat: m.fat || 0, recipe_id: (m as any).recipe_id || null })));
-          setShowMeals(true);
-        }
-      }).catch(() => {});
+      planRepository
+        .listMealsByPlan(supabase, plan.id)
+        .then((existing) => {
+          if (existing.length > 0) {
+            setMeals(
+              existing.map((meal) => ({
+                slot: meal.slot as string,
+                title: meal.title,
+                kcal: meal.kcal || 0,
+                protein: meal.protein || 0,
+                carbs: meal.carbs || 0,
+                fat: meal.fat || 0,
+                recipe_id: (meal as any).recipe_id || null,
+              })),
+            );
+            setShowMeals(true);
+          }
+        })
+        .catch(() => {});
     }
   }, [plan]);
 
   const calculatedKcal = protein * 4 + carbs * 4 + fat * 9;
   const hasDiscrepancy = Math.abs(calculatedKcal - kcal) > 5;
 
+  const mealSlotLabel = (slot: string) =>
+    ({
+      breakfast: tr('Desayuno', 'Breakfast'),
+      lunch: tr('Comida', 'Lunch'),
+      dinner: tr('Cena', 'Dinner'),
+      snack: tr('Snack', 'Snack'),
+    })[slot] ?? slot;
+
   const handleSave = async () => {
-    if (!plan) return;
+    if (!plan || !canEditPlan) return;
 
     const result = planSchema.safeParse({ name: planName, kcal, protein, carbs, fat });
     if (!result.success) {
       const firstIssue = result.error.issues[0];
-      toast.error(firstIssue?.message || 'Invalid plan values');
+      toast.error(firstIssue?.message || tr('Valores del plan no válidos', 'Invalid plan values'));
       return;
     }
 
-    const activeMeals = meals.filter(m => m.title?.trim() && ((m.kcal || 0) > 0 || (m.protein || 0) > 0));
+    const activeMeals = meals.filter(
+      (meal) => meal.title?.trim() && ((meal.kcal || 0) > 0 || (meal.protein || 0) > 0),
+    );
 
     try {
       await updatePlan.mutateAsync({
@@ -96,262 +138,353 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
           meals: activeMeals,
         },
       });
-      toast.success('Plan updated');
+      toast.success(tr('Plan actualizado', 'Plan updated'));
       setHasChanges(false);
     } catch (err: any) {
-      toast.error('Failed to update plan', { description: err?.message || 'Unknown error' });
+      toast.error(tr('No se pudo actualizar el plan', 'Failed to update plan'), {
+        description: err?.message || tr('Error desconocido', 'Unknown error'),
+      });
     }
   };
 
   const handleActivate = async () => {
-    if (!plan) return;
+    if (!plan || !canEditPlan) return;
     try {
       await updatePlan.mutateAsync({
         planId: plan.id,
         payload: { status: 'active' },
       });
-      toast.success('Plan activated');
+      toast.success(tr('Plan activado', 'Plan activated'));
     } catch {
-      toast.error('Failed to activate plan');
+      toast.error(tr('No se pudo activar el plan', 'Failed to activate plan'));
     }
   };
 
   if (isLoading) {
     return (
-      <Card className="p-6 border flex items-center justify-center min-h-[300px]">
-        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-      </Card>
+      <div className="portal-panel flex min-h-[320px] items-center justify-center rounded-[1.6rem]">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
     );
   }
 
   if (error || !plan) {
     return (
-      <Card className="p-6 border text-center text-sm text-destructive">
-        Failed to load plan. It may have been deleted.
-        <Button onClick={onBack} variant="outline" size="sm" className="mt-4 block mx-auto">
-          Back to plans
-        </Button>
-      </Card>
+      <div className="portal-panel rounded-[1.6rem] p-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          {tr('No se pudo cargar el plan. Puede que se haya eliminado.', 'Failed to load plan. It may have been deleted.')}
+        </p>
+        <button
+          onClick={onBack}
+          className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+        >
+          {tr('Volver a la lista', 'Back to plan list')}
+        </button>
+      </div>
     );
   }
 
   return (
-    <Card className="p-6 border">
-      <div className="flex items-start justify-between border-b pb-4 mb-4">
+    <section className="portal-panel rounded-[1.6rem] p-6">
+      <div className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <Button onClick={onBack} variant="ghost" size="icon" className="w-8 h-8 shrink-0">
-            <ArrowLeft className="w-4 h-4" />
-          </Button>
+          <button
+            onClick={onBack}
+            className="rounded-xl border border-border bg-card p-2 text-muted-foreground hover:bg-accent hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
           <div>
-            <p className="text-xs font-bold tracking-wider text-primary uppercase mb-1">Edit Plan</p>
-            <h3 className="text-lg font-bold">{plan.name}</h3>
+            <p className="portal-kicker">{tr('Plan editor', 'Plan editor')}</p>
+            <h3 className="portal-title mt-2 text-2xl text-foreground">{plan.name}</h3>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {plan.status !== 'active' && (
-            <Button onClick={handleActivate} variant="outline" size="sm" className="h-8">
-              Activate
-            </Button>
-          )}
-          <Badge variant={plan.status === 'active' ? 'success' : 'secondary'}>
-            {plan.status}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Plan Name */}
-      <div className="space-y-1.5 mb-4">
-        <label className="text-xs font-extrabold text-foreground uppercase tracking-wider">Plan Name</label>
-        <Input
-          value={planName}
-          onChange={(e) => { setPlanName(e.target.value); setHasChanges(true); }}
-          placeholder="e.g. Weekly coaching plan"
-        />
-      </div>
-
-      {/* Macros and Calories Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-        <div className="space-y-1.5 p-3 border rounded-lg bg-card shadow-sm">
-          <span className="text-xs font-bold text-primary block">Protein (g)</span>
-          <Input
-            type="number"
-            value={protein}
-            onChange={(e) => { setProtein(Math.max(1, Number(e.target.value))); setHasChanges(true); }}
-            className="text-center h-8 px-1"
-          />
-          <span className="text-[10px] text-muted-foreground block text-center mt-1">{protein * 4} kcal</span>
-        </div>
-        <div className="space-y-1.5 p-3 border rounded-lg bg-card shadow-sm">
-          <span className="text-xs font-bold text-indigo-500 block">Carbs (g)</span>
-          <Input
-            type="number"
-            value={carbs}
-            onChange={(e) => { setCarbs(Math.max(1, Number(e.target.value))); setHasChanges(true); }}
-            className="text-center h-8 px-1"
-          />
-          <span className="text-[10px] text-muted-foreground block text-center mt-1">{carbs * 4} kcal</span>
-        </div>
-        <div className="space-y-1.5 p-3 border rounded-lg bg-card shadow-sm">
-          <span className="text-xs font-bold text-amber-500 block">Fat (g)</span>
-          <Input
-            type="number"
-            value={fat}
-            onChange={(e) => { setFat(Math.max(1, Number(e.target.value))); setHasChanges(true); }}
-            className="text-center h-8 px-1"
-          />
-          <span className="text-[10px] text-muted-foreground block text-center mt-1">{fat * 9} kcal</span>
-        </div>
-        <div className="space-y-1.5 p-3 border rounded-lg bg-card shadow-sm">
-          <span className="text-xs font-bold text-rose-500 block">Kcal</span>
-          <Input
-            type="number"
-            value={kcal}
-            onChange={(e) => { setKcal(Math.max(1, Number(e.target.value))); setHasChanges(true); }}
-            className="text-center h-8 px-1"
-          />
-          <span className="text-[10px] text-muted-foreground block text-center mt-1">
-            Calculated: {calculatedKcal} kcal
+        <div className="flex items-center gap-3">
+          {plan.status !== 'active' ? (
+            <button
+              onClick={handleActivate}
+              className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary"
+            >
+              {tr('Marcar activo', 'Mark active')}
+            </button>
+          ) : null}
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+            {plan.status === 'active' ? tr('Activo', 'Active') : plan.status === 'draft' ? tr('Borrador', 'Draft') : plan.status}
           </span>
         </div>
       </div>
 
-      {/* Macro discrepancy warning */}
-      {hasDiscrepancy && (
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 mb-4">
-          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" />
+      {!canEditPlan ? (
+        <Notice>
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div>
-            <p className="text-sm font-bold">Macronutrient Calorie Discrepancy</p>
-            <p className="text-xs mt-0.5 leading-relaxed opacity-90">
-              Sum of macros yields <strong>{calculatedKcal} kcal</strong>, declared: <strong>{kcal} kcal</strong>.
+            <p className="font-bold">{tr('Edición no disponible', 'Editing unavailable')}</p>
+            <p className="mt-1 text-sm leading-relaxed">
+              {client.status !== 'connected'
+                ? tr(
+                    `Esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}, así que el plan permanece en modo lectura.`,
+                    `This relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}, so the plan stays read-only.`,
+                  )
+                : tr(
+                    'El acceso profesional debe estar activo o en trial para editar o activar planes.',
+                    'Professional access must be active or trialing to edit or activate plans.',
+                  )}
             </p>
           </div>
-          <Button
-            onClick={() => { setKcal(calculatedKcal); setHasChanges(true); }}
-            size="sm"
-            variant="outline"
-            className="bg-background border-amber-500/30 shrink-0 h-8 font-bold"
-          >
-            Autocorrect kcal
-          </Button>
+        </Notice>
+      ) : null}
+
+      <div className="space-y-6">
+        <Field label={tr('Nombre del plan', 'Plan name')}>
+          <input
+            value={planName}
+            onChange={(event) => {
+              setPlanName(event.target.value);
+              setHasChanges(true);
+            }}
+            disabled={!canEditPlan}
+            placeholder={tr('Ej. Plan nutricional semanal', 'E.g. Weekly nutrition plan')}
+            className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+          />
+        </Field>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <MacroStepper label="Protein" unit="g" value={protein} setValue={setProtein} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
+          <MacroStepper label="Carbs" unit="g" value={carbs} setValue={setCarbs} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
+          <MacroStepper label="Fat" unit="g" value={fat} setValue={setFat} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
+          <MacroStepper label="Kcal" value={kcal} setValue={setKcal} step={50} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
         </div>
-      )}
 
-      {/* Meals Section */}
-      <div className="mb-4 border rounded-xl overflow-hidden">
-        <button
-          onClick={() => setShowMeals(!showMeals)}
-          className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-secondary/30 transition-colors"
-        >
-          <div className="flex items-center gap-2">
-            <Utensils className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold">Meal slots</span>
-            {mealTotals.kcal > 0 && (
-              <span className="text-[11px] text-muted-foreground">
-                {mealTotals.kcal} kcal &middot; {mealTotals.protein}p &middot; {mealTotals.carbs}c &middot; {mealTotals.fat}f
-              </span>
-            )}
-          </div>
-          {showMeals ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
-        </button>
-
-        {showMeals && (
-          <div className="px-4 pb-4 space-y-3 border-t pt-3">
-            <div className={`p-3 rounded-lg text-xs space-y-1 ${
-              Math.abs(mealTotals.kcal - kcal) > 50
-                ? 'bg-amber-500/10 border border-amber-500/20'
-                : 'bg-accent/10 border border-primary/10'
-            }`}>
-              <div className="flex items-center justify-between font-medium">
-                <span>Meal total</span>
-                <span>{mealTotals.kcal} / {kcal} kcal</span>
+        {hasDiscrepancy ? (
+          <Notice>
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+            <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-bold">{tr('Discrepancia de macros', 'Macro discrepancy')}</p>
+                <p className="mt-1 text-sm leading-relaxed">
+                  {tr(
+                    `La suma de macros da ${calculatedKcal} kcal y el objetivo declarado es ${kcal} kcal.`,
+                    `The macro sum yields ${calculatedKcal} kcal and the declared target is ${kcal} kcal.`,
+                  )}
+                </p>
               </div>
-              <div className="flex gap-3 text-muted-foreground">
-                <span>P: {mealTotals.protein}/{protein}g</span>
-                <span>C: {mealTotals.carbs}/{carbs}g</span>
-                <span>F: {mealTotals.fat}/{fat}g</span>
-              </div>
-              <div className="w-full h-1.5 bg-muted rounded-full mt-1 overflow-hidden">
-                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {meals.map((meal, i) => (
-                <div key={meal.slot} className="border rounded-lg p-3 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{meal.slot}</span>
-                    <button
-                      onClick={() => setRecipePickerSlot(meal.slot)}
-                      className="flex items-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
-                      title="Assign recipe"
-                    >
-                      <BookOpen className="w-3 h-3" />
-                      {meal.recipe_id ? 'Change' : 'Assign'}
-                    </button>
-                  </div>
-                  <input
-                    value={meal.title}
-                    onChange={e => {
-                      const next = [...meals];
-                      next[i] = { ...next[i]!, title: e.target.value };
-                      setMeals(next); setHasChanges(true);
-                    }}
-                    placeholder={`${meal.slot} title`}
-                    className="w-full px-2 py-1 text-xs rounded border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {(['kcal','protein','carbs','fat'] as const).map(f => (
-                      <div key={f}>
-                        <label className="text-[9px] text-muted-foreground block">{f === 'kcal' ? 'kcal' : f === 'protein' ? 'P' : f === 'carbs' ? 'C' : 'F'}</label>
-                        <input
-                          type="number" min={0} value={(meal as any)[f] || ''}
-                          onChange={e => {
-                            const next = [...meals];
-                            next[i] = { ...next[i]!, [f]: e.target.value ? +e.target.value : 0 };
-                            setMeals(next); setHasChanges(true);
-                          }}
-                          className="w-full px-1.5 py-1 text-[11px] rounded border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {recipePickerSlot && (
-              <RecipePickerModal
-                mealType={recipePickerSlot}
-                onSelect={(recipe) => {
-                  setMeals(prev => prev.map(m =>
-                    m.slot === recipePickerSlot
-                      ? { ...m, title: recipe.title, kcal: recipe.kcal, protein: recipe.protein, carbs: recipe.carbs, fat: recipe.fat, recipe_id: recipe.id }
-                      : m
-                  ));
+              <button
+                onClick={() => {
+                  setKcal(calculatedKcal);
                   setHasChanges(true);
-                  setRecipePickerSlot(null);
                 }}
-                onClose={() => setRecipePickerSlot(null)}
-              />
-            )}
-          </div>
-        )}
-      </div>
+                disabled={!canEditPlan}
+                className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
+              >
+                {tr('Autocorregir kcal', 'Autocorrect kcal')}
+              </button>
+            </div>
+          </Notice>
+        ) : null}
 
-      {/* Save */}
-      <div className="flex items-center justify-between pt-4 border-t">
-        <p className="text-xs text-muted-foreground">
-          Created {new Date(plan.created_at).toLocaleDateString()}
-        </p>
-        <Button onClick={handleSave} disabled={!hasChanges || updatePlan.isPending}>
-          {updatePlan.isPending ? (
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-          ) : (
-            <Save className="w-4 h-4 mr-2" />
-          )}
-          Save changes
-        </Button>
+        <div className="overflow-hidden rounded-[1.4rem] border border-border">
+          <button
+            onClick={() => setShowMeals(!showMeals)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-accent/50"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/12 text-primary">
+                <Utensils className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  {tr('Configuración de comidas', 'Meal configuration')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {mealTotals.kcal} kcal · {mealTotals.protein}p · {mealTotals.carbs}c · {mealTotals.fat}f
+                </p>
+              </div>
+            </div>
+            {showMeals ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
+          </button>
+
+          {showMeals ? (
+            <div className="space-y-4 border-t border-border px-5 py-4">
+              <div className="rounded-xl border border-border bg-background/60 p-4">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-sm font-bold text-foreground">{tr('Distribución diaria', 'Daily distribution')}</span>
+                  <span className="text-sm font-bold text-foreground">{mealTotals.kcal} / {kcal} kcal</span>
+                </div>
+                <div className="mt-2 flex gap-4 text-xs font-bold text-muted-foreground">
+                  <span className="text-primary">P: {mealTotals.protein}/{protein}g</span>
+                  <span className="text-sky-500 dark:text-sky-300">C: {mealTotals.carbs}/{carbs}g</span>
+                  <span className="text-amber-500 dark:text-amber-300">F: {mealTotals.fat}/{fat}g</span>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
+                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }} />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {meals.map((meal, index) => (
+                  <div key={meal.slot} className="rounded-2xl border border-border bg-background/60 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                        {mealSlotLabel(meal.slot)}
+                      </span>
+                      <button
+                        onClick={() => setRecipePickerSlot(meal.slot)}
+                        disabled={!canEditPlan}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-primary"
+                      >
+                        <BookOpen className="h-3.5 w-3.5" />
+                        {meal.recipe_id ? tr('Cambiar receta', 'Change recipe') : tr('Asignar receta', 'Assign recipe')}
+                      </button>
+                    </div>
+                    <input
+                      value={meal.title}
+                      onChange={(event) => {
+                        const next = [...meals];
+                        next[index] = { ...next[index]!, title: event.target.value };
+                        setMeals(next);
+                        setHasChanges(true);
+                      }}
+                      disabled={!canEditPlan}
+                      placeholder={tr(`${mealSlotLabel(meal.slot)}: nombre`, `${mealSlotLabel(meal.slot)} title`)}
+                      className="portal-input mt-3 h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                    />
+                    <div className="mt-3 grid grid-cols-4 gap-2">
+                      {(['kcal', 'protein', 'carbs', 'fat'] as const).map((field) => (
+                        <div key={field} className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                            {field === 'protein' ? 'P' : field === 'carbs' ? 'C' : field === 'fat' ? 'F' : 'Kcal'}
+                          </label>
+                          <input
+                            type="number"
+                            min={0}
+                            value={(meal as any)[field] || ''}
+                            onChange={(event) => {
+                              const next = [...meals];
+                              next[index] = {
+                                ...next[index]!,
+                                [field]: event.target.value ? +event.target.value : 0,
+                              };
+                              setMeals(next);
+                              setHasChanges(true);
+                            }}
+                            disabled={!canEditPlan}
+                            className="portal-input h-9 w-full rounded-lg px-2 text-center text-xs font-semibold outline-none focus:border-primary"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {recipePickerSlot ? (
+                <RecipePickerModal
+                  mealType={recipePickerSlot}
+                  onSelect={(recipe) => {
+                    setMeals((prev) =>
+                      prev.map((meal) =>
+                        meal.slot === recipePickerSlot
+                          ? {
+                              ...meal,
+                              title: recipe.title,
+                              kcal: recipe.kcal,
+                              protein: recipe.protein,
+                              carbs: recipe.carbs,
+                              fat: recipe.fat,
+                              recipe_id: recipe.id,
+                            }
+                          : meal,
+                      ),
+                    );
+                    setHasChanges(true);
+                    setRecipePickerSlot(null);
+                  }}
+                  onClose={() => setRecipePickerSlot(null)}
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            {tr('Creado el', 'Created on')} {formatDateOnly(plan.created_at.slice(0, 10))}
+          </p>
+          <button
+            onClick={handleSave}
+            disabled={!canEditPlan || !hasChanges || updatePlan.isPending}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+          >
+            {updatePlan.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {tr('Guardar cambios', 'Save changes')}
+          </button>
+        </div>
       </div>
-    </Card>
+    </section>
   );
 };
+
+const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
+  <div className="space-y-2">
+    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</label>
+    {children}
+  </div>
+);
+
+const Notice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+    {children}
+  </div>
+);
+
+const MacroStepper: React.FC<{
+  label: string;
+  unit?: string;
+  value: number;
+  setValue: React.Dispatch<React.SetStateAction<number>>;
+  step: number;
+  disabled: boolean;
+  onChange: () => void;
+}> = ({ label, unit = '', value, setValue, step, disabled, onChange }) => (
+  <div className="rounded-2xl border border-border bg-background/60 p-4">
+    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+      {label}
+      {unit ? ` (${unit})` : ''}
+    </p>
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        onClick={() => {
+          setValue((prev) => Math.max(1, prev - step));
+          onChange();
+        }}
+        disabled={disabled}
+        className="rounded-lg border border-border bg-background p-2 text-foreground disabled:opacity-50"
+      >
+        <Minus className="h-3.5 w-3.5" />
+      </button>
+      <input
+        type="number"
+        value={value}
+        onChange={(event) => {
+          setValue(Math.max(1, Number(event.target.value)));
+          onChange();
+        }}
+        disabled={disabled}
+        className="w-full bg-transparent text-center text-lg font-extrabold outline-none disabled:opacity-50"
+      />
+      <button
+        onClick={() => {
+          setValue((prev) => prev + step);
+          onChange();
+        }}
+        disabled={disabled}
+        className="rounded-lg border border-border bg-background p-2 text-foreground disabled:opacity-50"
+      >
+        <Plus className="h-3.5 w-3.5" />
+      </button>
+    </div>
+    <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
+      {label === 'Kcal' ? '' : `${label === 'Fat' ? value * 9 : value * 4} kcal`}
+    </p>
+  </div>
+);

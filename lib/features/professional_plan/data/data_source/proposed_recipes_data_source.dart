@@ -1,6 +1,5 @@
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
-import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProposedRecipesDataSource {
@@ -23,10 +22,9 @@ class ProposedRecipesDataSource {
         .eq('client_id', clientId)
         .order('created_at', ascending: false);
 
-    if (response == null) return [];
-
     return (response as List)
-        .map((row) => ProposedRecipeData.fromJson(Map<String, dynamic>.from(row)))
+        .map((row) =>
+            ProposedRecipeData.fromJson(Map<String, dynamic>.from(row)))
         .toList();
   }
 
@@ -37,8 +35,7 @@ class ProposedRecipesDataSource {
     await _identityService.ensureUserSession();
     await _supabaseClient
         .from('client_proposed_recipes')
-        .update({'status': status})
-        .eq('id', proposalId);
+        .update({'status': status}).eq('id', proposalId);
   }
 
   Future<ProfessionalRecipeData?> fetchRecipeById({
@@ -47,7 +44,8 @@ class ProposedRecipesDataSource {
     await _identityService.ensureUserSession();
     final response = await _supabaseClient
         .from('professional_recipes')
-        .select('id, title, description, meal_type, prep_time_min, cook_time_min, servings, kcal, protein, carbs, fat, ingredients, instructions, image_url, source_url')
+        .select(
+            'id, title, description, meal_type, prep_time_min, cook_time_min, servings, kcal, protein, carbs, fat, ingredients, instructions, image_url, source_url')
         .eq('id', recipeId)
         .maybeSingle();
 
@@ -80,7 +78,8 @@ class ProposedRecipeData {
       note: json['note'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       recipe: recipeJson != null
-          ? ProfessionalRecipeData.fromJson(Map<String, dynamic>.from(recipeJson))
+          ? ProfessionalRecipeData.fromJson(
+              Map<String, dynamic>.from(recipeJson))
           : null,
     );
   }

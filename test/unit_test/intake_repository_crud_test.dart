@@ -37,7 +37,7 @@ void main() {
       }
     });
 
-    IntakeEntity _makeIntake(String id, DateTime dt,
+    IntakeEntity makeIntake(String id, DateTime dt,
         {IntakeTypeEntity type = IntakeTypeEntity.breakfast,
         double amount = 1}) {
       return IntakeEntity(
@@ -55,7 +55,7 @@ void main() {
     }
 
     test('adds and retrieves intake by id', () async {
-      await repo.addIntake(_makeIntake('1', DateTime.utc(2024, 1, 1)));
+      await repo.addIntake(makeIntake('1', DateTime.utc(2024, 1, 1)));
 
       final result = await repo.getIntakeById('1');
 
@@ -70,7 +70,7 @@ void main() {
     });
 
     test('updates intake fields', () async {
-      final intake = _makeIntake('1', DateTime.utc(2024, 1, 1), amount: 100);
+      final intake = makeIntake('1', DateTime.utc(2024, 1, 1), amount: 100);
       await repo.addIntake(intake);
 
       final updated = await repo.updateIntake('1', {'amount': 200.0});
@@ -82,13 +82,12 @@ void main() {
     });
 
     test('returns null when updating non-existent intake', () async {
-      final result =
-          await repo.updateIntake('ghost', {'amount': 999});
+      final result = await repo.updateIntake('ghost', {'amount': 999});
       expect(result, isNull);
     });
 
     test('deletes intake by entity', () async {
-      await repo.addIntake(_makeIntake('1', DateTime.utc(2024, 1, 1)));
+      await repo.addIntake(makeIntake('1', DateTime.utc(2024, 1, 1)));
       expect(await repo.getIntakeById('1'), isNotNull);
 
       final saved = (await repo.getIntakeById('1'))!;
@@ -98,9 +97,9 @@ void main() {
     });
 
     test('retrieves all intakes', () async {
-      await repo.addIntake(_makeIntake('1', DateTime.utc(2024, 1, 1)));
-      await repo.addIntake(_makeIntake('2', DateTime.utc(2024, 1, 2)));
-      await repo.addIntake(_makeIntake('3', DateTime.utc(2024, 1, 3)));
+      await repo.addIntake(makeIntake('1', DateTime.utc(2024, 1, 1)));
+      await repo.addIntake(makeIntake('2', DateTime.utc(2024, 1, 2)));
+      await repo.addIntake(makeIntake('3', DateTime.utc(2024, 1, 3)));
 
       final all = await repo.getAllIntakes();
 
@@ -108,8 +107,8 @@ void main() {
     });
 
     test('deleting non-existent intake does not throw', () async {
-      final fake = _makeIntake('ghost', DateTime.utc(2024, 1, 1));
-      await repo.addIntake(_makeIntake('1', DateTime.utc(2024, 1, 1)));
+      final fake = makeIntake('ghost', DateTime.utc(2024, 1, 1));
+      await repo.addIntake(makeIntake('1', DateTime.utc(2024, 1, 1)));
 
       await repo.deleteIntake(fake);
 
@@ -119,10 +118,8 @@ void main() {
 
     test('adds and retrieves all DBOs in batch', () async {
       final dbos = [
-        IntakeDBO.fromIntakeEntity(
-            _makeIntake('1', DateTime.utc(2024, 1, 1))),
-        IntakeDBO.fromIntakeEntity(
-            _makeIntake('2', DateTime.utc(2024, 1, 2))),
+        IntakeDBO.fromIntakeEntity(makeIntake('1', DateTime.utc(2024, 1, 1))),
+        IntakeDBO.fromIntakeEntity(makeIntake('2', DateTime.utc(2024, 1, 2))),
       ];
       await repo.addAllIntakeDBOs(dbos);
 
@@ -132,33 +129,28 @@ void main() {
 
     test('retrieves intakes by date and type', () async {
       final day = DateTime.utc(2024, 1, 1);
-      await repo.addIntake(
-          _makeIntake('1', day, type: IntakeTypeEntity.breakfast));
-      await repo.addIntake(
-          _makeIntake('2', day, type: IntakeTypeEntity.lunch));
-      await repo.addIntake(
-          _makeIntake('3', day.add(const Duration(days: 1)),
-              type: IntakeTypeEntity.breakfast));
+      await repo
+          .addIntake(makeIntake('1', day, type: IntakeTypeEntity.breakfast));
+      await repo.addIntake(makeIntake('2', day, type: IntakeTypeEntity.lunch));
+      await repo.addIntake(makeIntake('3', day.add(const Duration(days: 1)),
+          type: IntakeTypeEntity.breakfast));
 
-      final breakfastOnDay1 = await repo.getIntakeByDateAndType(
-          IntakeTypeEntity.breakfast, day);
+      final breakfastOnDay1 =
+          await repo.getIntakeByDateAndType(IntakeTypeEntity.breakfast, day);
 
       expect(breakfastOnDay1.length, 1);
       expect(breakfastOnDay1.first.id, '1');
 
-      final lunchOnDay1 = await repo.getIntakeByDateAndType(
-          IntakeTypeEntity.lunch, day);
+      final lunchOnDay1 =
+          await repo.getIntakeByDateAndType(IntakeTypeEntity.lunch, day);
       expect(lunchOnDay1.length, 1);
       expect(lunchOnDay1.first.id, '2');
     });
 
     test('returns recent intakes in reverse chronological order', () async {
-      await repo.addIntake(
-          _makeIntake('1', DateTime.utc(2024, 1, 1)));
-      await repo.addIntake(
-          _makeIntake('2', DateTime.utc(2024, 1, 2)));
-      await repo.addIntake(
-          _makeIntake('3', DateTime.utc(2024, 1, 3)));
+      await repo.addIntake(makeIntake('1', DateTime.utc(2024, 1, 1)));
+      await repo.addIntake(makeIntake('2', DateTime.utc(2024, 1, 2)));
+      await repo.addIntake(makeIntake('3', DateTime.utc(2024, 1, 3)));
 
       final recent = (await repo.getRecentIntake()).map((e) => e.id).toList();
 

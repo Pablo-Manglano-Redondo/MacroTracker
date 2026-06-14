@@ -2109,9 +2109,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get professionalInviteReviewAction => 'Revisar invitacion';
 
   @override
-  String get professionalInviteDebugAction => 'Usar invitacion debug';
-
-  @override
   String get professionalConsentSharedToday => 'Que se comparte hoy';
 
   @override
@@ -2119,11 +2116,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get professionalConsentSharedTodayBody =>
-      'kcal, macros, comidas registradas y adherencia agregada por dia';
+      'kcal, macros, comidas registradas, adherencia agregada por dia y mensajeria bidireccional';
 
   @override
   String get professionalConsentNotSharedTodayBody =>
-      'diario bruto completo, detalle por comida y chat bidireccional';
+      'diario bruto completo y detalle por comida salvo que actives el nivel detallado mas tarde';
 
   @override
   String get professionalConsentRevokeHint =>

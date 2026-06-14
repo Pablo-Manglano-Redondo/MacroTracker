@@ -148,7 +148,8 @@ void main() {
       );
     });
 
-    test('falls back to local trial state when cloud session sync is unavailable',
+    test(
+        'falls back to local trial state when cloud session sync is unavailable',
         () async {
       final box = _FakeBox({
         'ai_trial_uses': 2,
@@ -175,7 +176,8 @@ void main() {
 
       expect(state.used, MonetizationService.guestAiTrialLimit);
       expect(state.limit, MonetizationService.guestAiTrialLimit);
-      expect(state.fullLimit,
+      expect(
+          state.fullLimit,
           MonetizationService.freeAiTrialLimit +
               MonetizationService.bonusAiUses +
               MonetizationService.shareBonusAiUses);
@@ -205,7 +207,8 @@ class _FakeAiTrialProfileStore implements AiTrialProfileStore {
   }
 
   @override
-  Future<Map<String, dynamic>> upsertProfile(Map<String, dynamic> profile) async {
+  Future<Map<String, dynamic>> upsertProfile(
+      Map<String, dynamic> profile) async {
     final userId = profile['user_id'] as String;
     profiles[userId] = Map<String, dynamic>.from(profile);
     return Map<String, dynamic>.from(profiles[userId]!);
@@ -226,6 +229,7 @@ class _FakeSubscriptionService implements SubscriptionService {
 
 class _FakeSupabaseIdentityService implements SupabaseIdentityService {
   final String userId;
+  @override
   final User? currentUser;
   final Object? ensureUserSessionError;
 

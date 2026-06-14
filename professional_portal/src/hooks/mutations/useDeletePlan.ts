@@ -1,31 +1,30 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { planRepository } from '../../repositories/plan.repository';
-import { planQueryKeys } from '../queries/usePlans';
 
-export const useArchivePlan = (clientId?: string) => {
+export const useArchivePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (planId: string) => planRepository.archive(supabase, planId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: planQueryKeys.plans(clientId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 };
 
-export const useDeletePlan = (clientId?: string) => {
+export const useDeletePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (planId: string) => planRepository.delete(supabase, planId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: planQueryKeys.plans(clientId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 };
 
-export const useDuplicatePlan = (clientId?: string) => {
+export const useDuplicatePlan = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -41,18 +40,18 @@ export const useDuplicatePlan = (clientId?: string) => {
       newName?: string;
     }) => planRepository.duplicate(supabase, professionalId, clientId, planId, newName),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: planQueryKeys.plans(clientId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 };
 
-export const useBatchArchivePlans = (clientId?: string) => {
+export const useBatchArchivePlans = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (planIds: string[]) => planRepository.batchArchive(supabase, planIds),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: planQueryKeys.plans(clientId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 };

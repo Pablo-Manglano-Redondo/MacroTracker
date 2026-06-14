@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
@@ -60,7 +62,9 @@ class OFFDataSource {
       }
     } catch (exception, stacktrace) {
       log.severe('Exception while getting OFF word search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      if (_shouldReportToSentry(exception)) {
+        Sentry.captureException(exception, stackTrace: stacktrace);
+      }
       return Future.error(exception);
     }
   }
@@ -74,9 +78,8 @@ class OFFDataSource {
   OFFProductDTO? _tryParseProduct(Map<String, dynamic> json) {
     try {
       return OFFProductDTO.fromJson(json);
-    } catch (exception, stacktrace) {
+    } catch (exception) {
       log.warning('Skipping malformed OFF product: $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
       return null;
     }
   }
@@ -104,8 +107,22 @@ class OFFDataSource {
       }
     } catch (exception, stacktrace) {
       log.severe('Exception while getting OFF barcode search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      if (_shouldReportToSentry(exception)) {
+        Sentry.captureException(exception, stackTrace: stacktrace);
+      }
       return Future.error(exception);
     }
+  }
+
+  bool _shouldReportToSentry(Object exception) {
+    if (exception is SocketException || exception is TimeoutException) {
+      return false;
+    }
+    final message = exception.toString().toLowerCase();
+    return !message.contains('socketexception') &&
+        !message.contains('failed host lookup') &&
+        !message.contains('networkisunreachable') &&
+        !message.contains('connection failed') &&
+        !message.contains('timed out');
   }
 }

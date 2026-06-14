@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
-import 'package:macrotracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'dart:math';
 
@@ -20,7 +19,8 @@ class TrackingTab extends StatelessWidget {
     final todayPercent = (summary.today.kcalAdherence * 100).round();
     final weekPercent = summary.week.kcalTarget <= 0
         ? 0
-        : ((summary.week.kcalActual / summary.week.kcalTarget).clamp(0, 1) * 100)
+        : ((summary.week.kcalActual / summary.week.kcalTarget).clamp(0, 1) *
+                100)
             .round();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +34,8 @@ class TrackingTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Seguimiento diario', en: 'Daily follow-up'),
+                eyebrow: uiText(context,
+                    es: 'Seguimiento diario', en: 'Daily follow-up'),
                 title: S.of(context).professionalTrackingTodayTitle,
                 subtitle: uiText(
                   context,
@@ -90,7 +91,8 @@ class TrackingTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Perspectiva semanal', en: 'Weekly perspective'),
+                eyebrow: uiText(context,
+                    es: 'Perspectiva semanal', en: 'Weekly perspective'),
                 title: S.of(context).professionalTrackingWeekTitle,
                 subtitle: uiText(
                   context,
@@ -296,14 +298,18 @@ class _ProgressSummaryRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final progress = target <= 0 ? 0.0 : (actual / target).clamp(0, 1).toDouble();
+    final progress =
+        target <= 0 ? 0.0 : (actual / target).clamp(0, 1).toDouble();
     final suffix = unit.isEmpty ? '' : unit;
     final delta = (actual - target).round();
     final deltaLabel = delta == 0
         ? uiText(context, es: 'En objetivo', en: 'On target')
         : delta > 0
-            ? uiText(context, es: '+$delta$suffix vs objetivo', en: '+$delta$suffix vs target')
-            : uiText(context, es: '$delta$suffix vs objetivo', en: '$delta$suffix vs target');
+            ? uiText(context,
+                es: '+$delta$suffix vs objetivo',
+                en: '+$delta$suffix vs target')
+            : uiText(context,
+                es: '$delta$suffix vs objetivo', en: '$delta$suffix vs target');
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -362,7 +368,8 @@ class _CalorieAdherenceBarChart extends StatefulWidget {
   const _CalorieAdherenceBarChart({required this.summary});
 
   @override
-  State<_CalorieAdherenceBarChart> createState() => _CalorieAdherenceBarChartState();
+  State<_CalorieAdherenceBarChart> createState() =>
+      _CalorieAdherenceBarChartState();
 }
 
 class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
@@ -386,28 +393,44 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
   String _weekdayName(BuildContext context, int weekday) {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (weekday) {
-      case 1: return isEs ? 'Lunes' : 'Monday';
-      case 2: return isEs ? 'Martes' : 'Tuesday';
-      case 3: return isEs ? 'Miércoles' : 'Wednesday';
-      case 4: return isEs ? 'Jueves' : 'Thursday';
-      case 5: return isEs ? 'Viernes' : 'Friday';
-      case 6: return isEs ? 'Sábado' : 'Saturday';
-      case 7: return isEs ? 'Domingo' : 'Sunday';
-      default: return '';
+      case 1:
+        return isEs ? 'Lunes' : 'Monday';
+      case 2:
+        return isEs ? 'Martes' : 'Tuesday';
+      case 3:
+        return isEs ? 'Miércoles' : 'Wednesday';
+      case 4:
+        return isEs ? 'Jueves' : 'Thursday';
+      case 5:
+        return isEs ? 'Viernes' : 'Friday';
+      case 6:
+        return isEs ? 'Sábado' : 'Saturday';
+      case 7:
+        return isEs ? 'Domingo' : 'Sunday';
+      default:
+        return '';
     }
   }
 
   String _weekdayInitial(BuildContext context, int weekday) {
     final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (weekday) {
-      case 1: return 'L';
-      case 2: return 'M';
-      case 3: return isEs ? 'X' : 'W';
-      case 4: return 'J';
-      case 5: return 'V';
-      case 6: return 'S';
-      case 7: return 'D';
-      default: return '';
+      case 1:
+        return 'L';
+      case 2:
+        return 'M';
+      case 3:
+        return isEs ? 'X' : 'W';
+      case 4:
+        return 'J';
+      case 5:
+        return 'V';
+      case 6:
+        return 'S';
+      case 7:
+        return 'D';
+      default:
+        return '';
     }
   }
 
@@ -447,13 +470,15 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
 
     maxCal = maxCal * 1.1;
 
-    String detailText = isEs ? 'Toca una columna para ver detalle' : 'Tap a column to view detail';
+    String detailText = isEs
+        ? 'Toca una columna para ver detalle'
+        : 'Tap a column to view detail';
     if (_selectedBarIndex >= 0 && _selectedBarIndex < dailyData.length) {
       final selected = dailyData[_selectedBarIndex];
       final day = selected['day'] as NutritionPlanResolvedDayEntity;
       final actual = selected['actual'] as double;
       final target = selected['target'] as double;
-      
+
       final dayName = _weekdayName(context, day.effectiveDate.weekday);
       final pct = target <= 0 ? 0 : ((actual / target) * 100).round();
       detailText = isEs
@@ -467,13 +492,14 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
         children: [
           SectionHeader(
             eyebrow: isEs ? 'Historial de adherencia' : 'Adherence History',
-            title: isEs ? 'Consumo vs Objetivo Semanal' : 'Weekly Calories vs Target',
+            title: isEs
+                ? 'Consumo vs Objetivo Semanal'
+                : 'Weekly Calories vs Target',
             subtitle: isEs
                 ? 'Comparativa visual diaria de calorías consumidas frente al objetivo propuesto.'
                 : 'Daily visual comparison of calories consumed vs nutritionist targets.',
           ),
           const SizedBox(height: 12),
-          
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -502,7 +528,6 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
             ),
           ),
           const SizedBox(height: 20),
-          
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -511,7 +536,7 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
               final day = item['day'] as NutritionPlanResolvedDayEntity;
               final actual = item['actual'] as double;
               final target = item['target'] as double;
-              
+
               final isSelected = _selectedBarIndex == index;
               final isToday = day.isToday;
 
@@ -544,7 +569,8 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
                               height: actualHeight,
                               decoration: BoxDecoration(
                                 color: colorScheme.primary,
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(5)),
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -553,8 +579,10 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
                               width: 10,
                               height: targetHeight,
                               decoration: BoxDecoration(
-                                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(5)),
+                                color: colorScheme.outlineVariant
+                                    .withValues(alpha: 0.5),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(5)),
                               ),
                             ),
                           ],
@@ -573,10 +601,13 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
                         ),
                         child: Text(
                           _weekdayInitial(context, day.effectiveDate.weekday),
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isToday ? colorScheme.primary : colorScheme.onSurfaceVariant,
-                              ),
+                          style:
+                              Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: isToday
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurfaceVariant,
+                                  ),
                         ),
                       ),
                     ],
@@ -589,9 +620,13 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _LegendItem(label: isEs ? 'Consumido' : 'Consumed', color: colorScheme.primary),
+              _LegendItem(
+                  label: isEs ? 'Consumido' : 'Consumed',
+                  color: colorScheme.primary),
               const SizedBox(width: 20),
-              _LegendItem(label: isEs ? 'Objetivo Plan' : 'Plan Target', color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+              _LegendItem(
+                  label: isEs ? 'Objetivo Plan' : 'Plan Target',
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
             ],
           ),
         ],

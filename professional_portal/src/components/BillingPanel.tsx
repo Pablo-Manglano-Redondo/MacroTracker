@@ -1,178 +1,423 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  BadgeCheck,
+  CreditCard,
+  Loader2,
+  ShieldAlert,
+  Users,
+} from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
-import { useStripeCheckout } from '../hooks/mutations/useStripeCheckout';
 import { toast } from '../lib/toast';
-import { CreditCard, Loader2, Check, Zap } from 'lucide-react';
+import { useStripeCheckout } from '../hooks/mutations/useStripeCheckout';
+import { getBillingSummary } from '../view-models/professional';
+import { usePortalI18n } from '../lib/portal-i18n';
+
+type BillingInterval = 'monthly' | 'annual';
+
+type TierCard = {
+  id: 'starter' | 'growth' | 'studio';
+  name: string;
+  monthlyPrice: string;
+  annualPrice: string;
+  clientLimit: number;
+  summaryEs: string;
+  summaryEn: string;
+  featuresEs: string[];
+  featuresEn: string[];
+};
+
+const TIERS: TierCard[] = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    monthlyPrice: '$29',
+    annualPrice: '$276',
+    clientLimit: 10,
+    summaryEs: 'Para nutricionistas individuales que validan el flujo con un roster pequeño.',
+    summaryEn: 'For solo nutritionists validating the workflow with a small roster.',
+    featuresEs: [
+      'Hasta 10 relaciones activas',
+      'Planes, notas, check-ins y snapshots aggregate',
+      'Diario detailed solo con consentimiento explícito del cliente',
+    ],
+    featuresEn: [
+      'Up to 10 active client relationships',
+      'Plans, notes, check-ins, and aggregate snapshots',
+      'Detailed diary only when the client grants explicit consent',
+    ],
+  },
+  {
+    id: 'growth',
+    name: 'Growth',
+    monthlyPrice: '$79',
+    annualPrice: '$756',
+    clientLimit: 50,
+    summaryEs: 'Para consultas que ya gestionan una base estable de clientes recurrentes.',
+    summaryEn: 'For practices already managing a stable book of recurring clients.',
+    featuresEs: [
+      'Hasta 50 relaciones activas',
+      'Las mismas superficies operativas que Starter',
+      'Más capacidad para publicar planes e invitar clientes',
+    ],
+    featuresEn: [
+      'Up to 50 active client relationships',
+      'The same operational surfaces as Starter',
+      'More capacity for plan publishing and invite operations',
+    ],
+  },
+  {
+    id: 'studio',
+    name: 'Studio',
+    monthlyPrice: '$199',
+    annualPrice: '$1908',
+    clientLimit: 500,
+    summaryEs: 'Para equipos más grandes que usan el portal como operación interna controlada.',
+    summaryEn: 'For larger teams using the portal as a controlled internal operation.',
+    featuresEs: [
+      'Hasta 500 relaciones activas',
+      'Mismo contrato de datos y privacidad',
+      'Pensado para operaciones invite-only de mayor volumen',
+    ],
+    featuresEn: [
+      'Up to 500 active client relationships',
+      'The same data contract and privacy model',
+      'Built for higher-volume invite-only operations',
+    ],
+  },
+];
 
 export const BillingPanel: React.FC = () => {
   const { professional } = useAuth();
+  const { tr, locale } = usePortalI18n();
+  const checkoutMutation = useStripeCheckout();
+  const [selectedInterval, setSelectedInterval] = useState<BillingInterval>('monthly');
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [checkoutStatus, setCheckoutStatus] = useState<'success' | 'canceled' | null>(null);
-  const checkoutMutation = useStripeCheckout();
+
+  const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
+  const billingIntervalLabel =
+    billingSummary.billingInterval === 'annual'
+      ? tr('Anual', 'Annual')
+      : tr('Mensual', 'Monthly');
+  const proStatusLabelMap: Record<string, string> = {
+    inactive: tr('Inactivo', 'Inactive'),
+    trialing: tr('Prueba activa', 'Trial active'),
+    active: tr('Activo', 'Active'),
+    past_due: tr('Pago pendiente', 'Past due'),
+    canceled: tr('Cancelado', 'Canceled'),
+  };
+  const proStatusLabel = proStatusLabelMap[billingSummary.proStatus] ?? billingSummary.proStatus;
+
+  useEffect(() => {
+    if (professional?.billing_interval) {
+      setSelectedInterval(professional.billing_interval);
+    }
+  }, [professional?.billing_interval]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('checkout') === 'success') {
+    const checkout = params.get('checkout');
+    if (checkout === 'success') {
       setCheckoutStatus('success');
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
-    } else if (params.get('checkout') === 'canceled') {
+    } else if (checkout === 'canceled' || checkout === 'cancelled') {
       setCheckoutStatus('canceled');
-      window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
-    }
-  }, []);
-
-  const handleCheckout = (tier: string) => {
-    if (!professional) {
-      toast.error('Save your profile first to unlock billing.');
+    } else {
       return;
     }
 
-    setLoadingTier(tier);
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+  }, []);
+
+  const handleCheckout = (tierId: TierCard['id']) => {
+    if (!professional) {
+      toast.error(
+        tr(
+          'Crea primero el perfil profesional para abrir Stripe Checkout.',
+          'Create the professional profile before opening Stripe checkout.',
+        ),
+      );
+      return;
+    }
+
+    setLoadingTier(tierId);
     checkoutMutation.mutate(
-      { tier, origin: window.location.origin + window.location.pathname },
+      {
+        tier: tierId,
+        billingInterval: selectedInterval,
+        origin: window.location.origin + window.location.pathname,
+      },
       {
         onSuccess: (url) => {
           window.location.href = url;
         },
-        onError: (err: any) => {
-          toast.error('Checkout failed', { description: err?.message || 'Unknown error' });
+        onError: (error: unknown) => {
+          const message =
+            error instanceof Error
+              ? error.message
+              : tr('Stripe checkout ha fallado.', 'Stripe checkout failed.');
+          toast.error(tr('Checkout no disponible', 'Checkout unavailable'), { description: message });
           setLoadingTier(null);
         },
-      }
+      },
     );
   };
 
-  const tiers = [
-    {
-      id: 'starter',
-      name: 'Starter',
-      price: '$29',
-      period: '/mo',
-      capacity: '10 clients',
-      features: ['Client management', 'Plan builder', 'Direct messaging'],
-    },
-    {
-      id: 'growth',
-      name: 'Growth',
-      price: '$79',
-      period: '/mo',
-      capacity: '50 clients',
-      features: ['Everything in Starter', 'Analytics dashboard', 'Priority support'],
-      popular: true,
-    },
-    {
-      id: 'studio',
-      name: 'Studio',
-      price: '$199',
-      period: '/mo',
-      capacity: '500 clients',
-      features: ['Everything in Growth', 'Team management', 'Custom branding'],
-    },
-  ];
-
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <CreditCard className="w-4 h-4 text-primary" />
-        </div>
-        <div>
-          <h2 className="text-lg font-bold">Billing</h2>
-          <p className="text-xs text-muted-foreground">Choose the plan for your practice</p>
-        </div>
-      </div>
-
-      {/* Status messages */}
-      {checkoutStatus === 'success' && (
-        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 text-sm text-emerald-700 dark:text-emerald-300">
-          Subscription updated successfully!
-        </div>
-      )}
-      {checkoutStatus === 'canceled' && (
-        <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 text-sm text-amber-700 dark:text-amber-300">
-          Checkout was canceled. You can try again anytime.
-        </div>
-      )}
-
-      {/* Current plan */}
-      {professional && (
-        <div className="rounded-xl border bg-card p-4 flex items-center justify-between card-elevated">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary" />
+    <div className="space-y-6 animate-fade-in-up">
+      <section className="portal-hero rounded-[1.8rem] p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-primary">
+              <CreditCard className="h-5 w-5" />
+              <p className="portal-kicker">{tr('Facturación', 'Billing')}</p>
             </div>
-            <div>
-              <p className="text-sm font-semibold">Current Plan</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {professional.pro_status === 'active' ? 'Pro Active' : professional.pro_status || 'Free'}
+            <h2 className="portal-title text-3xl text-foreground">
+              {tr('Acceso, tier y capacidad.', 'Access, tier, and capacity.')}
+            </h2>
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+              {tr(
+                'El portal separa estado de acceso, tier comercial e intervalo de cobro. Un plan da capacidad operativa; no cambia el contrato de privacidad con clientes.',
+                'The portal separates access status, commercial tier, and billing interval. A plan unlocks operational capacity; it does not change the privacy contract with clients.',
+              )}
+            </p>
+          </div>
+
+          <div className="inline-flex rounded-xl border border-border bg-card p-1">
+            {(['monthly', 'annual'] as BillingInterval[]).map((interval) => (
+              <button
+                key={interval}
+                onClick={() => setSelectedInterval(interval)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] transition-colors ${
+                  selectedInterval === interval
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {interval === 'monthly' ? tr('Mensual', 'Monthly') : tr('Anual', 'Annual')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {checkoutStatus === 'success' && (
+          <div className="mt-4 rounded-xl border border-primary/25 bg-primary/10 p-3 text-sm font-semibold text-primary">
+            {tr(
+              'Checkout completado. Si el webhook de Stripe aún no aterrizó, refresca el perfil en unos segundos.',
+              'Checkout completed. If the Stripe webhook has not landed yet, refresh the profile in a few seconds.',
+            )}
+          </div>
+        )}
+        {checkoutStatus === 'canceled' && (
+          <div className="mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-semibold text-amber-700 dark:text-amber-300">
+            {tr(
+              'Checkout cancelado. No se aplicó ningún cambio de facturación.',
+              'Checkout canceled. No billing change was applied.',
+            )}
+          </div>
+        )}
+
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <SummaryCard
+            label={tr('Estado de acceso', 'Access status')}
+            value={proStatusLabel}
+            tone={billingSummary.hasProfessionalAccess ? 'good' : 'warn'}
+            note={
+              billingSummary.hasProfessionalAccess
+                ? tr('Invitaciones y publicación de planes habilitadas.', 'Invites and plan publishing are enabled.')
+                : tr('Invitaciones y nuevos planes bloqueados hasta reactivar facturación.', 'Invites and new plans stay blocked until billing is active.')
+            }
+          />
+          <SummaryCard
+            label={tr('Tier comercial', 'Commercial tier')}
+            value={billingSummary.tierLabel}
+            note={tr(
+              `${billingSummary.clientLimit} clientes activos incluidos`,
+              `${billingSummary.clientLimit} active clients included`,
+            )}
+          />
+          <SummaryCard
+            label={tr('Intervalo de cobro', 'Billing interval')}
+            value={billingIntervalLabel}
+            note={tr(
+              'Guardado por separado del estado de suscripción',
+              'Stored separately from subscription status',
+            )}
+          />
+        </div>
+
+        {selectedInterval === 'annual' && (
+          <div className="portal-soft-panel mt-4 rounded-xl p-3 text-xs leading-relaxed text-muted-foreground">
+            {tr(
+              'El checkout anual depende de que los secrets `*_ANNUAL_PRICE_ID` estén configurados en Supabase. Si faltan, el error es explícito.',
+              'Annual checkout depends on the matching `*_ANNUAL_PRICE_ID` secrets being configured in Supabase. If they are missing, the error is explicit.',
+            )}
+          </div>
+        )}
+      </section>
+
+      {!billingSummary.hasProfessionalAccess && (
+        <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-5">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-foreground dark:text-white">
+                {tr('La consulta aún no está operativa', 'Practice not operational yet')}
+              </p>
+              <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
+                {tr(
+                  `Los registros existentes pueden seguir en lectura, pero nuevas invitaciones y nuevos planes deben quedar bloqueados mientras el estado sea "${billingSummary.proStatus}".`,
+                  `Existing records may remain readable, but new invites and new plans should stay blocked while access status is "${billingSummary.proStatus}".`,
+                )}
               </p>
             </div>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {professional.client_limit || 0} client limit
-          </span>
-        </div>
+        </section>
       )}
 
-      {/* Tier cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {tiers.map((tier) => {
+      <section className="grid gap-4 xl:grid-cols-3">
+        {TIERS.map((tier) => {
+          const isCurrentPlan =
+            billingSummary.tier === tier.id &&
+            billingSummary.billingInterval === selectedInterval &&
+            billingSummary.hasProfessionalAccess;
           const isLoading = loadingTier === tier.id;
-          const isCurrentPlan = professional?.pro_status === tier.id;
+          const price =
+            selectedInterval === 'monthly'
+              ? `${tier.monthlyPrice}/mo`
+              : `${tier.annualPrice}/yr`;
 
           return (
-            <button
+            <article
               key={tier.id}
-              onClick={() => handleCheckout(tier.id)}
-              disabled={loadingTier !== null || !professional || isCurrentPlan}
-              className={`relative flex flex-col text-left p-5 rounded-xl border transition-all ${
-                tier.popular
-                  ? 'border-primary bg-primary/5'
-                  : 'bg-card hover:border-primary/50'
-              } ${isCurrentPlan ? 'opacity-60' : ''} card-elevated`}
+              className={`rounded-[1.6rem] border p-6 ${
+                isCurrentPlan ? 'border-primary bg-primary/10' : 'portal-panel'
+              }`}
             >
-              {tier.popular && (
-                <span className="absolute -top-2.5 left-4 px-2 py-0.5 bg-primary text-primary-foreground text-[10px] font-bold rounded-full">
-                  Popular
-                </span>
-              )}
-
-              <div className="flex items-baseline gap-0.5 mb-3">
-                <span className="text-2xl font-bold">{tier.price}</span>
-                <span className="text-xs text-muted-foreground">{tier.period}</span>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">
+                    {tier.name}
+                  </p>
+                  <h3 className="portal-metric mt-2 text-3xl font-extrabold text-foreground">
+                    {price}
+                  </h3>
+                </div>
+                <div className="portal-soft-panel rounded-xl px-3 py-2 text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    {tr('Capacidad', 'Capacity')}
+                  </p>
+                  <p className="mt-1 flex items-center gap-1 text-sm font-bold text-foreground">
+                    <Users className="h-4 w-4 text-primary" />
+                    {tier.clientLimit}
+                  </p>
+                </div>
               </div>
 
-              <p className="text-sm font-semibold mb-1">{tier.name}</p>
-              <p className="text-xs text-muted-foreground mb-4">{tier.capacity}</p>
+              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+                {locale === 'es' ? tier.summaryEs : tier.summaryEn}
+              </p>
 
-              <ul className="space-y-1.5 mt-auto">
-                {tier.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Check className="w-3 h-3 text-primary shrink-0" />
-                    {f}
+              <ul className="mt-5 space-y-3">
+                {(locale === 'es' ? tier.featuresEs : tier.featuresEn).map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
 
-              {isLoading && (
-                <div className="mt-4 flex items-center gap-2 text-xs text-primary font-medium">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Redirecting...
-                </div>
-              )}
-
-              {isCurrentPlan && (
-                <div className="mt-4 text-xs text-muted-foreground font-medium">Current plan</div>
-              )}
-            </button>
+              <button
+                onClick={() => handleCheckout(tier.id)}
+                disabled={!professional || isCurrentPlan || checkoutMutation.isPending}
+                className={`mt-6 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-[0.16em] transition-colors ${
+                  isCurrentPlan
+                    ? 'cursor-default border border-primary/30 bg-primary/15 text-primary'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {tr('Redirigiendo', 'Redirecting')}
+                  </>
+                ) : isCurrentPlan ? (
+                  tr('Plan actual', 'Current plan')
+                ) : (
+                  tr('Abrir checkout', 'Open checkout')
+                )}
+              </button>
+            </article>
           );
         })}
-      </div>
+      </section>
 
-      <p className="text-xs text-muted-foreground/70 text-center">
-        Stripe checkout. Cancel anytime. Existing plans stay accessible if billing lapses.
-      </p>
+      <section className="portal-panel rounded-[1.6rem] p-6">
+        <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
+          {tr('Recordatorios del contrato de datos', 'Data contract reminders')}
+        </h3>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <InfoCard
+            title={tr('Aggregate siempre es la base', 'Aggregate sharing is the baseline')}
+            body={tr(
+              'Snapshots, adherencia de macros y progreso resumido pueden ser visibles con una relación activa.',
+              'Snapshots, macro adherence, and summary progress can be visible with an active relationship.',
+            )}
+          />
+          <InfoCard
+            title={tr('Detailed requiere consentimiento', 'Detailed requires consent')}
+            body={tr(
+              'Las filas crudas del diario solo aparecen cuando el cliente mantiene la relación activa y el modo es detailed.',
+              'Raw diary rows only appear when the client keeps the relationship active and the mode is detailed.',
+            )}
+          />
+          <InfoCard
+            title={tr('Billing no anula privacidad', 'Billing does not override privacy')}
+            body={tr(
+              'Un tier superior aumenta capacidad, no la cantidad de datos privados que el profesional puede ver.',
+              'A higher tier increases capacity, not the amount of private data the professional may access.',
+            )}
+          />
+          <InfoCard
+            title={tr('El fallback read-only es honesto', 'Read-only fallback stays honest')}
+            body={tr(
+              'Cuando billing cae, el histórico puede seguir legible mientras nuevas invitaciones y nuevos planes quedan bloqueados.',
+              'When billing lapses, historical records can remain readable while new invites and new plans are blocked.',
+            )}
+          />
+        </div>
+      </section>
     </div>
   );
 };
+
+const SummaryCard: React.FC<{
+  label: string;
+  value: string;
+  note: string;
+  tone?: 'good' | 'warn' | 'neutral';
+}> = ({ label, value, note, tone = 'neutral' }) => (
+  <div className="portal-soft-panel rounded-xl p-4">
+    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+      {label}
+    </p>
+    <p
+      className={`mt-2 text-lg font-extrabold ${
+        tone === 'good'
+          ? 'text-primary'
+          : tone === 'warn'
+            ? 'text-amber-500 dark:text-amber-300'
+            : 'text-foreground'
+      }`}
+    >
+      {value}
+    </p>
+    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+  </div>
+);
+
+const InfoCard: React.FC<{ title: string; body: string }> = ({ title, body }) => (
+  <div className="portal-soft-panel rounded-xl p-4">
+    <p className="text-sm font-bold text-foreground">{title}</p>
+    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+  </div>
+);

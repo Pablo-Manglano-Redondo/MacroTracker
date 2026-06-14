@@ -1915,11 +1915,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get professionalActionRevokeAccess => 'Revoke access';
 
   @override
-  String get professionalScreenTitle => 'Nutrition coach';
+  String get professionalScreenTitle => 'Nutritionist';
 
   @override
-  String get professionalHeroConnectTitle =>
-      'Connect with your nutrition coach';
+  String get professionalHeroConnectTitle => 'Connect with your nutritionist';
 
   @override
   String get professionalHeroConnectedTitle =>
@@ -1937,7 +1936,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get professionalProtectAccountBody =>
-      'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.';
+      'To connect with a nutritionist, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.';
 
   @override
   String get professionalProtectAccountAction => 'Link Google';
@@ -2096,9 +2095,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get professionalInviteReviewAction => 'Review invite';
 
   @override
-  String get professionalInviteDebugAction => 'Use debug invite';
-
-  @override
   String get professionalConsentSharedToday => 'What is shared today';
 
   @override
@@ -2106,11 +2102,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get professionalConsentSharedTodayBody =>
-      'kcal, macros, logged meals, and aggregate adherence by day';
+      'kcal, macros, logged meals, aggregate adherence by day, and bidirectional messaging';
 
   @override
   String get professionalConsentNotSharedTodayBody =>
-      'full raw diary, per-meal detail, and bidirectional chat';
+      'full raw diary and per-meal detail unless you enable detailed sharing later';
 
   @override
   String get professionalConsentRevokeHint =>

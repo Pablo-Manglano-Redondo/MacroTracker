@@ -1,204 +1,335 @@
 import React, { useState } from 'react';
 import { z } from 'zod';
+import {
+  ArrowRight,
+  Lock,
+  Mail,
+  Send,
+  ShieldCheck,
+  UserCheck,
+} from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card, CardContent } from './ui/card';
 import { toast } from '../lib/toast';
-import { ShieldCheck, UserCheck, BarChart2 } from 'lucide-react';
+import { usePortalI18n } from '../lib/portal-i18n';
+
+type AuthMode = 'magic-link' | 'password' | 'signup';
 
 export const AuthPanel: React.FC = () => {
-  const { login, loginWithPassword } = useAuth();
+  const { login, loginWithPassword, signUpWithPassword } = useAuth();
+  const { tr } = usePortalI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loginMode, setLoginMode] = useState<'magic-link' | 'password'>('magic-link');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [authMode, setAuthMode] = useState<AuthMode>('magic-link');
   const [loading, setLoading] = useState(false);
-  const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [successState, setSuccessState] = useState<
+    null | 'magic_link_sent' | 'signup_confirmation_sent'
+  >(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const resetTransientState = (mode: AuthMode) => {
+    setAuthMode(mode);
+    setFieldErrors({});
+    setSuccessState(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
 
-    // Validate email
     const emailResult = z.string().email().safeParse(email.trim());
     if (!emailResult.success) {
-      setFieldErrors({ email: 'Please enter a valid email address.' });
+      setFieldErrors({
+        email: tr('Introduce un correo electrónico válido.', 'Please enter a valid email address.'),
+      });
       return;
     }
     const cleanEmail = emailResult.data;
 
-    // Validate password if in password mode
-    if (loginMode === 'password') {
+    if (authMode !== 'magic-link') {
       if (!password) {
-        setFieldErrors({ password: 'Password is required.' });
+        setFieldErrors({
+          password: tr('La contraseña es obligatoria.', 'Password is required.'),
+        });
         return;
       }
       if (password.length < 8) {
-        setFieldErrors({ password: 'Password must be at least 8 characters.' });
+        setFieldErrors({
+          password: tr(
+            'La contraseña debe tener al menos 8 caracteres.',
+            'Password must be at least 8 characters.',
+          ),
+        });
+        return;
+      }
+    }
+
+    if (authMode === 'signup') {
+      if (!confirmPassword) {
+        setFieldErrors({
+          confirmPassword: tr(
+            'Confirma la contraseña para crear la cuenta.',
+            'Confirm the password to create the account.',
+          ),
+        });
+        return;
+      }
+      if (confirmPassword !== password) {
+        setFieldErrors({
+          confirmPassword: tr(
+            'Las contraseñas no coinciden.',
+            'Passwords do not match.',
+          ),
+        });
         return;
       }
     }
 
     setLoading(true);
 
-    if (loginMode === 'magic-link') {
+    if (authMode === 'magic-link') {
       const { error } = await login(cleanEmail);
       if (error) {
         toast.error(error.message);
-        setLoading(false);
       } else {
-        setMagicLinkSent(true);
-        setLoading(false);
-      }
-    } else {
-      const { error } = await loginWithPassword(cleanEmail, password);
-      if (error) {
-        toast.error(error.message);
+        setSuccessState('magic_link_sent');
       }
       setLoading(false);
+      return;
     }
+
+    if (authMode === 'signup') {
+      const { error, requiresEmailConfirmation } = await signUpWithPassword(cleanEmail, password);
+      if (error) {
+        toast.error(error.message);
+      } else if (requiresEmailConfirmation) {
+        setSuccessState('signup_confirmation_sent');
+      } else {
+        toast.success(
+          tr(
+            'Cuenta creada. Ya puedes completar tu perfil profesional.',
+            'Account created. You can now complete your professional profile.',
+          ),
+        );
+      }
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await loginWithPassword(cleanEmail, password);
+    if (error) {
+      toast.error(error.message);
+    }
+    setLoading(false);
   };
 
+  const title =
+    authMode === 'signup'
+      ? tr('Crea tu acceso profesional.', 'Create your professional access.')
+      : tr('Entra en tu portal profesional.', 'Sign in to your professional portal.');
+
+  const body =
+    authMode === 'signup'
+      ? tr(
+          'Primero crea la cuenta en Supabase Auth. Después podrás guardar el perfil profesional sin chocar con la FK de `professionals.user_id`.',
+          'First create the account in Supabase Auth. After that you can save the professional profile without hitting the `professionals.user_id` foreign key.',
+        )
+      : tr(
+          'Accede al roster real, los planes, el seguimiento y la configuración operativa de tu consulta.',
+          'Access your real roster, plans, follow-up, and practice operations.',
+        );
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 bg-card border rounded-lg p-6 shadow-sm">
-      {/* Col 1: Marketing / Info */}
-      <div className="md:col-span-5 flex flex-col justify-between space-y-6">
-        <div>
-          <p className="text-xs font-bold tracking-wider text-primary uppercase mb-2">Secure access</p>
-          <h3 className="text-2xl font-bold tracking-tight mb-3">Sign in to your professional portal</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Access your practice workspace. Choose magic-link for frictionless sign-in or use your credentials.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
-            <ShieldCheck className="w-5 h-5 text-primary" />
-            <span>Supabase RLS Enforced</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
-            <UserCheck className="w-5 h-5 text-primary" />
-            <span>Client Consent Required</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground/80">
-            <BarChart2 className="w-5 h-5 text-primary" />
-            <span>Aggregate Snapshots Only</span>
-          </div>
-        </div>
+    <div className="glass-card rounded-[2rem] p-8 md:p-10">
+      <div className="mb-8">
+        <p className="portal-kicker">{tr('Acceso profesional', 'Professional access')}</p>
+        <h2 className="portal-title mt-3 text-3xl text-foreground">{title}</h2>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">{body}</p>
       </div>
 
-      {/* Col 2: Step previews */}
-      <div className="md:col-span-3 flex flex-col gap-3 justify-center">
-        {[
-          { index: '01', title: 'Activate Pro', desc: 'Stripe updates billing status server-side.' },
-          { index: '02', title: 'Invite client', desc: 'Mobile app previews consent before connection.' },
-          { index: '03', title: 'Publish plan', desc: 'Clients see targets while sharing aggregate progress.' }
-        ].map((step, idx) => (
-          <div key={idx} className="flex gap-4 items-start p-4 bg-muted/30 border rounded-lg">
-            <span className="w-8 h-8 shrink-0 flex items-center justify-center rounded-full bg-accent text-accent-foreground text-xs font-black">
-              {step.index}
-            </span>
-            <div>
-              <h4 className="text-sm font-bold text-foreground">{step.title}</h4>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-tight">{step.desc}</p>
-            </div>
-          </div>
-        ))}
+      <div className="mb-8 grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => resetTransientState('magic-link')}
+          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+            authMode === 'magic-link'
+              ? 'bg-primary text-primary-foreground'
+              : 'portal-soft-panel text-foreground'
+          }`}
+        >
+          <Send className="h-4 w-4" />
+          {tr('Magic link', 'Magic link')}
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => resetTransientState('password')}
+          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+            authMode === 'password'
+              ? 'bg-primary text-primary-foreground'
+              : 'portal-soft-panel text-foreground'
+          }`}
+        >
+          <Lock className="h-4 w-4" />
+          {tr('Contraseña', 'Password')}
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => resetTransientState('signup')}
+          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+            authMode === 'signup'
+              ? 'bg-primary text-primary-foreground'
+              : 'portal-soft-panel text-foreground'
+          }`}
+        >
+          <UserCheck className="h-4 w-4" />
+          {tr('Crear cuenta', 'Create account')}
+        </button>
       </div>
 
-      {/* Col 3: Authentication Form */}
-      <div className="md:col-span-4 flex flex-col justify-center">
-        <Card className="border shadow-none">
-          <CardContent className="p-6">
-            {/* Login Mode Switcher Tabs */}
-            <div className="flex bg-muted/40 p-1 rounded-lg border mb-4">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => { setLoginMode('magic-link'); setFieldErrors({}); setMagicLinkSent(false); }}
-                className={`flex-1 text-center text-xs font-bold py-1.5 rounded-md transition-all ${
-                  loginMode === 'magic-link'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground disabled:opacity-50'
-                }`}
-              >
-                Magic Link
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => { setLoginMode('password'); setFieldErrors({}); }}
-                className={`flex-1 text-center text-xs font-bold py-1.5 rounded-md transition-all ${
-                  loginMode === 'password'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground disabled:opacity-50'
-                }`}
-              >
-                Password
-              </button>
-            </div>
-
-            {magicLinkSent ? (
-              <div className="text-center py-4 space-y-3">
-                <span className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent text-primary mb-2">
-                  ✓
-                </span>
-                <h4 className="text-base font-bold">Magic link sent!</h4>
-                <p className="text-xs text-muted-foreground leading-relaxed">
-                  Check your email inbox at <strong>{email}</strong> for the secure sign-in link.
-                </p>
-                <Button variant="outline" size="sm" onClick={() => { setMagicLinkSent(false); setFieldErrors({}); }} className="w-full mt-4">
-                  Back
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold text-foreground uppercase tracking-wider">
-                    Professional Email
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="nutritionist@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
-                  />
-                  {fieldErrors.email && (
-                    <p className="text-xs font-medium text-destructive">{fieldErrors.email}</p>
-                  )}
-                </div>
-
-                {loginMode === 'password' && (
-                  <div className="space-y-1.5 animate-in fade-in duration-200">
-                    <label className="text-xs font-extrabold text-foreground uppercase tracking-wider">
-                      Password
-                    </label>
-                    <Input
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      disabled={loading}
-                    />
-                    {fieldErrors.password && (
-                      <p className="text-xs font-medium text-destructive">{fieldErrors.password}</p>
-                    )}
-                  </div>
+      {successState ? (
+        <div className="portal-soft-panel rounded-2xl p-6 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+            <Send className="h-5 w-5" />
+          </div>
+          <h4 className="mt-4 text-lg font-bold text-foreground">
+            {successState === 'magic_link_sent'
+              ? tr('Enlace enviado', 'Magic link sent')
+              : tr('Cuenta creada', 'Account created')}
+          </h4>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            {successState === 'magic_link_sent'
+              ? tr(
+                  `Revisa la bandeja de entrada de ${email} para completar el acceso.`,
+                  `Check ${email} to complete sign-in.`,
+                )
+              : tr(
+                  `Revisa ${email} y confirma el correo antes de guardar el perfil, si tu proyecto exige verificación por email.`,
+                  `Check ${email} and confirm the email before saving the profile if your project requires email verification.`,
                 )}
-
-                <Button type="submit" className="w-full h-10 font-bold" disabled={loading}>
-                  {loading
-                    ? 'Signing in...'
-                    : loginMode === 'magic-link'
-                      ? 'Send magic link'
-                      : 'Sign in'}
-                </Button>
-              </form>
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSuccessState(null);
+              setFieldErrors({});
+            }}
+            className="mt-5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+          >
+            {tr('Volver', 'Back')}
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              {tr('Correo profesional', 'Professional email')}
+            </label>
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="email"
+                placeholder="nombre@dominio.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+              />
+            </div>
+            {fieldErrors.email && (
+              <p className="text-xs font-semibold text-red-500">{fieldErrors.email}</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+
+          {authMode !== 'magic-link' && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                {tr('Contraseña', 'Password')}
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+                />
+              </div>
+              {fieldErrors.password && (
+                <p className="text-xs font-semibold text-red-500">{fieldErrors.password}</p>
+              )}
+            </div>
+          )}
+
+          {authMode === 'signup' && (
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                {tr('Confirmar contraseña', 'Confirm password')}
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+                />
+              </div>
+              {fieldErrors.confirmPassword && (
+                <p className="text-xs font-semibold text-red-500">{fieldErrors.confirmPassword}</p>
+              )}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
+          >
+            {loading
+              ? tr('Enviando...', 'Sending...')
+              : authMode === 'magic-link'
+                ? tr('Enviar magic link', 'Send magic link')
+                : authMode === 'password'
+                  ? tr('Entrar', 'Sign in')
+                  : tr('Crear cuenta', 'Create account')}
+            {!loading && <ArrowRight className="h-4 w-4" />}
+          </button>
+        </form>
+      )}
+
+      <div className="mt-8 grid gap-3 border-t border-border pt-6 sm:grid-cols-2">
+        <div className="portal-soft-panel flex items-center gap-3 rounded-2xl p-4">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {tr('Conexión cifrada', 'Encrypted connection')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {tr('Acceso autenticado con Supabase.', 'Authenticated with Supabase.')}
+            </p>
+          </div>
+        </div>
+        <div className="portal-soft-panel flex items-center gap-3 rounded-2xl p-4">
+          <UserCheck className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">
+              {tr('Datos protegidos', 'Protected data')}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {tr(
+                'La visibilidad depende de la relación activa y del consentimiento.',
+                'Visibility depends on the active relationship and consent.',
+              )}
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

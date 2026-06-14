@@ -3,11 +3,11 @@ import { useAuth } from '../lib/auth-context';
 import { supabase } from '../lib/supabase';
 import { useCreateInvite } from '../hooks/mutations/useCreateInvite';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
 import { toast } from '../lib/toast';
-import { 
-  UserPlus, Copy, Check, Loader2, RefreshCw, 
-  ArrowRight, Sparkles, CheckCircle2 
+import { usePortalI18n } from '../lib/portal-i18n';
+import {
+  UserPlus, Copy, Check, Loader2, RefreshCw,
+  ArrowRight, Sparkles, CheckCircle2
 } from 'lucide-react';
 
 type WizardStep = 'invite' | 'waiting' | 'complete';
@@ -19,6 +19,7 @@ interface OnboardingWizardProps {
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCancel }) => {
   const { professional } = useAuth();
+  const { tr } = usePortalI18n();
   const [step, setStep] = useState<WizardStep>('invite');
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState<string | null>(null);
@@ -29,7 +30,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
   // Step 1: Create invite code
   const handleCreateInvite = () => {
     if (!professional) {
-      toast.error('Save your profile first.');
+      toast.error(tr('Guarda primero tu perfil.', 'Save your profile first.'));
       return;
     }
 
@@ -37,10 +38,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
       onSuccess: (data) => {
         setInviteCode(data.invite_code);
         setStep('waiting');
-        toast.success('Invite code created!');
+        toast.success(tr('Código de invitación creado', 'Invite code created'));
       },
       onError: (err: any) => {
-        toast.error('Failed to create invite', { description: err?.message || 'Unknown error' });
+        toast.error(tr('No se pudo crear la invitación', 'Failed to create invite'), {
+          description: err?.message || tr('Error desconocido', 'Unknown error'),
+        });
       },
     });
   };
@@ -64,7 +67,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
           const newRel = payload.new as { client_id: string };
           setNewClientId(newRel.client_id);
           setStep('complete');
-          toast.success('Client accepted the invite!');
+          toast.success(tr('El cliente aceptó la invitación', 'Client accepted the invite'));
         }
       )
       .subscribe();
@@ -91,12 +94,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
       if (data && data.length > 0) {
         setNewClientId(data[0]!.client_id);
         setStep('complete');
-        toast.success('Client found!');
+        toast.success(tr('Cliente encontrado', 'Client found'));
       } else {
-        toast.info('No client has accepted yet. Share the invite code.');
+        toast.info(
+          tr(
+            'Todavía no hay ningún cliente conectado. Comparte el código de invitación.',
+            'No client has accepted yet. Share the invite code.',
+          ),
+        );
       }
     } catch {
-      toast.error('Failed to check for client connection');
+      toast.error(tr('No se pudo comprobar la conexión del cliente', 'Failed to check for client connection'));
     }
   }, [professional]);
 
@@ -104,7 +112,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
     if (!inviteCode) return;
     navigator.clipboard.writeText(inviteCode);
     setCopied(true);
-    toast.success('Copied!');
+    toast.success(tr('Copiado', 'Copied'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -115,139 +123,183 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
   };
 
   return (
-    <Card className="p-6 border max-w-2xl mx-auto">
+    <div className="glass-card rounded-2xl border-none p-6 max-w-2xl mx-auto relative overflow-hidden animate-fade-in-up">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-6">
-        {(['invite', 'waiting', 'complete'] as const).map((s, i) => (
-          <React.Fragment key={s}>
-            <div className={`flex items-center gap-2 ${i > 0 ? 'ml-0' : ''}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                step === s 
-                  ? 'bg-primary text-primary-foreground ring-2 ring-primary/30' 
-                  : ['waiting', 'complete'].includes(step) && s !== 'complete' && step !== s
-                    ? 'bg-accent text-accent-foreground'
-                    : step === 'complete' && s === 'complete'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/30 text-muted-foreground'
-              }`}>
-                {s === 'complete' && step === 'complete' ? (
-                  <CheckCircle2 className="w-4 h-4" />
-                ) : (
-                  i + 1
-                )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 border-b border-border/20 pb-5">
+        {(['invite', 'waiting', 'complete'] as const).map((s, i) => {
+          const isActive = step === s;
+          const isDone = (s === 'invite' && step !== 'invite') || (s === 'waiting' && step === 'complete');
+
+          return (
+            <React.Fragment key={s}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-primary to-teal-500 text-white ring-2 ring-primary/30 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                    : isDone
+                    ? 'bg-primary/20 text-primary border border-primary/20'
+                    : 'bg-black/10 dark:bg-white/5 border border-border/20 text-muted-foreground'
+                }`}>
+                  {isDone ? (
+                    <Check className="w-3.5 h-3.5" />
+                  ) : s === 'complete' && step === 'complete' ? (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <div>
+                  <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
+                    isActive ? 'text-primary' : 'text-muted-foreground'
+                  }`}>
+                    {s === 'invite' ? 'Step 1' : s === 'waiting' ? 'Step 2' : 'Step 3'}
+                  </span>
+                  <p className={`text-xs font-extrabold -mt-0.5 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {s === 'invite' ? 'Create Invite' : s === 'waiting' ? 'Share Code' : 'Connected'}
+                  </p>
+                </div>
               </div>
-              <span className={`text-xs font-bold ${
-                step === s ? 'text-foreground' : 'text-muted-foreground'
-              }`}>
-                {s === 'invite' ? 'Create Invite' : s === 'waiting' ? 'Share Code' : 'Connected'}
-              </span>
-            </div>
-            {i < 2 && (
-              <ArrowRight className="w-4 h-4 text-muted-foreground/40" />
-            )}
-          </React.Fragment>
-        ))}
+              {i < 2 && (
+                <ArrowRight className="hidden sm:block w-4 h-4 text-muted-foreground/30" />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
       {/* Step content */}
       {step === 'invite' && (
-        <div className="text-center py-6 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto">
-            <UserPlus className="w-8 h-8 text-primary" />
+        <div className="text-center py-6 space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary shadow-lg shadow-primary/5">
+            <UserPlus className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold">Add a New Client</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
-              Create an invite code that your client can use in their mobile app to connect with you.
+            <h3 className="text-sm font-extrabold text-gradient">{tr('Añadir cliente', 'Add a new client')}</h3>
+            <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
+              {tr(
+                'Genera un código único de 8 caracteres para conectar el seguimiento móvil del cliente con tu portal profesional.',
+                "Generate a unique 8-character code that connects your client's mobile tracking to your professional portal.",
+              )}
             </p>
           </div>
-          <Button onClick={handleCreateInvite} disabled={createInviteMutation.isPending} size="lg">
+          <Button
+            onClick={handleCreateInvite}
+            disabled={createInviteMutation.isPending}
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-extrabold uppercase tracking-wider text-xs hover:brightness-110 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
+          >
             {createInviteMutation.isPending ? (
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
             ) : (
               <Sparkles className="w-4 h-4 mr-2" />
             )}
-            Generate invite code
+            {tr('Generar invitación', 'Generate invite code')}
           </Button>
           <div>
-            <Button onClick={onCancel} variant="ghost" size="sm" className="text-muted-foreground">
-              Cancel
-            </Button>
+            <button onClick={onCancel} className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+              {tr('Volver al portal', 'Back to portal')}
+            </button>
           </div>
         </div>
       )}
 
       {step === 'waiting' && (
-        <div className="text-center py-6 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto animate-pulse">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <div className="text-center py-6 space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary animate-pulse shadow-lg shadow-primary/5">
+            <Loader2 className="w-6 h-6 animate-spin" />
           </div>
           <div>
-            <h3 className="text-lg font-bold">Share This Code</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
-              Ask your client to enter this code in their MacroTracker mobile app under "Connect to Professional".
+            <h3 className="text-sm font-extrabold text-gradient">{tr('Compartir invitación', 'Share invite code')}</h3>
+            <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
+              {tr(
+                'Pide al cliente que introduzca este código dentro de la app MacroTracker, en la sección ',
+                'Ask your client to enter this code inside the MacroTracker mobile app under the ',
+              )}
+              <strong className="text-primary font-bold">{tr('Nutricionista', 'Nutritionist')}</strong>
+              {tr('.', ' section.')}
             </p>
           </div>
-          
+
           {inviteCode && (
-            <div className="bg-accent/20 border border-primary/20 p-6 rounded-xl max-w-xs mx-auto">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Invite Code</p>
-              <div className="text-3xl font-black tracking-[0.3em] text-foreground mb-3 select-all">
+            <div className="border border-border/40 bg-black/10 dark:bg-white/5 p-5 rounded-2xl max-w-xs mx-auto shadow-inner relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+              <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">
+                {tr('Código activo', 'Active invite code')}
+              </p>
+              <div className="text-3xl font-mono font-black tracking-[0.2em] text-foreground select-all pl-2">
                 {inviteCode}
               </div>
-              <p className="text-xs text-muted-foreground">Expires in 14 days</p>
+              <p className="text-[9px] font-bold text-muted-foreground/60 mt-1">
+                {tr('Caduca en 14 días', 'Expires in 14 days')}
+              </p>
             </div>
           )}
 
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={copyToClipboard} variant="outline">
+          <div className="flex items-center justify-center gap-3.5">
+            <Button
+              onClick={copyToClipboard}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
+            >
               {copied ? (
                 <Check className="w-4 h-4 mr-2 text-primary" />
               ) : (
                 <Copy className="w-4 h-4 mr-2" />
               )}
-              Copy code
+              {tr('Copiar código', 'Copy code')}
             </Button>
-            <Button onClick={handleCheckForClient} variant="secondary">
+            <Button
+              onClick={handleCheckForClient}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
+            >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Check for client
+              {tr('Actualizar', 'Refresh')}
             </Button>
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Waiting for client to accept... The page will update automatically.
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/70 animate-pulse">
+            {tr(
+              'Esperando activación desde el dispositivo... Actualización en tiempo real.',
+              'Waiting for device activation... Real-time updates.',
+            )}
           </p>
 
           <div>
-            <Button onClick={onCancel} variant="ghost" size="sm" className="text-muted-foreground">
-              Cancel
-            </Button>
+            <button onClick={onCancel} className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+              {tr('Cancelar conexión', 'Cancel connection')}
+            </button>
           </div>
         </div>
       )}
 
       {step === 'complete' && (
-        <div className="text-center py-6 space-y-4">
-          <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-8 h-8 text-primary" />
+        <div className="text-center py-6 space-y-5">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto text-primary shadow-lg shadow-primary/5">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-lg font-bold">Client Connected!</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto leading-relaxed">
-              Your client has accepted the invite and connected to your practice.
+            <h3 className="text-sm font-extrabold text-gradient">{tr('Conexión completada', 'Connection successful')}</h3>
+            <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
+              Your client profile has been linked and is now ready to receive nutrition schedules.
             </p>
           </div>
-          <div className="flex items-center justify-center gap-3">
-            <Button onClick={handleComplete} size="lg">
+          <div className="flex items-center justify-center gap-3.5">
+            <Button
+              onClick={handleComplete}
+              className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-extrabold uppercase tracking-wider text-xs hover:brightness-110 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
+            >
               <ArrowRight className="w-4 h-4 mr-2" />
-              Go to Client
+              Go to Workspace
             </Button>
-            <Button onClick={onCancel} variant="outline">
-              Back to Clients
+            <Button
+              onClick={onCancel}
+              className="px-4 py-2.5 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              Clients Dashboard
             </Button>
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 };

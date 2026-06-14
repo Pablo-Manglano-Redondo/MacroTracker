@@ -18,8 +18,6 @@ class ClientNotesDataSource {
         .eq('professional_client_id', professionalClientId)
         .order('pinned', ascending: false)
         .order('created_at', ascending: false);
-
-    if (response == null) return [];
     return (response as List).map((r) => Map<String, dynamic>.from(r)).toList();
   }
 }

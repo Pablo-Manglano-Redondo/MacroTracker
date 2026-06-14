@@ -5,7 +5,6 @@ import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
-import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/accept_professional_invite_usecase.dart';
@@ -47,12 +46,16 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
 
   late final AcceptProfessionalInviteUsecase _acceptProfessionalInviteUsecase;
   late final DisconnectProfessionalUsecase _disconnectProfessionalUsecase;
-  late final GetProfessionalSectionSummaryUsecase _getProfessionalSectionSummaryUsecase;
+  late final GetProfessionalSectionSummaryUsecase
+      _getProfessionalSectionSummaryUsecase;
   late final GetProfessionalMessagesUsecase _getProfessionalMessagesUsecase;
-  late final MarkProfessionalMessageReadUsecase _markProfessionalMessageReadUsecase;
+  late final MarkProfessionalMessageReadUsecase
+      _markProfessionalMessageReadUsecase;
   late final SendProfessionalMessageUsecase _sendProfessionalMessageUsecase;
-  late final GetProfessionalSharingScopeUsecase _getProfessionalSharingScopeUsecase;
-  late final MarkProfessionalSectionSeenUsecase _markProfessionalSectionSeenUsecase;
+  late final GetProfessionalSharingScopeUsecase
+      _getProfessionalSharingScopeUsecase;
+  late final MarkProfessionalSectionSeenUsecase
+      _markProfessionalSectionSeenUsecase;
 
   ProfessionalConnectionEntity? _connection;
   ProfessionalSectionSummaryEntity? _summary;
@@ -69,14 +72,19 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   @override
   void initState() {
     super.initState();
-    _acceptProfessionalInviteUsecase = locator<AcceptProfessionalInviteUsecase>();
+    _acceptProfessionalInviteUsecase =
+        locator<AcceptProfessionalInviteUsecase>();
     _disconnectProfessionalUsecase = locator<DisconnectProfessionalUsecase>();
-    _getProfessionalSectionSummaryUsecase = locator<GetProfessionalSectionSummaryUsecase>();
+    _getProfessionalSectionSummaryUsecase =
+        locator<GetProfessionalSectionSummaryUsecase>();
     _getProfessionalMessagesUsecase = locator<GetProfessionalMessagesUsecase>();
-    _markProfessionalMessageReadUsecase = locator<MarkProfessionalMessageReadUsecase>();
+    _markProfessionalMessageReadUsecase =
+        locator<MarkProfessionalMessageReadUsecase>();
     _sendProfessionalMessageUsecase = locator<SendProfessionalMessageUsecase>();
-    _getProfessionalSharingScopeUsecase = locator<GetProfessionalSharingScopeUsecase>();
-    _markProfessionalSectionSeenUsecase = locator<MarkProfessionalSectionSeenUsecase>();
+    _getProfessionalSharingScopeUsecase =
+        locator<GetProfessionalSharingScopeUsecase>();
+    _markProfessionalSectionSeenUsecase =
+        locator<MarkProfessionalSectionSeenUsecase>();
     _loadSection(refreshRemotePlan: true);
   }
 
@@ -116,57 +124,61 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
           : RefreshIndicator(
               onRefresh: () => _loadSection(refreshRemotePlan: true),
               child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              children: [
-                if (_connection == null) ...[
-                  _SectionHero(
-                    title: S.of(context).professionalHeroConnectTitle,
-                    subtitle: S.of(context).professionalSectionConnectSubtitle,
-                    statusLabel: S.of(context).professionalStatusInviteOnly,
-                    icon: Icons.medical_services_outlined,
-                  ),
-                  const SizedBox(height: 16),
-                  InviteEntryView(
-                    codeController: _codeController,
-                    invitePreview: _invitePreview,
-                    error: _error,
-                    isBusy: _protectingAccount,
-                    onPreviewInvite: _previewInvite,
-                    onAcceptInvite: _acceptInvite,
-                    onUseDebugInvite: kDebugMode ? _useDebugInvite : null,
-                  ),
-                ] else if (_summary != null &&
-                    _sharingScope != null &&
-                    _messages != null)
-                  ConnectedProfessionalHub(
-                    summary: _summary!,
-                    sharingScope: _sharingScope!,
-                    messages: _messages!,
-                    selectedTab: _selectedTab,
-                    error: _error,
-                    onSelectTab: (tab) {
-                      setState(() => _selectedTab = tab);
-                    },
-                    onDisconnect: _disconnect,
-                    onMarkMessageRead: _markMessageRead,
-                    onSendMessage: _sendMessage,
-                    sendingMessage: _sendingMessage,
-                    onUpdateSharingMode: _updateSharingMode,
-                    onUpdateDailyNote: _updateDailyNote,
-                  )
-                else
-                  _InfoCard(
-                    icon: Icons.info_outline,
-                    title: S.of(context).professionalSectionLoadErrorTitle,
-                    body: _error ?? S.of(context).professionalSectionRetryHint,
-                  ),
-              ],
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                children: [
+                  if (_connection == null) ...[
+                    _SectionHero(
+                      title: S.of(context).professionalHeroConnectTitle,
+                      subtitle:
+                          S.of(context).professionalSectionConnectSubtitle,
+                      statusLabel: S.of(context).professionalStatusInviteOnly,
+                      icon: Icons.medical_services_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    InviteEntryView(
+                      codeController: _codeController,
+                      invitePreview: _invitePreview,
+                      error: _error,
+                      isBusy: _protectingAccount,
+                      onPreviewInvite: _previewInvite,
+                      onAcceptInvite: _acceptInvite,
+                    ),
+                  ] else if (_summary != null &&
+                      _sharingScope != null &&
+                      _messages != null)
+                    ConnectedProfessionalHub(
+                      summary: _summary!,
+                      sharingScope: _sharingScope!,
+                      messages: _messages!,
+                      selectedTab: _selectedTab,
+                      error: _error,
+                      onSelectTab: (tab) {
+                        setState(() => _selectedTab = tab);
+                      },
+                      onDisconnect: _disconnect,
+                      onMarkMessageRead: _markMessageRead,
+                      onSendMessage: _sendMessage,
+                      sendingMessage: _sendingMessage,
+                      onUpdateSharingMode: _updateSharingMode,
+                      onUpdateDailyNote: _updateDailyNote,
+                    )
+                  else
+                    _InfoCard(
+                      icon: Icons.info_outline,
+                      title: S.of(context).professionalSectionLoadErrorTitle,
+                      body:
+                          _error ?? S.of(context).professionalSectionRetryHint,
+                    ),
+                ],
+              ),
             ),
-          ),
     );
   }
 
-  Future<void> _loadSection({bool refreshRemotePlan = false}) async {
+  Future<void> _loadSection({
+    bool refreshRemotePlan = false,
+    bool preserveSelectedTab = false,
+  }) async {
     setState(() {
       _loading = true;
       _error = null;
@@ -196,14 +208,16 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         connection: summary.connection,
       );
       if (!mounted) return;
-      setState(() {
-        _connection = summary.connection;
-        _summary = summary;
-        _sharingScope = sharingScope;
-        _messages = messages;
-        _selectedTab = ProfessionalHubTab.summary;
-        _loading = false;
-      });
+        setState(() {
+          _connection = summary.connection;
+          _summary = summary;
+          _sharingScope = sharingScope;
+          _messages = messages;
+          if (!preserveSelectedTab) {
+            _selectedTab = ProfessionalHubTab.summary;
+          }
+          _loading = false;
+        });
     } catch (error) {
       if (!mounted) return;
       setState(() {
@@ -250,8 +264,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   }
 
   Future<void> _acceptInvite() async {
-    final isDemoProfessional = _invitePreview?.professionalName == 'Demo Professional';
-    final accountReady = (_isDebugInviteCode() || isDemoProfessional)
+    final accountReady = _isDebugInviteCode()
         ? true
         : await _ensureProtectedAccountForConnection();
     if (!accountReady) {
@@ -368,7 +381,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         isSupported: messages.isSupported,
         messagesEnabled: messages.messagesEnabled,
         messages: messages.messages
-            .map((item) => item.id == message.id ? item.copyWith(isRead: true) : item)
+            .map((item) =>
+                item.id == message.id ? item.copyWith(isRead: true) : item)
             .toList(),
       );
     });
@@ -412,11 +426,6 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     }
   }
 
-  void _useDebugInvite() {
-    _codeController.text = ProfessionalPlanDataSource.debugInviteCode;
-    _previewInvite();
-  }
-
   bool _isDebugInviteCode() {
     return kDebugMode &&
         _codeController.text.trim().toUpperCase() ==
@@ -430,10 +439,26 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         Navigator.of(context).canPop();
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  void _showSnackBar(
+    String message, {
+    bool isError = false,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          backgroundColor:
+              isError ? colorScheme.errorContainer : null,
+          content: Text(
+            message,
+            style: TextStyle(
+              color: isError ? colorScheme.onErrorContainer : null,
+            ),
+          ),
+        ),
+      );
   }
 
   Future<void> _disconnect() async {
@@ -464,7 +489,9 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         'relationship_id': _connection?.relationshipId,
       },
     );
-    if (_shouldReturnToEmbeddedTab && mounted && Navigator.of(context).canPop()) {
+    if (_shouldReturnToEmbeddedTab &&
+        mounted &&
+        Navigator.of(context).canPop()) {
       Navigator.of(context).pop(false);
       return;
     }
@@ -489,14 +516,82 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         clientId: connection.clientId,
         sharingMode: sharingMode,
       );
-      await _loadSection(refreshRemotePlan: false);
+      await _loadSection(
+        refreshRemotePlan: true,
+        preserveSelectedTab: true,
+      );
+      if (!mounted) return;
+      _showSnackBar(
+        sharingMode == 'detailed'
+            ? uiText(
+                context,
+                es: 'Diario detallado activado correctamente.',
+                en: 'Detailed diary enabled successfully.',
+              )
+            : uiText(
+                context,
+                es: 'Se ha vuelto al modo solo agregados.',
+                en: 'Switched back to aggregate-only sharing.',
+              ),
+      );
     } catch (e) {
       if (!mounted) return;
+      final message = _sharingModeErrorMessage(e);
       setState(() {
-        _error = friendlyError(context, e);
+        _error = message;
         _loading = false;
       });
+      _showSnackBar(message, isError: true);
     }
+  }
+
+  String _sharingModeErrorMessage(Object error) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('socketexception') ||
+        raw.contains('clientexception') ||
+        raw.contains('failed host lookup') ||
+        raw.contains('network')) {
+      return uiText(
+        context,
+        es: 'No se pudo cambiar el nivel de privacidad porque no hay conexión. Inténtalo otra vez cuando el móvil vuelva a tener red.',
+        en: 'Could not change the privacy level because the device is offline. Try again when the phone has network access.',
+      );
+    }
+    if (raw.contains('permission') ||
+        raw.contains('row-level security') ||
+        raw.contains('not return a relationship row') ||
+        raw.contains('blocked by permissions')) {
+      return uiText(
+        context,
+        es: 'No se pudo actualizar el permiso con el profesional. La relación puede haberse revocado o el backend sigue bloqueando este cambio.',
+        en: 'Could not update the permission with this professional. The relationship may have been revoked or the backend is still blocking this change.',
+      );
+    }
+    if (raw.contains('not persisted') ||
+        raw.contains('expected \"detailed\"') ||
+        raw.contains('expected \"aggregate\"')) {
+      return uiText(
+        context,
+        es: 'El cambio no quedó guardado en el servidor. Cierra y vuelve a abrir la sección antes de intentarlo otra vez.',
+        en: 'The change was not persisted on the server. Close and reopen this section before trying again.',
+      );
+    }
+    if (raw.contains('authentication') ||
+        raw.contains('jwt') ||
+        raw.contains('session') ||
+        raw.contains('unauthorized') ||
+        raw.contains('forbidden')) {
+      return uiText(
+        context,
+        es: 'Tu sesión de nube ya no es válida para cambiar este permiso. Vuelve a iniciar sesión e inténtalo de nuevo.',
+        en: 'Your cloud session is no longer valid for changing this permission. Sign in again and try once more.',
+      );
+    }
+    return uiText(
+      context,
+      es: 'No se pudo cambiar el nivel de privacidad de esta relación. Inténtalo de nuevo en unos segundos.',
+      en: 'Could not change the privacy level for this relationship. Try again in a few seconds.',
+    );
   }
 
   Future<void> _updateDailyNote(String note) async {

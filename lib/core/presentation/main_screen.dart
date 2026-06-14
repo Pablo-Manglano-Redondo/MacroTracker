@@ -227,7 +227,7 @@ class _MainScreenState extends State<MainScreen> {
       const HomeAppbar(),
       if (_hasProfessionalTab)
         MainAppbar(
-          title: _isEs(context) ? 'Nutricionista' : 'Nutrition coach',
+          title: _isEs(context) ? 'Nutricionista' : 'Nutritionist',
           iconData: Icons.medical_services_outlined,
         ),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
@@ -251,7 +251,7 @@ class _MainScreenState extends State<MainScreen> {
       destinations.add(
         NavigationDestination(
           icon: _professionalTabIcon(selected: _selectedPageIndex == 1),
-          label: _isEs(context) ? 'Nutricionista' : 'Coach',
+          label: _isEs(context) ? 'Nutricionista' : 'Nutritionist',
         ),
       );
     }

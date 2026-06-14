@@ -14,3 +14,15 @@ export const useDiaryEntries = (professionalClientId: string) => {
     staleTime: 30_000,
   });
 };
+
+export function useClientDiaryEntries(
+  professionalClientId: string | undefined,
+  date: string
+) {
+  return useQuery({
+    queryKey: ['client-diary', professionalClientId, date],
+    queryFn: () => diaryRepository.listByClientAndDate(supabase, professionalClientId!, date),
+    enabled: !!professionalClientId && !!date,
+    staleTime: 15_000,
+  });
+};

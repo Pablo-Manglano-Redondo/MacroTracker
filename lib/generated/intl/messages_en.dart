@@ -1219,14 +1219,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("What is not shared today"),
         "professionalConsentNotSharedTodayBody":
             MessageLookupByLibrary.simpleMessage(
-                "full raw diary, per-meal detail, and bidirectional chat"),
+                "full raw diary and per-meal detail unless you enable detailed sharing later"),
         "professionalConsentRevokeHint": MessageLookupByLibrary.simpleMessage(
             "You can revoke access at any time from the privacy section."),
         "professionalConsentSharedToday":
             MessageLookupByLibrary.simpleMessage("What is shared today"),
         "professionalConsentSharedTodayBody":
             MessageLookupByLibrary.simpleMessage(
-                "kcal, macros, logged meals, and aggregate adherence by day"),
+                "kcal, macros, logged meals, aggregate adherence by day, and bidirectional messaging"),
         "professionalDisconnectBody": MessageLookupByLibrary.simpleMessage(
             "Access will be revoked, this section will disappear, and aggregate sync will stop."),
         "professionalDisconnectTitle":
@@ -1241,7 +1241,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalErrorOffline": MessageLookupByLibrary.simpleMessage(
             "Could not connect. Check your connection and try again."),
         "professionalHeroConnectTitle": MessageLookupByLibrary.simpleMessage(
-            "Connect with your nutrition coach"),
+            "Connect with your nutritionist"),
         "professionalHeroConnectedTitle": MessageLookupByLibrary.simpleMessage(
             "Your patient-professional section"),
         "professionalHubKcalToday": m39,
@@ -1254,8 +1254,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalHubPendingCount": m40,
         "professionalInviteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Invite code"),
-        "professionalInviteDebugAction":
-            MessageLookupByLibrary.simpleMessage("Use debug invite"),
         "professionalInviteExpired":
             MessageLookupByLibrary.simpleMessage("This invite has expired."),
         "professionalInviteNotFound": MessageLookupByLibrary.simpleMessage(
@@ -1328,7 +1326,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalProtectAccountAction":
             MessageLookupByLibrary.simpleMessage("Link Google"),
         "professionalProtectAccountBody": MessageLookupByLibrary.simpleMessage(
-            "To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive."),
+            "To connect with a nutritionist, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive."),
         "professionalProtectAccountOpenError":
             MessageLookupByLibrary.simpleMessage("Could not open Google."),
         "professionalProtectAccountReturnHint":
@@ -1339,7 +1337,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalRevokeNow":
             MessageLookupByLibrary.simpleMessage("Revoke access now"),
         "professionalScreenTitle":
-            MessageLookupByLibrary.simpleMessage("Nutrition coach"),
+            MessageLookupByLibrary.simpleMessage("Nutritionist"),
         "professionalSectionConnectSubtitle": MessageLookupByLibrary.simpleMessage(
             "Activate this section with an invite and consent. Here you will see plan, follow-up, privacy, and messages."),
         "professionalSectionConnectedSubtitle":

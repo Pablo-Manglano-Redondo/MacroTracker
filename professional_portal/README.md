@@ -1,19 +1,48 @@
-# MacroTracker Professional Portal MVP
+# MacroTracker Professional Portal
 
-Static invite-only portal for the B2B professional flow. It uses Supabase Auth
-and the tables in `supabase/migrations/20260601_b2b_professional_plans.sql`.
+Invite-only React/Vite portal for the B2B professional flow. It uses Supabase
+Auth plus the professional tables and functions under `supabase/`.
 
-Open `index.html` locally or host the folder as a static site. Copy
-`config.example.js` to `config.js` and set the Supabase URL and anon key from
-the deployment environment, then sign in with magic link.
+For local development, install dependencies and run the Vite app:
 
-V1 scope:
+```bash
+npm ci
+npm run dev
+```
 
-- Professional profile and Pro status visibility.
-- Stripe Checkout for Pro plans through the `stripe-pro-checkout` function.
-- Create invite codes for clients.
-- List connected clients.
-- Create an active weekly macro plan.
-- View aggregate snapshots shared by connected clients.
+Before shipping portal changes, run:
 
-The portal reads `professionals.pro_status`; Stripe webhooks update that field.
+```bash
+npm run verify
+```
+
+`npm run verify` checks source files for trailing whitespace, runs
+TypeScript typechecking, and produces a production build.
+
+The deployed static site still needs `config.js` generated from environment
+values. Copy `config.example.js` to `config.js` for local static hosting or
+generate it during deployment. `config.js` remains deploy-time config and
+should not be committed.
+
+Supported runtime:
+
+- React + Vite only
+- `professional_portal/app.js` legacy runtime removed
+- Static hosting over HTTPS
+
+Current scope:
+
+- Professional profile plus explicit access status, commercial tier and billing interval
+- Stripe Checkout for Pro plans through `stripe-pro-checkout`
+- Invite generation and invite history for connected mobile flows
+- Real connected-client roster from `professional_clients`
+- Plans, notes, progress, check-ins and snapshots using live Supabase data
+- Detailed diary only when the relationship is active and `sharing_mode = detailed`
+
+Billing truth source:
+
+- `professionals.pro_status` = access state
+- `professionals.commercial_tier` = starter/growth/studio
+- `professionals.billing_interval` = monthly/annual
+
+Stripe webhooks update those fields together with `client_limit`.

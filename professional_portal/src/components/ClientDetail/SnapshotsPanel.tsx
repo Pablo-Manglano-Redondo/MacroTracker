@@ -12,8 +12,12 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
   const [showAll, setShowAll] = useState(false);
   const snapshots = client.client_shared_snapshots || [];
 
-  const sortedSnapshots = [...snapshots].sort((a, b) => b.snapshot_date.localeCompare(a.snapshot_date));
-  const displayedSnapshots = showAll ? sortedSnapshots : sortedSnapshots.slice(0, INITIAL_SHOWN);
+  const sortedSnapshots = [...snapshots].sort((a, b) =>
+    b.snapshot_date.localeCompare(a.snapshot_date),
+  );
+  const displayedSnapshots = showAll
+    ? sortedSnapshots
+    : sortedSnapshots.slice(0, INITIAL_SHOWN);
 
   const getAdherenceColor = (actual: number, target: number) => {
     if (!target || target === 0) return 'bg-zinc-200 dark:bg-zinc-700';
@@ -26,25 +30,37 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
   const getAdherenceText = (actual: number, target: number) => {
     if (!target || target === 0) return 'text-muted-foreground';
     const percent = (actual / target) * 100;
-    if (percent >= 90 && percent <= 110) return 'text-emerald-600 dark:text-emerald-400';
-    if (percent >= 75 && percent <= 125) return 'text-amber-600 dark:text-amber-400';
+    if (percent >= 90 && percent <= 110) {
+      return 'text-emerald-600 dark:text-emerald-400';
+    }
+    if (percent >= 75 && percent <= 125) {
+      return 'text-amber-600 dark:text-amber-400';
+    }
     return 'text-rose-600 dark:text-rose-400';
   };
 
-  const renderBar = (label: string, actual: number, target: number, unit: string) => {
-    const percent = target > 0 ? Math.min(Math.round((actual / target) * 100), 100) : 0;
+  const renderBar = (
+    label: string,
+    actual: number,
+    target: number,
+    unit: string,
+  ) => {
+    const percent =
+      target > 0 ? Math.min(Math.round((actual / target) * 100), 100) : 0;
     const rawPercent = target > 0 ? Math.round((actual / target) * 100) : 0;
 
     return (
       <div className="space-y-1">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground">{label}</span>
-          <span className={`text-[11px] font-medium ${getAdherenceText(actual, target)}`}>
+          <span
+            className={`text-[11px] font-medium ${getAdherenceText(actual, target)}`}
+          >
             {Math.round(actual)}/{Math.round(target)} {unit}
             <span className="ml-1 opacity-70">({rawPercent}%)</span>
           </span>
         </div>
-        <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-secondary">
           <div
             className={`h-full rounded-full transition-all duration-500 ${getAdherenceColor(actual, target)}`}
             style={{ width: `${percent}%` }}
@@ -55,62 +71,70 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
   };
 
   return (
-    <div className="rounded-xl border bg-card card-elevated flex flex-col">
-      {/* Header */}
-      <div className="px-5 py-4 border-b flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-          <Calendar className="w-4 h-4 text-primary" />
+    <div className="glass-card flex flex-col rounded-2xl border border-border/50">
+      <div className="flex items-center gap-2.5 border-b border-border/50 bg-card/10 px-5 py-4">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+          <Calendar className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <p className="text-sm font-semibold leading-none">Snapshots</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-sm font-bold leading-none">Snapshots</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
             {snapshots.length} recorded
           </p>
         </div>
       </div>
 
-      {/* Sync Warning Card */}
-      <div className="m-3 p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/30 rounded-lg flex items-start gap-2.5">
-        <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+      <div className="m-3.5 flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3.5 shadow-sm">
+        <Info className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
         <div className="space-y-0.5">
-          <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">Nota de Sincronización</p>
-          <p className="text-[11px] text-blue-700/80 dark:text-blue-400/80 leading-relaxed">
-            Los snapshots diarios y pesos se importan directamente desde la app local-first del paciente. Para garantizar la integridad del diario del cliente, la edición de snapshots está deshabilitada en la web.
+          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            Sync note
+          </p>
+          <p className="text-[10px] font-medium leading-relaxed text-emerald-800/80 dark:text-emerald-300/80">
+            Daily snapshots and weights are imported directly from the client&apos;s
+            local-first app. Snapshot editing stays disabled on the web so the
+            portal remains a read-only analytical surface.
           </p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto max-h-[400px] [scrollbar-width:thin] [scrollbar-color:rgb(200_200_200/0.3)_transparent] dark:[scrollbar-color:rgb(60_60_60/0.3)_transparent]">
+      <div className="max-h-[400px] flex-1 overflow-y-auto [scrollbar-color:rgba(156,163,175,0.15)_transparent] [scrollbar-width:thin]">
         {snapshots.length === 0 ? (
           <div className="px-5 py-10 text-center">
-            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-3">
-              <Calendar className="w-5 h-5 text-muted-foreground/60" />
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted/10">
+              <Calendar className="h-5 w-5 text-muted-foreground/60" />
             </div>
-            <p className="text-sm text-muted-foreground">No snapshots yet</p>
-            <p className="text-xs text-muted-foreground/70 mt-1">
-              Client shared data will appear here
+            <p className="text-xs font-bold text-foreground">No snapshots yet</p>
+            <p className="mt-1 text-[10px] font-semibold text-muted-foreground">
+              Shared client snapshot data will appear here.
             </p>
           </div>
         ) : (
-          <div className="p-3 space-y-2">
+          <div className="space-y-2 p-3">
             {displayedSnapshots.map((snap) => (
               <div
                 key={snap.id}
-                className="p-3 rounded-lg hover:bg-secondary/50 transition-colors"
+                className="rounded-xl border border-transparent p-3.5 transition-all duration-200 hover:border-border/30 hover:bg-secondary/45"
               >
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
-                      <Calendar className="w-3 h-3 text-muted-foreground" />
+                    <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary">
+                      <Calendar className="h-3 w-3 text-muted-foreground" />
                     </div>
-                    <span className="text-xs font-medium">{snap.snapshot_date}</span>
+                    <span className="text-xs font-extrabold text-foreground">
+                      {snap.snapshot_date}
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2.5 pl-8">
+                <div className="grid grid-cols-1 gap-y-2.5 pl-8">
                   {renderBar('Kcal', snap.kcal_actual, snap.kcal_target, 'kcal')}
-                  {renderBar('Protein', snap.protein_actual, snap.protein_target, 'g')}
+                  {renderBar(
+                    'Protein',
+                    snap.protein_actual,
+                    snap.protein_target,
+                    'g',
+                  )}
                   {renderBar('Carbs', snap.carbs_actual, snap.carbs_target, 'g')}
                   {renderBar('Fat', snap.fat_actual, snap.fat_target, 'g')}
                 </div>
@@ -120,17 +144,21 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
         )}
       </div>
 
-      {/* Show more/less */}
       {sortedSnapshots.length > INITIAL_SHOWN && (
-        <div className="px-5 py-2.5 border-t">
+        <div className="border-t border-border/50 bg-card/5 px-5 py-2.5">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            className="flex items-center gap-1 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground"
           >
             {showAll ? (
-              <><ChevronUp className="w-3 h-3" /> Show less</>
+              <>
+                <ChevronUp className="h-3 w-3" /> Show less
+              </>
             ) : (
-              <><ChevronDown className="w-3 h-3" /> Show {sortedSnapshots.length - INITIAL_SHOWN} more</>
+              <>
+                <ChevronDown className="h-3 w-3" /> Show{' '}
+                {sortedSnapshots.length - INITIAL_SHOWN} more
+              </>
             )}
           </button>
         </div>

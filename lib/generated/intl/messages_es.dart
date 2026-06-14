@@ -1234,13 +1234,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Que no se comparte hoy"),
         "professionalConsentNotSharedTodayBody":
             MessageLookupByLibrary.simpleMessage(
-                "diario bruto completo, detalle por comida y chat bidireccional"),
+                "diario bruto completo y detalle por comida salvo que actives el nivel detallado mas tarde"),
         "professionalConsentRevokeHint": MessageLookupByLibrary.simpleMessage(
             "Puedes revocar el acceso en cualquier momento desde la seccion de privacidad."),
         "professionalConsentSharedToday":
             MessageLookupByLibrary.simpleMessage("Que se comparte hoy"),
         "professionalConsentSharedTodayBody": MessageLookupByLibrary.simpleMessage(
-            "kcal, macros, comidas registradas y adherencia agregada por dia"),
+            "kcal, macros, comidas registradas, adherencia agregada por dia y mensajeria bidireccional"),
         "professionalDisconnectBody": MessageLookupByLibrary.simpleMessage(
             "Se revocara el acceso, desaparecera la seccion y se detendra la sincronizacion agregada pendiente."),
         "professionalDisconnectTitle":
@@ -1268,8 +1268,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalHubPendingCount": m40,
         "professionalInviteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Codigo de invitacion"),
-        "professionalInviteDebugAction":
-            MessageLookupByLibrary.simpleMessage("Usar invitacion debug"),
         "professionalInviteExpired":
             MessageLookupByLibrary.simpleMessage("La invitacion ha expirado."),
         "professionalInviteNotFound": MessageLookupByLibrary.simpleMessage(

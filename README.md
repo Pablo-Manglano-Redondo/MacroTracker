@@ -175,7 +175,7 @@ graph TD
     ```bash
     flutter run --dart-define=REVENUECAT_ANDROID_API_KEY=your_key
     ```
-    > RevenueCat API keys are required for in-app purchases. Without `--dart-define`, the app will crash on launch when it tries to initialize RevenueCat. Get keys from [RevenueCat Dashboard](https://app.revenuecat.com). Android and iOS use separate keys.
+    > RevenueCat API keys are required for in-app purchases. Without `--dart-define`, the app still launches, but Premium purchases remain disabled until the platform API key is configured. Get keys from [RevenueCat Dashboard](https://app.revenuecat.com). Android and iOS use separate keys.
 
 ---
 
@@ -291,7 +291,7 @@ For product-critical changes in monetization, AI request handling, cloud account
 ### What the readiness ladder checks
 
 1. `git diff --check`
-2. Focused Flutter tests for cloud deletion, monetization, analytics, and AI remote handling
+2. Focused Flutter tests for cloud deletion, monetization, analytics, AI remote handling, macro calculations, weekly insights, Home loading, scanner, intake CRUD, and professional use cases
 3. Android debug build via Gradle/Flutter integration
 
 ### Notes

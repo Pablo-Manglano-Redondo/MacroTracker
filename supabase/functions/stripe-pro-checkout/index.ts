@@ -1,13 +1,22 @@
 import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
-import { normalizeProTier } from "../_shared/pro_billing.ts";
+import {
+  normalizeBillingInterval,
+  normalizeProTier,
+} from "../_shared/pro_billing.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-const starterPriceId = Deno.env.get("STRIPE_PRO_STARTER_PRICE_ID") ?? "";
-const growthPriceId = Deno.env.get("STRIPE_PRO_GROWTH_PRICE_ID") ?? "";
-const studioPriceId = Deno.env.get("STRIPE_PRO_STUDIO_PRICE_ID") ?? "";
+const starterMonthlyPriceId = Deno.env.get("STRIPE_PRO_STARTER_MONTHLY_PRICE_ID") ??
+  Deno.env.get("STRIPE_PRO_STARTER_PRICE_ID") ?? "";
+const starterAnnualPriceId = Deno.env.get("STRIPE_PRO_STARTER_ANNUAL_PRICE_ID") ?? "";
+const growthMonthlyPriceId = Deno.env.get("STRIPE_PRO_GROWTH_MONTHLY_PRICE_ID") ??
+  Deno.env.get("STRIPE_PRO_GROWTH_PRICE_ID") ?? "";
+const growthAnnualPriceId = Deno.env.get("STRIPE_PRO_GROWTH_ANNUAL_PRICE_ID") ?? "";
+const studioMonthlyPriceId = Deno.env.get("STRIPE_PRO_STUDIO_MONTHLY_PRICE_ID") ??
+  Deno.env.get("STRIPE_PRO_STUDIO_PRICE_ID") ?? "";
+const studioAnnualPriceId = Deno.env.get("STRIPE_PRO_STUDIO_ANNUAL_PRICE_ID") ?? "";
 
 const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
@@ -42,10 +51,17 @@ Deno.serve(async (request) => {
 
   const body = await request.json().catch(() => ({}));
   const tier = normalizeProTier(body.tier);
+  const billingInterval = normalizeBillingInterval(body.billingInterval);
   const origin = body.origin || request.headers.get("origin") || "";
-  const price = priceForTier(tier);
+  const price = priceForSelection(tier, billingInterval);
   if (!price) {
-    return json({ error: `Missing Stripe price for tier ${tier}` }, 500);
+    return json({
+      code: "missing_price_configuration",
+      error:
+        `Missing Stripe price for tier ${tier} with ${billingInterval} billing`,
+      tier,
+      billingInterval,
+    }, 500);
   }
 
   const { data: professional, error: professionalError } = await serviceClient
@@ -54,7 +70,10 @@ Deno.serve(async (request) => {
     .eq("user_id", authData.user.id)
     .single();
   if (professionalError || !professional) {
-    return json({ error: "Professional profile must be created first" }, 400);
+    return json({
+      code: "missing_professional_profile",
+      error: "Professional profile must be created first",
+    }, 400);
   }
 
   const stripe = new Stripe(stripeSecretKey, {
@@ -74,22 +93,29 @@ Deno.serve(async (request) => {
     metadata: {
       professional_id: professional.id,
       tier,
+      billing_interval: billingInterval,
     },
     subscription_data: {
       metadata: {
         professional_id: professional.id,
         tier,
+        billing_interval: billingInterval,
       },
     },
   });
 
-  return json({ url: session.url });
+  return json({
+    url: session.url,
+    tier,
+    billingInterval,
+  });
 });
 
-function priceForTier(tier: string) {
-  if (tier === "studio") return studioPriceId;
-  if (tier === "growth") return growthPriceId;
-  return starterPriceId;
+function priceForSelection(tier: string, billingInterval: string) {
+  const isAnnual = billingInterval === "annual";
+  if (tier === "studio") return isAnnual ? studioAnnualPriceId : studioMonthlyPriceId;
+  if (tier === "growth") return isAnnual ? growthAnnualPriceId : growthMonthlyPriceId;
+  return isAnnual ? starterAnnualPriceId : starterMonthlyPriceId;
 }
 
 function json(body: unknown, status = 200) {

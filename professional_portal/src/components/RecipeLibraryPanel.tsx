@@ -1,13 +1,31 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  ChefHat,
+  Clock,
+  GripVertical,
+  Pencil,
+  Plus,
+  PlusCircle,
+  Search,
+  Send,
+  Trash2,
+  Users,
+  Utensils,
+  X,
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { useAuth } from '../lib/auth-context';
 import { useRecipes } from '../hooks/queries/useRecipes';
-import { useCreateRecipe, useDeleteRecipe, useProposeRecipe } from '../hooks/mutations/useCreateRecipe';
+import {
+  useCreateRecipe,
+  useDeleteRecipe,
+  useProposeRecipe,
+} from '../hooks/mutations/useCreateRecipe';
 import { useUpdateRecipe } from '../hooks/mutations/useUpdateRecipe';
 import { useClients } from '../hooks/queries/useClients';
-import { Plus, Search, Trash2, Send, ChefHat, Clock, Users, X, Utensils, Pencil, PlusCircle, GripVertical } from 'lucide-react';
-import { toast } from 'sonner';
 import { ConfirmDialog } from './ui/confirm-dialog';
 import type { ProfessionalRecipe } from '../types/database.types';
+import { usePortalI18n } from '../lib/portal-i18n';
 
 const MEAL_TYPES = ['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const;
 
@@ -47,13 +65,18 @@ function recipeToForm(r: ProfessionalRecipe) {
     protein: r.protein || 0,
     carbs: r.carbs || 0,
     fat: r.fat || 0,
-    ingredients: raw.map((i: any) => ({ name: String(i.name ?? ''), amount: Number(i.amount ?? 0), unit: String(i.unit ?? 'g') })),
+    ingredients: raw.map((i: any) => ({
+      name: String(i.name ?? ''),
+      amount: Number(i.amount ?? 0),
+      unit: String(i.unit ?? 'g'),
+    })),
     instructions: r.instructions || '',
   };
 }
 
 export const RecipeLibraryPanel: React.FC = () => {
   const { professional } = useAuth();
+  const { tr } = usePortalI18n();
   const { data: recipes, isLoading } = useRecipes(professional?.id);
   const { data: clients } = useClients(professional?.id);
   const createRecipe = useCreateRecipe(professional?.id);
@@ -69,11 +92,19 @@ export const RecipeLibraryPanel: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
 
-  const filtered = (recipes || []).filter(r => {
-    if (mealFilter !== 'all' && r.meal_type !== mealFilter) return false;
-    if (search && !r.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = useMemo(
+    () =>
+      (recipes || []).filter((recipe) => {
+        if (mealFilter !== 'all' && recipe.meal_type !== mealFilter) {
+          return false;
+        }
+        if (search && !recipe.title.toLowerCase().includes(search.toLowerCase())) {
+          return false;
+        }
+        return true;
+      }),
+    [mealFilter, recipes, search],
+  );
 
   const openCreate = () => {
     setEditingId(null);
@@ -81,14 +112,17 @@ export const RecipeLibraryPanel: React.FC = () => {
     setShowForm(true);
   };
 
-  const openEdit = (r: ProfessionalRecipe) => {
-    setEditingId(r.id);
-    setForm(recipeToForm(r));
+  const openEdit = (recipe: ProfessionalRecipe) => {
+    setEditingId(recipe.id);
+    setForm(recipeToForm(recipe));
     setShowForm(true);
   };
 
   const handleSave = async () => {
-    if (!form.title.trim()) { toast.error('Recipe title required'); return; }
+    if (!form.title.trim()) {
+      toast.error(tr('El título es obligatorio', 'Recipe title required'));
+      return;
+    }
     try {
       const payload = {
         professional_id: professional!.id,
@@ -108,19 +142,30 @@ export const RecipeLibraryPanel: React.FC = () => {
 
       if (editingId) {
         await updateRecipe.mutateAsync({ id: editingId, updates: payload });
-        toast.success('Recipe updated');
+        toast.success(tr('Receta actualizada', 'Recipe updated'));
       } else {
         await createRecipe.mutateAsync(payload as any);
-        toast.success('Recipe created');
+        toast.success(tr('Receta creada', 'Recipe created'));
       }
       setShowForm(false);
-    } catch { toast.error(editingId ? 'Failed to update recipe' : 'Failed to create recipe'); }
+    } catch {
+      toast.error(
+        editingId
+          ? tr('No se pudo actualizar la receta', 'Failed to update recipe')
+          : tr('No se pudo crear la receta', 'Failed to create recipe'),
+      );
+    }
   };
 
   const handlePropose = async (clientId: string, note: string) => {
-    if (!proposeTarget || !professional) { return; }
-    const client = clients?.find(c => c.client_id === clientId);
-    if (!client) { toast.error('Select a client'); return; }
+    if (!proposeTarget || !professional) {
+      return;
+    }
+    const client = clients?.find((c) => c.client_id === clientId);
+    if (!client) {
+      toast.error(tr('Selecciona un cliente', 'Select a client'));
+      return;
+    }
     try {
       await proposeRecipe.mutateAsync({
         professional_client_id: client.id,
@@ -129,316 +174,523 @@ export const RecipeLibraryPanel: React.FC = () => {
         client_id: clientId,
         note: note || undefined,
       });
-      toast.success('Recipe proposed to client');
+      toast.success(tr('Receta propuesta al cliente', 'Recipe proposed to client'));
       setProposeTarget(null);
-    } catch { toast.error('Failed to propose recipe'); }
+    } catch {
+      toast.error(tr('No se pudo proponer la receta', 'Failed to propose recipe'));
+    }
   };
 
   const addIngredient = () => {
-    setForm(p => ({ ...p, ingredients: [...p.ingredients, { name: '', amount: 0, unit: 'g' }] }));
+    setForm((previous) => ({
+      ...previous,
+      ingredients: [...previous.ingredients, { name: '', amount: 0, unit: 'g' }],
+    }));
   };
 
-  const removeIngredient = (i: number) => {
-    setForm(p => ({ ...p, ingredients: p.ingredients.filter((_, idx) => idx !== i) }));
+  const removeIngredient = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      ingredients: previous.ingredients.filter((_, idx) => idx !== index),
+    }));
   };
 
-  const updateIngredient = (i: number, field: 'name' | 'amount' | 'unit', value: string | number) => {
-    setForm(p => {
-      const ings = p.ingredients.map((ing, idx) => {
-        if (idx !== i) return ing;
-        if (field === 'name') return { ...ing, name: value as string };
-        if (field === 'amount') return { ...ing, amount: value as number };
-        return { ...ing, unit: value as string };
+  const updateIngredient = (
+    index: number,
+    field: 'name' | 'amount' | 'unit',
+    value: string | number,
+  ) => {
+    setForm((previous) => {
+      const ingredients = previous.ingredients.map((ingredient, idx) => {
+        if (idx !== index) {
+          return ingredient;
+        }
+        if (field === 'name') {
+          return { ...ingredient, name: value as string };
+        }
+        if (field === 'amount') {
+          return { ...ingredient, amount: value as number };
+        }
+        return { ...ingredient, unit: value as string };
       });
-      return { ...p, ingredients: ings };
+      return { ...previous, ingredients };
     });
   };
 
-  return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <ChefHat className="w-5 h-5 text-primary" />
-            Recipe Library
-          </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">{filtered.length} recipes</p>
-        </div>
-        <button onClick={openCreate} className="btn-primary text-xs px-3 py-1.5 rounded-lg gap-1.5 flex items-center">
-          <Plus className="w-3.5 h-3.5" /> New Recipe
-        </button>
-      </div>
+  const mealLabel = (meal: string) =>
+    ({
+      breakfast: tr('Desayuno', 'Breakfast'),
+      lunch: tr('Comida', 'Lunch'),
+      dinner: tr('Cena', 'Dinner'),
+      snack: tr('Snack', 'Snack'),
+      all: tr('Todas', 'All'),
+    })[meal] ?? meal;
 
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+  return (
+    <div className="space-y-6 animate-fade-in-up">
+      <section className="portal-hero rounded-[1.8rem] p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-2">
+            <p className="portal-kicker">{tr('Biblioteca de recetas', 'Recipe library')}</p>
+            <h2 className="portal-title text-3xl text-foreground">
+              {tr(
+                'Recetas operativas para recomendar o reutilizar.',
+                'Operational recipes to recommend or reuse.',
+              )}
+            </h2>
+            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+              {tr(
+                'Mantén una biblioteca profesional con macros, ingredientes e instrucciones claras. Desde aquí puedes proponer recetas a clientes conectados.',
+                'Maintain a professional library with macros, ingredients, and clear instructions. From here you can propose recipes to connected clients.',
+              )}
+            </p>
+          </div>
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
+          >
+            <Plus className="h-4 w-4" />
+            {tr('Nueva receta', 'New recipe')}
+          </button>
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          label={tr('Recetas visibles', 'Visible recipes')}
+          value={filtered.length}
+          note={tr('Resultado según búsqueda y filtro', 'Result after search and filter')}
+        />
+        <StatCard
+          label={tr('Biblioteca total', 'Library total')}
+          value={recipes?.length ?? 0}
+          note={tr('Recursos almacenados', 'Stored resources')}
+        />
+        <StatCard
+          label={tr('Clientes conectados', 'Connected clients')}
+          value={(clients || []).filter((client) => client.status === 'connected').length}
+          note={tr('Posibles destinatarios de una propuesta', 'Possible recipients for a proposal')}
+        />
+      </section>
+
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full max-w-sm">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search recipes..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border bg-card focus:outline-none focus:ring-1 focus:ring-primary"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={tr('Buscar recetas', 'Search recipes')}
+            className="portal-input h-11 w-full rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:border-primary"
           />
         </div>
-        <div className="flex gap-1">
-          {MEAL_TYPES.map(m => (
-            <button key={m} onClick={() => setMealFilter(m)}
-              className={`px-2.5 py-1.5 rounded-md text-[11px] font-medium transition-colors ${
-                mealFilter === m ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground hover:text-foreground'
-              }`}>
-              {m === 'all' ? 'All' : m.charAt(0).toUpperCase() + m.slice(1)}
+
+        <div className="flex flex-wrap gap-2">
+          {MEAL_TYPES.map((meal) => (
+            <button
+              key={meal}
+              onClick={() => setMealFilter(meal)}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                mealFilter === meal
+                  ? 'bg-primary text-primary-foreground'
+                  : 'portal-chip hover:bg-accent'
+              }`}
+            >
+              {mealLabel(meal)}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Recipe Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1,2,3].map(i => (
-            <div key={i} className="h-40 rounded-xl bg-muted/30 animate-pulse" />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((index) => (
+            <div key={index} className="portal-panel h-56 rounded-[1.6rem] animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          <Utensils className="w-10 h-10 mx-auto mb-3 text-primary/30" />
-          <p className="text-sm font-medium">No recipes yet</p>
-          <p className="text-xs mt-1">Create your first recipe to get started.</p>
+        <div className="portal-panel flex min-h-[320px] flex-col items-center justify-center rounded-[1.6rem] p-10 text-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <Utensils className="h-8 w-8" />
+          </div>
+          <h3 className="portal-title mt-5 text-2xl text-foreground">
+            {tr('No hay recetas para mostrar', 'No recipes to show')}
+          </h3>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+            {tr(
+              'Crea una nueva receta o ajusta la búsqueda y el filtro para ver resultados.',
+              'Create a new recipe or adjust the search and filter to see results.',
+            )}
+          </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(recipe => (
-            <div key={recipe.id} className="rounded-xl bg-card border card-elevated p-4 space-y-3 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between gap-2">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((recipe) => (
+            <article key={recipe.id} className="portal-panel rounded-[1.6rem] p-5">
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h4 className="text-sm font-bold text-foreground truncate">{recipe.title}</h4>
+                  <div className="flex items-center gap-2">
+                    <ChefHat className="h-4 w-4 text-primary" />
+                    <h3 className="truncate text-base font-bold text-foreground">{recipe.title}</h3>
+                  </div>
                   {recipe.description && (
-                    <p className="text-[11px] text-muted-foreground truncate mt-0.5">{recipe.description}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      {recipe.description}
+                    </p>
                   )}
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <button onClick={() => openEdit(recipe)}
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                    title="Edit">
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => setProposeTarget({ recipeId: recipe.id })}
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
-                    title="Propose to client">
-                    <Send className="w-3.5 h-3.5" />
-                  </button>
-                  <button onClick={() => setDeleteConfirm(recipe.id)}
-                    className="p-1.5 rounded-md text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                    title="Delete">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                <div className="flex gap-1">
+                  <IconAction
+                    title={tr('Editar receta', 'Edit recipe')}
+                    onClick={() => openEdit(recipe)}
+                    icon={<Pencil className="h-4 w-4" />}
+                  />
+                  <IconAction
+                    title={tr('Proponer a cliente', 'Propose to client')}
+                    onClick={() => setProposeTarget({ recipeId: recipe.id })}
+                    icon={<Send className="h-4 w-4" />}
+                  />
+                  <IconAction
+                    title={tr('Eliminar receta', 'Delete recipe')}
+                    onClick={() => setDeleteConfirm(recipe.id)}
+                    icon={<Trash2 className="h-4 w-4" />}
+                    danger
+                  />
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 {recipe.meal_type && (
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {recipe.meal_type}
+                  <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                    {mealLabel(recipe.meal_type)}
                   </span>
                 )}
-                {recipe.prep_time_min && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {recipe.prep_time_min}m
+                {recipe.prep_time_min ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-4 w-4 text-primary" />
+                    {tr(`Prep ${recipe.prep_time_min} min`, `Prep ${recipe.prep_time_min} min`)}
                   </span>
-                )}
-                {recipe.servings && (
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Users className="w-3 h-3" /> {recipe.servings}
+                ) : null}
+                {recipe.servings ? (
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-4 w-4 text-primary" />
+                    {tr(`${recipe.servings} raciones`, `Serves ${recipe.servings}`)}
                   </span>
-                )}
+                ) : null}
               </div>
 
-              <div className="flex gap-3 text-[11px] font-medium text-muted-foreground">
-                {recipe.kcal != null && <span>{recipe.kcal} kcal</span>}
-                {recipe.protein != null && <span>P: {recipe.protein}g</span>}
-                {recipe.carbs != null && <span>C: {recipe.carbs}g</span>}
-                {recipe.fat != null && <span>F: {recipe.fat}g</span>}
+              <div className="mt-4 grid grid-cols-4 gap-2">
+                <MacroMini label="Kcal" value={recipe.kcal} tone="rose" />
+                <MacroMini label="P" value={recipe.protein} tone="emerald" suffix="g" />
+                <MacroMini label="C" value={recipe.carbs} tone="blue" suffix="g" />
+                <MacroMini label="F" value={recipe.fat} tone="amber" suffix="g" />
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Create/Edit Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowForm(false)}>
-          <div className="bg-card rounded-2xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto m-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold">{editingId ? 'Edit Recipe' : 'New Recipe'}</h3>
-              <button onClick={() => setShowForm(false)} className="p-1 rounded-md hover:bg-secondary"><X className="w-4 h-4" /></button>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={() => setShowForm(false)}
+        >
+          <div
+            className="glass-card max-h-[88vh] w-full max-w-3xl overflow-y-auto rounded-[1.8rem] p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-foreground">
+                  {editingId
+                    ? tr('Editar receta', 'Edit recipe')
+                    : tr('Crear receta', 'Create recipe')}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {tr(
+                    'Macros, ingredientes e instrucciones para la biblioteca profesional.',
+                    'Macros, ingredients, and instructions for the professional library.',
+                  )}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowForm(false)}
+                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <label className="text-[11px] font-medium text-muted-foreground">Title *</label>
-                  <input value={form.title} onChange={e => setForm(p => ({...p, title: e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label={tr('Título', 'Title')} required className="md:col-span-2">
+                <input
+                  value={form.title}
+                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+                />
+              </Field>
+              <Field label={tr('Descripción', 'Description')} className="md:col-span-2">
+                <textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  rows={2}
+                  className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                />
+              </Field>
+              <Field label={tr('Tipo de comida', 'Meal type')}>
+                <select
+                  value={form.meal_type}
+                  onChange={(e) => setForm((prev) => ({ ...prev, meal_type: e.target.value }))}
+                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+                >
+                  {MEAL_TYPES.filter((meal) => meal !== 'all').map((meal) => (
+                    <option key={meal} value={meal}>
+                      {mealLabel(meal)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label={tr('Raciones', 'Servings')}>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.servings}
+                  onChange={(e) => setForm((prev) => ({ ...prev, servings: +e.target.value }))}
+                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                />
+              </Field>
+              <Field label={tr('Prep (min)', 'Prep (min)')}>
+                <input
+                  type="number"
+                  value={form.prep_time_min}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, prep_time_min: +e.target.value }))
+                  }
+                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                />
+              </Field>
+              <Field label={tr('Cocción (min)', 'Cook (min)')}>
+                <input
+                  type="number"
+                  value={form.cook_time_min}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, cook_time_min: +e.target.value }))
+                  }
+                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                />
+              </Field>
+
+              <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  {tr('Macros', 'Macros')}
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                  {[
+                    { label: 'Kcal', value: form.kcal, key: 'kcal' as const },
+                    { label: 'Protein', value: form.protein, key: 'protein' as const },
+                    { label: 'Carbs', value: form.carbs, key: 'carbs' as const },
+                    { label: 'Fat', value: form.fat, key: 'fat' as const },
+                  ].map((macro) => (
+                    <Field key={macro.key} label={macro.label}>
+                      <input
+                        type="number"
+                        value={macro.value}
+                        onChange={(e) =>
+                          setForm((prev) => ({ ...prev, [macro.key]: +e.target.value }))
+                        }
+                        className="portal-input h-10 w-full rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                      />
+                    </Field>
+                  ))}
                 </div>
-                <div className="col-span-2">
-                  <label className="text-[11px] font-medium text-muted-foreground">Description</label>
-                  <textarea value={form.description} onChange={e => setForm(p => ({...p, description: e.target.value}))} rows={2}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-muted-foreground">Meal Type</label>
-                  <select value={form.meal_type} onChange={e => setForm(p => ({...p, meal_type: e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary">
-                    {MEAL_TYPES.filter(m => m !== 'all').map(m => (
-                      <option key={m} value={m}>{m.charAt(0).toUpperCase() + m.slice(1)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-muted-foreground">Servings</label>
-                  <input type="number" min={1} value={form.servings} onChange={e => setForm(p => ({...p, servings: +e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-muted-foreground">Prep (min)</label>
-                  <input type="number" value={form.prep_time_min} onChange={e => setForm(p => ({...p, prep_time_min: +e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-muted-foreground">Cook (min)</label>
-                  <input type="number" value={form.cook_time_min} onChange={e => setForm(p => ({...p, cook_time_min: +e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-                <div>
-                  <label className="text-[11px] font-medium text-muted-foreground">Kcal</label>
-                  <input type="number" value={form.kcal} onChange={e => setForm(p => ({...p, kcal: +e.target.value}))}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-[11px] font-medium text-muted-foreground">Protein</label>
-                    <input type="number" value={form.protein} onChange={e => setForm(p => ({...p, protein: +e.target.value}))}
-                      className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-muted-foreground">Carbs</label>
-                    <input type="number" value={form.carbs} onChange={e => setForm(p => ({...p, carbs: +e.target.value}))}
-                      className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                  </div>
-                  <div>
-                    <label className="text-[11px] font-medium text-muted-foreground">Fat</label>
-                    <input type="number" value={form.fat} onChange={e => setForm(p => ({...p, fat: +e.target.value}))}
-                      className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                  </div>
+              </div>
+
+              <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {tr('Ingredientes', 'Ingredients')}
+                  </p>
+                  <button
+                    onClick={addIngredient}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    {tr('Añadir ingrediente', 'Add ingredient')}
+                  </button>
                 </div>
 
-                {/* Ingredients Builder */}
-                <div className="col-span-2">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-[11px] font-medium text-muted-foreground">Ingredients</label>
-                    <button onClick={addIngredient} className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 transition-colors">
-                      <PlusCircle className="w-3 h-3" /> Add
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {form.ingredients.map((ing, i) => (
-                      <div key={i} className="flex items-center gap-2">
-                        <GripVertical className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-                        <input value={ing.name} onChange={e => updateIngredient(i, 'name', e.target.value)}
-                          placeholder="Name" className="flex-1 min-w-0 px-2 py-1 text-xs rounded border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                        <input type="number" value={ing.amount || ''} onChange={e => updateIngredient(i, 'amount', +e.target.value)}
-                          placeholder="0" className="w-16 px-2 py-1 text-xs rounded border bg-background focus:outline-none focus:ring-1 focus:ring-primary text-right" />
-                        <select value={ing.unit} onChange={e => updateIngredient(i, 'unit', e.target.value)}
-                          className="w-14 px-1 py-1 text-[10px] rounded border bg-background focus:outline-none focus:ring-1 focus:ring-primary">
-                          {['g','ml','tsp','tbsp','cup','oz','lb','unit','slice','piece'].map(u => (
-                            <option key={u} value={u}>{u}</option>
-                          ))}
-                        </select>
-                        <button onClick={() => removeIngredient(i)} className="p-1 text-muted-foreground hover:text-red-500 transition-colors">
-                          <X className="w-3 h-3" />
-                        </button>
+                <div className="space-y-2">
+                  {form.ingredients.map((ingredient, index) => (
+                    <div key={index} className="grid grid-cols-[18px_minmax(0,1fr)_88px_92px_36px] gap-2">
+                      <div className="flex items-center justify-center text-muted-foreground">
+                        <GripVertical className="h-4 w-4" />
                       </div>
-                    ))}
-                    {form.ingredients.length === 0 && (
-                      <p className="text-[10px] text-muted-foreground italic">No ingredients added yet</p>
-                    )}
-                  </div>
+                      <input
+                        value={ingredient.name}
+                        onChange={(e) => updateIngredient(index, 'name', e.target.value)}
+                        placeholder={tr('Ingrediente', 'Ingredient')}
+                        className="portal-input h-10 rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                      />
+                      <input
+                        type="number"
+                        value={ingredient.amount || ''}
+                        onChange={(e) => updateIngredient(index, 'amount', +e.target.value)}
+                        className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                      />
+                      <select
+                        value={ingredient.unit}
+                        onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                        className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none"
+                      >
+                        {['g', 'ml', 'tsp', 'tbsp', 'cup', 'oz', 'lb', 'unit', 'slice', 'piece'].map(
+                          (unit) => (
+                            <option key={unit} value={unit}>
+                              {unit}
+                            </option>
+                          ),
+                        )}
+                      </select>
+                      <button
+                        onClick={() => removeIngredient(index)}
+                        className="rounded-xl text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                      >
+                        <X className="mx-auto h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {form.ingredients.length === 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      {tr('Todavía no hay ingredientes.', 'No ingredients yet.')}
+                    </p>
+                  )}
                 </div>
+              </div>
 
-                <div className="col-span-2">
-                  <label className="text-[11px] font-medium text-muted-foreground">Instructions</label>
-                  <textarea value={form.instructions} onChange={e => setForm(p => ({...p, instructions: e.target.value}))} rows={4}
-                    className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => setShowForm(false)} className="px-4 py-1.5 text-xs rounded-lg border hover:bg-secondary transition-colors">Cancel</button>
-                <button onClick={handleSave} disabled={createRecipe.isPending || updateRecipe.isPending}
-                  className="px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
-                  {(createRecipe.isPending || updateRecipe.isPending) ? 'Saving...' : editingId ? 'Update' : 'Create'}
-                </button>
-              </div>
+              <Field label={tr('Instrucciones', 'Instructions')} className="md:col-span-2">
+                <textarea
+                  value={form.instructions}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, instructions: e.target.value }))
+                  }
+                  rows={4}
+                  placeholder={tr('Describe la preparación paso a paso...', 'Describe the preparation step by step...')}
+                  className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                />
+              </Field>
+            </div>
+
+            <div className="mt-5 flex justify-end gap-3 border-t border-border pt-4">
+              <button
+                onClick={() => setShowForm(false)}
+                className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+              >
+                {tr('Cancelar', 'Cancel')}
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={createRecipe.isPending || updateRecipe.isPending}
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              >
+                {createRecipe.isPending || updateRecipe.isPending
+                  ? tr('Guardando...', 'Saving...')
+                  : editingId
+                    ? tr('Actualizar receta', 'Update recipe')
+                    : tr('Crear receta', 'Create recipe')}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation */}
       <ConfirmDialog
         open={deleteConfirm !== null}
-        title="Delete recipe"
-        message="This action cannot be undone. The recipe will be removed from your library."
-        onConfirm={() => { if (deleteConfirm) deleteRecipe.mutate(deleteConfirm); setDeleteConfirm(null); }}
+        title={tr('Eliminar receta', 'Delete recipe')}
+        message={tr(
+          'Esta acción no se puede deshacer. La receta se eliminará definitivamente de la biblioteca profesional.',
+          'This action cannot be undone. The recipe will be permanently removed from the professional library.',
+        )}
+        onConfirm={() => {
+          if (deleteConfirm) {
+            deleteRecipe.mutate(deleteConfirm);
+          }
+          setDeleteConfirm(null);
+        }}
         onCancel={() => setDeleteConfirm(null)}
         loading={deleteRecipe.isPending}
       />
 
-      {/* Propose to Client Modal */}
       {proposeTarget && (
-        <ProposeModal
-          clients={clients || []}
-          onSubmit={handlePropose}
-          onClose={() => setProposeTarget(null)}
-        />
+        <ProposeModal clients={clients || []} onSubmit={handlePropose} onClose={() => setProposeTarget(null)} />
       )}
     </div>
   );
 };
 
-function ProposeModal({ clients, onSubmit, onClose }: {
-  clients: { client_id: string; id: string }[];
+function ProposeModal({
+  clients,
+  onSubmit,
+  onClose,
+}: {
+  clients: { client_id: string; id: string; display_name?: string | null }[];
   onSubmit: (clientId: string, note: string) => void;
   onClose: () => void;
 }) {
+  const { tr } = usePortalI18n();
   const [clientId, setClientId] = useState('');
   const [note, setNote] = useState('');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-2xl p-6 w-full max-w-sm m-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold">Propose Recipe</h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-secondary"><X className="w-4 h-4" /></button>
-        </div>
-        <div className="space-y-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div className="glass-card w-full max-w-sm rounded-[1.8rem] p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
           <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Client</label>
-            <select value={clientId} onChange={e => setClientId(e.target.value)}
-              className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary">
-              <option value="">Select a client...</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.client_id}>{c.client_id.slice(0, 8)}...</option>
+            <h3 className="text-lg font-bold text-foreground">{tr('Proponer receta', 'Propose recipe')}</h3>
+            <p className="text-sm text-muted-foreground">
+              {tr('Enviar a un cliente conectado', 'Send to a connected client')}
+            </p>
+          </div>
+          <button onClick={onClose} className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-4">
+          <Field label={tr('Cliente conectado', 'Connected client')}>
+            <select
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+            >
+              <option value="">{tr('Selecciona un cliente...', 'Select a client...')}</option>
+              {clients.map((client) => (
+                <option key={client.id} value={client.client_id}>
+                  {client.display_name || client.client_id.slice(0, 8)}
+                </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="text-[11px] font-medium text-muted-foreground">Note (optional)</label>
-            <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
-              className="w-full mt-1 px-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary" />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <button onClick={onClose} className="px-4 py-1.5 text-xs rounded-lg border hover:bg-secondary transition-colors">Cancel</button>
-            <button onClick={() => onSubmit(clientId, note)} disabled={!clientId}
-              className="px-4 py-1.5 text-xs rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
-              Send
+          </Field>
+          <Field label={tr('Nota opcional', 'Optional note')}>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder={tr('Ej. Prueba esta opción para la cena.', 'E.g. Try this option for dinner.')}
+              className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+            />
+          </Field>
+          <div className="flex justify-end gap-3 border-t border-border pt-4">
+            <button
+              onClick={onClose}
+              className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+            >
+              {tr('Cancelar', 'Cancel')}
+            </button>
+            <button
+              onClick={() => onSubmit(clientId, note)}
+              disabled={!clientId}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            >
+              {tr('Enviar propuesta', 'Send proposal')}
             </button>
           </div>
         </div>
@@ -446,3 +698,73 @@ function ProposeModal({ clients, onSubmit, onClose }: {
     </div>
   );
 }
+
+const StatCard: React.FC<{ label: string; value: number; note: string }> = ({
+  label,
+  value,
+  note,
+}) => (
+  <div className="portal-panel rounded-[1.4rem] p-4">
+    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+    <p className="portal-metric mt-2 text-3xl font-extrabold text-foreground">{value}</p>
+    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+  </div>
+);
+
+const IconAction: React.FC<{
+  title: string;
+  onClick: () => void;
+  icon: React.ReactNode;
+  danger?: boolean;
+}> = ({ title, onClick, icon, danger = false }) => (
+  <button
+    onClick={onClick}
+    title={title}
+    className={`rounded-xl p-2 transition-colors ${
+      danger
+        ? 'text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500'
+        : 'text-muted-foreground hover:bg-primary/10 hover:text-primary'
+    }`}
+  >
+    {icon}
+  </button>
+);
+
+const MacroMini: React.FC<{
+  label: string;
+  value: number | null | undefined;
+  tone: 'rose' | 'emerald' | 'blue' | 'amber';
+  suffix?: string;
+}> = ({ label, value, tone, suffix = '' }) => {
+  const toneClass = {
+    rose: 'text-rose-500 bg-rose-500/8',
+    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/8',
+    blue: 'text-sky-600 dark:text-sky-400 bg-sky-500/8',
+    amber: 'text-amber-600 dark:text-amber-400 bg-amber-500/8',
+  }[tone];
+
+  return (
+    <div className={`rounded-xl px-3 py-3 text-center ${toneClass}`}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{label}</p>
+      <p className="mt-1 text-sm font-extrabold">
+        {value ?? '--'}
+        {suffix}
+      </p>
+    </div>
+  );
+};
+
+const Field: React.FC<{
+  label: string;
+  required?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}> = ({ label, required = false, className = '', children }) => (
+  <div className={`space-y-2 ${className}`}>
+    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+      {label}
+      {required ? ' *' : ''}
+    </label>
+    {children}
+  </div>
+);

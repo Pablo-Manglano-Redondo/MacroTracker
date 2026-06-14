@@ -20,7 +20,7 @@ MacroTracker can send limited data outside the device only when the user enables
 - AI meal interpretation: meal text or selected meal photos may be sent to EPSAIT's Supabase Edge Functions for inference. The app requires user review before saving any AI result.
 - Anonymous diagnostics: if the user opts in, crash and diagnostic data may be sent to Sentry to improve stability.
 - Google Drive backup: if the user connects Google Drive, encrypted backup files are uploaded to the user's own Google Drive account.
-- Professional plan sharing: if the user accepts an invite from a professional, MacroTracker creates a Supabase cloud identity and shares only aggregate plan-adherence snapshots with that professional. Shared snapshots include daily calories, macronutrient totals and targets, meal count, optional body weight if enabled in a future version, and sync timestamps. The raw meal diary, food names, photos, recipes, and full activity records are not shared in this version.
+- Professional plan sharing: if the user accepts an invite from a professional, MacroTracker creates a Supabase cloud identity and starts with aggregate-only sharing for that relationship. Shared snapshots include daily calories, macronutrient totals and targets, meal count, optional body weight if enabled in a future version, and sync timestamps. The raw meal diary, food names, photos, recipes, and full activity records are not shared by default. If the user later enables detailed sharing explicitly inside the app, the professional may also read raw diary entries and per-meal detail for that relationship until the user changes the sharing level again or revokes access.
 
 ## Health Connect
 

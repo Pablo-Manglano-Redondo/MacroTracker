@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,7 +13,8 @@ import 'package:macrotracker/features/professional_plan/domain/entity/profession
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class FakeSupabaseIdentityService extends Fake implements SupabaseIdentityService {
+class FakeSupabaseIdentityService extends Fake
+    implements SupabaseIdentityService {
   final Object? ensureUserSessionError;
 
   FakeSupabaseIdentityService({this.ensureUserSessionError});
@@ -64,7 +64,8 @@ class FakeSupabaseQueryBuilder extends Fake implements SupabaseQueryBuilder {
   }
 }
 
-class FakePostgrestFilterBuilder<T> extends Fake implements PostgrestFilterBuilder<T> {
+class FakePostgrestFilterBuilder<T> extends Fake
+    implements PostgrestFilterBuilder<T> {
   final Future<T> future;
 
   FakePostgrestFilterBuilder({required this.future});
@@ -109,7 +110,8 @@ void main() {
 
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
-      tempDir = await Directory.systemTemp.createTemp('macrotracker_sync_queue_test_');
+      tempDir = await Directory.systemTemp
+          .createTemp('macrotracker_sync_queue_test_');
 
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -130,7 +132,8 @@ void main() {
       }
     });
 
-    test('uploadDailySnapshot queues failed sync requests on network error', () async {
+    test('uploadDailySnapshot queues failed sync requests on network error',
+        () async {
       final fakeSupabase = FakeSupabaseClient(
         onUpsert: (data) async {
           throw const SocketException('No internet connection');
@@ -179,13 +182,16 @@ void main() {
 
       // Verify it was written to the queue
       expect(hiveProvider.professionalPlanSyncQueueBox.length, 1);
-      final queuedItem = hiveProvider.professionalPlanSyncQueueBox.values.single;
+      final queuedItem =
+          hiveProvider.professionalPlanSyncQueueBox.values.single;
       expect(queuedItem.relationshipId, 'rel-123');
       expect(queuedItem.kcalActual, 2000);
       expect(queuedItem.day, DateTime(2026, 6, 7));
     });
 
-    test('processPendingSyncs uploads queued requests successfully and clears them', () async {
+    test(
+        'processPendingSyncs uploads queued requests successfully and clears them',
+        () async {
       final List<Map<String, dynamic>> uploadedData = [];
 
       final fakeSupabase = FakeSupabaseClient(
@@ -219,7 +225,8 @@ void main() {
         mealsLogged: 4,
         createdAt: DateTime.now(),
       );
-      await hiveProvider.professionalPlanSyncQueueBox.put(pendingItem.id, pendingItem);
+      await hiveProvider.professionalPlanSyncQueueBox
+          .put(pendingItem.id, pendingItem);
       expect(hiveProvider.professionalPlanSyncQueueBox.length, 1);
 
       // Process pending syncs
@@ -231,7 +238,8 @@ void main() {
       expect(hiveProvider.professionalPlanSyncQueueBox.length, 0);
     });
 
-    test('processPendingSyncs keeps queued snapshots on auth failure', () async {
+    test('processPendingSyncs keeps queued snapshots on auth failure',
+        () async {
       final fakeSupabase = FakeSupabaseClient(
         onUpsert: (data) async {},
       );
@@ -262,13 +270,16 @@ void main() {
         mealsLogged: 4,
         createdAt: DateTime.now(),
       );
-      await hiveProvider.professionalPlanSyncQueueBox.put(pendingItem.id, pendingItem);
+      await hiveProvider.professionalPlanSyncQueueBox
+          .put(pendingItem.id, pendingItem);
 
       await dataSource.processPendingSyncs();
 
       expect(hiveProvider.professionalPlanSyncQueueBox.length, 1);
       expect(
-        hiveProvider.professionalPlanSyncQueueBox.get(pendingItem.id)?.relationshipId,
+        hiveProvider.professionalPlanSyncQueueBox
+            .get(pendingItem.id)
+            ?.relationshipId,
         'rel-123',
       );
     });
@@ -323,7 +334,8 @@ void main() {
       expect(await dataSource.getUnseenSectionCount(), 0);
     });
 
-    test('unseen section count includes unread professional messages', () async {
+    test('unseen section count includes unread professional messages',
+        () async {
       final fakeSupabase = FakeSupabaseClient(
         onUpsert: (data) async {},
       );

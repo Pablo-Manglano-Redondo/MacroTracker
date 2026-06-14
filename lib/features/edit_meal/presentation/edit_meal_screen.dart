@@ -309,7 +309,9 @@ class _EditMealScreenState extends State<EditMealScreen> {
               newMealEntity, _intakeTypeEntity, _day, usesImperialUnits));
     } catch (exception, stacktrace) {
       log.warning("Error while creating new meal entity");
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      if (_shouldReportToSentry(exception)) {
+        Sentry.captureException(exception, stackTrace: stacktrace);
+      }
 
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(S.of(context).errorMealSave)));
@@ -348,6 +350,15 @@ class _EditMealScreenState extends State<EditMealScreen> {
       default:
         return value;
     }
+  }
+
+  bool _shouldReportToSentry(Object error) {
+    if (error is FormatException) {
+      return false;
+    }
+    final raw = error.toString().toLowerCase();
+    return !raw.contains('invalid double') &&
+        !raw.contains('formatexception');
   }
 }
 

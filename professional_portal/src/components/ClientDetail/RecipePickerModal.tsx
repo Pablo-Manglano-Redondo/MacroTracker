@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { ChefHat, Search, X } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { useRecipes } from '../../hooks/queries/useRecipes';
-import { X, Search, ChefHat } from 'lucide-react';
 import type { ProfessionalRecipe } from '../../types/database.types';
+import { usePortalI18n } from '../../lib/portal-i18n';
 
 interface RecipePickerModalProps {
   mealType: string;
@@ -10,55 +11,86 @@ interface RecipePickerModalProps {
   onClose: () => void;
 }
 
-export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({ mealType, onSelect, onClose }) => {
+export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
+  mealType,
+  onSelect,
+  onClose,
+}) => {
   const { professional } = useAuth();
+  const { tr } = usePortalI18n();
   const { data: recipes, isLoading } = useRecipes(professional?.id);
   const [search, setSearch] = useState('');
 
-  const filtered = (recipes || []).filter(r => {
-    if (mealType !== 'snack' && r.meal_type !== mealType && r.meal_type !== null) return false;
-    if (search && !r.title.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = useMemo(
+    () =>
+      (recipes || []).filter((recipe) => {
+        if (mealType !== 'snack' && recipe.meal_type !== mealType && recipe.meal_type !== null) {
+          return false;
+        }
+        if (search && !recipe.title.toLowerCase().includes(search.toLowerCase())) {
+          return false;
+        }
+        return true;
+      }),
+    [mealType, recipes, search],
+  );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-card rounded-2xl p-6 w-full max-w-lg max-h-[70vh] flex flex-col m-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-bold flex items-center gap-2">
-            <ChefHat className="w-4 h-4 text-primary" />
-            Assign Recipe
-          </h3>
-          <button onClick={onClose} className="p-1 rounded-md hover:bg-secondary"><X className="w-4 h-4" /></button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="glass-card flex max-h-[70vh] w-full max-w-lg flex-col rounded-[1.8rem] p-6"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ChefHat className="h-4.5 w-4.5 text-primary" />
+            <h3 className="text-base font-bold text-foreground">{tr('Asignar receta', 'Assign recipe')}</h3>
+          </div>
+          <button onClick={onClose} className="rounded-xl p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-          <input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search recipes..."
-            className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder={tr('Buscar recetas', 'Search recipes')}
+            className="portal-input h-10 w-full rounded-xl pl-9 pr-3 text-sm font-medium outline-none focus:border-primary"
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
+        <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
           {isLoading ? (
-            <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-14 rounded-lg bg-muted/30 animate-pulse" />)}</div>
+            <div className="space-y-2">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="portal-panel h-14 rounded-xl animate-pulse" />
+              ))}
+            </div>
           ) : filtered.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-8">No matching recipes</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              {tr('No hay recetas que coincidan.', 'No matching recipes.')}
+            </p>
           ) : (
-            filtered.map(r => (
-              <button key={r.id} onClick={() => onSelect(r)}
-                className="w-full text-left p-3 rounded-lg border bg-card hover:bg-secondary/40 transition-colors flex items-center justify-between gap-3">
+            filtered.map((recipe) => (
+              <button
+                key={recipe.id}
+                onClick={() => onSelect(recipe)}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-accent"
+              >
                 <div className="min-w-0">
-                  <p className="text-xs font-medium truncate">{r.title}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {r.kcal != null && `${r.kcal} kcal`}
-                    {r.protein != null && ` · P: ${r.protein}g`}
-                    {r.carbs != null && ` · C: ${r.carbs}g`}
-                    {r.fat != null && ` · F: ${r.fat}g`}
+                  <p className="truncate text-sm font-semibold text-foreground">{recipe.title}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {recipe.kcal != null ? `${recipe.kcal} kcal` : ''}
+                    {recipe.protein != null ? ` · P: ${recipe.protein}g` : ''}
+                    {recipe.carbs != null ? ` · C: ${recipe.carbs}g` : ''}
+                    {recipe.fat != null ? ` · F: ${recipe.fat}g` : ''}
                   </p>
                 </div>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 capitalize">{r.meal_type}</span>
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold capitalize text-primary">
+                  {recipe.meal_type || mealType}
+                </span>
               </button>
             ))
           )}

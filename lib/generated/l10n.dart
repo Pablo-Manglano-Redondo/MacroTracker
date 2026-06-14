@@ -5981,20 +5981,20 @@ class S {
     );
   }
 
-  /// `Nutrition coach`
+  /// `Nutritionist`
   String get professionalScreenTitle {
     return Intl.message(
-      'Nutrition coach',
+      'Nutritionist',
       name: 'professionalScreenTitle',
       desc: '',
       args: [],
     );
   }
 
-  /// `Connect with your nutrition coach`
+  /// `Connect with your nutritionist`
   String get professionalHeroConnectTitle {
     return Intl.message(
-      'Connect with your nutrition coach',
+      'Connect with your nutritionist',
       name: 'professionalHeroConnectTitle',
       desc: '',
       args: [],
@@ -6041,10 +6041,10 @@ class S {
     );
   }
 
-  /// `To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.`
+  /// `To connect with a nutritionist, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.`
   String get professionalProtectAccountBody {
     return Intl.message(
-      'To connect with a coach, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.',
+      'To connect with a nutritionist, protect your cloud account with Google first. This keeps your account recoverable and preserves consent if you change phones. This does not enable Google Drive.',
       name: 'professionalProtectAccountBody',
       desc: '',
       args: [],
@@ -6511,16 +6511,6 @@ class S {
     );
   }
 
-  /// `Use debug invite`
-  String get professionalInviteDebugAction {
-    return Intl.message(
-      'Use debug invite',
-      name: 'professionalInviteDebugAction',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `What is shared today`
   String get professionalConsentSharedToday {
     return Intl.message(
@@ -6541,20 +6531,20 @@ class S {
     );
   }
 
-  /// `kcal, macros, logged meals, and aggregate adherence by day`
+  /// `kcal, macros, logged meals, aggregate adherence by day, and bidirectional messaging`
   String get professionalConsentSharedTodayBody {
     return Intl.message(
-      'kcal, macros, logged meals, and aggregate adherence by day',
+      'kcal, macros, logged meals, aggregate adherence by day, and bidirectional messaging',
       name: 'professionalConsentSharedTodayBody',
       desc: '',
       args: [],
     );
   }
 
-  /// `full raw diary, per-meal detail, and bidirectional chat`
+  /// `full raw diary and per-meal detail unless you enable detailed sharing later`
   String get professionalConsentNotSharedTodayBody {
     return Intl.message(
-      'full raw diary, per-meal detail, and bidirectional chat',
+      'full raw diary and per-meal detail unless you enable detailed sharing later',
       name: 'professionalConsentNotSharedTodayBody',
       desc: '',
       args: [],
