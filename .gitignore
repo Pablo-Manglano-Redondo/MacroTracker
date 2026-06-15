@@ -38,6 +38,8 @@ ios/Flutter/GoogleDrive.xcconfig
 node_modules/
 package-lock.json
 package.json
+!professional_portal/package-lock.json
+!professional_portal/package.json
 test_env.dart
 
 # API Keys
