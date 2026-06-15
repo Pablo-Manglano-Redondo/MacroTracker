@@ -39,5 +39,8 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Create config file
+        run: cp config.example.js config.js
+
       - name: Verify portal
         run: npm run verify
