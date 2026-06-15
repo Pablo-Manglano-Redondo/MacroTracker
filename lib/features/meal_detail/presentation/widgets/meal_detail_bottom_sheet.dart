@@ -39,14 +39,17 @@ class MealDetailBottomSheet extends StatelessWidget {
 
     final inputDecoration = InputDecoration(
       filled: true,
-      fillColor: isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainerLow,
+      fillColor: isDark
+          ? colorScheme.surfaceContainerHigh
+          : colorScheme.surfaceContainerLow,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
+        borderSide: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.3)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
@@ -65,7 +68,8 @@ class MealDetailBottomSheet extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.22 : 0.45),
+                color: colorScheme.outlineVariant
+                    .withValues(alpha: isDark ? 0.22 : 0.45),
                 width: 1,
               ),
               color: colorScheme.surface,
@@ -103,8 +107,9 @@ class MealDetailBottomSheet extends StatelessWidget {
                                       quantityTextController.text,
                                       selectedUnit);
                                 }),
-                              keyboardType: const TextInputType.numberWithOptions(
-                                  decimal: true),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
                               inputFormatters: [
                                 FilteringTextInputFormatter.allow(
                                     RegExp(r'^\d+([.,]\d{0,2})?$'))
@@ -163,7 +168,8 @@ class MealDetailBottomSheet extends StatelessWidget {
                             icon: const Icon(Icons.add_rounded),
                             label: Text(
                               S.of(context).addLabel,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
                             )),
                       ),
                       if (productMissingRequiredInfo) ...[
@@ -172,8 +178,7 @@ class MealDetailBottomSheet extends StatelessWidget {
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
-                                ?.copyWith(
-                                    color: colorScheme.error)),
+                                ?.copyWith(color: colorScheme.error)),
                       ],
                     ],
                   ),
@@ -197,13 +202,8 @@ class MealDetailBottomSheet extends StatelessWidget {
   }
 
   void onAddButtonPressed(BuildContext context) {
-    mealDetailBloc.addIntake(
-        context,
-        mealDetailBloc.state.selectedUnit,
-        mealDetailBloc.state.totalQuantityConverted,
-        intakeTypeEntity,
-        product,
-        day);
+    mealDetailBloc.addIntake(context, mealDetailBloc.state.selectedUnit,
+        quantityTextController.text, intakeTypeEntity, product, day);
 
     // Refresh Home Page
     locator<HomeBloc>().add(const LoadItemsEvent());

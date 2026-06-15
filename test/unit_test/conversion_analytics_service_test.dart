@@ -65,7 +65,14 @@ void main() {
         inputType: 'photo',
         category: 'timeout',
       );
-      await service.logAiInterpretationCompleted(inputType: 'photo');
+      await service.logAiInterpretationCompleted(
+        inputType: 'photo',
+        remoteMs: 10300,
+        edgeMs: 9100,
+        geminiMs: 8400,
+        modelAttempts: 1,
+        fallbackUsed: false,
+      );
 
       expect(
         client.events.map((event) => event.name).toList(),
@@ -78,6 +85,14 @@ void main() {
       );
       expect(client.events[1].parameters['failure_category'], 'timeout');
       expect(client.events[2].parameters['input_type'], 'photo');
+      expect(client.events[3].parameters, {
+        'input_type': 'photo',
+        'remote_ms': 10300,
+        'edge_ms': 9100,
+        'gemini_ms': 8400,
+        'model_attempts': 1,
+        'fallback_used': 'false',
+      });
     });
   });
 }

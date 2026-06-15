@@ -66,4 +66,32 @@ class MealInterpretationRepository {
     await _draftRepository.saveDraft(draft);
     return draft;
   }
+
+  Future<MealInterpretationRemoteResult> interpretPhotoWithDiagnostics({
+    required Uint8List imageBytes,
+    required String fileName,
+    required String mimeType,
+    required String locale,
+    required String unitSystem,
+    String? mealTypeHint,
+    String? analysisContext,
+    List<Map<String, dynamic>> personalExamples = const [],
+  }) async {
+    final result = await _remoteDataSource.interpretPhoto(
+      imageBytes: imageBytes,
+      fileName: fileName,
+      mimeType: mimeType,
+      locale: locale,
+      unitSystem: unitSystem,
+      mealTypeHint: mealTypeHint,
+      analysisContext: analysisContext,
+      personalExamples: personalExamples,
+    );
+    await _configRepository.addAiEstimatedCost(
+      isPhoto: true,
+      usdCost: result.estimatedCostUsd,
+    );
+    await _draftRepository.saveDraft(result.draft);
+    return result;
+  }
 }

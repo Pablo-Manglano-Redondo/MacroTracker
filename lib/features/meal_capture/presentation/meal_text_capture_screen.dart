@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
@@ -453,7 +451,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
 
       final draft = await locator<InterpretMealFromTextUsecase>().interpret(
         text: input,
-        locale: Platform.localeName,
+        locale: _appLocaleTag(context),
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
         analysisContext: personalizationContext.promptContext,
@@ -506,6 +504,15 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
   }
 
   bool get _isSpanish => Localizations.localeOf(context).languageCode == 'es';
+
+  String _appLocaleTag(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final countryCode = locale.countryCode;
+    if (countryCode == null || countryCode.isEmpty) {
+      return locale.languageCode;
+    }
+    return '${locale.languageCode}-$countryCode';
+  }
 
   String get _loadingStepLabel => _isSpanish
       ? 'Analizando ingredientes y cantidades'

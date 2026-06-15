@@ -601,9 +601,9 @@ class ProfessionalPlanDataSource {
         .update({
           'sharing_mode': sharingMode,
         })
-        .select('id, sharing_mode')
         .eq('id', relationshipId)
         .eq('client_id', clientId)
+        .select('id, sharing_mode')
         .maybeSingle();
 
     if (response == null) {

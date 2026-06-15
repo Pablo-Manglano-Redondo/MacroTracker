@@ -11,6 +11,7 @@ Deno.serve(async (request) => {
   }
 
   try {
+    const startedAt = performance.now();
     const body = await request.json();
     const imageBase64 = typeof body?.imageBase64 === "string"
       ? body.imageBase64.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "")
@@ -39,6 +40,23 @@ Deno.serve(async (request) => {
           ? body.personalExamples
           : null,
     });
+
+    const diagnostics = draft?.processing?.diagnostics;
+    console.log(
+      JSON.stringify({
+        tag: "meal-interpretations-photo",
+        edgeTotalMs: Math.round(performance.now() - startedAt),
+        inputImageBytes: diagnostics?.inputImageBytes ?? null,
+        promptChars: diagnostics?.promptChars ?? null,
+        geminiFetchMs: diagnostics?.geminiFetchMs ?? null,
+        responseParseMs: diagnostics?.responseParseMs ?? null,
+        normalizeMs: diagnostics?.normalizeMs ?? null,
+        personalExamplesCount: diagnostics?.personalExamplesCount ?? null,
+        correctionExamplesCount: diagnostics?.correctionExamplesCount ?? null,
+        modelAttempts: diagnostics?.modelAttempts ?? null,
+        fallbackUsed: diagnostics?.fallbackUsed ?? null,
+      }),
+    );
 
     return jsonResponse(draft);
   } catch (error) {

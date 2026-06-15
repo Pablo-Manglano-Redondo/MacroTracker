@@ -135,6 +135,32 @@ void main() {
       expect(draft.items.single.removed, isTrue);
     });
 
+    test('uses Spanish fallback copy when locale is Spanish', () {
+      final draft = dataSource.mapDraftResponse({
+        'sourceType': 'photo',
+        'totals': {
+          'kcal': 0,
+          'carbs': 0,
+          'fat': 0,
+          'protein': 0,
+        },
+        'items': [
+          {
+            'amount': 1,
+            'unit': 'serving',
+            'kcal': 0,
+            'carbs': 0,
+            'fat': 0,
+            'protein': 0,
+          },
+        ],
+      }, fallbackTitle: 'Comida por foto', locale: 'es-ES');
+
+      expect(draft.title, 'Comida por foto');
+      expect(draft.summary, 'Estimacion de comida generada por IA.');
+      expect(draft.items.single.label, 'Ingrediente detectado');
+    });
+
     test('throws FormatException for non-object responses', () {
       expect(
         () => dataSource.mapDraftResponse(['not', 'an', 'object'],
@@ -151,6 +177,21 @@ void main() {
       expect(failure.category, MealInterpretationFailureCategory.timeout);
       expect(failure.isTransient, isTrue);
       expect(failure.reportToSentry, isFalse);
+    });
+
+    test('does not retry photo timeouts', () {
+      const failure = MealInterpretationRemoteException(
+        category: MealInterpretationFailureCategory.timeout,
+      );
+
+      expect(
+        dataSource.shouldRetryInterpretation('photo', failure),
+        isFalse,
+      );
+      expect(
+        dataSource.shouldRetryInterpretation('text', failure),
+        isTrue,
+      );
     });
 
     test('classifies auth failures without treating them as transient', () {

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:macrotracker/core/data/dbo/intake_dbo.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
+import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 
 class IntakeEntity extends Equatable {
@@ -30,15 +31,16 @@ class IntakeEntity extends Equatable {
         dateTime: intakeDBO.dateTime);
   }
 
-  double get totalKcal => amount * (meal.nutriments.energyPerUnit ?? 0);
+  MealPortionNutrition get _nutrition =>
+      MealPortionCalculator.calculate(meal, amount, unit);
 
-  double get totalCarbsGram =>
-      amount * (meal.nutriments.carbohydratesPerUnit ?? 0);
+  double get totalKcal => _nutrition.kcal;
 
-  double get totalFatsGram => amount * (meal.nutriments.fatPerUnit ?? 0);
+  double get totalCarbsGram => _nutrition.carbs;
 
-  double get totalProteinsGram =>
-      amount * (meal.nutriments.proteinsPerUnit ?? 0);
+  double get totalFatsGram => _nutrition.fat;
+
+  double get totalProteinsGram => _nutrition.protein;
 
   @override
   List<Object?> get props => [id, unit, amount, type, dateTime];

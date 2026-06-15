@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
@@ -167,6 +168,20 @@ class _MealInterpretationReviewScreenState
             _draft!.localImagePath!.trim().isNotEmpty) ...[
           const SizedBox(height: 12),
           _DraftImagePreviewCard(imagePath: _draft!.localImagePath!),
+        ],
+        if (kDebugMode &&
+            (_args.photoOriginalBytes != null ||
+                _args.photoPreparedBytes != null ||
+                _args.photoPrepareMs != null ||
+                _args.photoRemoteMs != null ||
+                _args.photoRemoteEdgeMs != null ||
+                _args.photoRemoteGeminiMs != null ||
+                _args.photoModelAttempts != null ||
+                _args.photoFallbackUsed != null ||
+                _args.photoPersonalizeMs != null ||
+                _args.photoTotalMs != null)) ...[
+          const SizedBox(height: 12),
+          _PhotoAiDiagnosticsCard(arguments: _args),
         ],
         const SizedBox(height: 16),
         _MacroHeroCard(
@@ -2271,9 +2286,32 @@ class MealInterpretationReviewScreenArguments {
   final String draftId;
   final DateTime day;
   final IntakeTypeEntity intakeTypeEntity;
+  final int? photoOriginalBytes;
+  final int? photoPreparedBytes;
+  final int? photoPrepareMs;
+  final int? photoRemoteMs;
+  final int? photoRemoteEdgeMs;
+  final int? photoRemoteGeminiMs;
+  final int? photoModelAttempts;
+  final bool? photoFallbackUsed;
+  final int? photoPersonalizeMs;
+  final int? photoTotalMs;
 
   MealInterpretationReviewScreenArguments(
-      this.draftId, this.day, this.intakeTypeEntity);
+    this.draftId,
+    this.day,
+    this.intakeTypeEntity, {
+    this.photoOriginalBytes,
+    this.photoPreparedBytes,
+    this.photoPrepareMs,
+    this.photoRemoteMs,
+    this.photoRemoteEdgeMs,
+    this.photoRemoteGeminiMs,
+    this.photoModelAttempts,
+    this.photoFallbackUsed,
+    this.photoPersonalizeMs,
+    this.photoTotalMs,
+  });
 }
 
 class _IngredientPortionResult {
@@ -2284,6 +2322,161 @@ class _IngredientPortionResult {
     required this.amount,
     required this.unit,
   });
+}
+
+class _PhotoAiDiagnosticsCard extends StatelessWidget {
+  final MealInterpretationReviewScreenArguments arguments;
+
+  const _PhotoAiDiagnosticsCard({required this.arguments});
+
+  @override
+  Widget build(BuildContext context) {
+    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isSpanish ? 'Diagnostico IA foto' : 'Photo AI diagnostics',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 10),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Original' : 'Original',
+              value: _formatBytes(arguments.photoOriginalBytes),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Preparada' : 'Prepared',
+              value: _formatBytes(arguments.photoPreparedBytes),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Preparar' : 'Prepare',
+              value: _formatMs(arguments.photoPrepareMs),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Remoto' : 'Remote',
+              value: _formatMs(arguments.photoRemoteMs),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Edge' : 'Edge',
+              value: _formatMs(arguments.photoRemoteEdgeMs),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Gemini' : 'Gemini',
+              value: _formatMs(arguments.photoRemoteGeminiMs),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Intentos' : 'Attempts',
+              value: _formatInt(arguments.photoModelAttempts),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Fallback' : 'Fallback',
+              value: _formatBool(
+                arguments.photoFallbackUsed,
+                isSpanish: isSpanish,
+              ),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Personalizar' : 'Personalize',
+              value: _formatMs(arguments.photoPersonalizeMs),
+            ),
+            _PhotoAiMetricRow(
+              label: isSpanish ? 'Total' : 'Total',
+              value: _formatMs(arguments.photoTotalMs),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isSpanish
+                  ? 'Estos valores son temporales y sirven para diagnosticar si el cuello esta en compresion, llamada remota o personalizacion.'
+                  : 'These values are temporary and help diagnose whether the bottleneck is compression, the remote call, or personalization.',
+              style: textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.35,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static String _formatBytes(int? bytes) {
+    if (bytes == null) {
+      return '--';
+    }
+    final kilobytes = bytes / 1024;
+    if (kilobytes < 1024) {
+      return '${kilobytes.toStringAsFixed(0)}KB';
+    }
+    final megabytes = kilobytes / 1024;
+    return '${megabytes.toStringAsFixed(2)}MB';
+  }
+
+  static String _formatMs(int? milliseconds) {
+    if (milliseconds == null) {
+      return '--';
+    }
+    if (milliseconds < 1000) {
+      return '${milliseconds}ms';
+    }
+    return '${(milliseconds / 1000).toStringAsFixed(1)}s';
+  }
+
+  static String _formatInt(int? value) => value?.toString() ?? '--';
+
+  static String _formatBool(bool? value, {required bool isSpanish}) {
+    if (value == null) {
+      return '--';
+    }
+    if (isSpanish) {
+      return value ? 'Si' : 'No';
+    }
+    return value ? 'Yes' : 'No';
+  }
+}
+
+class _PhotoAiMetricRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _PhotoAiMetricRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _IngredientPortionDialog extends StatefulWidget {

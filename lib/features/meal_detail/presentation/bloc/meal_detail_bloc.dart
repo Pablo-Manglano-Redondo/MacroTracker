@@ -9,6 +9,7 @@ import 'package:macrotracker/core/domain/usecase/add_tracked_day_usecase.dart';
 import 'package:macrotracker/core/domain/usecase/get_gym_targets_usecase.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
+import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
@@ -37,13 +38,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
           return;
         }
 
-        final energyPerUnit = (event.meal.nutriments.energyPerUnit ?? 0);
-        final carbsPerUnit = (event.meal.nutriments.carbohydratesPerUnit ?? 0);
-        final fatPerUnit = (event.meal.nutriments.fatPerUnit ?? 0);
-        final proteinPerUnit = (event.meal.nutriments.proteinsPerUnit ?? 0);
-
         final quantity =
             double.parse(selectedTotalQuantity.replaceAll(',', '.'));
+        final nutrition =
+            MealPortionCalculator.calculate(event.meal, quantity, selectedUnit);
 
         // Convert quantity based on selected unit
         double convertedQuantity = quantity;
@@ -60,10 +58,10 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
 
         emit(state.copyWith(
             totalQuantityConverted: convertedQuantity.toString(),
-            totalKcal: convertedQuantity * energyPerUnit,
-            totalCarbs: convertedQuantity * carbsPerUnit,
-            totalFat: convertedQuantity * fatPerUnit,
-            totalProtein: convertedQuantity * proteinPerUnit,
+            totalKcal: nutrition.kcal,
+            totalCarbs: nutrition.carbs,
+            totalFat: nutrition.fat,
+            totalProtein: nutrition.protein,
             selectedUnit: selectedUnit));
       } catch (e) {
         log.severe('Error calculating kcal: $e');
@@ -116,8 +114,7 @@ class MealDetailBloc extends Bloc<MealDetailEvent, MealDetailState> {
       return false;
     }
     final raw = error.toString().toLowerCase();
-    return !raw.contains('invalid double') &&
-        !raw.contains('formatexception');
+    return !raw.contains('invalid double') && !raw.contains('formatexception');
   }
 }
 

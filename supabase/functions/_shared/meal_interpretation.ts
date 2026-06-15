@@ -53,9 +53,23 @@ export type MealInterpretationResponse = {
   items: MealInterpretationItem[];
 };
 
+export type MealInterpretationDiagnostics = {
+  edgeTotalMs: number;
+  geminiFetchMs: number;
+  responseParseMs: number;
+  normalizeMs: number;
+  promptChars: number;
+  inputImageBytes?: number;
+  personalExamplesCount: number;
+  correctionExamplesCount: number;
+  modelAttempts: number;
+  fallbackUsed: boolean;
+};
+
 export async function buildMealInterpretationDraft(
   request: MealInterpretationRequest,
 ) {
+  const totalTimer = performance.now();
   const model = Deno.env.get(
     request.mode === "photo"
       ? "GEMINI_MEAL_PHOTO_MODEL"
@@ -72,45 +86,271 @@ export async function buildMealInterpretationDraft(
   const endpoint =
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-  const response = await fetch(endpoint, {
+  const primaryRequest = request.mode === "photo"
+    ? buildFinalRetryRequest(request)
+    : request;
+  const systemPrompt = request.mode === "photo"
+    ? buildFinalRetryPrompt(request.locale)
+    : buildSystemPrompt(request.mode, request.locale);
+  const userContentParts = buildUserContentParts(primaryRequest);
+  const promptChars = systemPrompt.length +
+    userContentParts.reduce((sum, part) => {
+      const text = typeof part?.text === "string" ? part.text : "";
+      return sum + text.length;
+    }, 0);
+
+  const primaryAttempt = await requestGeminiPayload({
+    endpoint,
+    apiKey,
+    systemPrompt,
+    userContentParts,
+    generationConfig: buildGenerationConfig(request.mode),
+  });
+
+  let payload = primaryAttempt.payload;
+  let geminiFetchMs = primaryAttempt.geminiFetchMs;
+  let responseParseMs = primaryAttempt.responseParseMs;
+  let modelAttempts = 1;
+  let fallbackUsed = false;
+  let parsed = tryExtractStructuredResponse(payload);
+  if (request.mode === "photo" && parsed && !isUsablePhotoResponse(parsed)) {
+    console.warn(
+      JSON.stringify({
+        tag: "meal-interpretation-semantic-fallback",
+        mode: request.mode,
+        attempt: "primary",
+        reason: "incomplete-photo-nutrition",
+        payloadSummary: summarizeGeminiPayload(payload),
+      }),
+    );
+    parsed = null;
+  }
+
+  if (!parsed) {
+    console.warn(
+      JSON.stringify({
+        tag: "meal-interpretation-parse-fallback",
+        mode: request.mode,
+        attempt: "primary",
+        payloadSummary: summarizeGeminiPayload(payload),
+      }),
+    );
+
+    const fallbackAttempt = await requestGeminiPayload({
+      endpoint,
+      apiKey,
+      systemPrompt: request.mode === "photo"
+        ? buildComplexPhotoFallbackPrompt(request.locale)
+        : `${systemPrompt}\nReturn exactly one JSON object and nothing else.`,
+      userContentParts,
+      generationConfig: buildFallbackGenerationConfig(request.mode),
+    });
+
+    payload = fallbackAttempt.payload;
+    geminiFetchMs += fallbackAttempt.geminiFetchMs;
+    responseParseMs += fallbackAttempt.responseParseMs;
+    modelAttempts += 1;
+    fallbackUsed = true;
+    parsed = tryExtractStructuredResponse(payload);
+    if (request.mode === "photo" && parsed && !isUsablePhotoResponse(parsed)) {
+      console.warn(
+        JSON.stringify({
+          tag: "meal-interpretation-semantic-fallback",
+          mode: request.mode,
+          attempt: "fallback",
+          reason: "incomplete-photo-nutrition",
+          payloadSummary: summarizeGeminiPayload(payload),
+        }),
+      );
+      parsed = null;
+    }
+
+    if (!parsed) {
+      const finalRetryRequest = buildFinalRetryRequest(request);
+      const finalRetryPrompt = buildFinalRetryPrompt(request.locale);
+      const finalRetryParts = buildUserContentParts(finalRetryRequest);
+      const finalAttempt = await requestGeminiPayload({
+        endpoint,
+        apiKey,
+        systemPrompt: finalRetryPrompt,
+        userContentParts: finalRetryParts,
+        generationConfig: buildFinalRetryGenerationConfig(request.mode),
+      });
+
+      payload = finalAttempt.payload;
+      geminiFetchMs += finalAttempt.geminiFetchMs;
+      responseParseMs += finalAttempt.responseParseMs;
+      modelAttempts += 1;
+      parsed = tryExtractStructuredResponse(payload);
+      if (request.mode === "photo" && parsed && !isUsablePhotoResponse(parsed)) {
+        throw new Error(
+          `Structured response incomplete nutrition (${summarizeGeminiPayload(payload)})`,
+        );
+      }
+
+      if (!parsed) {
+        throw new Error(
+          `Structured response missing candidate text (${summarizeGeminiPayload(payload)})`,
+        );
+      }
+    }
+  }
+
+  const normalizeTimer = performance.now();
+  const diagnostics = buildDiagnostics(request, {
+    edgeTotalMs: 0,
+    geminiFetchMs,
+    responseParseMs,
+    normalizeMs: 0,
+    promptChars,
+    modelAttempts,
+    fallbackUsed,
+  });
+  const draft = normalizeDraftResponse(
+    parsed,
+    request,
+    model,
+    payload?.usageMetadata,
+    diagnostics,
+  );
+  const normalizeMs = Math.round(performance.now() - normalizeTimer);
+  draft.processing.diagnostics = buildDiagnostics(request, {
+    edgeTotalMs: Math.round(performance.now() - totalTimer),
+    geminiFetchMs,
+    responseParseMs,
+    normalizeMs,
+    promptChars,
+    modelAttempts,
+    fallbackUsed,
+  });
+  return draft;
+}
+
+async function requestGeminiPayload(args: {
+  endpoint: string;
+  apiKey: string;
+  systemPrompt: string;
+  userContentParts: any[];
+  generationConfig: Record<string, unknown>;
+}) {
+  const geminiTimer = performance.now();
+  const response = await fetch(args.endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
+      "x-goog-api-key": args.apiKey,
     },
     body: JSON.stringify({
       systemInstruction: {
-        parts: [{ text: buildSystemPrompt(request.mode, request.locale) }],
+        parts: [{ text: args.systemPrompt }],
       },
       contents: [
         {
           role: "user",
-          parts: buildUserContentParts(request),
+          parts: args.userContentParts,
         },
       ],
-      generationConfig: {
-        temperature: 0.15,
-        topP: 0.8,
-        topK: 40,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json",
-        responseJsonSchema: mealInterpretationSchema,
-      },
+      generationConfig: args.generationConfig,
     }),
   });
+  const geminiFetchMs = Math.round(performance.now() - geminiTimer);
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`Gemini error ${response.status}: ${errorText}`);
   }
 
+  const parseTimer = performance.now();
   const payload = await response.json();
-  const parsed = extractStructuredResponse(payload);
-  return normalizeDraftResponse(parsed, request, model, payload?.usageMetadata);
+  const responseParseMs = Math.round(performance.now() - parseTimer);
+
+  return {
+    payload,
+    geminiFetchMs,
+    responseParseMs,
+  };
+}
+
+function buildGenerationConfig(mode: InterpretationMode) {
+  if (mode === "photo") {
+    return {
+      temperature: 0.05,
+      topP: 0.7,
+      topK: 16,
+      maxOutputTokens: 3072,
+      responseMimeType: "application/json",
+    };
+  }
+
+  return {
+    temperature: 0.15,
+    topP: 0.8,
+    topK: 24,
+    maxOutputTokens: 3072,
+    responseMimeType: "application/json",
+    responseJsonSchema: mealInterpretationSchema,
+  };
+}
+
+function buildFallbackGenerationConfig(mode: InterpretationMode) {
+  if (mode === "photo") {
+    return {
+      temperature: 0.1,
+      topP: 0.8,
+      topK: 24,
+      maxOutputTokens: 3072,
+      responseMimeType: "application/json",
+    };
+  }
+
+  return {
+    temperature: 0.15,
+    topP: 0.85,
+    topK: 32,
+    maxOutputTokens: 3072,
+    responseMimeType: "application/json",
+  };
+}
+
+function buildFinalRetryGenerationConfig(mode: InterpretationMode) {
+  if (mode === "photo") {
+    return {
+      temperature: 0.05,
+      topP: 0.7,
+      topK: 16,
+      maxOutputTokens: 4096,
+      responseMimeType: "application/json",
+    };
+  }
+
+  return {
+    temperature: 0.1,
+    topP: 0.8,
+    topK: 24,
+    maxOutputTokens: 4096,
+    responseMimeType: "application/json",
+  };
 }
 
 function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
   const responseLanguage = inferResponseLanguage(locale);
+
+  if (mode === "photo") {
+    return [
+      "You estimate macros for a meal tracking app.",
+      "Return valid JSON matching the provided schema exactly.",
+      `Respond with all text fields in ${responseLanguage}.`,
+      "Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values: title, summary, and item.label.",
+      "Use units: g, ml, serving, oz, fl oz, g/ml.",
+      "Identify only visible foods. Do not invent hidden ingredients.",
+      "Estimate practical portions from plate size, visible density, oil sheen, sauces, cheese, and cooking method.",
+      "Totals must equal the sum of all items.",
+      "Keep kcal coherent with carbs*4 + protein*4 + fat*9 within 10 percent.",
+      "Use high confidence for clear standard portions, medium for estimated portions, low for unclear or complex dishes.",
+      "Prefer user-specific examples when they clearly match the detected meal.",
+      "Output a concise title, one short summary sentence, and distinct ingredient items.",
+    ].join("\n");
+  }
 
   const base = [
     "You are an expert nutrition estimation engine for a macro tracking app.",
@@ -123,6 +363,7 @@ function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
     "3. Ensure macro-calorie coherence: kcal \u2248 (carbs \u00d7 4) + (protein \u00d7 4) + (fat \u00d7 9). Tolerance: \u00b110%.",
     "4. Do NOT invent brands unless the user names one explicitly.",
     `5. Respond with all text fields (title, summary, labels) in ${responseLanguage}.`,
+    "6. Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values.",
     "",
     "## Portion Estimation Guidelines",
     "Before estimating, mentally reason about the likely portion size:",
@@ -158,16 +399,7 @@ function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
     "",
   ];
 
-  if (mode === "photo") {
-    base.push(
-      "## Photo-Specific Rules",
-      "- Identify ONLY visible ingredients. Do not guess hidden ingredients.",
-      "- Estimate plate/bowl size to calibrate portion sizes (standard dinner plate \u2248 26cm)",
-      "- If multiple items share a plate, estimate each separately",
-      "- Account for visible oil sheen, sauce coverage, cheese melting as hidden calorie sources",
-      "- If the photo is unclear or partially obscured, set confidenceBand to 'low'",
-    );
-  } else {
+  if (mode !== "photo") {
     base.push(
       "## Text-Specific Rules",
       "- Parse exactly what the user described \u2014 do not add ingredients they didn't mention",
@@ -187,6 +419,46 @@ function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
   );
 
   return base.join("\n");
+}
+
+function buildFinalRetryPrompt(locale?: string): string {
+  const responseLanguage = inferResponseLanguage(locale);
+  return [
+    "Estimate visible meal nutrition for a calorie tracker, including complex plates.",
+    "Return exactly one valid JSON object and nothing else.",
+    `All text fields must be in ${responseLanguage}.`,
+    "Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values: title, summary, and item.label.",
+    "Use 2-6 visible food components. Do not return placeholder item names.",
+    "For complex plates, group foods into macro-relevant components instead of listing every tiny topping: protein, starch/grain, vegetables/salad, sauces/fats, extras.",
+    "For mixed dishes, use a real label such as 'Mixed rice and chicken', 'Creamy pasta with toppings', or 'Mixed tapas plate'.",
+    "Every item must include: id, label, amount, unit, kcal, carbs, fat, protein, confidenceBand, editable.",
+    "Use practical units: g, ml, serving, oz, fl oz, or g/ml.",
+    "Prefer g or ml for recognizable foods. Use serving only when weight is truly unclear.",
+    "Every item must have amount > 0 and realistic kcal/macros. Do not use zero kcal unless the visible item is water or a zero-calorie drink.",
+    "If exact ingredients are uncertain, estimate the main visible components with low confidence. Do not fail by returning zero nutrition.",
+    "Totals must equal the sum of items.",
+    "Keep title and summary short.",
+    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"food name\",\"amount\":100,\"unit\":\"g\",\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0,\"confidenceBand\":\"low|medium|high\",\"editable\":true}]}",
+  ].join("\n");
+}
+
+function buildComplexPhotoFallbackPrompt(locale?: string): string {
+  const responseLanguage = inferResponseLanguage(locale);
+  return [
+    "You are estimating a complex meal photo for a calorie tracker.",
+    "Return exactly one compact valid JSON object and nothing else.",
+    `All text fields must be in ${responseLanguage}.`,
+    "Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values: title, summary, and item.label.",
+    "Do not try to identify every small ingredient. Group the plate into 3-5 macro components.",
+    "Use these component types when useful: main protein, carb base, vegetables/salad, sauce or cooking fat, calorie-dense extras.",
+    "Each item label must be a real food/component name, never 'Detected item' or 'Meal item'.",
+    "Each item must include a realistic amount, unit, kcal, carbs, fat, protein, confidenceBand, and editable=true.",
+    "Use low confidence when uncertain, but still produce a realistic editable estimate.",
+    "Use g for solid components and ml for sauces/drinks when possible.",
+    "Totals must equal the sum of the items.",
+    "If the whole plate is inseparable, return 2-3 broad real components plus one 'Mixed dish estimate' component with realistic macros.",
+    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"main protein\",\"amount\":120,\"unit\":\"g\",\"kcal\":220,\"carbs\":0,\"fat\":8,\"protein\":32,\"confidenceBand\":\"low\",\"editable\":true}]}",
+  ].join("\n");
 }
 
 function inferResponseLanguage(locale?: string): string {
@@ -213,6 +485,27 @@ function inferResponseLanguage(locale?: string): string {
   }
 }
 
+function localizedFallbackTitle(request: MealInterpretationRequest): string {
+  if (request.mode === "text") {
+    return request.text || localizedPhotoMealTitle(request.locale);
+  }
+  return localizedPhotoMealTitle(request.locale);
+}
+
+function localizedPhotoMealTitle(locale?: string): string {
+  return isSpanishLocale(locale) ? "Comida por foto" : "Photo meal";
+}
+
+function localizedEstimatedSummary(locale?: string): string {
+  return isSpanishLocale(locale)
+    ? "Estimacion de comida generada por IA."
+    : "Estimated meal interpretation.";
+}
+
+function isSpanishLocale(locale?: string): boolean {
+  return (locale || "").split(/[-_]/)[0]?.toLowerCase() === "es";
+}
+
 function buildUserContentParts(request: MealInterpretationRequest) {
   const metadataLines = [
     `Locale: ${request.locale || "unknown"}`,
@@ -221,8 +514,11 @@ function buildUserContentParts(request: MealInterpretationRequest) {
   ];
 
   const analysisContext = request.analysisContext?.trim();
-  if (analysisContext) {
-    metadataLines.push(`\nUser nutrition profile and personal data:\n${analysisContext}`);
+  const normalizedAnalysisContext = request.mode === "photo"
+    ? analysisContext?.slice(0, 900)
+    : analysisContext;
+  if (normalizedAnalysisContext) {
+    metadataLines.push(`\nUser nutrition profile and personal data:\n${normalizedAnalysisContext}`);
   }
 
   const personalExamples = request.personalExamples
@@ -231,7 +527,7 @@ function buildUserContentParts(request: MealInterpretationRequest) {
       example.title.trim().length > 0 &&
       !isCorrectionExample(example)
     )
-    .slice(0, 6) ?? [];
+    .slice(0, request.mode === "photo" ? 2 : 6) ?? [];
   if (personalExamples.length > 0) {
     metadataLines.push("\nUser's saved/repeated meals (use as reference when they match):");
     for (const example of personalExamples) {
@@ -241,7 +537,7 @@ function buildUserContentParts(request: MealInterpretationRequest) {
 
   const correctionExamples = request.personalExamples
     ?.filter((example) => isCorrectionExample(example))
-    .slice(0, 4) ?? [];
+    .slice(0, request.mode === "photo" ? 2 : 4) ?? [];
   if (correctionExamples.length > 0) {
     metadataLines.push("\nPrevious corrections by this user (apply these preferred portions):");
     for (const example of correctionExamples) {
@@ -258,7 +554,8 @@ function buildUserContentParts(request: MealInterpretationRequest) {
 
     return [
       {
-        text: `${metadata}\n\nAnalyze this meal photo and estimate its nutritional content.`,
+        text:
+          `${metadata}\n\nAnalyze this meal photo and estimate its nutritional content.`,
       },
       {
         inlineData: {
@@ -280,6 +577,16 @@ function buildUserContentParts(request: MealInterpretationRequest) {
   ];
 }
 
+function buildFinalRetryRequest(
+  request: MealInterpretationRequest,
+): MealInterpretationRequest {
+  return {
+    ...request,
+    analysisContext: null,
+    personalExamples: null,
+  };
+}
+
 function isCorrectionExample(
   example: NonNullable<MealInterpretationRequest["personalExamples"]>[number],
 ): boolean {
@@ -292,8 +599,9 @@ function isCorrectionExample(
     normalizedSource.includes("correccion");
 }
 
-function normalizePromptText(input: string): string {
-  return input
+function normalizePromptText(input: unknown): string {
+  const safeInput = typeof input === "string" ? input : "";
+  return safeInput
     .toLowerCase()
     .replaceAll("\u00e1", "a")
     .replaceAll("\u00e9", "e")
@@ -364,20 +672,197 @@ function normalizeMimeType(mimeType: string | undefined): string {
   }
 }
 
-function extractStructuredResponse(payload: any): MealInterpretationResponse {
+export function extractStructuredResponse(payload: any): MealInterpretationResponse {
+  const parsed = tryExtractStructuredResponse(payload);
+  if (parsed) {
+    return parsed;
+  }
+
+  throw new Error("Structured response missing candidate text");
+}
+
+function tryExtractStructuredResponse(payload: any): MealInterpretationResponse | null {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   for (const candidate of candidates) {
     const parts = Array.isArray(candidate?.content?.parts)
       ? candidate.content.parts
       : [];
     for (const part of parts) {
-      if (typeof part?.text === "string" && part.text.trim().startsWith("{")) {
-        return JSON.parse(part.text);
+      if (typeof part?.text === "string") {
+        const parsed = tryParseStructuredResponse(part.text);
+        if (parsed) {
+          return parsed;
+        }
       }
     }
   }
 
-  throw new Error("Structured response missing candidate text");
+  return null;
+}
+
+function tryParseStructuredResponse(text: string): MealInterpretationResponse | null {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const variants = new Set<string>([
+    trimmed,
+    stripCodeFences(trimmed),
+  ]);
+
+  const extracted = extractLargestJsonObject(stripCodeFences(trimmed));
+  if (extracted) {
+    variants.add(extracted);
+    variants.add(sanitizeAlmostJson(extracted));
+  }
+
+  variants.add(sanitizeAlmostJson(stripCodeFences(trimmed)));
+
+  for (const candidate of variants) {
+    const normalized = candidate.trim();
+    if (!normalized.startsWith("{") || !normalized.endsWith("}")) {
+      continue;
+    }
+
+    try {
+      return JSON.parse(normalized);
+    } catch {
+      // Keep trying sanitized variants before failing hard.
+    }
+  }
+
+  return null;
+}
+
+function stripCodeFences(text: string): string {
+  return text
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/i, "")
+    .trim();
+}
+
+function extractLargestJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) {
+    return null;
+  }
+
+  let depth = 0;
+  let inString = false;
+  let escaping = false;
+
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+
+    if (escaping) {
+      escaping = false;
+      continue;
+    }
+
+    if (char === "\\") {
+      escaping = true;
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) {
+      continue;
+    }
+
+    if (char === "{") {
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        return text.slice(start, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function sanitizeAlmostJson(text: string): string {
+  return text
+    .replace(/,\s*([}\]])/g, "$1")
+    .replace(/^\uFEFF/, "")
+    .trim();
+}
+
+function summarizeGeminiPayload(payload: any): string {
+  const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
+  const finishReasons = candidates
+    .map((candidate) => candidate?.finishReason)
+    .filter((value) => typeof value === "string");
+  const textParts = candidates.reduce((count, candidate) => {
+    const parts = Array.isArray(candidate?.content?.parts)
+      ? candidate.content.parts
+      : [];
+    return count + parts.filter((part: any) => typeof part?.text === "string").length;
+  }, 0);
+  const promptBlockReason = payload?.promptFeedback?.blockReason;
+  const firstTextPreview = candidates
+    .flatMap((candidate) => {
+      const parts = Array.isArray(candidate?.content?.parts)
+        ? candidate.content.parts
+        : [];
+      return parts
+        .map((part: any) => typeof part?.text === "string" ? part.text : null)
+        .filter(Boolean);
+    })[0];
+  return JSON.stringify({
+    candidates: candidates.length,
+    finishReasons,
+    textParts,
+    promptBlockReason: typeof promptBlockReason === "string"
+      ? promptBlockReason
+      : null,
+    firstTextPreview: typeof firstTextPreview === "string"
+      ? firstTextPreview.slice(0, 180)
+      : null,
+  });
+}
+
+export function isUsablePhotoResponse(data: MealInterpretationResponse): boolean {
+  const items = Array.isArray(data?.items) ? data.items : [];
+  if (items.length === 0) {
+    return false;
+  }
+
+  const itemKcal = items.reduce(
+    (total, item) => total + toPositiveNumber(item?.kcal, 0),
+    0,
+  );
+  const totalKcal = toPositiveNumber(data?.totals?.kcal, 0);
+  if (itemKcal <= 0 && totalKcal <= 0) {
+    return false;
+  }
+
+  const hasAtLeastOneNutrientfulItem = items.some((item) =>
+    toPositiveNumber(item?.kcal, 0) > 0 ||
+    toPositiveNumber(item?.carbs, 0) > 0 ||
+    toPositiveNumber(item?.fat, 0) > 0 ||
+    toPositiveNumber(item?.protein, 0) > 0
+  );
+  if (!hasAtLeastOneNutrientfulItem) {
+    return false;
+  }
+
+  return items.every((item) => {
+    const label = typeof item?.label === "string" ? item.label.trim() : "";
+    const unit = typeof item?.unit === "string" ? item.unit.trim() : "";
+    const hasUsableLabel = label.length > 0 &&
+      !/^detected item \d+$/i.test(label) &&
+      !/^meal item \d+$/i.test(label);
+    const hasAmount = toPositiveNumber(item?.amount, 0) > 0;
+    const hasUnit = unit.length > 0;
+    return hasUsableLabel && hasAmount && hasUnit;
+  });
 }
 
 export function normalizeDraftResponse(
@@ -385,13 +870,18 @@ export function normalizeDraftResponse(
   request: MealInterpretationRequest,
   model: string,
   usageMetadata?: any,
+  diagnostics?: MealInterpretationDiagnostics,
 ) {
   const usage = normalizeUsageMetadata(usageMetadata);
   const estimatedCostUsd = estimateGeminiCostUsd(model, usage);
 
   // Deduplicate items based on semantic label similarity
-  const deduplicatedItems = data.items.reduce((acc, item) => {
-    const normalizedItemLabel = normalizePromptText(item.label);
+  const responseItems = Array.isArray(data?.items) ? data.items : [];
+  const deduplicatedItems = responseItems.reduce((acc, item, index) => {
+    const safeLabel = typeof item?.label === "string" && item.label.trim().length > 0
+      ? item.label.trim()
+      : buildFallbackItemLabel(request.mode, index, request.locale);
+    const normalizedItemLabel = normalizePromptText(safeLabel);
     const existingIndex = acc.findIndex((e) =>
       normalizePromptText(e.label) === normalizedItemLabel ||
       normalizePromptText(e.label).includes(normalizedItemLabel) ||
@@ -412,18 +902,23 @@ export function normalizeDraftResponse(
         existing.sugar = (existing.sugar || 0) + toPositiveNumber(item.sugar, 0);
       }
       // If the label is more descriptive, keep the longer one
-      if (item.label.length > existing.label.length) {
-        existing.label = item.label;
+      if (safeLabel.length > existing.label.length) {
+        existing.label = safeLabel;
       }
     } else {
-      acc.push({ ...item });
+      acc.push({
+        ...item,
+        label: safeLabel,
+      });
     }
     return acc;
   }, [] as MealInterpretationItem[]);
 
   const items = deduplicatedItems.map((item, index) => ({
     id: item.id || `item_${index + 1}`,
-    label: item.label,
+    label: typeof item.label === "string" && item.label.trim().length > 0
+      ? item.label.trim()
+      : buildFallbackItemLabel(request.mode, index, request.locale),
     amount: toPositiveNumber(item.amount, 1),
     unit: normalizeUnit(item.unit),
     kcal: toPositiveNumber(item.kcal, 0),
@@ -454,8 +949,8 @@ export function normalizeDraftResponse(
     sourceType: request.mode,
     inputText: request.mode === "text" ? request.text ?? null : null,
     title: data.title?.trim() ||
-        (request.mode === "text" ? request.text : "Photo meal"),
-    summary: data.summary?.trim() || "Estimated meal interpretation.",
+        localizedFallbackTitle(request),
+    summary: data.summary?.trim() || localizedEstimatedSummary(request.locale),
     confidenceBand: normalizeConfidence(data.confidenceBand),
     processing: {
       processedRemotely: true,
@@ -465,10 +960,44 @@ export function normalizeDraftResponse(
       model,
       usage,
       estimatedCostUsd,
+      diagnostics,
     },
     totals,
     items,
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
+function buildDiagnostics(
+  request: MealInterpretationRequest,
+  base: {
+    edgeTotalMs: number;
+    geminiFetchMs: number;
+    responseParseMs: number;
+    normalizeMs: number;
+    promptChars: number;
+    modelAttempts: number;
+    fallbackUsed: boolean;
+  },
+): MealInterpretationDiagnostics {
+  const personalExamples = request.personalExamples
+    ?.filter((example) =>
+      typeof example?.title === "string" &&
+      example.title.trim().length > 0 &&
+      !isCorrectionExample(example)
+    ).length ?? 0;
+  const correctionExamples = request.personalExamples
+    ?.filter((example) => isCorrectionExample(example)).length ?? 0;
+
+  return {
+    ...base,
+    inputImageBytes: request.imageBase64
+      ? Math.round((request.imageBase64.length * 3) / 4)
+      : undefined,
+    personalExamplesCount: personalExamples,
+    correctionExamplesCount: correctionExamples,
+    modelAttempts: base.modelAttempts,
+    fallbackUsed: base.fallbackUsed,
   };
 }
 
@@ -514,7 +1043,9 @@ function resolveGeminiPricing(model: string): {
   inputPer1M: number;
   outputPer1M: number;
 } {
-  const normalizedModel = model.trim().toLowerCase();
+  const normalizedModel = typeof model === "string"
+    ? model.trim().toLowerCase()
+    : "";
 
   if (normalizedModel.startsWith("gemini-2.5-flash-lite")) {
     return {
@@ -577,8 +1108,10 @@ function round6(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
-function normalizeUnit(unit: string | undefined): string {
-  const normalized = (unit || "").trim().toLowerCase();
+function normalizeUnit(unit: unknown): string {
+  const normalized = typeof unit === "string"
+    ? unit.trim().toLowerCase()
+    : "";
   switch (normalized) {
     case "g":
     case "gram":
@@ -600,9 +1133,10 @@ function normalizeUnit(unit: string | undefined): string {
 }
 
 function normalizeConfidence(
-  value: string | undefined,
+  value: unknown,
 ): "low" | "medium" | "high" {
-  switch ((value || "").toLowerCase()) {
+  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  switch (normalized) {
     case "low":
       return "low";
     case "high":
@@ -610,6 +1144,21 @@ function normalizeConfidence(
     default:
       return "medium";
   }
+}
+
+function buildFallbackItemLabel(
+  mode: InterpretationMode,
+  index: number,
+  locale?: string,
+): string {
+  if (isSpanishLocale(locale)) {
+    return mode === "photo"
+      ? `Ingrediente detectado ${index + 1}`
+      : `Elemento de comida ${index + 1}`;
+  }
+  return mode === "photo"
+    ? `Detected item ${index + 1}`
+    : `Meal item ${index + 1}`;
 }
 
 function toPositiveNumber(value: unknown, fallback: number): number {

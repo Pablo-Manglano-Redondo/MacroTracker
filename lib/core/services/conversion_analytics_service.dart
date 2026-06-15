@@ -257,10 +257,22 @@ class ConversionAnalyticsService {
 
   Future<void> logAiInterpretationCompleted({
     required String inputType,
+    int? remoteMs,
+    int? edgeMs,
+    int? geminiMs,
+    int? modelAttempts,
+    bool? fallbackUsed,
   }) {
     return logEvent(
       'ai_request_completed',
-      parameters: {'input_type': inputType},
+      parameters: {
+        'input_type': inputType,
+        'remote_ms': remoteMs,
+        'edge_ms': edgeMs,
+        'gemini_ms': geminiMs,
+        'model_attempts': modelAttempts,
+        'fallback_used': fallbackUsed,
+      },
     );
   }
 

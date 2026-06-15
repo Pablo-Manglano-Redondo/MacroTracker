@@ -26,9 +26,12 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             ?.copyWith(fontWeight: FontWeight.bold) ??
         const TextStyle();
 
-    final headerText = usesImperialUnits && servingQuantity != null
-        ? "${S.of(context).perServingLabel} (${servingQuantity!.roundToPrecision(1)}${servingUnit ?? 'g/ml'})"
-        : S.of(context).per100gmlLabel;
+    final isServingBased = product.mealUnit == 'serving';
+    final headerText = isServingBased
+        ? S.of(context).perServingLabel
+        : usesImperialUnits && servingQuantity != null
+            ? "${S.of(context).perServingLabel} (${servingQuantity!.roundToPrecision(1)}${servingUnit ?? 'g/ml'})"
+            : S.of(context).per100gmlLabel;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,7 +43,10 @@ class MealDetailNutrimentsTable extends StatelessWidget {
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           border: TableBorder(
             horizontalInside: BorderSide(
-              color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.35),
+              color: Theme.of(context)
+                  .colorScheme
+                  .outlineVariant
+                  .withValues(alpha: 0.35),
               width: 1,
             ),
           ),
@@ -81,6 +87,12 @@ class MealDetailNutrimentsTable extends StatelessWidget {
   }
 
   double _adjustValueForServing(double value) {
+    if (product.mealUnit == 'serving') {
+      if (servingQuantity != null) {
+        return (value * servingQuantity!) / 100;
+      }
+      return value / 100;
+    }
     if (!usesImperialUnits || servingQuantity == null) {
       return value;
     }

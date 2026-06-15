@@ -262,12 +262,12 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                     Text('${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall),
                     MealValueUnitText(
-                      value: double.parse(totalQuantity),
+                      value: _displayQuantityForSelectedUnit(
+                        totalQuantity,
+                        selectedUnit,
+                      ),
                       meal: meal,
-                      displayUnit:
-                          selectedUnit == UnitDropdownItem.serving.toString()
-                              ? meal.servingUnit
-                              : selectedUnit,
+                      displayUnit: _displayUnitForSelectedUnit(selectedUnit),
                       usesImperialUnits: _usesImperialUnits,
                       textStyle: Theme.of(context).textTheme.bodyMedium,
                       prefix: ' / ',
@@ -339,6 +339,32 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
         ]))
       ],
     );
+  }
+
+  double _displayQuantityForSelectedUnit(
+    String totalQuantity,
+    String selectedUnit,
+  ) {
+    if (selectedUnit == UnitDropdownItem.serving.toString() &&
+        meal.mealUnit == UnitDropdownItem.serving.toString()) {
+      return double.tryParse(
+              quantityTextController.text.replaceAll(',', '.')) ??
+          double.parse(totalQuantity);
+    }
+
+    return double.parse(totalQuantity);
+  }
+
+  String? _displayUnitForSelectedUnit(String selectedUnit) {
+    if (selectedUnit != UnitDropdownItem.serving.toString()) {
+      return selectedUnit;
+    }
+
+    if (meal.mealUnit == UnitDropdownItem.serving.toString()) {
+      return UnitDropdownItem.serving.toString();
+    }
+
+    return meal.servingUnit;
   }
 
   void onQuantityOrUnitChanged(String? quantityString, String? unit) {

@@ -43,6 +43,9 @@ class MealPortionCalculator {
   static double _convertAmount(double amount, String unit, MealEntity meal) {
     switch (unit) {
       case 'serving':
+        if (_looksLikeLegacyConvertedServing(amount, meal.servingQuantity)) {
+          return amount;
+        }
         return amount * (meal.servingQuantity ?? 1);
       case 'oz':
         return UnitCalc.ozToG(amount);
@@ -59,5 +62,18 @@ class MealPortionCalculator {
       return null;
     }
     return amount * (valuePer100 / 100);
+  }
+
+  static bool _looksLikeLegacyConvertedServing(
+    double amount,
+    double? servingQuantity,
+  ) {
+    if (servingQuantity == null || servingQuantity <= 1) {
+      return false;
+    }
+
+    // Older meal-detail logging stored the base amount but kept unit=serving.
+    // Treat obviously converted values as base units to avoid inflating history.
+    return amount >= servingQuantity;
   }
 }

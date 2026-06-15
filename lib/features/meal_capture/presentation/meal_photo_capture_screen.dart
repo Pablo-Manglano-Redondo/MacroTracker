@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -28,13 +29,17 @@ class MealPhotoCaptureScreen extends StatefulWidget {
 }
 
 class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
-  static const _maxUploadBytes = 8 * 1024 * 1024;
-  static const _maxImageDimension = 2048;
+  static const _maxUploadBytes = 768 * 1024;
+  static const _maxImageDimension = 1024;
+  static const _primaryJpegQuality = 76;
+  static const _fallbackJpegQuality = 68;
+  static const _fallbackMaxImageDimension = 768;
 
   final ImagePicker _imagePicker = ImagePicker();
   late MealPhotoCaptureScreenArguments _args;
   String? _loadingStatus;
   Uint8List? _loadingPreviewBytes;
+  _PhotoAiDebugStats? _loadingDebugStats;
   _SelectedMealPhoto? _pendingPhoto;
 
   bool get _isLoading => _loadingStatus != null;
@@ -318,6 +323,79 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                       color: colorScheme.onSurfaceVariant,
                     ),
               ),
+              if (kDebugMode && _loadingDebugStats != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.45),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isSpanish
+                            ? 'Diagnostico IA foto'
+                            : 'Photo AI diagnostics',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Original' : 'Original',
+                        value: _formatBytes(_loadingDebugStats!.originalBytes),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Preparada' : 'Prepared',
+                        value: _formatBytes(_loadingDebugStats!.preparedBytes),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Preparar' : 'Prepare',
+                        value: _formatMs(_loadingDebugStats!.prepareMs),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Remoto' : 'Remote',
+                        value: _formatMs(_loadingDebugStats!.remoteMs),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Edge' : 'Edge',
+                        value: _formatMs(_loadingDebugStats!.remoteEdgeMs),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Gemini' : 'Gemini',
+                        value: _formatMs(_loadingDebugStats!.remoteGeminiMs),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Intentos' : 'Attempts',
+                        value: _formatInt(_loadingDebugStats!.modelAttempts),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Fallback' : 'Fallback',
+                        value: _formatBool(
+                          _loadingDebugStats!.fallbackUsed,
+                          isSpanish: _isSpanish,
+                        ),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Personalizar' : 'Personalize',
+                        value: _formatMs(_loadingDebugStats!.personalizeMs),
+                      ),
+                      _DebugMetricRow(
+                        label: _isSpanish ? 'Total' : 'Total',
+                        value: _formatMs(_loadingDebugStats!.totalMs),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(12),
@@ -426,23 +504,58 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     required String? filePath,
     required Uint8List bytes,
   }) async {
+    setState(() {
+      _loadingStatus = _isSpanish
+          ? 'Abriendo analisis por foto...'
+          : 'Opening photo analysis...';
+      _loadingPreviewBytes = bytes;
+      _loadingDebugStats = null;
+    });
+    await WidgetsBinding.instance.endOfFrame;
+
     final access = await AiUsageGate.ensureAccess(
       context,
       placement: PaywallPlacement.aiPhoto,
     );
     if (!access.allowed) {
+      if (mounted) {
+        setState(() {
+          _loadingStatus = null;
+          _loadingPreviewBytes = null;
+          _loadingDebugStats = null;
+        });
+      }
       return;
     }
 
-    setState(() {
-      _loadingStatus = S.of(context).aiStatusPreparing;
-      _loadingPreviewBytes = bytes;
-    });
-
     try {
+      if (mounted) {
+        setState(() {
+          _loadingStatus = S.of(context).aiStatusPreparing;
+        });
+      }
+      await WidgetsBinding.instance.endOfFrame;
+
+      final totalStopwatch = Stopwatch()..start();
+      final prepareStopwatch = Stopwatch()..start();
       final preparedImage = _prepareImageForUpload(
         imageBytes: bytes,
         fileName: fileName,
+      );
+      prepareStopwatch.stop();
+      var debugStats = _PhotoAiDebugStats(
+        originalBytes: bytes.lengthInBytes,
+        preparedBytes: preparedImage.bytes.lengthInBytes,
+        prepareMs: prepareStopwatch.elapsedMilliseconds,
+      );
+      if (mounted) {
+        setState(() {
+          _loadingDebugStats = debugStats;
+        });
+      }
+      _logPhotoStage(
+        'prepare',
+        'original=${_formatBytes(bytes.lengthInBytes)} prepared=${_formatBytes(preparedImage.bytes.lengthInBytes)} elapsed=${prepareStopwatch.elapsedMilliseconds}ms',
       );
 
       setState(() {
@@ -455,26 +568,62 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
               .buildContext(
         intakeType: _args.intakeTypeEntity,
       );
-      final draft = await locator<InterpretMealFromPhotoUsecase>().interpret(
+      final remoteStopwatch = Stopwatch()..start();
+      final remoteResult = await locator<InterpretMealFromPhotoUsecase>()
+          .interpretWithDiagnostics(
         imageBytes: preparedImage.bytes,
         fileName: preparedImage.fileName,
         mimeType: preparedImage.mimeType,
-        locale: Platform.localeName,
+        locale: _appLocaleTag(context),
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
         analysisContext: personalizationContext.promptContext,
         personalExamples: personalizationContext.remoteExamples,
       );
+      final draft = remoteResult.draft;
+      remoteStopwatch.stop();
+      debugStats = debugStats.copyWith(
+        remoteMs: remoteStopwatch.elapsedMilliseconds,
+        remoteEdgeMs: remoteResult.diagnostics?.edgeTotalMs,
+        remoteGeminiMs: remoteResult.diagnostics?.geminiFetchMs,
+        modelAttempts: remoteResult.diagnostics?.modelAttempts,
+        fallbackUsed: remoteResult.diagnostics?.fallbackUsed,
+      );
+      if (mounted) {
+        setState(() {
+          _loadingDebugStats = debugStats;
+        });
+      }
+      _logPhotoStage(
+        'remote',
+        'elapsed=${remoteStopwatch.elapsedMilliseconds}ms payload=${_formatBytes(preparedImage.bytes.lengthInBytes)}',
+      );
       setState(() {
         _loadingStatus = S.of(context).aiStatusPersonalizing;
       });
 
+      final personalizeStopwatch = Stopwatch()..start();
       final personalizedDraft =
           await locator<MealInterpretationPersonalizationUsecase>()
               .personalizeDraft(
         draft: draft,
         intakeType: _args.intakeTypeEntity,
         context: personalizationContext,
+      );
+      personalizeStopwatch.stop();
+      totalStopwatch.stop();
+      debugStats = debugStats.copyWith(
+        personalizeMs: personalizeStopwatch.elapsedMilliseconds,
+        totalMs: totalStopwatch.elapsedMilliseconds,
+      );
+      if (mounted) {
+        setState(() {
+          _loadingDebugStats = debugStats;
+        });
+      }
+      _logPhotoStage(
+        'personalize',
+        'elapsed=${personalizeStopwatch.elapsedMilliseconds}ms total=${totalStopwatch.elapsedMilliseconds}ms',
       );
       final updatedDraft = personalizedDraft.copyWith(localImagePath: filePath);
       await locator<SaveInterpretationDraftUsecase>().saveDraft(updatedDraft);
@@ -486,6 +635,16 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
             updatedDraft.id,
             _args.day,
             _args.intakeTypeEntity,
+            photoOriginalBytes: debugStats.originalBytes,
+            photoPreparedBytes: debugStats.preparedBytes,
+            photoPrepareMs: debugStats.prepareMs,
+            photoRemoteMs: debugStats.remoteMs,
+            photoRemoteEdgeMs: debugStats.remoteEdgeMs,
+            photoRemoteGeminiMs: debugStats.remoteGeminiMs,
+            photoModelAttempts: debugStats.modelAttempts,
+            photoFallbackUsed: debugStats.fallbackUsed,
+            photoPersonalizeMs: debugStats.personalizeMs,
+            photoTotalMs: debugStats.totalMs,
           ),
         );
       }
@@ -525,6 +684,15 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     }
   }
 
+  String _appLocaleTag(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    final countryCode = locale.countryCode;
+    if (countryCode == null || countryCode.isEmpty) {
+      return locale.languageCode;
+    }
+    return '${locale.languageCode}-$countryCode';
+  }
+
   _PreparedUploadImage _prepareImageForUpload({
     required Uint8List imageBytes,
     required String fileName,
@@ -542,15 +710,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
 
     final shouldResize = decoded.width > _maxImageDimension ||
         decoded.height > _maxImageDimension;
-    final shouldCompress = imageBytes.lengthInBytes > _maxUploadBytes;
-
-    if (!shouldResize && !shouldCompress) {
-      return _PreparedUploadImage(
-        bytes: imageBytes,
-        fileName: fileName,
-        mimeType: _mimeTypeForExtension(extension),
-      );
-    }
 
     final resized = shouldResize
         ? img.copyResize(
@@ -561,12 +720,67 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
           )
         : decoded;
 
-    final encoded = Uint8List.fromList(img.encodeJpg(resized, quality: 92));
+    var encoded = Uint8List.fromList(
+      img.encodeJpg(resized, quality: _primaryJpegQuality),
+    );
+    if (encoded.lengthInBytes > _maxUploadBytes) {
+      final fallbackResized = resized.width > _fallbackMaxImageDimension ||
+              resized.height > _fallbackMaxImageDimension
+          ? img.copyResize(
+              resized,
+              width: resized.width >= resized.height
+                  ? _fallbackMaxImageDimension
+                  : null,
+              height: resized.height > resized.width
+                  ? _fallbackMaxImageDimension
+                  : null,
+              interpolation: img.Interpolation.average,
+            )
+          : resized;
+      encoded = Uint8List.fromList(
+        img.encodeJpg(fallbackResized, quality: _fallbackJpegQuality),
+      );
+    }
     return _PreparedUploadImage(
       bytes: encoded,
       fileName: _replaceExtension(fileName, 'jpg'),
       mimeType: 'image/jpeg',
     );
+  }
+
+  void _logPhotoStage(String stage, String message) {
+    debugPrint('[MealPhotoAI][$stage] $message');
+  }
+
+  String _formatBytes(int bytes) {
+    final kilobytes = bytes / 1024;
+    if (kilobytes < 1024) {
+      return '${kilobytes.toStringAsFixed(0)}KB';
+    }
+    final megabytes = kilobytes / 1024;
+    return '${megabytes.toStringAsFixed(2)}MB';
+  }
+
+  String _formatMs(int? milliseconds) {
+    if (milliseconds == null) {
+      return '--';
+    }
+    if (milliseconds < 1000) {
+      return '${milliseconds}ms';
+    }
+    return '${(milliseconds / 1000).toStringAsFixed(1)}s';
+  }
+
+  String _formatInt(int? value) => value?.toString() ?? '--';
+
+  String _formatBool(bool? value, {required bool isSpanish}) {
+    if (value == null) {
+      return '--';
+    }
+    if (isSpanish) {
+      return value ? 'Si' : 'No';
+    }
+    return value ? 'Yes' : 'No';
   }
 
   String _buildRemoteFailureMessage(Object error) {
@@ -741,6 +955,96 @@ class _PreparedUploadImage {
     required this.fileName,
     required this.mimeType,
   });
+}
+
+class _PhotoAiDebugStats {
+  final int originalBytes;
+  final int preparedBytes;
+  final int prepareMs;
+  final int? remoteMs;
+  final int? remoteEdgeMs;
+  final int? remoteGeminiMs;
+  final int? modelAttempts;
+  final bool? fallbackUsed;
+  final int? personalizeMs;
+  final int? totalMs;
+
+  const _PhotoAiDebugStats({
+    required this.originalBytes,
+    required this.preparedBytes,
+    required this.prepareMs,
+    this.remoteMs,
+    this.remoteEdgeMs,
+    this.remoteGeminiMs,
+    this.modelAttempts,
+    this.fallbackUsed,
+    this.personalizeMs,
+    this.totalMs,
+  });
+
+  _PhotoAiDebugStats copyWith({
+    int? originalBytes,
+    int? preparedBytes,
+    int? prepareMs,
+    int? remoteMs,
+    int? remoteEdgeMs,
+    int? remoteGeminiMs,
+    int? modelAttempts,
+    bool? fallbackUsed,
+    int? personalizeMs,
+    int? totalMs,
+  }) {
+    return _PhotoAiDebugStats(
+      originalBytes: originalBytes ?? this.originalBytes,
+      preparedBytes: preparedBytes ?? this.preparedBytes,
+      prepareMs: prepareMs ?? this.prepareMs,
+      remoteMs: remoteMs ?? this.remoteMs,
+      remoteEdgeMs: remoteEdgeMs ?? this.remoteEdgeMs,
+      remoteGeminiMs: remoteGeminiMs ?? this.remoteGeminiMs,
+      modelAttempts: modelAttempts ?? this.modelAttempts,
+      fallbackUsed: fallbackUsed ?? this.fallbackUsed,
+      personalizeMs: personalizeMs ?? this.personalizeMs,
+      totalMs: totalMs ?? this.totalMs,
+    );
+  }
+}
+
+class _DebugMetricRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DebugMetricRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            value,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SelectedMealPhoto {

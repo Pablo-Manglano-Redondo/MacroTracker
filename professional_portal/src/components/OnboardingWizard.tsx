@@ -154,10 +154,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
                   <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
-                    {s === 'invite' ? 'Step 1' : s === 'waiting' ? 'Step 2' : 'Step 3'}
+                    {s === 'invite'
+                      ? tr('Paso 1', 'Step 1')
+                      : s === 'waiting'
+                        ? tr('Paso 2', 'Step 2')
+                        : tr('Paso 3', 'Step 3')}
                   </span>
                   <p className={`text-xs font-extrabold -mt-0.5 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                    {s === 'invite' ? 'Create Invite' : s === 'waiting' ? 'Share Code' : 'Connected'}
+                    {s === 'invite'
+                      ? tr('Crear invitacion', 'Create invite')
+                      : s === 'waiting'
+                        ? tr('Compartir codigo', 'Share code')
+                        : tr('Conexion lista', 'Connected')}
                   </p>
                 </div>
               </div>
@@ -280,7 +288,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
           <div>
             <h3 className="text-sm font-extrabold text-gradient">{tr('Conexión completada', 'Connection successful')}</h3>
             <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
-              Your client profile has been linked and is now ready to receive nutrition schedules.
+              {tr(
+                'El perfil del cliente ya esta vinculado y listo para recibir planes y seguimiento desde el portal.',
+                'The client profile is now linked and ready to receive plans and follow-up from the portal.',
+              )}
             </p>
           </div>
           <div className="flex items-center justify-center gap-3.5">
@@ -289,13 +300,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-extrabold uppercase tracking-wider text-xs hover:brightness-110 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
             >
               <ArrowRight className="w-4 h-4 mr-2" />
-              Go to Workspace
+              {tr('Abrir cliente conectado', 'Open connected client')}
             </Button>
             <Button
               onClick={onCancel}
               className="px-4 py-2.5 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
             >
-              Clients Dashboard
+              {tr('Volver al roster', 'Back to roster')}
             </Button>
           </div>
         </div>

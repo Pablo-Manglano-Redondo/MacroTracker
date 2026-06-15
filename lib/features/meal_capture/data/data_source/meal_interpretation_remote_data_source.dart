@@ -17,7 +17,7 @@ class MealInterpretationRemoteDataSource {
   static const _textFunctionName = 'meal-interpretations-text';
   static const _photoFunctionName = 'meal-interpretations-photo';
   static const _textTimeout = Duration(seconds: 18);
-  static const _photoTimeout = Duration(seconds: 35);
+  static const _photoTimeout = Duration(seconds: 55);
 
   final _log = Logger('MealInterpretationRemoteDataSource');
   final SupabaseClient? _supabaseClient;
@@ -41,6 +41,7 @@ class MealInterpretationRemoteDataSource {
       inputType: 'text',
       timeout: _textTimeout,
       fallbackTitle: text,
+      locale: locale,
       invoke: () async {
         final response = await _client.functions.invoke(
           _textFunctionName,
@@ -73,7 +74,8 @@ class MealInterpretationRemoteDataSource {
     return _runInterpretation(
       inputType: 'photo',
       timeout: _photoTimeout,
-      fallbackTitle: 'Photo meal',
+      fallbackTitle: _localizedPhotoMealTitle(locale),
+      locale: locale,
       invoke: () async {
         final response = await _client.functions.invoke(
           _photoFunctionName,
@@ -104,6 +106,7 @@ class MealInterpretationRemoteDataSource {
     required String inputType,
     required Duration timeout,
     required String fallbackTitle,
+    required String locale,
     required Future<dynamic> Function() invoke,
   }) async {
     await _analytics.logAiInterpretationStarted(inputType: inputType);
@@ -112,13 +115,28 @@ class MealInterpretationRemoteDataSource {
     while (true) {
       attempt += 1;
       try {
+        final remoteStopwatch = Stopwatch()..start();
         final rawPayload = await invoke().timeout(timeout);
+        remoteStopwatch.stop();
         final payload = _normalizePayload(rawPayload);
+        final diagnostics = _extractDiagnostics(payload);
         final result = MealInterpretationRemoteResult(
-          draft: mapDraftResponse(payload, fallbackTitle: fallbackTitle),
+          draft: mapDraftResponse(
+            payload,
+            fallbackTitle: fallbackTitle,
+            locale: locale,
+          ),
           estimatedCostUsd: _extractEstimatedCost(payload),
+          diagnostics: diagnostics,
         );
-        await _analytics.logAiInterpretationCompleted(inputType: inputType);
+        await _analytics.logAiInterpretationCompleted(
+          inputType: inputType,
+          remoteMs: remoteStopwatch.elapsedMilliseconds,
+          edgeMs: diagnostics?.edgeTotalMs,
+          geminiMs: diagnostics?.geminiFetchMs,
+          modelAttempts: diagnostics?.modelAttempts,
+          fallbackUsed: diagnostics?.fallbackUsed,
+        );
         return result;
       } catch (error, stackTrace) {
         final failure = classifyFailure(error);
@@ -128,7 +146,9 @@ class MealInterpretationRemoteDataSource {
           stackTrace,
         );
 
-        if (attempt == 1 && failure.isTransient) {
+        if (attempt == 1 &&
+            failure.isTransient &&
+            shouldRetryInterpretation(inputType, failure)) {
           await _analytics.logAiInterpretationRetried(
             inputType: inputType,
             category: failure.category.analyticsValue,
@@ -146,6 +166,18 @@ class MealInterpretationRemoteDataSource {
         throw failure;
       }
     }
+  }
+
+  @visibleForTesting
+  bool shouldRetryInterpretation(
+    String inputType,
+    MealInterpretationRemoteException failure,
+  ) {
+    if (inputType == 'photo' &&
+        failure.category == MealInterpretationFailureCategory.timeout) {
+      return false;
+    }
+    return true;
   }
 
   @visibleForTesting
@@ -228,7 +260,7 @@ class MealInterpretationRemoteDataSource {
 
   @visibleForTesting
   InterpretationDraftEntity mapDraftResponse(dynamic data,
-      {required String fallbackTitle}) {
+      {required String fallbackTitle, String? locale}) {
     final normalized = _normalizePayload(data);
     if (normalized is! Map<String, dynamic>) {
       throw const FormatException('Invalid draft response format');
@@ -247,7 +279,7 @@ class MealInterpretationRemoteDataSource {
       inputText: data['inputText'] as String?,
       localImagePath: null,
       title: (data['title'] as String?) ?? fallbackTitle,
-      summary: data['summary'] as String?,
+      summary: data['summary'] as String? ?? _localizedEstimatedSummary(locale),
       totalKcal: _toDouble(totals['kcal']),
       totalCarbs: _toDouble(totals['carbs']),
       totalFat: _toDouble(totals['fat']),
@@ -259,7 +291,7 @@ class MealInterpretationRemoteDataSource {
       status: DraftStatusEntity.ready,
       createdAt: DateTime.now(),
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 1)),
-      items: items.map(_mapItem).toList(),
+      items: items.map((item) => _mapItem(item, locale: locale)).toList(),
     );
   }
 
@@ -277,14 +309,39 @@ class MealInterpretationRemoteDataSource {
     return _toDouble(processing['estimatedCostUsd']);
   }
 
-  InterpretationDraftItemEntity _mapItem(dynamic item) {
+  MealInterpretationRemoteDiagnostics? _extractDiagnostics(dynamic data) {
+    if (data is! Map<String, dynamic>) return null;
+    final processing = data['processing'];
+    if (processing is! Map) return null;
+    final diagnostics = processing['diagnostics'];
+    if (diagnostics is! Map) return null;
+
+    return MealInterpretationRemoteDiagnostics(
+      edgeTotalMs: _toIntNullable(diagnostics['edgeTotalMs']),
+      geminiFetchMs: _toIntNullable(diagnostics['geminiFetchMs']),
+      responseParseMs: _toIntNullable(diagnostics['responseParseMs']),
+      normalizeMs: _toIntNullable(diagnostics['normalizeMs']),
+      promptChars: _toIntNullable(diagnostics['promptChars']),
+      inputImageBytes: _toIntNullable(diagnostics['inputImageBytes']),
+      personalExamplesCount:
+          _toIntNullable(diagnostics['personalExamplesCount']),
+      correctionExamplesCount:
+          _toIntNullable(diagnostics['correctionExamplesCount']),
+      modelAttempts: _toIntNullable(diagnostics['modelAttempts']),
+      fallbackUsed: diagnostics['fallbackUsed'] is bool
+          ? diagnostics['fallbackUsed'] as bool
+          : null,
+    );
+  }
+
+  InterpretationDraftItemEntity _mapItem(dynamic item, {String? locale}) {
     if (item is! Map<String, dynamic>) {
       throw const FormatException('Invalid draft item format');
     }
 
     return InterpretationDraftItemEntity(
       id: (item['id'] as String?) ?? IdGenerator.getUniqueID(),
-      label: (item['label'] as String?) ?? 'Detected item',
+      label: (item['label'] as String?) ?? _localizedDetectedItem(locale),
       matchedMealSnapshot: null,
       amount: _toDouble(item['amount']),
       unit: (item['unit'] as String?) ?? 'serving',
@@ -353,15 +410,74 @@ class MealInterpretationRemoteDataSource {
     }
     return null;
   }
+
+  int? _toIntNullable(dynamic value) {
+    if (value is int) {
+      return value;
+    }
+    if (value is num) {
+      return value.round();
+    }
+    if (value is String) {
+      return int.tryParse(value) ?? double.tryParse(value)?.round();
+    }
+    return null;
+  }
+
+  String _localizedPhotoMealTitle(String? locale) {
+    return _isSpanishLocale(locale) ? 'Comida por foto' : 'Photo meal';
+  }
+
+  String _localizedEstimatedSummary(String? locale) {
+    return _isSpanishLocale(locale)
+        ? 'Estimacion de comida generada por IA.'
+        : 'Estimated meal interpretation.';
+  }
+
+  String _localizedDetectedItem(String? locale) {
+    return _isSpanishLocale(locale) ? 'Ingrediente detectado' : 'Detected item';
+  }
+
+  bool _isSpanishLocale(String? locale) {
+    return (locale ?? '').split(RegExp('[-_]')).first.toLowerCase() == 'es';
+  }
 }
 
 class MealInterpretationRemoteResult {
   final InterpretationDraftEntity draft;
   final double estimatedCostUsd;
+  final MealInterpretationRemoteDiagnostics? diagnostics;
 
   const MealInterpretationRemoteResult({
     required this.draft,
     required this.estimatedCostUsd,
+    this.diagnostics,
+  });
+}
+
+class MealInterpretationRemoteDiagnostics {
+  final int? edgeTotalMs;
+  final int? geminiFetchMs;
+  final int? responseParseMs;
+  final int? normalizeMs;
+  final int? promptChars;
+  final int? inputImageBytes;
+  final int? personalExamplesCount;
+  final int? correctionExamplesCount;
+  final int? modelAttempts;
+  final bool? fallbackUsed;
+
+  const MealInterpretationRemoteDiagnostics({
+    this.edgeTotalMs,
+    this.geminiFetchMs,
+    this.responseParseMs,
+    this.normalizeMs,
+    this.promptChars,
+    this.inputImageBytes,
+    this.personalExamplesCount,
+    this.correctionExamplesCount,
+    this.modelAttempts,
+    this.fallbackUsed,
   });
 }
 
