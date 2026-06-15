@@ -58,10 +58,6 @@ class _MessagesTabState extends State<MessagesTab> {
         ),
       );
     }
-
-    final unreadCount = messages.messages.where((message) => !message.isRead).length;
-    final lastMessageAt = messages.messages.isEmpty ? null : messages.messages.first.createdAt;
-    
     // Sort oldest first for natural top-to-bottom chat rendering
     final sortedMessages = messages.messages.reversed.toList();
 

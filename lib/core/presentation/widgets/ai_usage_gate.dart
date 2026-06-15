@@ -37,6 +37,9 @@ class AiUsageGate {
       'ai_limit_reached',
       parameters: {'placement': _placementName(placement)},
     );
+    if (!context.mounted) {
+      return const AiAccessResult.denied();
+    }
     return _showBlockedSheetAndRecheck(
       context,
       placement: placement,

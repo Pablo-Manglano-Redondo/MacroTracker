@@ -426,6 +426,8 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
       return;
     }
 
+    final localeTag = _appLocaleTag(context);
+
     final access = await AiUsageGate.ensureAccess(
       context,
       placement: PaywallPlacement.aiText,
@@ -451,7 +453,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
 
       final draft = await locator<InterpretMealFromTextUsecase>().interpret(
         text: input,
-        locale: _appLocaleTag(context),
+        locale: localeTag,
         unitSystem: config.usesImperialUnits ? 'imperial' : 'metric',
         mealTypeHint: _args.intakeTypeEntity.name,
         analysisContext: personalizationContext.promptContext,

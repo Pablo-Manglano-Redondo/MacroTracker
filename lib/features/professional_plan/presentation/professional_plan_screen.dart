@@ -568,8 +568,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       );
     }
     if (raw.contains('not persisted') ||
-        raw.contains('expected \"detailed\"') ||
-        raw.contains('expected \"aggregate\"')) {
+        raw.contains('expected "detailed"') ||
+        raw.contains('expected "aggregate"')) {
       return uiText(
         context,
         es: 'El cambio no quedó guardado en el servidor. Cierra y vuelve a abrir la sección antes de intentarlo otra vez.',

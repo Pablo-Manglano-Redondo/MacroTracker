@@ -1,9 +1,7 @@
-import 'package:logging/logging.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProposedRecipesDataSource {
-  final _log = Logger('ProposedRecipesDataSource');
   final SupabaseClient _supabaseClient;
   final SupabaseIdentityService _identityService;
 

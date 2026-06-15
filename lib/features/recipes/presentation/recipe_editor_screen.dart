@@ -647,13 +647,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
         : servings.toString();
   }
 
-  String _formatDate(DateTime dateTime) {
-    final day = dateTime.day.toString().padLeft(2, '0');
-    final month = dateTime.month.toString().padLeft(2, '0');
-    final year = dateTime.year.toString();
-    return '$day/$month/$year';
-  }
-
   String? _cleanIntakeTypeTags(String? notes) {
     if (notes == null) {
       return null;

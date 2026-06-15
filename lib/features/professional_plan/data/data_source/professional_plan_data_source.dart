@@ -560,7 +560,7 @@ class ProfessionalPlanDataSource {
 
     return ProfessionalSharingScopeEntity(
       sharingMode: connection.sharingMode,
-      messagesEnabled: true,
+      messagesEnabled: isMessagesEnabled,
       consentAcceptedAt: connection.consentAcceptedAt,
       sharedNow: [
         'aggregate_targets_vs_actuals',
