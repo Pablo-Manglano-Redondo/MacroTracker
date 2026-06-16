@@ -29,29 +29,52 @@ class GoogleDriveBackupService implements DriveBackupService {
   static final _serverClientId = Env.googleDriveServerClientId;
   static final _iosClientId = Env.googleDriveIosClientId;
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  GoogleSignInAccount? _activeAccount;
+  final GoogleDriveAuthClient _authClient;
+  final GoogleDriveFileUploader _fileUploader;
+  final bool Function() _isAndroid;
+  final bool Function() _isIOS;
+  final String _configuredServerClientId;
+  final String _configuredIosClientId;
+  GoogleDriveAccount? _activeAccount;
   bool _initialized = false;
+
+  GoogleDriveBackupService({
+    GoogleDriveAuthClient? authClient,
+    GoogleDriveFileUploader? fileUploader,
+    bool Function()? isAndroid,
+    bool Function()? isIOS,
+    String? serverClientId,
+    String? iosClientId,
+  })  : _authClient = authClient ?? GoogleSignInDriveAuthClient(),
+        _fileUploader = fileUploader ?? GoogleDriveApiFileUploader(),
+        _isAndroid = isAndroid ?? (() => Platform.isAndroid),
+        _isIOS = isIOS ?? (() => Platform.isIOS),
+        _configuredServerClientId = serverClientId ?? _serverClientId,
+        _configuredIosClientId = iosClientId ?? _iosClientId;
 
   Future<void> _ensureInitialized() async {
     if (_initialized) {
       return;
     }
 
-    await _googleSignIn.initialize(
-      clientId: Platform.isIOS && _iosClientId.isNotEmpty ? _iosClientId : null,
-      serverClientId: _serverClientId.isNotEmpty ? _serverClientId : null,
+    await _authClient.initialize(
+      clientId: _isIOS() && _configuredIosClientId.isNotEmpty
+          ? _configuredIosClientId
+          : null,
+      serverClientId: _configuredServerClientId.isNotEmpty
+          ? _configuredServerClientId
+          : null,
     );
     _initialized = true;
   }
 
   void _assertPlatformConfiguration() {
-    if (Platform.isAndroid && _serverClientId.isEmpty) {
+    if (_isAndroid() && _configuredServerClientId.isEmpty) {
       throw StateError(
         'Missing GOOGLE_DRIVE_SERVER_CLIENT_ID for Android Google Drive sign-in.',
       );
     }
-    if (Platform.isIOS && !_hasIosClientId) {
+    if (_isIOS() && !_hasIosClientId) {
       throw StateError(
         'Missing GOOGLE_DRIVE_IOS_CLIENT_ID for iOS Google Drive sign-in.',
       );
@@ -59,16 +82,17 @@ class GoogleDriveBackupService implements DriveBackupService {
   }
 
   bool get _hasIosClientId =>
-      _iosClientId.isNotEmpty && !_iosClientId.contains('YOUR_IOS_CLIENT_ID');
+      _configuredIosClientId.isNotEmpty &&
+      !_configuredIosClientId.contains('YOUR_IOS_CLIENT_ID');
 
-  Future<GoogleSignInAccount?> _restoreAccount() async {
+  Future<GoogleDriveAccount?> _restoreAccount() async {
     await _ensureInitialized();
-    _activeAccount ??= await _googleSignIn.attemptLightweightAuthentication() ??
-        _activeAccount;
+    _activeAccount ??=
+        await _authClient.attemptLightweightAuthentication() ?? _activeAccount;
     return _activeAccount;
   }
 
-  Future<GoogleSignInAccount?> _getAccount({
+  Future<GoogleDriveAccount?> _getAccount({
     required bool interactive,
   }) async {
     final restored = await _restoreAccount();
@@ -80,13 +104,13 @@ class GoogleDriveBackupService implements DriveBackupService {
       return null;
     }
 
-    if (!_googleSignIn.supportsAuthenticate()) {
+    if (!_authClient.supportsAuthenticate()) {
       throw UnsupportedError(
         'Google Drive sign-in is not supported on this platform.',
       );
     }
 
-    _activeAccount = await _googleSignIn.authenticate(scopeHint: _scopes);
+    _activeAccount = await _authClient.authenticate(scopeHint: _scopes);
     return _activeAccount;
   }
 
@@ -98,7 +122,7 @@ class GoogleDriveBackupService implements DriveBackupService {
       return null;
     }
 
-    return account.authorizationClient.authorizationHeaders(
+    return account.authorizationHeaders(
       _scopes,
       promptIfNecessary: interactive,
     );
@@ -106,10 +130,10 @@ class GoogleDriveBackupService implements DriveBackupService {
 
   @override
   Future<bool> isAuthenticated() async {
-    if (Platform.isAndroid && _serverClientId.isEmpty) {
+    if (_isAndroid() && _configuredServerClientId.isEmpty) {
       return false;
     }
-    if (Platform.isIOS && !_hasIosClientId) {
+    if (_isIOS() && !_hasIosClientId) {
       return false;
     }
     final headers = await _authorizationHeaders(interactive: false);
@@ -127,7 +151,7 @@ class GoogleDriveBackupService implements DriveBackupService {
 
   Future<void> disconnect() async {
     await _ensureInitialized();
-    await _googleSignIn.disconnect();
+    await _authClient.disconnect();
     _activeAccount = null;
   }
 
@@ -138,11 +162,11 @@ class GoogleDriveBackupService implements DriveBackupService {
         return DriveBackupStatus(
           isSignedIn: false,
           requiresManualConfiguration:
-              (Platform.isAndroid && _serverClientId.isEmpty) ||
-                  (Platform.isIOS && !_hasIosClientId),
-          errorMessage: Platform.isAndroid && _serverClientId.isEmpty
+              (_isAndroid() && _configuredServerClientId.isEmpty) ||
+                  (_isIOS() && !_hasIosClientId),
+          errorMessage: _isAndroid() && _configuredServerClientId.isEmpty
               ? 'Set GOOGLE_DRIVE_SERVER_CLIENT_ID before using Google Drive backup on Android.'
-              : Platform.isIOS && !_hasIosClientId
+              : _isIOS() && !_hasIosClientId
                   ? 'Set GOOGLE_DRIVE_IOS_CLIENT_ID and GOOGLE_DRIVE_IOS_REVERSED_CLIENT_ID before using Google Drive backup on iOS.'
                   : null,
         );
@@ -153,16 +177,16 @@ class GoogleDriveBackupService implements DriveBackupService {
         accountEmail: account.email,
         accountName: account.displayName,
         requiresManualConfiguration:
-            (Platform.isAndroid && _serverClientId.isEmpty) ||
-                (Platform.isIOS && !_hasIosClientId),
+            (_isAndroid() && _configuredServerClientId.isEmpty) ||
+                (_isIOS() && !_hasIosClientId),
       );
     } catch (error) {
       return DriveBackupStatus(
         isSignedIn: false,
         errorMessage: error.toString(),
         requiresManualConfiguration:
-            (Platform.isAndroid && _serverClientId.isEmpty) ||
-                (Platform.isIOS && !_hasIosClientId),
+            (_isAndroid() && _configuredServerClientId.isEmpty) ||
+                (_isIOS() && !_hasIosClientId),
       );
     }
   }
@@ -181,7 +205,127 @@ class GoogleDriveBackupService implements DriveBackupService {
       throw StateError('Google Drive authorization was not granted.');
     }
 
-    final client = _GoogleAuthHttpClient(headers);
+    return _fileUploader.uploadBackupFile(
+      file: file,
+      fileName: fileName,
+      authorizationHeaders: headers,
+    );
+  }
+}
+
+class GoogleDriveAccount {
+  final String email;
+  final String? displayName;
+  final Future<Map<String, String>?> Function(
+    List<String> scopes, {
+    required bool promptIfNecessary,
+  }) _authorizationHeaders;
+
+  const GoogleDriveAccount({
+    required this.email,
+    required this.displayName,
+    required Future<Map<String, String>?> Function(
+      List<String> scopes, {
+      required bool promptIfNecessary,
+    }) authorizationHeaders,
+  }) : _authorizationHeaders = authorizationHeaders;
+
+  Future<Map<String, String>?> authorizationHeaders(
+    List<String> scopes, {
+    required bool promptIfNecessary,
+  }) {
+    return _authorizationHeaders(scopes, promptIfNecessary: promptIfNecessary);
+  }
+}
+
+abstract class GoogleDriveAuthClient {
+  Future<void> initialize({
+    String? clientId,
+    String? serverClientId,
+  });
+
+  Future<GoogleDriveAccount?> attemptLightweightAuthentication();
+
+  bool supportsAuthenticate();
+
+  Future<GoogleDriveAccount> authenticate({
+    required List<String> scopeHint,
+  });
+
+  Future<void> disconnect();
+}
+
+class GoogleSignInDriveAuthClient implements GoogleDriveAuthClient {
+  final GoogleSignIn _googleSignIn;
+
+  GoogleSignInDriveAuthClient([GoogleSignIn? googleSignIn])
+      : _googleSignIn = googleSignIn ?? GoogleSignIn.instance;
+
+  @override
+  Future<void> initialize({
+    String? clientId,
+    String? serverClientId,
+  }) {
+    return _googleSignIn.initialize(
+      clientId: clientId,
+      serverClientId: serverClientId,
+    );
+  }
+
+  @override
+  Future<GoogleDriveAccount?> attemptLightweightAuthentication() async {
+    final account = await _googleSignIn.attemptLightweightAuthentication();
+    return account == null ? null : _GoogleSignInDriveAccount(account);
+  }
+
+  @override
+  bool supportsAuthenticate() => _googleSignIn.supportsAuthenticate();
+
+  @override
+  Future<GoogleDriveAccount> authenticate({
+    required List<String> scopeHint,
+  }) async {
+    final account = await _googleSignIn.authenticate(scopeHint: scopeHint);
+    return _GoogleSignInDriveAccount(account);
+  }
+
+  @override
+  Future<void> disconnect() => _googleSignIn.disconnect();
+}
+
+class _GoogleSignInDriveAccount extends GoogleDriveAccount {
+  _GoogleSignInDriveAccount(GoogleSignInAccount account)
+      : super(
+          email: account.email,
+          displayName: account.displayName,
+          authorizationHeaders: (
+            scopes, {
+            required bool promptIfNecessary,
+          }) {
+            return account.authorizationClient.authorizationHeaders(
+              scopes,
+              promptIfNecessary: promptIfNecessary,
+            );
+          },
+        );
+}
+
+abstract class GoogleDriveFileUploader {
+  Future<DriveBackupUploadResult> uploadBackupFile({
+    required File file,
+    required String fileName,
+    required Map<String, String> authorizationHeaders,
+  });
+}
+
+class GoogleDriveApiFileUploader implements GoogleDriveFileUploader {
+  @override
+  Future<DriveBackupUploadResult> uploadBackupFile({
+    required File file,
+    required String fileName,
+    required Map<String, String> authorizationHeaders,
+  }) async {
+    final client = _GoogleAuthHttpClient(authorizationHeaders);
     try {
       final driveApi = drive.DriveApi(client);
       final media = commons.Media(file.openRead(), await file.length());

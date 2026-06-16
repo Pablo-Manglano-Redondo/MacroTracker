@@ -62,7 +62,9 @@ if (-not $SkipFocusedTests) {
     Invoke-CheckedCommand -Name "Focused Flutter tests" -Command {
         & $flutterCmd test `
             test/unit_test/cloud_account_deletion_service_test.dart `
+            test/unit_test/google_drive_backup_service_test.dart `
             test/unit_test/android_drive_backup_scheduler_test.dart `
+            test/unit_test/push_notification_service_test.dart `
             test/unit_test/app_review_service_test.dart `
             test/unit_test/subscription_service_test.dart `
             test/unit_test/conversion_analytics_service_test.dart `

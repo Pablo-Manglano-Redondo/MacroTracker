@@ -12,22 +12,26 @@ class PushNotificationService {
   final SupabaseClient _supabaseClient;
   final SupabaseIdentityService _identityService;
   final FlutterLocalNotificationsPlugin _localNotifications;
-  FirebaseMessaging? _fcm;
+  PushMessagingClient? _messagingClient;
   bool _initialized = false;
 
   PushNotificationService(
     this._supabaseClient,
     this._identityService, [
     FlutterLocalNotificationsPlugin? localNotifications,
-  ]) : _localNotifications = localNotifications ?? FlutterLocalNotificationsPlugin();
+    PushMessagingClient? messagingClient,
+  ])  : _localNotifications =
+            localNotifications ?? FlutterLocalNotificationsPlugin(),
+        _messagingClient = messagingClient;
 
   Future<void> initialize() async {
     if (_initialized) return;
     try {
-      _fcm = FirebaseMessaging.instance;
+      final messagingClient =
+          _messagingClient ??= FirebasePushMessagingClient();
 
       // Request permission
-      final permission = await _fcm!.requestPermission(
+      final permission = await messagingClient.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -41,7 +45,7 @@ class PushNotificationService {
       await _registerToken();
 
       // Listen for token refresh
-      _fcm!.onTokenRefresh.listen((token) {
+      messagingClient.onTokenRefresh.listen((token) {
         _registerToken(token);
       });
 
@@ -53,13 +57,13 @@ class PushNotificationService {
         ),
       );
 
-      FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      messagingClient.onMessage.listen(_handleForegroundMessage);
 
       // Handle notification tap when app was in background
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+      messagingClient.onMessageOpenedApp.listen(_handleNotificationTap);
 
       // Handle notification tap when app was terminated
-      final initialMessage = await _fcm!.getInitialMessage();
+      final initialMessage = await messagingClient.getInitialMessage();
       if (initialMessage != null) {
         _handleNotificationTap(initialMessage);
       }
@@ -73,13 +77,14 @@ class PushNotificationService {
 
   Future<void> _registerToken([String? token]) async {
     try {
-      final fcmToken = token ?? await _fcm?.getToken();
+      final fcmToken = token ?? await _messagingClient?.getToken();
       if (fcmToken == null) return;
 
       await _identityService.ensureUserSession();
       await _supabaseClient.rpc('upsert_device_token', params: {
         'p_token': fcmToken,
-        'p_platform': defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios',
+        'p_platform':
+            defaultTargetPlatform == TargetPlatform.android ? 'android' : 'ios',
       });
     } catch (e) {
       _log.warning('Failed to register FCM token: $e');
@@ -113,9 +118,11 @@ class PushNotificationService {
     _onNotificationTapController.add(message.data);
   }
 
-  final _onNotificationTapController = StreamController<Map<String, dynamic>>.broadcast();
+  final _onNotificationTapController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
-  Stream<Map<String, dynamic>> get onNotificationTap => _onNotificationTapController.stream;
+  Stream<Map<String, dynamic>> get onNotificationTap =>
+      _onNotificationTapController.stream;
 
   void dispose() {
     _onNotificationTapController.close();
@@ -123,7 +130,7 @@ class PushNotificationService {
 
   Future<void> unregisterToken() async {
     try {
-      final fcmToken = await _fcm?.getToken();
+      final fcmToken = await _messagingClient?.getToken();
       if (fcmToken != null) {
         await _supabaseClient.rpc('delete_device_token', params: {
           'p_token': fcmToken,
@@ -133,4 +140,71 @@ class PushNotificationService {
       _log.warning('Failed to unregister FCM token: $e');
     }
   }
+}
+
+abstract class PushMessagingClient {
+  Future<NotificationSettings> requestPermission({
+    bool alert = true,
+    bool announcement = false,
+    bool badge = true,
+    bool carPlay = false,
+    bool criticalAlert = false,
+    bool provisional = false,
+    bool sound = true,
+  });
+
+  Future<String?> getToken();
+
+  Stream<String> get onTokenRefresh;
+
+  Stream<RemoteMessage> get onMessage;
+
+  Stream<RemoteMessage> get onMessageOpenedApp;
+
+  Future<RemoteMessage?> getInitialMessage();
+}
+
+class FirebasePushMessagingClient implements PushMessagingClient {
+  final FirebaseMessaging _firebaseMessaging;
+
+  FirebasePushMessagingClient([FirebaseMessaging? firebaseMessaging])
+      : _firebaseMessaging = firebaseMessaging ?? FirebaseMessaging.instance;
+
+  @override
+  Future<NotificationSettings> requestPermission({
+    bool alert = true,
+    bool announcement = false,
+    bool badge = true,
+    bool carPlay = false,
+    bool criticalAlert = false,
+    bool provisional = false,
+    bool sound = true,
+  }) {
+    return _firebaseMessaging.requestPermission(
+      alert: alert,
+      announcement: announcement,
+      badge: badge,
+      carPlay: carPlay,
+      criticalAlert: criticalAlert,
+      provisional: provisional,
+      sound: sound,
+    );
+  }
+
+  @override
+  Future<String?> getToken() => _firebaseMessaging.getToken();
+
+  @override
+  Stream<String> get onTokenRefresh => _firebaseMessaging.onTokenRefresh;
+
+  @override
+  Stream<RemoteMessage> get onMessage => FirebaseMessaging.onMessage;
+
+  @override
+  Stream<RemoteMessage> get onMessageOpenedApp =>
+      FirebaseMessaging.onMessageOpenedApp;
+
+  @override
+  Future<RemoteMessage?> getInitialMessage() =>
+      _firebaseMessaging.getInitialMessage();
 }

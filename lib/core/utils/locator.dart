@@ -37,6 +37,7 @@ import 'package:macrotracker/core/services/cloud_account_deletion_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/push_notification_service.dart';
 import 'package:macrotracker/core/services/referral_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
@@ -162,6 +163,8 @@ Future<void> initLocator() async {
       () => HiveAndSecureStorageResetter(locator()));
   locator.registerLazySingleton<CloudAccountDeletionService>(
       () => CloudAccountDeletionService(locator(), locator(), locator()));
+  locator.registerLazySingleton<PushNotificationService>(
+      () => PushNotificationService(locator(), locator()));
 
   // Cache manager
   locator.registerLazySingleton<CacheManager>(
@@ -186,8 +189,16 @@ Future<void> initLocator() async {
       locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<ProfileBloc>(() => ProfileBloc(locator(),
       locator(), locator(), locator(), locator(), locator(), locator()));
-  locator.registerLazySingleton(() => SettingsBloc(locator(), locator(),
-      locator(), locator(), locator(), locator(), locator(), locator(), locator()));
+  locator.registerLazySingleton(() => SettingsBloc(
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator(),
+      locator()));
   locator.registerFactory(() => ExportImportBloc(locator(), locator()));
 
   locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
@@ -271,7 +282,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<GetTrackedDayUsecase>(
       () => GetTrackedDayUsecase(locator()));
   locator.registerLazySingleton<UpdateHomeWidgetUsecase>(() =>
-      UpdateHomeWidgetUsecase(locator(), locator(), locator(), locator(), locator()));
+      UpdateHomeWidgetUsecase(
+          locator(), locator(), locator(), locator(), locator()));
   locator.registerLazySingleton<AddTrackedDayUsecase>(
       () => AddTrackedDayUsecase(locator(), locator()));
   locator.registerLazySingleton(() => GetKcalGoalUsecase(locator(), locator()));
@@ -443,11 +455,8 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<HealthConnectSleepDataSource>(
       () => HealthConnectSleepDataSource());
   locator.registerLazySingleton<ProfessionalPlanDataSource>(() =>
-      ProfessionalPlanDataSource(
-          hiveDBProvider.professionalPlanBox,
-          hiveDBProvider.professionalPlanSyncQueueBox,
-          locator(),
-          locator()));
+      ProfessionalPlanDataSource(hiveDBProvider.professionalPlanBox,
+          hiveDBProvider.professionalPlanSyncQueueBox, locator(), locator()));
 
   final subscriptionService = SubscriptionService();
   await subscriptionService.initialize();
