@@ -68,8 +68,11 @@ class AndroidDriveBackupScheduler {
   AndroidDriveBackupScheduler([Workmanager? workmanager])
       : _workmanager = workmanager ?? Workmanager();
 
+  @visibleForTesting
+  bool debugBypassPlatformCheck = false;
+
   Future<void> syncFromConfig(bool enabled) async {
-    if (!Platform.isAndroid) {
+    if (!Platform.isAndroid && !debugBypassPlatformCheck) {
       return;
     }
     if (enabled) {
@@ -80,7 +83,7 @@ class AndroidDriveBackupScheduler {
   }
 
   Future<void> scheduleDailyBackup() async {
-    if (!Platform.isAndroid) {
+    if (!Platform.isAndroid && !debugBypassPlatformCheck) {
       return;
     }
 
@@ -99,7 +102,7 @@ class AndroidDriveBackupScheduler {
   }
 
   Future<void> cancelDailyBackup() async {
-    if (!Platform.isAndroid) {
+    if (!Platform.isAndroid && !debugBypassPlatformCheck) {
       return;
     }
     await _workmanager.cancelByUniqueName(googleDriveDailyBackupUniqueName);

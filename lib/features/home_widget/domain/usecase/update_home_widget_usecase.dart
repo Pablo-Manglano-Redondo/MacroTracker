@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:home_widget/home_widget.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
@@ -13,8 +15,10 @@ import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habi
 
 class UpdateHomeWidgetUsecase {
   static const androidWidgetProviderName = 'MacroTrackerSummaryWidgetProvider';
-  static const quickActionsWidgetProviderName = 'MacroTrackerQuickActionsWidgetProvider';
-  static const circularProgressWidgetProviderName = 'MacroTrackerCircularProgressWidgetProvider';
+  static const quickActionsWidgetProviderName =
+      'MacroTrackerQuickActionsWidgetProvider';
+  static const circularProgressWidgetProviderName =
+      'MacroTrackerCircularProgressWidgetProvider';
   static const habitsWidgetProviderName = 'MacroTrackerHabitsWidgetProvider';
 
   static const _kcalRemainingKey = 'widget_kcal_remaining';
@@ -46,8 +50,11 @@ class UpdateHomeWidgetUsecase {
     this._getUserUsecase,
   );
 
+  @visibleForTesting
+  bool debugBypassPlatformCheck = false;
+
   Future<void> refreshToday() async {
-    if (!Platform.isAndroid) {
+    if (!Platform.isAndroid && !debugBypassPlatformCheck) {
       return;
     }
 
@@ -74,10 +81,12 @@ class UpdateHomeWidgetUsecase {
       final fatTracked = trackedDay?.fatTracked ?? 0;
       final proteinGoal = trackedDay?.proteinGoal ?? targets!.proteinGoal;
       final proteinTracked = trackedDay?.proteinTracked ?? 0;
-      final hydrationGoal = user.targetWaterLiters ?? _hydrationGoalForFocus(config.dailyFocus);
+      final hydrationGoal =
+          user.targetWaterLiters ?? _hydrationGoalForFocus(config.dailyFocus);
 
       // Steps goal and Sleep goal
-      final stepsGoal = user.targetSteps ?? _stepGoalForFocus(config.dailyFocus);
+      final stepsGoal =
+          user.targetSteps ?? _stepGoalForFocus(config.dailyFocus);
       final sleepGoal = user.targetSleepHours ?? 8.0;
 
       // Base widget values
@@ -125,7 +134,7 @@ class UpdateHomeWidgetUsecase {
         _sleepProgressKey,
         '${habitLog.sleepHours.toStringAsFixed(1)} / ${sleepGoal.toStringAsFixed(1)}h',
       );
-      
+
       final isEs = Platform.localeName.startsWith('es');
       await HomeWidget.saveWidgetData<String>(
         _focusLabelKey,

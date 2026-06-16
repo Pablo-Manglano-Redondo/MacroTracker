@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
+import '../fixture/meal_entity_fixtures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
@@ -403,6 +404,170 @@ void main() {
       final rawEntry = box.values.single;
       expect(rawEntry, isA<Map>());
       expect(rawEntry['title'], 'Post-workout Shake');
+    });
+
+    test('personalizeDraft corrects items using local food memories with a meal snapshot', () async {
+      final box = await Hive.openBox(MealInterpretationPersonalizationUsecase.aiMemoryBoxName);
+      final memory = AiFoodMemoryEntry(
+        key: 'manzana',
+        displayLabel: 'Manzana',
+        amount: 2.0,
+        unit: 'medium',
+        kcal: 190,
+        carbs: 50,
+        fat: 0.6,
+        protein: 1.0,
+        mealSnapshot: MealEntityFixtures.mealOne,
+        uses: 3,
+        updatedAt: DateTime.now(),
+      );
+      await box.put(memory.key, memory.toMap());
+
+      final draft = _dummyDraft(title: 'Manzana').copyWith(
+        items: const [
+          InterpretationDraftItemEntity(
+            id: 'item-apple',
+            label: 'Manzana',
+            matchedMealSnapshot: null,
+            amount: 1,
+            unit: 'medium',
+            kcal: 95,
+            carbs: 25,
+            fat: 0.3,
+            protein: 0.5,
+            confidenceBand: ConfidenceBandEntity.high,
+            editable: true,
+            removed: false,
+          ),
+        ],
+      );
+      final personalized = await personalizationUsecase.personalizeDraft(
+        draft: draft,
+        intakeType: IntakeTypeEntity.breakfast,
+      );
+
+      expect(personalized.items.first.amount, 2.0);
+      expect(personalized.items.first.unit, 'medium');
+      expect(personalized.items.first.matchedMealSnapshot, isNotNull);
+    });
+
+    test('personalizeDraft validates macro coherence and adjusts kcal and confidence', () async {
+      final draft = InterpretationDraftEntity(
+        id: 'draft-coherence',
+        sourceType: DraftSourceEntity.text,
+        inputText: 'some food',
+        localImagePath: null,
+        title: 'Non-coherent Food',
+        summary: 'Non-coherent macros',
+        totalKcal: 300,
+        totalCarbs: 10,
+        totalFat: 10,
+        totalProtein: 10,
+        confidenceBand: ConfidenceBandEntity.high,
+        status: DraftStatusEntity.ready,
+        createdAt: DateTime.now(),
+        expiresAt: DateTime.now().add(const Duration(days: 1)),
+        items: const [
+          InterpretationDraftItemEntity(
+            id: 'item-coherence',
+            label: 'Some food',
+            matchedMealSnapshot: null,
+            amount: 1,
+            unit: 'serving',
+            kcal: 300,
+            carbs: 10,
+            fat: 10,
+            protein: 10,
+            confidenceBand: ConfidenceBandEntity.high,
+            editable: true,
+            removed: false,
+          ),
+        ],
+      );
+
+      final personalized = await personalizationUsecase.personalizeDraft(
+        draft: draft,
+        intakeType: IntakeTypeEntity.breakfast,
+      );
+
+      expect(personalized.items.first.kcal, 170.0);
+      expect(personalized.items.first.confidenceBand, ConfidenceBandEntity.medium);
+    });
+
+    test('buildFallbackDraft returns a local match when it matches a recipe', () async {
+      final user = UserEntity(
+        birthday: DateTime(1990, 10, 10),
+        heightCM: 175,
+        weightKG: 70,
+        gender: UserGenderEntity.male,
+        goal: UserWeightGoalEntity.loseWeight,
+        pal: UserPALEntity.sedentary,
+      );
+      getUser.user = user;
+      getConfig.config = const ConfigEntity(true, true, true, AppThemeEntity.system);
+
+      getRecipeLibrary.recipes = [
+        RecipeEntity(
+          id: 'rec-egg-fallback',
+          name: 'Healthy Scrambled Eggs',
+          notes: 'Eggs with salt',
+          defaultServings: 1,
+          yieldQuantity: null,
+          yieldUnit: null,
+          saved: true,
+          pinned: false,
+          timesUsed: 5,
+          lastUsedAt: null,
+          quickCategory: null,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          ingredients: const [],
+        )
+      ];
+
+      final draft = await personalizationUsecase.buildFallbackDraft(
+        sourceType: DraftSourceEntity.text,
+        title: 'Healthy Scrambled Eggs',
+        intakeType: IntakeTypeEntity.breakfast,
+        inputText: 'Healthy Scrambled Eggs',
+      );
+
+      expect(draft.items.first.label, 'Healthy Scrambled Eggs');
+      expect(draft.confidenceBand, ConfidenceBandEntity.medium);
+    });
+
+    test('saveMealMemoryFromDraft handles empty items, empty titles, and empty keys', () async {
+      final emptyDraft = InterpretationDraftEntity(
+        id: 'draft-empty',
+        sourceType: DraftSourceEntity.text,
+        inputText: '',
+        localImagePath: null,
+        title: 'Empty',
+        summary: '',
+        totalKcal: 0,
+        totalCarbs: 0,
+        totalFat: 0,
+        totalProtein: 0,
+        confidenceBand: ConfidenceBandEntity.low,
+        status: DraftStatusEntity.ready,
+        createdAt: DateTime.now(),
+        expiresAt: DateTime.now().add(const Duration(days: 1)),
+        items: const [],
+      );
+
+      await personalizationUsecase.saveMealMemoryFromDraft(
+        draft: emptyDraft,
+        intakeType: IntakeTypeEntity.snack,
+      );
+
+      final draftNoTitle = _dummyDraft(title: '');
+      await personalizationUsecase.saveMealMemoryFromDraft(
+        draft: draftNoTitle,
+        intakeType: IntakeTypeEntity.snack,
+      );
+
+      final box = await Hive.openBox(MealInterpretationPersonalizationUsecase.aiMealMemoryBoxName);
+      expect(box.length, 1);
     });
   });
 }

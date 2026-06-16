@@ -34,6 +34,7 @@ ios/Flutter/GoogleDrive.xcconfig
 .pub-cache/
 .pub/
 /build/
+/coverage/
 .gitconfig-flutter
 node_modules/
 package-lock.json

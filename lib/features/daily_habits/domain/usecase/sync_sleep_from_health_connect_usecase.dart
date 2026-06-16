@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/data/repository/user_activity_repository.dart';
 import 'package:macrotracker/core/data/repository/config_repository.dart';
@@ -22,6 +24,9 @@ import 'package:macrotracker/features/daily_habits/domain/usecase/health_connect
 class SyncSleepFromHealthConnectUsecase {
   final _log = Logger('SyncSleepFromHealthConnectUsecase');
   static const _workoutSyncLookbackDays = 7;
+
+  @visibleForTesting
+  bool debugBypassPlatformCheck = false;
 
   final HealthConnectSleepDataSource _healthConnectSleepDataSource;
   final DailyHabitLogRepository _dailyHabitLogRepository;
@@ -93,7 +98,7 @@ class SyncSleepFromHealthConnectUsecase {
     required bool ignoreAutoSyncSetting,
   }) async {
     try {
-      if (!Platform.isAndroid && !Platform.isIOS) {
+      if (!Platform.isAndroid && !Platform.isIOS && !debugBypassPlatformCheck) {
         return HealthConnectSyncReport(
           didUpdate: false,
           reason: HealthConnectSyncSkipReason.notAndroid,
@@ -349,7 +354,7 @@ class SyncSleepFromHealthConnectUsecase {
   Future<HealthConnectSyncStatusEntity> getStatus() async {
     final config = await _configRepository.getConfig();
     try {
-      if (!Platform.isAndroid && !Platform.isIOS) {
+      if (!Platform.isAndroid && !Platform.isIOS && !debugBypassPlatformCheck) {
         return HealthConnectSyncStatusEntity(
           isAvailable: false,
           hasHealthPermissions: false,
@@ -409,7 +414,7 @@ class SyncSleepFromHealthConnectUsecase {
   Future<HealthConnectSyncStatusEntity> requestPermissions() async {
     final config = await _configRepository.getConfig();
     try {
-      if (!Platform.isAndroid && !Platform.isIOS) {
+      if (!Platform.isAndroid && !Platform.isIOS && !debugBypassPlatformCheck) {
         return HealthConnectSyncStatusEntity(
           isAvailable: false,
           hasHealthPermissions: false,

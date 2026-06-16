@@ -20,6 +20,10 @@ class AppReviewService {
   static const int _aiMealsThreshold = 10;
 
   final _log = Logger('AppReviewService');
+  final InAppReview _inAppReview;
+
+  AppReviewService([InAppReview? inAppReview])
+      : _inAppReview = inAppReview ?? InAppReview.instance;
 
   /// Call once per app session (e.g. in MainScreen initState).
   Future<void> recordDailyUsage() async {
@@ -75,7 +79,7 @@ class AppReviewService {
         box.get(_reviewPromptedKey, defaultValue: false) as bool;
     if (alreadyPrompted) return;
 
-    final inAppReview = InAppReview.instance;
+    final inAppReview = _inAppReview;
     if (await inAppReview.isAvailable()) {
       await inAppReview.requestReview();
       await box.put(_reviewPromptedKey, true);

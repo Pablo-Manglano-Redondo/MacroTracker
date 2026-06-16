@@ -16,6 +16,9 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 class OFFDataSource {
   static const _timeoutDuration = Duration(seconds: 10);
   final log = Logger('OFFDataSource');
+  final http.Client _client;
+
+  OFFDataSource({http.Client? client}) : _client = client ?? http.Client();
 
   Future<OFFWordResponseDTO> fetchSearchWordResults(String searchString) async {
     try {
@@ -32,7 +35,7 @@ class OFFDataSource {
 
       final searchUrlString = OFFConst.getOffWordSearchUrl(normalizedSearch);
       final userAgentString = await AppConst.getUserAgentString();
-      final httpClient = ONTHttpClient(userAgentString, http.Client());
+      final httpClient = ONTHttpClient(userAgentString, _client);
 
       final response =
           await httpClient.get(searchUrlString).timeout(_timeoutDuration);
@@ -88,7 +91,7 @@ class OFFDataSource {
     try {
       final searchUrl = OFFConst.getOffBarcodeSearchUri(barcode);
       final userAgentString = await AppConst.getUserAgentString();
-      final httpClient = ONTHttpClient(userAgentString, http.Client());
+      final httpClient = ONTHttpClient(userAgentString, _client);
 
       final response =
           await httpClient.get(searchUrl).timeout(_timeoutDuration);

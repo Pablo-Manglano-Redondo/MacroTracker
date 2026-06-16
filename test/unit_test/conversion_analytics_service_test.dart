@@ -1,145 +1,201 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
-void main() {
-  group('ConversionAnalyticsService', () {
-    test('does not emit events when anonymous data opt-in is disabled',
-        () async {
-      final client = _FakeAnalyticsClient();
-      final config = _FakeGetConfigUsecase(acceptedAnonymousData: false);
-      final service = ConversionAnalyticsService(client, config);
-
-      await service.initializeFromConsent();
-      await service.logEvent(
-        'weekly_insights_viewed',
-        parameters: {'tracked_days': 5},
-      );
-
-      expect(client.enabledValues, [false]);
-      expect(client.events, isEmpty);
-    });
-
-    test('emits event names and cleaned parameters when opt-in is enabled',
-        () async {
-      final client = _FakeAnalyticsClient();
-      final config = _FakeGetConfigUsecase(acceptedAnonymousData: true);
-      final service = ConversionAnalyticsService(client, config);
-
-      await service.initializeFromConsent();
-      await service.logEvent(
-        'weekly_adjustment_applied',
-        parameters: {
-          'delta_kcal': -100,
-          'is_premium': true,
-          'ignored': null,
-          'custom': DateTime(2026, 6, 3),
-        },
-      );
-
-      expect(client.enabledValues, [true]);
-      expect(client.events, hasLength(1));
-      expect(client.events.single.name, 'weekly_adjustment_applied');
-      expect(client.events.single.parameters, {
-        'delta_kcal': -100,
-        'is_premium': 'true',
-        'custom': '2026-06-03 00:00:00.000',
-      });
-    });
-
-    test('emits ai request lifecycle events with normalized parameters',
-        () async {
-      final client = _FakeAnalyticsClient();
-      final config = _FakeGetConfigUsecase(acceptedAnonymousData: true);
-      final service = ConversionAnalyticsService(client, config);
-
-      await service.initializeFromConsent();
-      await service.logAiInterpretationStarted(inputType: 'photo');
-      await service.logAiInterpretationRetried(
-        inputType: 'photo',
-        category: 'timeout',
-      );
-      await service.logAiInterpretationFailed(
-        inputType: 'photo',
-        category: 'timeout',
-      );
-      await service.logAiInterpretationCompleted(
-        inputType: 'photo',
-        remoteMs: 10300,
-        edgeMs: 9100,
-        geminiMs: 8400,
-        modelAttempts: 1,
-        fallbackUsed: false,
-      );
-
-      expect(
-        client.events.map((event) => event.name).toList(),
-        [
-          'ai_request_started',
-          'ai_request_retried',
-          'ai_request_failed',
-          'ai_request_completed',
-        ],
-      );
-      expect(client.events[1].parameters['failure_category'], 'timeout');
-      expect(client.events[2].parameters['input_type'], 'photo');
-      expect(client.events[3].parameters, {
-        'input_type': 'photo',
-        'remote_ms': 10300,
-        'edge_ms': 9100,
-        'gemini_ms': 8400,
-        'model_attempts': 1,
-        'fallback_used': 'false',
-      });
-    });
-  });
-}
-
-class _FakeAnalyticsClient implements ConversionAnalyticsClient {
-  final events = <_FakeAnalyticsEvent>[];
-  final enabledValues = <bool>[];
-  int initializeCount = 0;
+class _FakeConversionAnalyticsClient extends Fake implements ConversionAnalyticsClient {
+  bool initialized = false;
+  bool enabled = false;
+  String? lastEventName;
+  Map<String, Object>? lastParameters;
 
   @override
   Future<void> initialize() async {
-    initializeCount += 1;
+    initialized = true;
   }
 
   @override
-  Future<void> logEvent(
-    String name, {
-    Map<String, Object>? parameters,
-  }) async {
-    events.add(_FakeAnalyticsEvent(name, parameters ?? const {}));
+  Future<void> setEnabled(bool val) async {
+    enabled = val;
   }
 
   @override
-  Future<void> setEnabled(bool enabled) async {
-    enabledValues.add(enabled);
+  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
+    lastEventName = name;
+    lastParameters = parameters;
   }
 }
 
-class _FakeAnalyticsEvent {
-  final String name;
-  final Map<String, Object> parameters;
-
-  const _FakeAnalyticsEvent(this.name, this.parameters);
-}
-
-class _FakeGetConfigUsecase implements GetConfigUsecase {
-  bool acceptedAnonymousData;
-
-  _FakeGetConfigUsecase({required this.acceptedAnonymousData});
+class _FakeGetConfigUsecase extends Fake implements GetConfigUsecase {
+  bool acceptedSendAnonymousData = true;
 
   @override
   Future<ConfigEntity> getConfig() async {
     return ConfigEntity(
       true,
       true,
-      acceptedAnonymousData,
+      acceptedSendAnonymousData,
       AppThemeEntity.system,
     );
   }
+}
+
+class _FakeStoreProduct extends Fake implements StoreProduct {
+  @override
+  String get identifier => 'prod-123';
+  @override
+  double get price => 9.99;
+  @override
+  String get currencyCode => 'USD';
+}
+
+class _FakePackage extends Fake implements Package {
+  @override
+  String get identifier => 'pack-123';
+  @override
+  PackageType get packageType => PackageType.monthly;
+  @override
+  StoreProduct get storeProduct => _FakeStoreProduct();
+}
+
+void main() {
+  group('ConversionAnalyticsService Tests', () {
+    late _FakeConversionAnalyticsClient client;
+    late _FakeGetConfigUsecase getConfigUsecase;
+    late ConversionAnalyticsService service;
+
+    setUp(() {
+      client = _FakeConversionAnalyticsClient();
+      getConfigUsecase = _FakeGetConfigUsecase();
+      service = ConversionAnalyticsService(client, getConfigUsecase);
+    });
+
+    test('initializeFromConsent sets client status based on config consent', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+      await service.initializeFromConsent();
+      expect(client.initialized, isTrue);
+      expect(client.enabled, isTrue);
+
+      getConfigUsecase.acceptedSendAnonymousData = false;
+      await service.initializeFromConsent();
+      expect(client.enabled, isFalse);
+    });
+
+    test('logEvent initializes automatically and cleans parameters before logging', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+
+      await service.logEvent('test_event', parameters: {
+        'string_val': 'hello',
+        'int_val': 42,
+        'null_val': null,
+        'other_val': const ['list'],
+      });
+
+      expect(client.initialized, isTrue);
+      expect(client.lastEventName, 'test_event');
+      expect(client.lastParameters?['string_val'], 'hello');
+      expect(client.lastParameters?['int_val'], 42);
+      expect(client.lastParameters?.containsKey('null_val'), isFalse);
+      expect(client.lastParameters?['other_val'], '[list]');
+    });
+
+    test('logEvent does not log when disabled', () async {
+      getConfigUsecase.acceptedSendAnonymousData = false;
+      await service.logEvent('should_not_log');
+
+      expect(client.lastEventName, isNull);
+    });
+
+    test('logPaywallViewed records onboarding or regular event correctly', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+
+      await service.logPaywallViewed(placement: 'onboarding', aiTrialsRemaining: 3);
+      expect(client.lastEventName, 'onboarding_paywall_viewed');
+      expect(client.lastParameters?['ai_trials_remaining'], 3);
+
+      await service.logPaywallViewed(placement: 'settings');
+      expect(client.lastEventName, 'paywall_viewed');
+    });
+
+    test('logPaywallPackageSelected and logPurchaseStarted map Package details correctly', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+      final package = _FakePackage();
+
+      await service.logPaywallPackageSelected(placement: 'home', package: package);
+      expect(client.lastEventName, 'paywall_package_selected');
+      expect(client.lastParameters?['package_id'], 'pack-123');
+      expect(client.lastParameters?['product_id'], 'prod-123');
+      expect(client.lastParameters?['price'], 9.99);
+
+      await service.logPurchaseStarted(placement: 'home', package: package);
+      expect(client.lastEventName, 'purchase_started');
+    });
+
+    test('logPurchaseCompleted and logPurchaseFailed records successfully', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+      final package = _FakePackage();
+
+      await service.logPurchaseCompleted(placement: 'home', package: package);
+      expect(client.lastEventName, 'purchase_completed');
+      expect(client.lastParameters?['product_id'], 'prod-123');
+
+      await service.logPurchaseFailed(placement: 'home', package: package);
+      expect(client.lastEventName, 'purchase_failed');
+    });
+
+    test('logPurchaseRestored records status', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+      await service.logPurchaseRestored(restored: true);
+      expect(client.lastEventName, 'purchase_restored');
+      expect(client.lastParameters?['restored'], 'true');
+    });
+
+    test('funnel and AI requests log events successfully', () async {
+      getConfigUsecase.acceptedSendAnonymousData = true;
+
+      await service.logOnboardingCompleted();
+      expect(client.lastEventName, 'onboarding_completed');
+
+      await service.logFirstAiMealCreated();
+      expect(client.lastEventName, 'first_ai_meal_created');
+
+      await service.logTrialExhausted(totalAiMealsSaved: 10);
+      expect(client.lastEventName, 'trial_exhausted');
+      expect(client.lastParameters?['ai_meals_saved'], 10);
+
+      await service.logShareBonusGranted();
+      expect(client.lastEventName, 'share_bonus_granted');
+
+      await service.logReferralCodeCreated();
+      expect(client.lastEventName, 'referral_code_created');
+
+      await service.logReferralRedeemed();
+      expect(client.lastEventName, 'referral_redeemed');
+
+      await service.logAiInterpretationStarted(inputType: 'photo');
+      expect(client.lastEventName, 'ai_request_started');
+      expect(client.lastParameters?['input_type'], 'photo');
+
+      await service.logAiInterpretationFailed(inputType: 'text', category: 'timeout');
+      expect(client.lastEventName, 'ai_request_failed');
+      expect(client.lastParameters?['failure_category'], 'timeout');
+
+      await service.logAiInterpretationRetried(inputType: 'text', category: 'network');
+      expect(client.lastEventName, 'ai_request_retried');
+
+      await service.logAiInterpretationCompleted(
+        inputType: 'photo',
+        remoteMs: 100,
+        edgeMs: 20,
+        geminiMs: 80,
+        modelAttempts: 1,
+        fallbackUsed: false,
+      );
+      expect(client.lastEventName, 'ai_request_completed');
+      expect(client.lastParameters?['gemini_ms'], 80);
+      expect(client.lastParameters?['fallback_used'], 'false');
+    });
+  });
 }

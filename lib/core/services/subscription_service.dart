@@ -9,12 +9,21 @@ class SubscriptionService {
   final _log = Logger('SubscriptionService');
 
   static const _entitlementId = 'premium';
-  static const _iosApiKey =
-      String.fromEnvironment('REVENUECAT_IOS_API_KEY');
-  static const _androidApiKey =
-      String.fromEnvironment('REVENUECAT_ANDROID_API_KEY');
+  final String _iosApiKeyOverride;
+  final String _androidApiKeyOverride;
+
+  SubscriptionService({
+    String? iosApiKey,
+    String? androidApiKey,
+  })  : _iosApiKeyOverride =
+            iosApiKey ?? const String.fromEnvironment('REVENUECAT_IOS_API_KEY'),
+        _androidApiKeyOverride = androidApiKey ??
+            const String.fromEnvironment('REVENUECAT_ANDROID_API_KEY');
 
   bool _configured = false;
+
+  @visibleForTesting
+  bool debugBypassPremiumForce = false;
 
   Future<void> initialize() async {
     final apiKey = _platformApiKey;
@@ -25,7 +34,8 @@ class SubscriptionService {
     }
 
     try {
-      await Purchases.setLogLevel(kReleaseMode ? LogLevel.warn : LogLevel.debug);
+      await Purchases.setLogLevel(
+          kReleaseMode ? LogLevel.warn : LogLevel.debug);
       await Purchases.configure(PurchasesConfiguration(apiKey));
       _configured = true;
       _log.info('RevenueCat initialized successfully.');
@@ -37,7 +47,7 @@ class SubscriptionService {
   bool get isConfigured => _configured;
 
   Future<bool> isPremiumActive() async {
-    if (kDebugMode) {
+    if (kDebugMode && !debugBypassPremiumForce) {
       return true;
     }
     if (!_configured) {
@@ -98,11 +108,14 @@ class SubscriptionService {
 
   String get _platformApiKey {
     if (Platform.isAndroid) {
-      return _androidApiKey;
+      return _androidApiKeyOverride;
     }
     if (Platform.isIOS) {
-      return _iosApiKey;
+      return _iosApiKeyOverride;
     }
-    return '';
+    // Return override for testing on non-mobile host platforms
+    return _androidApiKeyOverride.isNotEmpty
+        ? _androidApiKeyOverride
+        : _iosApiKeyOverride;
   }
 }

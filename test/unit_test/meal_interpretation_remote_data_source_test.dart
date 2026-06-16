@@ -1,13 +1,86 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/features/meal_capture/data/data_source/meal_interpretation_remote_data_source.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class FakeSupabaseFunctions extends Fake implements FunctionsClient {
+  final Future<FunctionResponse> Function(
+    String functionName, {
+    Map<String, String>? headers,
+    dynamic body,
+    HttpMethod? method,
+  }) invokeHandler;
+
+  FakeSupabaseFunctions(this.invokeHandler);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == #invoke) {
+      final String functionName = invocation.positionalArguments[0] as String;
+      final headers = invocation.namedArguments[#headers] as Map<String, String>?;
+      final body = invocation.namedArguments[#body];
+      final method = invocation.namedArguments[#method] as HttpMethod?;
+      return invokeHandler(functionName, headers: headers, body: body, method: method);
+    }
+    return super.noSuchMethod(invocation);
+  }
+}
+
+class FakeSupabaseClient extends Fake implements SupabaseClient {
+  final FakeSupabaseFunctions functionsClient;
+  FakeSupabaseClient(this.functionsClient);
+
+  @override
+  FunctionsClient get functions => functionsClient;
+}
+
+class FakeConversionAnalyticsService extends Fake implements ConversionAnalyticsService {
+  int startedCalls = 0;
+  int completedCalls = 0;
+  int failedCalls = 0;
+  int retriedCalls = 0;
+
+  @override
+  Future<void> logAiInterpretationStarted({required String inputType}) async {
+    startedCalls++;
+  }
+
+  @override
+  Future<void> logAiInterpretationCompleted({
+    required String inputType,
+    int? remoteMs,
+    int? edgeMs,
+    int? geminiMs,
+    int? modelAttempts,
+    bool? fallbackUsed,
+  }) async {
+    completedCalls++;
+  }
+
+  @override
+  Future<void> logAiInterpretationFailed({required String inputType, required String category}) async {
+    failedCalls++;
+  }
+
+  @override
+  Future<void> logAiInterpretationRetried({required String inputType, required String category}) async {
+    retriedCalls++;
+  }
+}
 
 void main() {
-  group('MealInterpretationRemoteDataSource', () {
+  setUpAll(() async {
+    await Sentry.init((options) => options.dsn = '');
+  });
+
+  group('MealInterpretationRemoteDataSource Mapping & Classify Tests', () {
     late MealInterpretationRemoteDataSource dataSource;
 
     setUp(() {
@@ -28,6 +101,8 @@ void main() {
           'carbs': 24,
           'fat': 17,
           'protein': 18,
+          'fiber': 2.0,
+          'sugar': 3.5,
         },
         'items': [
           {
@@ -39,6 +114,8 @@ void main() {
             'carbs': 1.1,
             'fat': 10.6,
             'protein': 12.6,
+            'fiber': 0.1,
+            'sugar': 0.0,
             'confidenceBand': 'high',
             'editable': true,
           },
@@ -56,6 +133,8 @@ void main() {
       expect(draft.totalCarbs, 24);
       expect(draft.totalFat, 17);
       expect(draft.totalProtein, 18);
+      expect(draft.totalFiber, 2.0);
+      expect(draft.totalSugar, 3.5);
       expect(draft.items, hasLength(1));
       expect(draft.items.single.label, 'Eggs');
       expect(draft.items.single.unit, 'g');
@@ -214,6 +293,242 @@ void main() {
         MealInterpretationFailureCategory.invalidResponse,
       );
       expect(failure.reportToSentry, isFalse);
+    });
+  });
+
+  group('MealInterpretationRemoteDataSource Edge Functions Tests', () {
+    late FakeConversionAnalyticsService analyticsService;
+    late Map<String, dynamic> successPayload;
+
+    setUp(() {
+      analyticsService = FakeConversionAnalyticsService();
+      successPayload = {
+        'draftId': 'draft-123',
+        'sourceType': 'text',
+        'inputText': 'Testing text',
+        'title': 'Test Meal',
+        'summary': 'Test Summary',
+        'confidenceBand': 'high',
+        'totals': {
+          'kcal': 350.0,
+          'carbs': 30.0,
+          'fat': 10.0,
+          'protein': 35.0,
+          'fiber': 2.0,
+          'sugar': 1.0,
+        },
+        'processing': {
+          'estimatedCostUsd': 0.002,
+          'diagnostics': {
+            'edgeTotalMs': 150,
+            'geminiFetchMs': 120,
+            'responseParseMs': 3,
+            'normalizeMs': 1,
+            'promptChars': 500,
+            'inputImageBytes': 0,
+            'personalExamplesCount': 0,
+            'correctionExamplesCount': 0,
+            'modelAttempts': 1,
+            'fallbackUsed': false
+          }
+        },
+        'items': [
+          {
+            'id': 'item-123',
+            'label': 'Test Item',
+            'amount': 1.0,
+            'unit': 'serving',
+            'kcal': 350.0,
+            'carbs': 30.0,
+            'fat': 10.0,
+            'protein': 35.0,
+            'fiber': 2.0,
+            'sugar': 1.0,
+            'confidenceBand': 'high',
+            'editable': true,
+          }
+        ]
+      };
+    });
+
+    test('interpretText calls edge function and maps result successfully', () async {
+      final functions = FakeSupabaseFunctions((functionName, {headers, body, method}) async {
+        expect(functionName, equals('meal-interpretations-text'));
+        expect(body?['text'], equals('2 eggs'));
+        expect(body?['locale'], equals('en'));
+        expect(body?['unitSystem'], equals('metric'));
+        expect(body?['mealTypeHint'], equals('breakfast'));
+        expect(body?['analysisContext'], equals('context'));
+        expect(body?['personalExamples'], isNotEmpty);
+
+        return FunctionResponse(data: successPayload, status: 200);
+      });
+
+      final client = FakeSupabaseClient(functions);
+      final dataSource = MealInterpretationRemoteDataSource(
+        supabaseClient: client,
+        analyticsService: analyticsService,
+      );
+
+      final result = await dataSource.interpretText(
+        text: '2 eggs',
+        locale: 'en',
+        unitSystem: 'metric',
+        mealTypeHint: 'breakfast',
+        analysisContext: 'context',
+        personalExamples: [{'example': '1'}],
+      );
+
+      expect(result.estimatedCostUsd, equals(0.002));
+      expect(result.diagnostics?.edgeTotalMs, equals(150));
+      expect(result.draft.title, equals('Test Meal'));
+      expect(analyticsService.startedCalls, equals(1));
+      expect(analyticsService.completedCalls, equals(1));
+    });
+
+    test('interpretPhoto calls edge function and maps result successfully', () async {
+      final functions = FakeSupabaseFunctions((functionName, {headers, body, method}) async {
+        expect(functionName, equals('meal-interpretations-photo'));
+        expect(body?['imageBase64'], equals(base64Encode([1, 2, 3])));
+        expect(body?['fileName'], equals('test.jpg'));
+        expect(body?['mimeType'], equals('image/jpeg'));
+        expect(body?['locale'], equals('es'));
+        expect(body?['unitSystem'], equals('imperial'));
+
+        return FunctionResponse(data: successPayload, status: 200);
+      });
+
+      final client = FakeSupabaseClient(functions);
+      final dataSource = MealInterpretationRemoteDataSource(
+        supabaseClient: client,
+        analyticsService: analyticsService,
+      );
+
+      final result = await dataSource.interpretPhoto(
+        imageBytes: Uint8List.fromList([1, 2, 3]),
+        fileName: 'test.jpg',
+        mimeType: 'image/jpeg',
+        locale: 'es',
+        unitSystem: 'imperial',
+      );
+
+      expect(result.draft.id, equals('draft-123'));
+      expect(analyticsService.startedCalls, equals(1));
+      expect(analyticsService.completedCalls, equals(1));
+    });
+
+    test('interpretText retries once on transient failure and then succeeds', () async {
+      int attempts = 0;
+      final functions = FakeSupabaseFunctions((functionName, {headers, body, method}) async {
+        attempts++;
+        if (attempts == 1) {
+          throw TimeoutException('Transient timeout');
+        }
+        return FunctionResponse(data: successPayload, status: 200);
+      });
+
+      final client = FakeSupabaseClient(functions);
+      final dataSource = MealInterpretationRemoteDataSource(
+        supabaseClient: client,
+        analyticsService: analyticsService,
+      );
+
+      final result = await dataSource.interpretText(
+        text: 'test',
+        locale: 'en',
+        unitSystem: 'metric',
+      );
+
+      expect(attempts, equals(2));
+      expect(result.draft.title, equals('Test Meal'));
+      expect(analyticsService.startedCalls, equals(1));
+      expect(analyticsService.retriedCalls, equals(1));
+      expect(analyticsService.completedCalls, equals(1));
+    });
+
+    test('interpretText fails on non-transient failure immediately without retry', () async {
+      int attempts = 0;
+      final functions = FakeSupabaseFunctions((functionName, {headers, body, method}) async {
+        attempts++;
+        throw Exception('401 unauthorized jwt expired');
+      });
+
+      final client = FakeSupabaseClient(functions);
+      final dataSource = MealInterpretationRemoteDataSource(
+        supabaseClient: client,
+        analyticsService: analyticsService,
+      );
+
+      await expectLater(
+        dataSource.interpretText(text: 'test', locale: 'en', unitSystem: 'metric'),
+        throwsA(isA<MealInterpretationRemoteException>().having(
+          (e) => e.category,
+          'category',
+          MealInterpretationFailureCategory.authInvalid,
+        )),
+      );
+
+      expect(attempts, equals(1));
+      expect(analyticsService.startedCalls, equals(1));
+      expect(analyticsService.retriedCalls, equals(0));
+      expect(analyticsService.failedCalls, equals(1));
+    });
+
+    test('interpretText fails after retrying once if transient error occurs twice', () async {
+      int attempts = 0;
+      final functions = FakeSupabaseFunctions((functionName, {headers, body, method}) async {
+        attempts++;
+        throw TimeoutException('Transient timeout');
+      });
+
+      final client = FakeSupabaseClient(functions);
+      final dataSource = MealInterpretationRemoteDataSource(
+        supabaseClient: client,
+        analyticsService: analyticsService,
+      );
+
+      await expectLater(
+        dataSource.interpretText(text: 'test', locale: 'en', unitSystem: 'metric'),
+        throwsA(isA<MealInterpretationRemoteException>().having(
+          (e) => e.category,
+          'category',
+          MealInterpretationFailureCategory.timeout,
+        )),
+      );
+
+      expect(attempts, equals(2));
+      expect(analyticsService.startedCalls, equals(1));
+      expect(analyticsService.retriedCalls, equals(1));
+      expect(analyticsService.failedCalls, equals(1));
+    });
+
+    test('classifyFailure categorizes various exceptions properly', () {
+      final dataSource = MealInterpretationRemoteDataSource();
+
+      expect(
+        dataSource.classifyFailure(Exception('socketexception')).category,
+        equals(MealInterpretationFailureCategory.noNetwork),
+      );
+      expect(
+        dataSource.classifyFailure(Exception('403 forbidden')).category,
+        equals(MealInterpretationFailureCategory.authInvalid),
+      );
+      expect(
+        dataSource.classifyFailure(Exception('json parse error')).category,
+        equals(MealInterpretationFailureCategory.invalidResponse),
+      );
+      expect(
+        dataSource.classifyFailure(Exception('500 internal server error')).category,
+        equals(MealInterpretationFailureCategory.unavailable),
+      );
+      expect(
+        dataSource.classifyFailure(Exception('unexpected random error')).category,
+        equals(MealInterpretationFailureCategory.unavailable),
+      );
+      expect(
+        dataSource.classifyFailure(Exception('unexpected random error')).reportToSentry,
+        isTrue,
+      );
     });
   });
 }

@@ -62,9 +62,14 @@ if (-not $SkipFocusedTests) {
     Invoke-CheckedCommand -Name "Focused Flutter tests" -Command {
         & $flutterCmd test `
             test/unit_test/cloud_account_deletion_service_test.dart `
+            test/unit_test/android_drive_backup_scheduler_test.dart `
+            test/unit_test/app_review_service_test.dart `
+            test/unit_test/subscription_service_test.dart `
             test/unit_test/conversion_analytics_service_test.dart `
+            test/unit_test/meal_reminder_service_test.dart `
             test/unit_test/monetization_service_test.dart `
             test/unit_test/meal_interpretation_remote_data_source_test.dart `
+            test/unit_test/off_data_source_test.dart `
             test/unit_test/bmr_calc_test.dart `
             test/unit_test/bmi_calc_test.dart `
             test/unit_test/macro_calc_test.dart `
@@ -77,7 +82,9 @@ if (-not $SkipFocusedTests) {
             test/unit_test/apply_weekly_kcal_adjustment_usecase_test.dart `
             test/unit_test/scanner_bloc_test.dart `
             test/unit_test/save_body_measurement_usecase_test.dart `
-            test/unit_test/professional_usecases_test.dart
+            test/unit_test/professional_usecases_test.dart `
+            test/unit_test/sync_sleep_from_health_connect_usecase_test.dart `
+            test/unit_test/update_home_widget_usecase_test.dart
     }
 }
 
