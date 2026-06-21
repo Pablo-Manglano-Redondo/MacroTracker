@@ -150,7 +150,7 @@ void main() {
     await tester.pumpWidget(createTestWidget(summary));
     await tester.pumpAndSettle();
 
-    expect(find.text('Sin plan publicado'), findsOneWidget);
+    expect(find.text(S.current.professionalSummaryNoPublishedPlan), findsOneWidget);
     expect(find.text('Coach Studio'), findsOneWidget);
   });
 
@@ -217,13 +217,13 @@ void main() {
     expect(find.text('Aumento de masa muscular magra'), findsOneWidget);
     expect(find.text('Pautas: Beber 3L de agua.'), findsOneWidget);
 
-    // Verify Weekly View Day (2026-06-15 is a Monday, formatted as "Lun 15/06")
-    expect(find.text('Lun 15/06'), findsOneWidget);
+    // Verify Weekly View Day (2026-06-15 is a Monday, formatted as "Lunes 15/06")
+    expect(find.text('${S.current.professionalWeekdayMonday} 15/06'), findsOneWidget);
     expect(find.text('2200 kcal | 160P | 270C | 75F'), findsOneWidget);
 
     // Verify Suggested Meals Guide
     expect(find.text('Tortilla y Avena'), findsOneWidget);
-    expect(find.text('Desayuno'), findsOneWidget);
+    expect(find.text(S.current.breakfastLabel), findsOneWidget);
     expect(find.text('450 kcal'), findsOneWidget);
     expect(find.text('30g P | 45g C | 10g F'), findsOneWidget);
   });
@@ -274,13 +274,13 @@ void main() {
     await tester.pumpWidget(createTestWidget(summary));
     await tester.pumpAndSettle();
 
-    // Tap day row (formatted as "Lun 15/06")
-    await tester.tap(find.text('Lun 15/06'));
+    // Tap day row
+    await tester.tap(find.text('${S.current.professionalWeekdayMonday} 15/06'));
     await tester.pumpAndSettle();
 
     // Bottom sheet should render with details
-    expect(find.text('Lun 15/06'), findsNWidgets(2)); // One in background list, one in sheet
-    expect(find.text('Objetivo específico'), findsOneWidget);
+    expect(find.text('${S.current.professionalWeekdayMonday} 15/06'), findsNWidgets(2)); // One in background list, one in sheet
+    expect(find.text(S.current.professionalPlanSpecificTarget), findsOneWidget);
     expect(find.text('2200 kcal'), findsOneWidget);
     expect(find.text('160 g'), findsOneWidget); // Protein
     expect(find.text('270 g'), findsOneWidget); // Carbs
@@ -335,12 +335,12 @@ void main() {
 
     // Sheet should be opened
     expect(find.text('Arroz y Pollo'), findsNWidgets(2));
-    expect(find.text('Comida sugerida del plan'), findsOneWidget);
+    expect(find.text(S.current.professionalPlanSuggestedPlanMeal), findsOneWidget);
     expect(find.text('600 kcal'), findsNWidgets(2));
     expect(find.text('50 g'), findsOneWidget); // Protein
     expect(find.text('60 g'), findsOneWidget); // Carbs
     expect(find.text('12 g'), findsOneWidget); // Fat
-    expect(find.text('Pautas del Nutricionista'), findsOneWidget);
+    expect(find.text(S.current.professionalPlanNutritionistGuidelines), findsOneWidget);
     expect(find.text('150g pollo + 80g arroz'), findsNWidgets(2));
   });
 
@@ -387,15 +387,15 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap "Registrar en Diario" text button
-    await tester.tap(find.text('Registrar en Diario'));
+    await tester.tap(find.text(S.current.professionalPlanLogToDiary));
     await tester.pumpAndSettle();
 
     // Dialog should show up
-    expect(find.text('¿Registrar comida sugerida?'), findsOneWidget);
-    expect(find.text('¿Deseas añadir "Arroz y Pollo" (600 kcal) a tu diario de hoy en la sección de "Comida"?'), findsOneWidget);
+    expect(find.text(S.current.professionalPlanLogSuggestedMealTitle), findsOneWidget);
+    expect(find.text(S.current.professionalPlanLogSuggestedMealBody('Arroz y Pollo', 600, S.current.professionalPlanSlotLunch)), findsOneWidget);
 
     // Tap "Registrar" button in the dialog
-    await tester.tap(find.text('Registrar'));
+    await tester.tap(find.text(S.current.professionalPlanLogMeal));
     await tester.pumpAndSettle();
 
     // Verification on Usecase
@@ -475,7 +475,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap "Ver Receta" in detail sheet
-    await tester.tap(find.text('Ver Receta'));
+    await tester.tap(find.text(S.current.professionalPlanViewRecipe));
 
     // Wait for the async operation (fetching recipe)
     await tester.pump();

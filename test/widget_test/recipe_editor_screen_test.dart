@@ -156,10 +156,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify Title
-    expect(find.text('Editar receta'), findsOneWidget);
+    expect(find.text(S.current.recipeDetailEditRecipe), findsOneWidget);
 
     // Verify fields
-    expect(find.widgetWithText(TextField, 'Nombre de la receta'), findsOneWidget);
+    expect(find.widgetWithText(TextField, S.current.aiRecipeNameLabel), findsOneWidget);
     expect(find.text('Tortilla Francesa'), findsOneWidget);
     expect(find.text('2'), findsOneWidget); // Servings text
     expect(find.text('Some notes'), findsOneWidget);
@@ -231,27 +231,27 @@ void main() {
     await tester.pumpAndSettle();
 
     // Change Name
-    final nameField = find.widgetWithText(TextField, 'Nombre de la receta');
+    final nameField = find.widgetWithText(TextField, S.current.aiRecipeNameLabel);
     await tester.enterText(nameField, 'Super Tortilla');
 
     // Change Servings
-    final servingsField = find.widgetWithText(TextField, 'Raciones');
+    final servingsField = find.widgetWithText(TextField, S.current.servingsLabel);
     await tester.enterText(servingsField, '4');
 
     // Change Category
     final categoryDropdown = find.byType(DropdownButtonFormField<RecipeSaveCategoryEntity>).first;
     await tester.tap(categoryDropdown);
     await tester.pumpAndSettle();
-    // Choose Snack category in ES: 'Snack' (corresponds to QuickRecipeCategoryEntity.snack)
-    await tester.tap(find.text('Snack').last);
+    // Choose Snack category:
+    await tester.tap(find.text(S.current.snackLabel).last);
     await tester.pumpAndSettle();
 
     // Change Notes
-    final notesField = find.widgetWithText(TextField, 'Notas de la receta');
+    final notesField = find.widgetWithText(TextField, S.current.recipeDetailRecipeNotes);
     await tester.enterText(notesField, 'Muy rica');
 
     // Tap Save
-    await tester.tap(find.text('Guardar receta'));
+    await tester.tap(find.text(S.current.recipeEditorSaveRecipe));
     await tester.pumpAndSettle();
 
     // Verify use case was invoked and popped with true
@@ -290,30 +290,30 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Clear Name
-    final nameField = find.widgetWithText(TextField, 'Nombre de la receta');
+    final nameField = find.widgetWithText(TextField, S.current.aiRecipeNameLabel);
     await tester.enterText(nameField, '');
-    await tester.tap(find.text('Guardar receta'));
+    await tester.tap(find.text(S.current.recipeEditorSaveRecipe));
     await tester.pumpAndSettle();
-    expect(find.text('Revisa nombre, raciones e ingredientes.'), findsOneWidget);
+    expect(find.text(S.current.recipeEditorInvalidRecipe), findsOneWidget);
 
     // Reset Name, set 0 servings
     await tester.enterText(nameField, 'Tortilla');
-    final servingsField = find.widgetWithText(TextField, 'Raciones');
+    final servingsField = find.widgetWithText(TextField, S.current.servingsLabel);
     await tester.enterText(servingsField, '0');
-    await tester.tap(find.text('Guardar receta'));
+    await tester.tap(find.text(S.current.recipeEditorSaveRecipe));
     await tester.pumpAndSettle();
-    expect(find.text('Revisa nombre, raciones e ingredientes.'), findsOneWidget);
+    expect(find.text(S.current.recipeEditorInvalidRecipe), findsOneWidget);
 
     // Reset Servings, remove all ingredients
     await tester.enterText(servingsField, '2');
-    final deleteIcon = find.byTooltip('Eliminar');
+    final deleteIcon = find.byTooltip(S.current.aiRemoveLabel);
     await tester.tap(deleteIcon);
     await tester.pumpAndSettle();
-    expect(find.text('Añade alimentos para poder ajustar la receta.'), findsOneWidget);
+    expect(find.text(S.current.recipeEditorIngredientsEmpty), findsOneWidget);
 
-    await tester.tap(find.text('Guardar receta'));
+    await tester.tap(find.text(S.current.recipeEditorSaveRecipe));
     await tester.pumpAndSettle();
-    expect(find.text('Revisa nombre, raciones e ingredientes.'), findsOneWidget);
+    expect(find.text(S.current.recipeEditorInvalidRecipe), findsOneWidget);
   });
 
   testWidgets('duplicates and removes ingredients from list', (tester) async {
@@ -343,7 +343,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final summaryCard = find.ancestor(
-      of: find.text('Resumen nutricional'),
+      of: find.text(S.current.recipeEditorNutritionSummary),
       matching: find.byType(Card),
     );
 
@@ -353,7 +353,7 @@ void main() {
     expect(find.descendant(of: summaryCard, matching: find.text('113 kcal')), findsOneWidget);
 
     // Duplicate ingredient
-    await tester.tap(find.byTooltip('Duplicar'));
+    await tester.tap(find.byTooltip(S.current.recipeEditorDuplicate));
     await tester.pumpAndSettle();
 
     // Verify 2 ingredients listed
@@ -362,7 +362,7 @@ void main() {
     expect(find.descendant(of: summaryCard, matching: find.text('225 kcal')), findsOneWidget);
 
     // Remove first ingredient
-    await tester.tap(find.byTooltip('Eliminar').first);
+    await tester.tap(find.byTooltip(S.current.aiRemoveLabel).first);
     await tester.pumpAndSettle();
 
     // Verify 1 ingredient listed again
@@ -382,21 +382,21 @@ void main() {
     await tester.pumpWidget(createTestWidget(recipe));
     await tester.pumpAndSettle();
 
-    expect(find.text('Añade alimentos para poder ajustar la receta.'), findsOneWidget);
+    expect(find.text(S.current.recipeEditorIngredientsEmpty), findsOneWidget);
 
     // Set search results
     final searchedMeal = buildDummyMeal(code: 'searched-123', name: 'Lechuga');
     fakeSearchProductsUseCase.searchResults = [searchedMeal];
 
     // Tap "Añadir"
-    await tester.tap(find.text('Añadir'));
+    await tester.tap(find.text(S.current.addLabel));
     await tester.pumpAndSettle();
 
     // Verify sheet is open
-    expect(find.text('Buscar alimento'), findsOneWidget);
+    expect(find.text(S.current.mealEntrySearchFood), findsOneWidget);
 
     // Enter search text and submit
-    final searchInput = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == 'Alimento');
+    final searchInput = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == S.current.searchFoodPage);
     await tester.enterText(searchInput, 'Lechuga');
     await tester.tap(find.byIcon(Icons.arrow_forward_outlined));
     await tester.pumpAndSettle();
@@ -446,11 +446,11 @@ void main() {
     fakeSearchProductsUseCase.searchResults = [newMeal];
 
     // Tap "Cambiar alimento" swap icon
-    await tester.tap(find.byTooltip('Cambiar alimento'));
+    await tester.tap(find.byTooltip(S.current.recipeEditorChangeFood));
     await tester.pumpAndSettle();
 
     // Search and select
-    final searchInput = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == 'Alimento');
+    final searchInput = find.byWidgetPredicate((w) => w is TextField && w.decoration?.labelText == S.current.searchFoodPage);
     await tester.enterText(searchInput, 'Queso');
     await tester.tap(find.byIcon(Icons.arrow_forward_outlined));
     await tester.pumpAndSettle();

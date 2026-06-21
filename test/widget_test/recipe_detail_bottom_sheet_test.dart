@@ -30,12 +30,12 @@ void main() {
       ),
     ));
 
-    expect(find.text('Notas de la receta'), findsOneWidget);
+    expect(find.text(S.current.recipeDetailRecipeNotes), findsOneWidget);
     expect(find.text('Prep para semana'), findsOneWidget);
     expect(find.textContaining('#breakfast'), findsNothing);
-    expect(find.text('Recomendacion del Coach'), findsNothing);
-    expect(find.text('Personalizar receta'), findsNothing);
-    expect(find.text('Editar receta'), findsOneWidget);
+    expect(find.text(S.current.recipeDetailCoachRecommendation), findsNothing);
+    expect(find.text(S.current.recipeDetailCustomizeRecipe), findsNothing);
+    expect(find.text(S.current.recipeDetailEditRecipe), findsOneWidget);
   });
 
   testWidgets('coach recipe detail keeps coach recommendation copy',
@@ -57,9 +57,9 @@ void main() {
       ),
     ));
 
-    expect(find.text('Recomendacion del Coach'), findsOneWidget);
+    expect(find.text(S.current.recipeDetailCoachRecommendation), findsOneWidget);
     expect(find.text('Recuperacion post-entreno con proteina.'), findsOneWidget);
-    expect(find.text('Personalizar receta'), findsOneWidget);
+    expect(find.text(S.current.recipeDetailCustomizeRecipe), findsOneWidget);
   });
 }
 

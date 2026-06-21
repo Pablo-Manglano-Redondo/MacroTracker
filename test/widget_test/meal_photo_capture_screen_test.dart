@@ -176,12 +176,12 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    expect(find.text('Comida por foto IA'), findsOneWidget);
-    expect(find.text('Hacer foto'), findsOneWidget);
-    expect(find.text('Elegir de galeria'), findsOneWidget);
+    expect(find.text(S.current.aiMealPhotoTitle), findsOneWidget);
+    expect(find.text(S.current.aiPhotoTakePhoto), findsOneWidget);
+    expect(find.text(S.current.aiPhotoChooseGallery), findsOneWidget);
 
     // Verify recommendation hints tile
-    final hintTile = find.text('Recomendaciones');
+    final hintTile = find.text(S.current.aiHintRecommendations);
     expect(hintTile, findsOneWidget);
 
     // Tap to expand hints
@@ -189,8 +189,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify hints are expanded and visible
-    expect(find.text('Muestra el plato completo'), findsOneWidget);
-    expect(find.text('Revisa salsas y aceites'), findsOneWidget);
+    expect(find.text(S.current.aiHintShowFullPlateTitle), findsOneWidget);
+    expect(find.text(S.current.aiHintCheckSaucesTitle), findsOneWidget);
   });
 
   testWidgets(
@@ -224,17 +224,17 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap "Hacer foto"
-    await tester.tap(find.text('Hacer foto'));
+    await tester.tap(find.text(S.current.aiPhotoTakePhoto));
     await tester.pump();
     await tester.pumpAndSettle();
 
     // Preview should show up
-    expect(find.text('Vista previa'), findsOneWidget);
-    expect(find.text('Usar esta foto'), findsOneWidget);
-    expect(find.text('Quitar foto'), findsOneWidget);
+    expect(find.text(S.current.aiPhotoPreviewTitle), findsOneWidget);
+    expect(find.text(S.current.aiPhotoUseThisPhoto), findsOneWidget);
+    expect(find.text(S.current.aiPhotoRemovePhoto), findsOneWidget);
 
     // Tap "Usar esta foto"
-    await tester.tap(find.text('Usar esta foto'));
+    await tester.tap(find.text(S.current.aiPhotoUseThisPhoto));
     await tester.pump(); // Start loading
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
@@ -271,18 +271,18 @@ void main() {
     await tester.pumpAndSettle();
 
     // Tap "Elegir de galeria"
-    await tester.tap(find.text('Elegir de galeria'));
+    await tester.tap(find.text(S.current.aiPhotoChooseGallery));
     await tester.pumpAndSettle();
 
     // Preview should show up
-    expect(find.text('Vista previa'), findsOneWidget);
+    expect(find.text(S.current.aiPhotoPreviewTitle), findsOneWidget);
 
     // Tap "Quitar foto"
-    await tester.tap(find.text('Quitar foto'));
+    await tester.tap(find.text(S.current.aiPhotoRemovePhoto));
     await tester.pumpAndSettle();
 
     // Preview should be gone
-    expect(find.text('Vista previa'), findsNothing);
+    expect(find.text(S.current.aiPhotoPreviewTitle), findsNothing);
   });
 
   testWidgets(
@@ -316,10 +316,10 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Hacer foto'));
+    await tester.tap(find.text(S.current.aiPhotoTakePhoto));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Usar esta foto'));
+    await tester.tap(find.text(S.current.aiPhotoUseThisPhoto));
     await tester.pump(); // first endOfFrame (Opening photo analysis)
     await tester.pump(); // second endOfFrame (Preparing)
     await tester.pump(); // wait for remote exception and catch block
@@ -327,14 +327,14 @@ void main() {
         const Duration(milliseconds: 500)); // settle the alert dialog animation
 
     // Verify AI Unavailable Dialog is shown
-    expect(find.text('IA no disponible'), findsOneWidget);
+    expect(find.text(S.current.aiUnavailableTitle), findsOneWidget);
     expect(
         find.text(
             'La petición de IA tardó demasiado. Reintenta o sigue con revisión manual.'),
         findsOneWidget);
 
     // Tap "Seguir manual"
-    await tester.tap(find.text('Seguir manual'));
+    await tester.tap(find.text(S.current.aiContinueManually));
     await tester.pumpAndSettle();
 
     // Verify fallback draft was saved and navigated
@@ -370,10 +370,10 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Hacer foto'));
+    await tester.tap(find.text(S.current.aiPhotoTakePhoto));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Usar esta foto'));
+    await tester.tap(find.text(S.current.aiPhotoUseThisPhoto));
     await tester.pump(); // first endOfFrame (Opening photo analysis)
     await tester.pump(); // second endOfFrame (Preparing)
     await tester.pump(); // wait for remote exception and catch block
@@ -381,7 +381,7 @@ void main() {
         const Duration(milliseconds: 500)); // settle the alert dialog animation
 
     // Dialog shown
-    expect(find.text('IA no disponible'), findsOneWidget);
+    expect(find.text(S.current.aiUnavailableTitle), findsOneWidget);
     expect(
         find.text(
             'No hay conexión. Reintenta cuando vuelvas a tener red o sigue con revisión manual.'),
@@ -397,7 +397,7 @@ void main() {
     );
 
     // Tap "Reintentar"
-    await tester.tap(find.text('Reintentar'));
+    await tester.tap(find.text(S.current.aiRetry));
     await tester.pump(); // first endOfFrame (Opening photo analysis)
     await tester.pump(); // second endOfFrame (Preparing)
     await tester.pump(); // third endOfFrame (Personalizing)

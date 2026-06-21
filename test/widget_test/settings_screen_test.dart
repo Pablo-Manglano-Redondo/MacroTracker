@@ -207,7 +207,7 @@ void main() {
     expect(find.text('Sistema'), findsOneWidget);
     
     // Tap OK
-    final okButton = find.text('OK');
+    final okButton = find.text(S.current.dialogOKLabel);
     expect(okButton, findsOneWidget);
     await tester.tap(okButton);
     await tester.pumpAndSettle();
@@ -242,7 +242,7 @@ void main() {
     expect(find.text('Oscuro'), findsOneWidget);
 
     // Tap Cancelar
-    final cancelButton = find.text('CANCELAR');
+    final cancelButton = find.text(S.current.dialogCancelLabel);
     expect(cancelButton, findsOneWidget);
     await tester.tap(cancelButton);
     await tester.pumpAndSettle();
@@ -291,7 +291,7 @@ void main() {
     expect(fakeReferralService.redeemedCode, 'FRIEND456');
 
     // Verify success snackbar shows up
-    expect(find.text('¡Código canjeado con éxito! Has ganado usos de IA gratis.'), findsOneWidget);
+    expect(find.text(S.current.settingsReferralRedeemSuccess), findsOneWidget);
   });
 
   testWidgets('copy referral code to clipboard', (tester) async {
@@ -325,7 +325,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify snackbar is shown
-    expect(find.text('Enlace y código de invitación copiados al portapapeles.'), findsOneWidget);
+    expect(find.text(S.current.settingsReferralCopiedMessage), findsOneWidget);
   });
 
   testWidgets('toggling send anonymous data switch updates config and analytics', (tester) async {
@@ -408,7 +408,7 @@ void main() {
     // Tap OK
     final okBtn = find.descendant(
       of: find.byType(AlertDialog),
-      matching: find.text('OK'),
+      matching: find.text(S.current.dialogOKLabel),
     );
     await tester.tap(okBtn);
     await tester.pumpAndSettle();

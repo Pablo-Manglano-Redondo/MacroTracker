@@ -226,18 +226,18 @@ void main() {
     await tester.drag(find.byType(ListView), const Offset(0, -500));
     await tester.pumpAndSettle();
 
-    final sleepTile = find.text('Horas de dormir objetivo');
+    final sleepTile = find.text(S.current.profileSleepGoal);
     expect(sleepTile, findsOneWidget);
 
     await tester.tap(sleepTile);
     await tester.pumpAndSettle();
 
-    expect(find.text('Objetivo de horas de sueño'), findsOneWidget);
+    expect(find.text(S.current.profileSleepHoursGoalTitle), findsOneWidget);
 
     await tester.enterText(find.byType(TextField), '7.5');
     await tester.pump();
 
-    final acceptButton = find.text('OK');
+    final acceptButton = find.text(S.current.dialogOKLabel);
     expect(acceptButton, findsOneWidget);
     await tester.tap(acceptButton);
     await tester.pumpAndSettle();

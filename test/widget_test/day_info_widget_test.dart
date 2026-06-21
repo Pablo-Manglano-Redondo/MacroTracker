@@ -196,10 +196,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify Empty Day info is displayed
-    expect(find.text('Dia sin registros'), findsOneWidget);
+    expect(find.text(S.current.diaryEmptyDayTitle), findsOneWidget);
 
     // Click Scan AI button
-    final scanBtn = find.byTooltip('Escanear');
+    final scanBtn = find.byTooltip(S.current.scanProductLabel);
     expect(scanBtn, findsOneWidget);
     await tester.tap(scanBtn);
     await tester.pumpAndSettle();
@@ -213,7 +213,7 @@ void main() {
     navObserver.pushedRouteNames.clear();
 
     // Click Text AI button
-    final textAiBtn = find.byTooltip('IA texto');
+    final textAiBtn = find.byTooltip(S.current.addMealText);
     expect(textAiBtn, findsOneWidget);
     await tester.tap(textAiBtn);
     await tester.pumpAndSettle();
@@ -227,7 +227,7 @@ void main() {
     navObserver.pushedRouteNames.clear();
 
     // Click Photo AI button
-    final photoAiBtn = find.byTooltip('IA foto');
+    final photoAiBtn = find.byTooltip(S.current.addMealPhoto);
     expect(photoAiBtn, findsOneWidget);
     await tester.tap(photoAiBtn);
     await tester.pumpAndSettle();
@@ -250,15 +250,15 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify summary details are displayed
-    expect(find.text('Resumen del día'), findsOneWidget);
-    expect(find.text('Por debajo'), findsOneWidget);
+    expect(find.text(S.current.diarySummaryTitle), findsOneWidget);
+    expect(find.text(S.current.diaryStatusBelow), findsOneWidget);
     expect(find.text('1200 / 2000 kcal'), findsOneWidget);
     expect(find.text('800 kcal restantes'), findsOneWidget);
     
     // Macros
-    expect(find.text('Carbos'), findsOneWidget);
-    expect(find.text('Grasas'), findsOneWidget);
-    expect(find.text('Proteína'), findsOneWidget);
+    expect(find.text(S.current.carbsLabel), findsOneWidget);
+    expect(find.text(S.current.fatLabel), findsOneWidget);
+    expect(find.text(S.current.proteinLabel), findsOneWidget);
     expect(find.text('150/250g'), findsOneWidget);
     expect(find.text('45/70g'), findsOneWidget);
     expect(find.text('110/150g'), findsOneWidget);
@@ -288,14 +288,14 @@ void main() {
     expect(find.text('400 kcal'), findsNWidgets(2));
 
     // Tap header of Breakfast section to collapse it
-    await tester.tap(find.text('Desayuno'));
+    await tester.tap(find.text(S.current.breakfastLabel));
     await tester.pumpAndSettle();
 
     // Intake item should now be hidden/collapsed
     expect(find.text('Egg and toast'), findsNothing);
 
     // Tap it again to expand
-    await tester.tap(find.text('Desayuno'));
+    await tester.tap(find.text(S.current.breakfastLabel));
     await tester.pumpAndSettle();
     expect(find.text('Egg and toast'), findsOneWidget);
   });
@@ -327,17 +327,17 @@ void main() {
     await tester.pumpAndSettle();
 
     // Bottom sheet dialog action should be displayed
-    expect(find.text('Acciones de la comida'), findsOneWidget);
+    expect(find.text(S.current.diaryQuickAmountTitle), findsOneWidget);
     
     // Tap delete action
-    await tester.tap(find.text('ELIMINAR'));
+    await tester.tap(find.text(S.current.dialogDeleteLabel));
     await tester.pumpAndSettle();
 
     // Delete confirmation dialog should be shown
-    expect(find.text('¿Eliminar elemento?'), findsOneWidget);
+    expect(find.text(S.current.deleteTimeDialogTitle), findsOneWidget);
     
     // Confirm delete
-    await tester.tap(find.text('OK'));
+    await tester.tap(find.text(S.current.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(deletedIntake, mockIntake);
@@ -371,10 +371,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Delete confirmation dialog should be shown directly
-    expect(find.text('¿Eliminar elemento?'), findsOneWidget);
+    expect(find.text(S.current.deleteTimeDialogTitle), findsOneWidget);
     
     // Confirm delete
-    await tester.tap(find.text('OK'));
+    await tester.tap(find.text(S.current.dialogOKLabel));
     await tester.pumpAndSettle();
 
     expect(deletedActivity, mockUserActivity);
