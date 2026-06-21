@@ -4,6 +4,7 @@ import 'package:introduction_screen/introduction_screen.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/onboarding/domain/entity/user_activity_selection_entity.dart';
@@ -274,6 +275,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       await locator<MonetizationService>().grantOnboardingBonus();
       await locator<ConversionAnalyticsService>().logOnboardingCompleted();
       if (context.mounted) {
+        await showModalBottomSheet<bool>(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => const PaywallSheet(
+            placement: PaywallPlacement.onboarding,
+          ),
+        );
+      }
+      if (context.mounted) {
         await _offerCloudAccountProtection(context);
       }
       if (context.mounted) {
@@ -335,11 +345,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  _copy(
-                    context,
-                    es: 'Guarda tu cuenta cloud',
-                    en: 'Protect your cloud account',
-                  ),
+                  S.of(context).onboardingCloudProtectTitle,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.5,
@@ -348,11 +354,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _copy(
-                    context,
-                    es: 'MacroTracker ya esta listo sin registro. Si guardas tu cuenta con Google podras recuperarla al cambiar de movil y usar conexiones profesionales. Esto no activa Google Drive.',
-                    en: 'MacroTracker is ready without sign-up. If you protect your account with Google, you can recover it on a new phone and use coach connections. This does not enable Google Drive.',
-                  ),
+                  S.of(context).onboardingCloudProtectBody,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     height: 1.4,
@@ -372,7 +374,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         child: Text(
-                          _copy(context, es: 'Ahora no', en: 'Not now'),
+                          S.of(context).onboardingNotNow,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -391,7 +393,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
                         label: Text(
-                          _copy(context, es: 'Guardar con Google', en: 'Use Google'),
+                          S.of(context).onboardingUseGoogle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: colorScheme.onPrimary,
@@ -420,16 +422,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(opened
-              ? _copy(
-                  context,
-                  es: 'Completa Google y vuelve a MacroTracker.',
-                  en: 'Complete Google and return to MacroTracker.',
-                )
-              : _copy(
-                  context,
-                  es: 'No se pudo abrir Google.',
-                  en: 'Could not open Google.',
-                )),
+              ? S.of(context).paywallGoogleComplete
+              : S.of(context).paywallGoogleOpenFailed),
         ),
       );
     } catch (_) {
@@ -438,17 +432,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_copy(
-            context,
-            es: 'No se pudo iniciar la vinculacion con Google.',
-            en: 'Could not start Google linking.',
-          )),
+          content: Text(S.of(context).paywallGoogleLinkStartFailed),
         ),
       );
     }
-  }
-
-  String _copy(BuildContext context, {required String es, required String en}) {
-    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
   }
 }

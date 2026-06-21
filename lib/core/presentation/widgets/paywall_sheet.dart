@@ -5,6 +5,7 @@ import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:macrotracker/core/utils/url_const.dart';
@@ -69,8 +70,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
           orElse: () => packages.first,
         );
       } else if (!_subscriptionService.isConfigured) {
-        _errorMessage =
-            'Premium is not configured for this build. Please contact support.';
+        _errorMessage = S.of(context).paywallPremiumNotConfigured;
       }
     });
   }
@@ -108,7 +108,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
       }
       HapticFeedback.heavyImpact();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('MacroTracker Premium is active.')),
+        SnackBar(content: Text(S.of(context).paywallPremiumActive)),
       );
       Navigator.of(context).pop(true);
     } else {
@@ -120,7 +120,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
         return;
       }
       setState(() {
-        _errorMessage = 'The purchase could not be completed.';
+        _errorMessage = S.of(context).paywallPurchaseFailed;
       });
     }
   }
@@ -156,13 +156,12 @@ class _PaywallSheetState extends State<PaywallSheet> {
       Navigator.of(context).pop(true);
     } else {
       setState(() {
-        _errorMessage = 'No active purchases were found.';
+        _errorMessage = S.of(context).paywallNoActivePurchases;
       });
     }
   }
 
   Future<void> _protectAccount() async {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (_isProtectingAccount) {
       return;
     }
@@ -178,12 +177,8 @@ class _PaywallSheetState extends State<PaywallSheet> {
         SnackBar(
           content: Text(
             opened
-                ? (isEs
-                    ? 'Completa Google y vuelve a MacroTracker.'
-                    : 'Complete Google and return to MacroTracker.')
-                : (isEs
-                    ? 'No se pudo abrir Google.'
-                    : 'Could not open Google.'),
+                ? S.of(context).paywallGoogleComplete
+                : S.of(context).paywallGoogleOpenFailed,
           ),
         ),
       );
@@ -193,9 +188,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
         return;
       }
       setState(() {
-        _errorMessage = isEs
-            ? 'No se pudo iniciar la vinculacion con Google.'
-            : 'Could not start Google linking.';
+        _errorMessage = S.of(context).paywallGoogleLinkStartFailed;
       });
     } finally {
       if (mounted) {
@@ -210,7 +203,6 @@ class _PaywallSheetState extends State<PaywallSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final copy = _PaywallCopy.forPlacement(context, widget.placement,
         trialState: widget.trialState);
 
@@ -263,68 +255,6 @@ class _PaywallSheetState extends State<PaywallSheet> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
-            if (widget.trialState?.requiresProtectedAccount == true) ...[
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
-                  border: Border.all(
-                    color: colorScheme.tertiary.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.verified_user_outlined,
-                          color: colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            isEs
-                                ? 'Desbloquea tus usos gratis restantes con Google'
-                                : 'Unlock your remaining free uses with Google',
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      isEs
-                          ? 'Ya has usado el cupo de invitado. Protege tu cuenta y desbloquea ${widget.trialState!.lockedFreeUses} usos gratis mas sin perder tu progreso.'
-                          : 'You have used the guest allowance. Protect your account and unlock ${widget.trialState!.lockedFreeUses} more free uses without losing progress.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    FilledButton.tonalIcon(
-                      onPressed: _isProtectingAccount ? null : _protectAccount,
-                      icon: _isProtectingAccount
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.login_outlined),
-                      label: Text(
-                        isEs
-                            ? 'Proteger con Google'
-                            : 'Protect with Google',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
             if (copy.badge != null) ...[
               const SizedBox(height: 12),
               Align(
@@ -354,6 +284,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
             ],
             for (final benefit in copy.benefits)
               _BenefitRow(icon: benefit.icon, text: benefit.text),
+            const _ComparisonTable(),
             const SizedBox(height: 18),
             if (_isLoadingOfferings)
               const Center(
@@ -387,7 +318,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
               )
             else
               Text(
-                _errorMessage ?? 'Premium plans are not available right now.',
+                _errorMessage ?? S.of(context).paywallPremiumUnavailable,
                 style: TextStyle(color: colorScheme.error),
               ),
             if (_errorMessage != null && _offerings.isNotEmpty) ...[
@@ -415,6 +346,64 @@ class _PaywallSheetState extends State<PaywallSheet> {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
+            if (widget.trialState?.requiresProtectedAccount == true) ...[
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+                  border: Border.all(
+                    color: colorScheme.tertiary.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.verified_user_outlined,
+                          color: colorScheme.tertiary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            S.of(context).paywallUnlockFreeUsesTitle,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      S.of(context).paywallUnlockFreeUsesBody(
+                            widget.trialState!.lockedFreeUses,
+                          ),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    FilledButton.tonalIcon(
+                      onPressed: _isProtectingAccount ? null : _protectAccount,
+                      icon: _isProtectingAccount
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.login_outlined),
+                      label: Text(
+                        S.of(context).paywallProtectWithGoogle,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -432,7 +421,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
                     }
                   },
                   child: Text(
-                    isEs ? 'Política de privacidad' : 'Privacy Policy',
+                    S.of(context).privacyPolicyLabel,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                       decoration: TextDecoration.underline,
@@ -458,7 +447,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
                     }
                   },
                   child: Text(
-                    isEs ? 'Términos de uso (EULA)' : 'Terms of Use (EULA)',
+                    S.of(context).paywallTermsOfUseEula,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                       decoration: TextDecoration.underline,
@@ -478,7 +467,6 @@ class _PaywallSheetState extends State<PaywallSheet> {
     final product = package.storeProduct;
     final selected = package.identifier == _selectedPackage?.identifier;
     final isAnnual = package.packageType == PackageType.annual;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: RadioListTile<String>(
@@ -493,9 +481,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
             if (isAnnual) ...[
               const SizedBox(height: 4),
               Text(
-                isEs
-                    ? 'Mejor valor para registrar comidas con IA todo el año.'
-                    : 'Best value for AI meal logging all year.',
+                S.of(context).paywallBestAnnualValue,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w800,
@@ -504,10 +490,173 @@ class _PaywallSheetState extends State<PaywallSheet> {
             ],
           ],
         ),
-        secondary: Text(
-          product.priceString,
-          style: Theme.of(context).textTheme.titleMedium,
+        secondary: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              product.priceString,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            if (isAnnual)
+              Text(
+                _getMonthlyPriceString(product),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+          ],
         ),
+      ),
+    );
+  }
+
+  String _getMonthlyPriceString(StoreProduct product) {
+    final pricePerMonth = product.price / 12;
+    final symbolRegExp = RegExp(r'[^\d\s\.,]+');
+    final match = symbolRegExp.firstMatch(product.priceString);
+    final symbol = match != null ? match.group(0) : product.currencyCode;
+
+    final isSuffix = product.priceString.trim().endsWith(symbol ?? '');
+    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
+    if (isSuffix) {
+      return '${pricePerMonth.toStringAsFixed(2)} $symbol/${isSpanish ? 'mes' : 'mo'}';
+    } else {
+      return '$symbol${pricePerMonth.toStringAsFixed(2)}/${isSpanish ? 'mes' : 'mo'}';
+    }
+  }
+}
+
+class _ComparisonTable extends StatelessWidget {
+  const _ComparisonTable();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
+
+    final freeLabel = isSpanish ? 'Gratis' : 'Free';
+    final premiumLabel = isSpanish ? 'Premium' : 'Premium';
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              children: [
+                const Expanded(flex: 3, child: SizedBox.shrink()),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    freeLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    premiumLabel,
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          const SizedBox(height: 6),
+          _buildRow(
+            context,
+            isSpanish ? 'Registro diario con IA' : 'Daily AI Logging',
+            isSpanish ? '5 comidas/día' : '5 meals/day',
+            isSpanish ? 'Ilimitado' : 'Unlimited',
+          ),
+          _buildRow(
+            context,
+            isSpanish ? 'Sugerencias Macro Coach' : 'Macro Coach Suggestions',
+            isSpanish ? 'Bloqueado' : 'Locked',
+            isSpanish ? 'Incluido' : 'Included',
+          ),
+          _buildRow(
+            context,
+            isSpanish ? 'Ajustes semanales' : 'Weekly adjustments',
+            isSpanish ? 'Bloqueado' : 'Locked',
+            isSpanish ? 'Incluido' : 'Included',
+          ),
+          _buildRow(
+            context,
+            isSpanish ? 'Sincronización en la nube' : 'Cloud sync & backup',
+            isSpanish ? 'Manual' : 'Manual',
+            isSpanish ? 'Automática' : 'Automatic',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRow(
+    BuildContext context,
+    String feature,
+    String freeVal,
+    String premiumVal,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              feature,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              freeVal,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              premiumVal,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -558,83 +707,59 @@ class _PaywallCopy {
     PaywallPlacement placement, {
     AiTrialState? trialState,
   }) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final remaining = trialState?.remaining;
     final trialBadge = remaining == null
         ? null
-        : isEs
-            ? '$remaining pruebas de IA restantes'
-            : '$remaining AI trials remaining';
+        : S.of(context).paywallTrialRemainingBadge(remaining);
 
     final commonBenefits = [
       _BenefitCopy(
         icon: Icons.auto_awesome_outlined,
-        text: isEs
-            ? 'Borradores de comidas por texto y foto'
-            : 'AI meal drafts from text and photos',
+        text: S.of(context).paywallBenefitAiDrafts,
       ),
       _BenefitCopy(
         icon: Icons.tune_outlined,
-        text: isEs
-            ? 'Revision editable antes de guardar'
-            : 'Editable review before saving',
+        text: S.of(context).paywallBenefitEditableReview,
       ),
       _BenefitCopy(
         icon: Icons.query_stats_outlined,
-        text: isEs
-            ? 'Seguimiento mas rapido de macros y progreso'
-            : 'Faster macro and progress tracking',
+        text: S.of(context).paywallBenefitFasterTracking,
       ),
       _BenefitCopy(
         icon: Icons.psychology_alt_outlined,
-        text: isEs
-            ? 'La IA aprende de tus correcciones habituales'
-            : 'AI learns from your usual corrections',
+        text: S.of(context).paywallBenefitLearnsCorrections,
       ),
     ];
     final macroCoachBenefits = [
       _BenefitCopy(
         icon: Icons.track_changes_outlined,
-        text: isEs
-            ? 'Opciones concretas para cerrar los macros de hoy'
-            : 'Concrete options to close today macros',
+        text: S.of(context).paywallBenefitCloseTodayMacros,
       ),
       _BenefitCopy(
         icon: Icons.restaurant_menu_outlined,
-        text: isEs
-            ? 'Cantidades ajustadas a tus calorías y proteína restante'
-            : 'Servings adjusted to your remaining calories and protein',
+        text: S.of(context).paywallBenefitAdjustedServings,
       ),
       _BenefitCopy(
         icon: Icons.add_circle_outline,
-        text: isEs
-            ? 'Guarda la recomendación en la comida correcta con un toque'
-            : 'Log the recommendation to the right meal with one tap',
+        text: S.of(context).paywallBenefitOneTapLog,
       ),
       _BenefitCopy(
         icon: Icons.query_stats_outlined,
-        text: isEs
-            ? 'Explicación de por qué encaja con tu objetivo del día'
-            : 'Explanation for why it fits today goal',
+        text: S.of(context).paywallBenefitGoalExplanation,
       ),
     ];
 
-    final cta = isEs ? 'Activar Premium' : 'Start Premium';
-    final processing = isEs ? 'Procesando...' : 'Processing...';
-    final restore = isEs ? 'Restaurar compras' : 'Restore purchases';
-    final footer = isEs
-        ? 'Puedes seguir usando el registro manual gratis.'
-        : 'You can keep using manual tracking for free.';
+    final cta = S.of(context).paywallStartPremium;
+    final processing = S.of(context).paywallProcessing;
+    final restore = S.of(context).paywallRestorePurchases;
+    final footer = S.of(context).paywallManualTrackingFooter;
 
     switch (placement) {
       case PaywallPlacement.onboarding:
         return _PaywallCopy(
-          title:
-              isEs ? 'Acelera tu primer registro' : 'Speed up your first log',
-          subtitle: isEs
-              ? 'Premium desbloquea la IA para convertir comidas reales en macros revisables en segundos.'
-              : 'Premium unlocks AI that turns real meals into editable macros in seconds.',
-          badge: isEs ? 'Oferta de lanzamiento' : 'Launch offer',
+          title: S.of(context).paywallOnboardingTitle,
+          subtitle: S.of(context).paywallOnboardingSubtitle,
+          badge: S.of(context).paywallLaunchOfferBadge,
           benefits: commonBenefits,
           ctaLabel: cta,
           processingLabel: processing,
@@ -643,10 +768,8 @@ class _PaywallCopy {
         );
       case PaywallPlacement.aiText:
         return _PaywallCopy(
-          title: isEs ? 'Convierte texto en macros' : 'Turn text into macros',
-          subtitle: isEs
-              ? 'Describe la comida y revisa un borrador editable antes de guardarlo.'
-              : 'Describe a meal and review an editable draft before saving it.',
+          title: S.of(context).paywallAiTextTitle,
+          subtitle: S.of(context).paywallAiTextSubtitle,
           badge: trialBadge,
           benefits: commonBenefits,
           ctaLabel: cta,
@@ -656,10 +779,8 @@ class _PaywallCopy {
         );
       case PaywallPlacement.aiPhoto:
         return _PaywallCopy(
-          title: isEs ? 'Registra con una foto' : 'Log from a photo',
-          subtitle: isEs
-              ? 'Usa la camara o galeria para crear un borrador de ingredientes y macros.'
-              : 'Use camera or gallery to create an ingredient and macro draft.',
+          title: S.of(context).paywallAiPhotoTitle,
+          subtitle: S.of(context).paywallAiPhotoSubtitle,
           badge: trialBadge,
           benefits: commonBenefits,
           ctaLabel: cta,
@@ -669,12 +790,9 @@ class _PaywallCopy {
         );
       case PaywallPlacement.aiLimit:
         return _PaywallCopy(
-          title:
-              isEs ? 'Desbloquea IA ilimitada' : 'Unlock unlimited AI logging',
-          subtitle: isEs
-              ? 'Ya has probado la IA. Premium mantiene el registro rápido sin cortar tu flujo.'
-              : 'You have tried AI logging. Premium keeps the fast flow available.',
-          badge: _trialUsedBadge(isEs, trialState),
+          title: S.of(context).paywallAiLimitTitle,
+          subtitle: S.of(context).paywallAiLimitSubtitle,
+          badge: _trialUsedBadge(context, trialState),
           benefits: commonBenefits,
           ctaLabel: cta,
           processingLabel: processing,
@@ -683,13 +801,9 @@ class _PaywallCopy {
         );
       case PaywallPlacement.macroCoach:
         return _PaywallCopy(
-          title: isEs
-              ? 'Desbloquea tu Coach de macros'
-              : 'Unlock your Macro Coach',
-          subtitle: isEs
-              ? 'Premium convierte los macros que te faltan en comidas concretas, cantidades ajustadas y registro rápido.'
-              : 'Premium turns your remaining macros into concrete meals, adjusted servings, and fast logging.',
-          badge: isEs ? 'Recomendacion Premium' : 'Premium recommendation',
+          title: S.of(context).paywallMacroCoachTitle,
+          subtitle: S.of(context).paywallMacroCoachSubtitle,
+          badge: S.of(context).paywallPremiumRecommendationBadge,
           benefits: macroCoachBenefits,
           ctaLabel: cta,
           processingLabel: processing,
@@ -698,13 +812,9 @@ class _PaywallCopy {
         );
       case PaywallPlacement.weeklyInsights:
         return _PaywallCopy(
-          title: isEs
-              ? 'Convierte tus datos en ajustes'
-              : 'Turn your data into adjustments',
-          subtitle: isEs
-              ? 'Premium combina IA, adherencia y progreso para decidir que cambiar esta semana.'
-              : 'Premium combines AI, adherence, and progress to decide what to change this week.',
-          badge: isEs ? 'Recomendado con 3+ dias' : 'Best with 3+ days',
+          title: S.of(context).paywallWeeklyInsightsTitle,
+          subtitle: S.of(context).paywallWeeklyInsightsSubtitle,
+          badge: S.of(context).paywallBestWithThreeDaysBadge,
           benefits: commonBenefits,
           ctaLabel: cta,
           processingLabel: processing,
@@ -714,10 +824,8 @@ class _PaywallCopy {
       case PaywallPlacement.settings:
         return _PaywallCopy(
           title: 'MacroTracker Premium',
-          subtitle: isEs
-              ? 'Desbloquea IA para registrar comidas por texto y foto.'
-              : 'Unlock AI meal interpretation from text and photos.',
-          badge: isEs ? 'Oferta anual de lanzamiento' : 'Launch annual offer',
+          subtitle: S.of(context).paywallSettingsSubtitle,
+          badge: S.of(context).paywallLaunchAnnualOfferBadge,
           benefits: commonBenefits,
           ctaLabel: cta,
           processingLabel: processing,
@@ -727,13 +835,11 @@ class _PaywallCopy {
     }
   }
 
-  static String _trialUsedBadge(bool isEs, AiTrialState? trialState) {
+  static String _trialUsedBadge(BuildContext context, AiTrialState? trialState) {
     if (trialState == null || trialState.aiMealsSaved <= 0) {
-      return isEs ? 'Prueba finalizada' : 'Trial used';
+      return S.of(context).paywallTrialUsedBadge;
     }
-    return isEs
-        ? '${trialState.aiMealsSaved} comidas IA guardadas'
-        : '${trialState.aiMealsSaved} AI meals saved';
+    return S.of(context).paywallAiMealsSavedBadge(trialState.aiMealsSaved);
   }
 }
 
@@ -744,7 +850,6 @@ class _UsageValueStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
@@ -759,9 +864,10 @@ class _UsageValueStrip extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              isEs
-                  ? '${trialState.aiMealsSaved} comidas IA guardadas. ${trialState.estimatedMinutesSaved} min ahorrados.'
-                  : '${trialState.aiMealsSaved} AI meals saved. ${trialState.estimatedMinutesSaved} min saved.',
+              S.of(context).paywallUsageValueStrip(
+                    trialState.aiMealsSaved,
+                    trialState.estimatedMinutesSaved,
+                  ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

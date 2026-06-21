@@ -122,11 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           if (state is SettingsAccountDeletedState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  _isEs(context)
-                      ? 'Cuenta cloud y datos del dispositivo eliminados.'
-                      : 'Cloud account and device data deleted.',
-                ),
+                content: Text(S.of(context).settingsAccountDeletedMessage),
               ),
             );
             Navigator.of(context).pushNamedAndRemoveUntil(
@@ -136,11 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           } else if (state is SettingsAccountDeletionFailedState) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  _isEs(context)
-                      ? _mapDeletionErrorToSpanish(state.message)
-                      : state.message,
-                ),
+                content: Text(_localizedDeletionError(context, state.message)),
                 duration: const Duration(seconds: 6),
               ),
             );
@@ -163,7 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildReferralSection(context),
                 const SizedBox(height: 18),
                 _SettingsSection(
-                  title: _isEs(context) ? 'Seguimiento' : 'Tracking',
+                  title: S.of(context).settingsTrackingSection,
                   child: Column(
                     children: [
                       ListTile(
@@ -178,15 +170,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         leading: const Icon(Icons.calculate_outlined),
                         title: Text(S.of(context).settingsCalculationsLabel),
                         subtitle: Text(
-                          _isEs(context)
-                              ? (state.macroGoalMode ==
-                                      MacroGoalModeEntity.percentage
-                                  ? 'Distribución por porcentaje (%)'
-                                  : 'Distribución por gramos por kilo (g/kg)')
-                              : (state.macroGoalMode ==
-                                      MacroGoalModeEntity.percentage
-                                  ? 'Percentage distribution (%)'
-                                  : 'Grams per kg distribution (g/kg)'),
+                          state.macroGoalMode ==
+                                  MacroGoalModeEntity.percentage
+                              ? S.of(context).settingsCalculationPercentageMode
+                              : S.of(context).settingsCalculationGramsKgMode,
                         ),
                         onTap: () => _showCalculationsDialog(context),
                       ),
@@ -205,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 18),
                 _SettingsSection(
-                  title: _isEs(context) ? 'Apariencia' : 'Appearance',
+                  title: S.of(context).settingsAppearanceSection,
                   child: Column(
                     children: [
                       ListTile(
@@ -292,35 +279,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildProfessionalNutritionistSection(context),
                 const SizedBox(height: 18),
                 _SettingsSection(
-                  title: _isEs(context)
-                      ? 'Soporte y sugerencias'
-                      : 'Support and feedback',
+                  title: S.of(context).settingsSupportSection,
                   child: Column(
                     children: [
                       ListTile(
                         leading: const Icon(Icons.bug_report_outlined),
-                        title: Text(
-                          _isEs(context) ? 'Reportar un bug' : 'Report a bug',
-                        ),
-                        subtitle: Text(
-                          _isEs(context)
-                              ? 'Informanos sobre un problema en la aplicacion.'
-                              : 'Let us know about an issue in the app.',
-                        ),
+                        title: Text(S.of(context).settingsReportBugTitle),
+                        subtitle: Text(S.of(context).settingsReportBugSubtitle),
                         onTap: () => _reportBug(context),
                       ),
                       ListTile(
                         leading: const Icon(Icons.lightbulb_outline),
-                        title: Text(
-                          _isEs(context)
-                              ? 'Sugerir funcionalidad'
-                              : 'Suggest a feature',
-                        ),
-                        subtitle: Text(
-                          _isEs(context)
-                              ? '¿Que te gustaria ver en MacroTracker?'
-                              : 'What would you like to see in MacroTracker?',
-                        ),
+                        title: Text(S.of(context).settingsSuggestFeatureTitle),
+                        subtitle:
+                            Text(S.of(context).settingsSuggestFeatureSubtitle),
                         onTap: () => _requestFeature(context),
                       ),
                     ],
@@ -760,16 +732,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     _AboutInfoRow(
-                      label: _isEs(context) ? 'Proyecto' : 'Project',
-                      value: _isEs(context)
-                          ? 'Seguimiento de calorías, macros, hábitos, actividad y backups locales/Drive.'
-                          : 'Calorie, macro, habit, activity, and local/Drive backup tracking.',
+                      label: S.of(context).settingsAboutProjectLabel,
+                      value: S.of(context).settingsAboutProjectValue,
                     ),
                     _AboutInfoRow(
-                      label: _isEs(context) ? 'Modelo' : 'Model',
-                      value: _isEs(context)
-                          ? 'App local-first con sincronización opcional y funciones de IA para interpretar comidas.'
-                          : 'Local-first app with optional sync and AI-assisted meal interpretation.',
+                      label: S.of(context).settingsAboutModelLabel,
+                      value: S.of(context).settingsAboutModelValue,
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -824,9 +792,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       scheme: 'mailto',
       path: AppConst.reportErrorEmail,
       queryParameters: {
-        'subject': 'MacroTracker - Bug Report',
-        'body':
-            'Por favor, describe el bug aqui / Please describe the bug here:\n\n\n\n---\nInformacion del sistema / System info:\nPlatform: ${Platform.isAndroid ? 'Android' : 'iOS'}\n',
+        'subject': S.of(context).settingsReportBugEmailSubject,
+        'body': S.of(context).settingsReportBugEmailBody(
+              Platform.isAndroid ? 'Android' : 'iOS',
+            ),
       },
     );
     _launchUrl(context, emailUri);
@@ -837,46 +806,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
       scheme: 'mailto',
       path: AppConst.reportErrorEmail,
       queryParameters: {
-        'subject': 'MacroTracker - Feature Request',
-        'body':
-            'Describe la funcionalidad que te gustaria ver / Describe the feature you would like to see:\n\n\n',
+        'subject': S.of(context).settingsFeatureRequestEmailSubject,
+        'body': S.of(context).settingsFeatureRequestEmailBody,
       },
     );
     _launchUrl(context, emailUri);
   }
 
   String _buildHealthConnectStatusText(HealthConnectSyncStatusEntity status) {
+    final copy = S.of(context);
+    final integration = _healthIntegrationName(context);
+
     if (!status.isAvailable) {
-      return _isEs(context)
-          ? '${_healthIntegrationName(context)} no esta disponible en este dispositivo.'
-          : '${_healthIntegrationName(context)} is not available on this device.';
+      return copy.healthStatusUnavailableName(integration);
     }
     if (!status.isAutoSyncEnabled) {
-      return S.of(context).healthConnectStatusAutoSyncDisabled;
+      return copy.healthConnectStatusAutoSyncDisabled;
     }
     if (!status.hasActivityRecognitionPermission) {
-      return S.of(context).healthConnectStatusActivityPermissionRequired;
+      return copy.healthConnectStatusActivityPermissionRequired;
     }
     if (!status.hasHealthPermissions) {
-      return _isEs(context)
-          ? '${_healthIntegrationName(context)} conectado. Si el sync falla, revisa los permisos.'
-          : '${_healthIntegrationName(context)} connected. If sync fails, review permissions.';
+      return copy.healthStatusPermissionsReview(integration);
     }
     if (!status.hasStepsPermission) {
-      return _isEs(context)
-          ? 'Falta permiso de pasos. El sync será parcial.'
-          : 'Steps permission missing. Sync will be partial.';
+      return copy.healthStatusStepsPermissionMissing;
     }
     if (!status.hasWorkoutSupplementPermission) {
-      return _isEs(context)
-          ? 'Faltan permisos extra de entreno. Algunas calorías pueden quedar en 0.'
-          : 'Workout detail permissions missing. Some calories may stay at 0.';
+      return copy.healthStatusWorkoutPermissionMissing;
     }
-    return _isEs(context)
-        ? '${_healthIntegrationName(context)} conectado. Sueño, pasos y entrenamientos pueden sincronizarse automaticamente.'
-        : '${_healthIntegrationName(context)} connected. Sleep, steps, and workouts can sync automatically.';
+    return copy.healthConnectStatusReady;
   }
-
   Future<void> _syncHealthConnectNow(BuildContext context) async {
     final report = await _settingsBloc.syncHealthConnectNowWithReport();
     final didUpdate = report.didUpdate;
@@ -900,25 +860,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _buildHealthConnectSyncMessage(HealthConnectSyncReport report) {
+    final copy = S.of(context);
+    final integration = _healthIntegrationName(context);
+
     if (!report.didUpdate) {
-      if (_isEs(context)) {
-        return 'Tus datos de ${_healthIntegrationName(context)} ya están al día.';
-      }
-      return 'Your ${_healthIntegrationName(context)} data is already up to date.';
+      return copy.healthSyncAlreadyCurrent(integration);
     }
     if (report.workoutsImported > 0 || report.workoutsUpdated > 0) {
-      final imported = report.workoutsImported;
-      final updated = report.workoutsUpdated;
-      if (_isEs(context)) {
-        return '${_healthIntegrationName(context)}: $imported actividades nuevas y $updated actualizadas.';
-      }
-      return '${_healthIntegrationName(context)}: $imported new workouts and $updated updated.';
+      return copy.healthSyncWorkoutSummary(
+        integration,
+        report.workoutsImported,
+        report.workoutsUpdated,
+      );
     }
-    return _isEs(context)
-        ? 'Datos de ${_healthIntegrationName(context)} sincronizados con éxito.'
-        : '${_healthIntegrationName(context)} data successfully synced.';
+    return copy.healthSyncSuccessName(integration);
   }
-
   void _refreshHealthConnectStatus() {
     _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
   }
@@ -988,42 +944,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _mealReminderTitle(BuildContext context) =>
-      _isEs(context) ? 'Recordatorios de comidas' : 'Meal reminders';
+      S.of(context).mealReminderTitle;
 
   String _mealReminderOffLabel(BuildContext context) =>
-      _isEs(context) ? 'Desactivados' : 'Disabled';
+      S.of(context).mealReminderDisabledStatus;
 
   String _mealReminderEnabledLabel(BuildContext context) =>
-      _isEs(context) ? 'Activar recordatorios' : 'Enable reminders';
+      S.of(context).mealReminderEnableLabel;
 
-  String _mealReminderSubtitle(BuildContext context) => _isEs(context)
-      ? 'Android te avisar\u00e1 para registrar desayuno, comida, snack y cena.'
-      : 'Android will remind you to log breakfast, lunch, snack and dinner.';
+  String _mealReminderSubtitle(BuildContext context) =>
+      S.of(context).mealReminderSubtitle;
 
   String _morningReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Ma\u00f1ana' : 'Morning';
+      S.of(context).mealReminderMorning;
 
   String _afterLunchReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Despu\u00e9s de comer' : 'After lunch';
+      S.of(context).mealReminderAfterLunch;
 
   String _afternoonReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Tarde' : 'Afternoon';
+      S.of(context).mealReminderAfternoon;
 
   String _eveningReminderLabel(BuildContext context) =>
-      _isEs(context) ? 'Cena' : 'Dinner';
+      S.of(context).mealReminderDinner;
 
-  String _mealReminderSavedMessage(BuildContext context) => _isEs(context)
-      ? 'Recordatorios guardados y programados.'
-      : 'Reminders saved and scheduled.';
+  String _mealReminderSavedMessage(BuildContext context) =>
+      S.of(context).mealReminderSavedMessage;
 
   String _mealReminderDisabledMessage(BuildContext context) =>
-      _isEs(context) ? 'Recordatorios desactivados.' : 'Reminders disabled.';
+      S.of(context).mealReminderDisabledMessage;
 
   String _mealReminderPermissionDeniedMessage(BuildContext context) =>
-      _isEs(context)
-          ? 'No se pudo activar porque Android no concedi\u00f3 permisos.'
-          : 'Could not enable reminders because Android permission was denied.';
-
+      S.of(context).mealReminderPermissionDeniedMessage;
   String _mealReminderSummary(SettingsLoadedState state) {
     return [
       _formatMinutesAsTime(context, state.mealReminderMorningMinutes),
@@ -1043,9 +994,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
-
   bool get _supportsHealthIntegration => Platform.isAndroid || Platform.isIOS;
 
   String _healthIntegrationName(BuildContext context) {
@@ -1057,70 +1005,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _healthAutoSyncTitle(BuildContext context) {
     if (Platform.isIOS) {
-      return _isEs(context)
-          ? 'Auto-sync de Apple Health'
-          : 'Apple Health auto-sync';
+      return S.of(context).appleHealthAutoSyncTitle;
     }
     return S.of(context).healthConnectAutoSyncTitle;
   }
 
   String _healthAutoSyncSubtitle(BuildContext context) {
     if (Platform.isIOS) {
-      return _isEs(context)
-          ? 'Sincroniza sueño, pasos y entrenamientos automáticamente al abrir la app.'
-          : 'Sync sleep, steps, and workouts automatically on app open.';
+      return S.of(context).appleHealthAutoSyncSubtitle;
     }
     return S.of(context).healthConnectAutoSyncSubtitle;
   }
 
   String _healthSyncNowTitle(BuildContext context) {
     if (Platform.isIOS) {
-      return _isEs(context)
-          ? 'Sincronizar Apple Health ahora'
-          : 'Sync Apple Health now';
+      return S.of(context).appleHealthSyncNowTitle;
     }
     return S.of(context).healthConnectSyncNowTitle;
   }
 
   String _healthAutoSyncEnabledMessage(BuildContext context) {
     if (Platform.isIOS) {
-      return _isEs(context)
-          ? 'Auto-sync de Apple Health activado.'
-          : 'Apple Health auto-sync enabled.';
+      return S.of(context).appleHealthAutoSyncEnabledMessage;
     }
     return S.of(context).healthConnectAutoSyncEnabledMessage;
   }
 
   String _healthAutoSyncDisabledMessage(BuildContext context) {
     if (Platform.isIOS) {
-      return _isEs(context)
-          ? 'Auto-sync de Apple Health desactivado.'
-          : 'Apple Health auto-sync disabled.';
+      return S.of(context).appleHealthAutoSyncDisabledMessage;
     }
     return S.of(context).healthConnectAutoSyncDisabledMessage;
   }
 
   String _driveBackupSubtitle(BuildContext context) {
     if (Platform.isAndroid) {
-      return _isEs(context) ? 'Drive diario' : 'Daily Drive';
+      return S.of(context).settingsDailyDriveBackup;
     }
-    return _isEs(context) ? 'Drive manual' : 'Manual Drive';
+    return S.of(context).settingsManualDriveBackup;
   }
-
   Widget _buildAccountSecuritySection(
     BuildContext context,
     SettingsLoadedState state,
   ) {
-    final isEs = _isEs(context);
     final status = _cloudAccountStatus;
     final isProtected = status?.isProtected == true;
 
     return _SettingsSection(
-      title: isEs ? 'Cuenta y copias' : 'Account and backups',
+      title: S.of(context).settingsAccountBackupsSection,
       child: Column(
         children: [
           _DataProtectionPanel(
-            isEs: isEs,
             isProtected: isProtected,
             accountEmail: status?.email,
             driveSubtitle: _driveBackupSubtitle(context),
@@ -1136,18 +1071,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildProfessionalNutritionistSection(BuildContext context) {
-    final isEs = _isEs(context);
     final colorScheme = Theme.of(context).colorScheme;
 
     return _SettingsSection(
-      title: isEs ? 'Nutricionista profesional' : 'Professional nutritionist',
+      title: S.of(context).settingsProfessionalNutritionistSection,
       child: _ProtectionActionTile(
         icon: Icons.medical_information_outlined,
-        title: isEs ? 'Conexión con nutricionista' : 'Nutritionist connection',
-        body: isEs
-            ? 'Vincula tu cuenta con un profesional por invitación y consentimiento.'
-            : 'Connect your account with a professional by invite and consent.',
-        statusLabel: isEs ? 'Profesional' : 'Professional',
+        title: S.of(context).settingsNutritionistConnectionTitle,
+        body: S.of(context).settingsNutritionistConnectionBody,
+        statusLabel: S.of(context).settingsProfessionalStatus,
         accentColor: colorScheme.primary,
         centerIcon: true,
         onTap: () => Navigator.of(context).pushNamed(
@@ -1161,20 +1093,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     BuildContext context,
     SettingsLoadedState state,
   ) {
-    final isEs = _isEs(context);
-
     return _SettingsSection(
-      title: isEs ? 'Privacidad y datos' : 'Privacy and data',
+      title: S.of(context).settingsPrivacyDataSection,
       child: Column(
         children: [
           SwitchListTile(
             secondary: const Icon(Icons.bug_report_outlined),
             title: Text(S.of(context).sendAnonymousUserData),
-            subtitle: Text(
-              isEs
-                  ? 'Puedes activarlo o desactivarlo en cualquier momento.'
-                  : 'You can turn this on or off at any time.',
-            ),
+            subtitle: Text(S.of(context).settingsAnonymousDataSubtitle),
             value: state.sendAnonymousData,
             onChanged: (value) async {
               await _settingsBloc.setHasAcceptedAnonymousData(value);
@@ -1199,19 +1125,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   color: Colors.red,
                 ),
                 title: Text(
-                  isEs
-                      ? 'Eliminar cuenta cloud y datos'
-                      : 'Delete cloud account and data',
+                  S.of(context).settingsDeleteCloudAccountTitle,
                   style: const TextStyle(
                     color: Colors.red,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                subtitle: Text(
-                  isEs
-                      ? 'Borra permanentemente el perfil, los registros locales y los datos cloud vinculados.'
-                      : 'Permanently deletes your profile, local logs, and linked cloud data.',
-                ),
+                subtitle: Text(S.of(context).settingsDeleteCloudAccountSubtitle),
                 onTap: () => _confirmDeleteAccount(context),
               ),
             ),
@@ -1235,7 +1155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildPlanSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = _isEs(context);
+    final copy = S.of(context);
     final trialState = _aiTrialState;
     final remaining = trialState?.remaining ?? 0;
     final used = trialState?.used ?? 0;
@@ -1245,9 +1165,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final aiMealsSaved = trialState?.aiMealsSaved ?? 0;
     final minutesSaved = trialState?.estimatedMinutesSaved ?? 0;
     final needsProtectedAccount = trialState?.requiresProtectedAccount == true;
+    final lockedFreeUses = trialState?.lockedFreeUses ?? 0;
+
+    final planBody = _isPremium
+        ? 'Text and photo AI logging is unlocked.'
+        : needsProtectedAccount
+            ? copy.settingsGuestAllowanceUsedBody(lockedFreeUses)
+            : (trialState != null &&
+                    !trialState.isProtectedAccount &&
+                    fullLimit > limit)
+                ? copy.settingsTrialProtectBody(
+                    remaining,
+                    limit,
+                    fullLimit - limit,
+                  )
+                : copy.settingsTrialRemainingBody(remaining, limit);
 
     return _SettingsSection(
-      title: isEs ? 'Mi plan' : 'My plan',
+      title: copy.settingsPlanTitle,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -1282,32 +1217,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isPremium
-                            ? 'MacroTracker Premium'
-                            : (isEs ? 'Plan gratuito' : 'Free plan'),
+                        _isPremium ? 'MacroTracker Premium' : copy.settingsFreePlan,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _isPremium
-                            ? (isEs
-                                ? 'IA por texto y foto desbloqueada.'
-                                : 'Text and photo AI logging is unlocked.')
-                            : needsProtectedAccount
-                                ? (isEs
-                                    ? 'Has agotado el cupo de invitado. Protege tu cuenta para desbloquear ${trialState?.lockedFreeUses ?? 0} usos gratis mas.'
-                                    : 'You have used the guest allowance. Protect your account to unlock ${trialState?.lockedFreeUses ?? 0} more free uses.')
-                                : (trialState != null &&
-                                        !trialState.isProtectedAccount &&
-                                        fullLimit > limit)
-                                    ? (isEs
-                                        ? '$remaining de $limit usos gratis disponibles ahora. Protege tu cuenta para conservarlos y desbloquear ${fullLimit - limit} mas.'
-                                        : '$remaining of $limit free uses available now. Protect your account to keep them and unlock ${fullLimit - limit} more.')
-                                    : (isEs
-                                        ? '$remaining de $limit usos gratuitos de IA disponibles.'
-                                        : '$remaining of $limit free AI uses available.'),
+                        planBody,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -1330,12 +1247,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 8),
               Text(
                 needsProtectedAccount
-                    ? (isEs
-                        ? '$used usados - desbloquea ${trialState?.lockedFreeUses ?? 0} mas con Google'
-                        : '$used used - unlock ${trialState?.lockedFreeUses ?? 0} more with Google')
-                    : (isEs
-                        ? '$used usados - $remaining restantes'
-                        : '$used used - $remaining remaining'),
+                    ? copy.settingsPlanLockedProgress(used, lockedFreeUses)
+                    : copy.settingsPlanProgress(used, remaining),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w700,
@@ -1345,9 +1258,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 10),
                 _PlanMetricRow(
                   icon: Icons.timer_outlined,
-                  label: isEs
-                      ? '$aiMealsSaved comidas IA guardadas - $minutesSaved min ahorrados'
-                      : '$aiMealsSaved AI meals saved - $minutesSaved min saved',
+                  label: copy.settingsPlanMetricAiMeals(
+                    aiMealsSaved,
+                    minutesSaved,
+                  ),
                 ),
               ],
               const SizedBox(height: 16),
@@ -1357,9 +1271,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? null
                       : () => _protectCloudAccount(context),
                   icon: const Icon(Icons.verified_user_outlined),
-                  label: Text(
-                    isEs ? 'Proteger con Google' : 'Protect with Google',
-                  ),
+                  label: Text(copy.paywallProtectWithGoogle),
                 ),
                 const SizedBox(height: 10),
                 OutlinedButton.icon(
@@ -1367,9 +1279,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? null
                       : () => _showSettingsPaywall(context),
                   icon: const Icon(Icons.workspace_premium_outlined),
-                  label: Text(
-                    isEs ? 'Ver Premium' : 'View Premium',
-                  ),
+                  label: Text(copy.settingsViewPremium),
                 ),
               ] else
                 FilledButton.icon(
@@ -1377,11 +1287,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ? null
                       : () => _showSettingsPaywall(context),
                   icon: const Icon(Icons.auto_awesome_outlined),
-                  label: Text(
-                    isEs
-                        ? 'Activar MacroTracker Premium'
-                        : 'Activate MacroTracker Premium',
-                  ),
+                  label: Text(copy.settingsActivatePremium),
                 ),
             ] else ...[
               const SizedBox(height: 16),
@@ -1406,9 +1312,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            isEs
-                                ? 'Tu suscripción está activa en este dispositivo.'
-                                : 'Your subscription is active on this device.',
+                            copy.settingsSubscriptionActive,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
@@ -1424,7 +1328,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF2BF2E)
                                   .withValues(alpha: 0.12),
@@ -1444,7 +1350,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  isEs ? 'Miembro Fundador' : 'Founding Member',
+                                  copy.settingsFoundingMember,
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     color: const Color(0xFFD97706),
                                     fontWeight: FontWeight.w800,
@@ -1467,9 +1373,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ? null
                     : () => _restorePurchases(context),
                 icon: const Icon(Icons.restore_outlined, size: 18),
-                label: Text(
-                  isEs ? 'Restaurar compras' : 'Restore purchases',
-                ),
+                label: Text(copy.paywallRestorePurchases),
               ),
             ],
           ],
@@ -1481,26 +1385,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildReferralSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = _isEs(context);
+    final copy = S.of(context);
 
     return _SettingsSection(
-      title: isEs ? 'Invitar amigos' : 'Invite friends',
+      title: copy.settingsInviteFriendsTitle,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              isEs
-                  ? 'Comparte tu código de invitación con un amigo y ambos obtendréis usos extra de IA gratis cuando lo canjee.'
-                  : 'Share your invitation code with a friend and you both get extra free AI uses when they redeem it.',
+              copy.settingsInviteFriendsBody,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 16),
-
-            // Referral code box
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -1515,9 +1415,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEs
-                              ? 'TU CÓDIGO DE INVITACIÓN'
-                              : 'YOUR REFERRAL CODE',
+                          copy.settingsReferralCodeLabel,
                           style: theme.textTheme.labelSmall?.copyWith(
                             letterSpacing: 1.2,
                             fontWeight: FontWeight.w700,
@@ -1539,33 +1437,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   if (_referralCode != null) ...[
                     IconButton(
                       onPressed: () {
-                        final referralService = locator<ReferralService>();
-                        final msg = referralService
-                            .buildShareMessage(_referralCode!, isEs: isEs);
+                        final url =
+                            'https://macrotracker.app/referral?code=${_referralCode!}';
+                        final msg = copy.settingsReferralShareMessage(
+                          _referralCode!,
+                          url,
+                        );
                         Clipboard.setData(ClipboardData(text: msg));
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text(
-                              isEs
-                                  ? 'Enlace y código de invitación copiados al portapapeles.'
-                                  : 'Invitation link and code copied to clipboard.',
-                            ),
+                            content: Text(copy.settingsReferralCopiedMessage),
                           ),
                         );
                       },
                       icon: const Icon(Icons.copy_outlined),
-                      tooltip: isEs ? 'Copiar' : 'Copy',
+                      tooltip: copy.settingsCopyReferralTooltip,
                     ),
                   ],
                 ],
               ),
             ),
-
             const SizedBox(height: 18),
             Divider(color: colorScheme.outlineVariant),
             const SizedBox(height: 12),
-
-            // Redeem Section
             if (_hasRedeemedCode) ...[
               Row(
                 children: [
@@ -1573,9 +1467,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      isEs
-                          ? '¡Ya has canjeado un código de invitación!'
-                          : 'You have already redeemed an invitation code!',
+                      copy.settingsReferralAlreadyRedeemedMessage,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                         color: colorScheme.primary,
@@ -1586,9 +1478,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ] else ...[
               Text(
-                isEs
-                    ? '¿Te ha invitado un amigo?'
-                    : 'Were you invited by a friend?',
+                copy.settingsInvitedByFriendQuestion,
                 style: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
@@ -1602,8 +1492,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: TextField(
                         controller: _redeemController,
                         decoration: InputDecoration(
-                          hintText:
-                              isEs ? 'Introduce su código' : 'Enter their code',
+                          hintText: copy.settingsEnterReferralCodeHint,
                           border: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(10)),
                           ),
@@ -1635,7 +1524,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               color: Colors.white,
                             ),
                           )
-                        : Text(isEs ? 'Canjear' : 'Redeem'),
+                        : Text(copy.settingsRedeemReferralButton),
                   ),
                 ],
               ),
@@ -1655,13 +1544,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(opened
-              ? (_isEs(context)
-                  ? 'Completa Google y vuelve a MacroTracker.'
-                  : 'Complete Google and return to MacroTracker.')
-              : (_isEs(context)
-                  ? 'No se pudo abrir Google.'
-                  : 'Could not open Google.')),
+          content: Text(
+            opened
+                ? S.of(context).paywallGoogleComplete
+                : S.of(context).paywallGoogleOpenFailed,
+          ),
         ),
       );
     } catch (e, s) {
@@ -1669,9 +1556,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(_isEs(context)
-              ? 'No se pudo iniciar la vinculacion con Google.'
-              : 'Could not start Google linking.'),
+          content: Text(S.of(context).paywallGoogleLinkStartFailed),
         ),
       );
     }
@@ -1688,41 +1573,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
     setState(() => _isRedeeming = false);
 
-    final isEs = _isEs(context);
+    final copy = S.of(context);
     String message;
     switch (result) {
       case ReferralRedemptionResult.success:
-        message = isEs
-            ? '¡Código canjeado con éxito! Has ganado usos de IA gratis.'
-            : 'Code redeemed successfully! You earned free AI uses.';
+        message = copy.settingsReferralRedeemSuccess;
         _redeemController.clear();
         _loadReferralInfo();
         _refreshPlanStatus();
         break;
       case ReferralRedemptionResult.codeNotFound:
-        message = isEs
-            ? 'El código de invitación no existe.'
-            : 'Invitation code not found.';
+        message = copy.settingsReferralCodeNotFound;
         break;
       case ReferralRedemptionResult.selfReferral:
-        message = isEs
-            ? 'No puedes canjear tu propio código.'
-            : 'You cannot redeem your own code.';
+        message = copy.settingsReferralSelfReferral;
         break;
       case ReferralRedemptionResult.alreadyRedeemed:
-        message = isEs
-            ? 'Ya has canjeado un código de invitación.'
-            : 'You have already redeemed an invitation code.';
+        message = copy.settingsReferralAlreadyRedeemedMessage;
         break;
       case ReferralRedemptionResult.notAuthenticated:
-        message = isEs
-            ? 'Inicia sesión para canjear códigos.'
-            : 'Log in to redeem codes.';
+        message = copy.settingsReferralLoginRequired;
         break;
       case ReferralRedemptionResult.unknownError:
-        message = isEs
-            ? 'Error al canjear el código. Inténtalo de nuevo.'
-            : 'Error redeeming code. Please try again.';
+        message = copy.settingsReferralRedeemError;
         break;
     }
 
@@ -1764,11 +1637,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(restored
-            ? (_isEs(context) ? 'Compras restauradas.' : 'Purchases restored.')
-            : (_isEs(context)
-                ? 'No se encontraron compras activas.'
-                : 'No active purchases found.')),
+        content: Text(
+          restored
+              ? S.of(context).settingsPurchasesRestored
+              : S.of(context).paywallNoActivePurchases,
+        ),
       ),
     );
   }
@@ -1777,8 +1650,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
-        final isEs = _isEs(context);
-        final targetText = isEs ? 'ELIMINAR' : 'DELETE';
+        final copy = S.of(context);
+        final targetText = copy.settingsDeleteConfirmationTarget;
         String typedText = '';
 
         return StatefulBuilder(
@@ -1787,32 +1660,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             return AlertDialog(
               title: Text(
-                isEs
-                    ? '¿Eliminar cuenta cloud y datos?'
-                    : 'Delete cloud account and data?',
+                copy.settingsDeleteConfirmTitle,
                 style: const TextStyle(
-                    color: Colors.red, fontWeight: FontWeight.bold),
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    isEs
-                        ? 'Esta acción es irreversible. Primero intentaremos borrar tu cuenta cloud actual y sus datos remotos vinculados. Solo si ese paso termina bien borraremos también los datos locales de este dispositivo.'
-                        : 'This action is irreversible. We will first delete your current cloud account and its linked remote data. Only after that succeeds will MacroTracker erase the local data on this device.',
-                  ),
+                  Text(copy.settingsDeleteConfirmBody),
                   const SizedBox(height: 12),
-                  Text(
-                    isEs
-                        ? 'Si el borrado cloud falla, no mostraremos la cuenta como eliminada y tus datos locales seguirán en el dispositivo.'
-                        : 'If cloud deletion fails, MacroTracker will not show the account as deleted and your local device data will be kept.',
-                  ),
+                  Text(copy.settingsDeleteConfirmFailureGuard),
                   const SizedBox(height: 16),
                   Text(
-                    isEs
-                        ? 'Para confirmar, escribe "$targetText" en la casilla de abajo:'
-                        : 'To confirm, type "$targetText" in the box below:',
+                    copy.settingsDeleteConfirmTypePrompt(targetText),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -1833,7 +1696,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(isEs ? 'Cancelar' : 'Cancel'),
+                  child: Text(copy.dialogCancelLabel),
                 ),
                 FilledButton(
                   onPressed:
@@ -1843,7 +1706,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         isValid ? Colors.red : Colors.grey.shade400,
                     foregroundColor: Colors.white,
                   ),
-                  child: Text(isEs ? 'Eliminar todo' : 'Delete all'),
+                  child: Text(copy.deleteAllLabel),
                 ),
               ],
             );
@@ -1857,18 +1720,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
-
-String _mapDeletionErrorToSpanish(String message) {
+String _localizedDeletionError(BuildContext context, String message) {
+  final copy = S.of(context);
   if (message.contains('cloud session is no longer valid')) {
-    return 'La sesión cloud ya no es válida. Vuelve a iniciar sesión y repite el borrado.';
+    return copy.settingsDeleteErrorSessionInvalid;
   }
   if (message.contains('Could not reach the cloud service')) {
-    return 'No se pudo contactar con el servicio cloud. Revisa la conexión e inténtalo otra vez.';
+    return copy.settingsDeleteErrorCloudUnreachable;
   }
   if (message.contains('local data was kept')) {
-    return 'No se pudo borrar la cuenta cloud ahora mismo. Los datos locales se han conservado en este dispositivo.';
+    return copy.settingsDeleteErrorLocalKept;
   }
-  return 'No se pudo borrar la cuenta cloud ahora mismo.';
+  return copy.settingsDeleteErrorGeneric;
 }
 
 class _PlanMetricRow extends StatelessWidget {
@@ -1943,7 +1806,6 @@ class _AboutInfoRow extends StatelessWidget {
 }
 
 class _DataProtectionPanel extends StatelessWidget {
-  final bool isEs;
   final bool isProtected;
   final String? accountEmail;
   final String driveSubtitle;
@@ -1952,7 +1814,6 @@ class _DataProtectionPanel extends StatelessWidget {
   final VoidCallback onExportZip;
 
   const _DataProtectionPanel({
-    required this.isEs,
     required this.isProtected,
     required this.accountEmail,
     required this.driveSubtitle,
@@ -1963,35 +1824,30 @@ class _DataProtectionPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final copy = S.of(context);
     final accountLabel = accountEmail?.isNotEmpty == true
         ? accountEmail!
-        : (isEs
-            ? 'Identidad para recuperacion y conexiones profesionales'
-            : 'Identity for recovery and coach connections');
+        : copy.settingsCloudIdentityFallback;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: _ProtectionActionTile(
         icon:
             isProtected ? Icons.verified_user_outlined : Icons.shield_outlined,
-        title: isEs ? 'Cuenta y copias' : 'Account and backups',
+        title: copy.settingsAccountBackupsSection,
         body: isProtected
             ? '$accountLabel - $driveSubtitle'
-            : (isEs
-                ? 'Protege tu cuenta y configura copias de seguridad.'
-                : 'Protect your account and configure backups.'),
+            : copy.settingsProtectAccountBackupsBody,
         statusLabel: isProtected
-            ? (isEs ? 'Protegida' : 'Protected')
-            : (isEs ? 'Sin cuenta' : 'No account'),
+            ? copy.settingsAccountProtectedStatus
+            : copy.settingsNoAccountStatus,
         accentColor: isProtected ? colorScheme.primary : colorScheme.tertiary,
         centerIcon: true,
         onTap: () => showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,
           builder: (sheetContext) => _AccountBackupsSheet(
-            isEs: isEs,
             isProtected: isProtected,
             accountLabel: accountLabel,
             driveSubtitle: driveSubtitle,
@@ -2015,7 +1871,6 @@ class _DataProtectionPanel extends StatelessWidget {
 }
 
 class _AccountBackupsSheet extends StatelessWidget {
-  final bool isEs;
   final bool isProtected;
   final String accountLabel;
   final String driveSubtitle;
@@ -2024,7 +1879,6 @@ class _AccountBackupsSheet extends StatelessWidget {
   final VoidCallback onExportZip;
 
   const _AccountBackupsSheet({
-    required this.isEs,
     required this.isProtected,
     required this.accountLabel,
     required this.driveSubtitle,
@@ -2036,6 +1890,7 @@ class _AccountBackupsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final copy = S.of(context);
 
     return SafeArea(
       child: Column(
@@ -2060,7 +1915,7 @@ class _AccountBackupsSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    isEs ? 'Cuenta y copias' : 'Account and backups',
+                    copy.settingsAccountBackupsSection,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -2078,15 +1933,11 @@ class _AccountBackupsSheet extends StatelessWidget {
             icon: isProtected
                 ? Icons.verified_user_outlined
                 : Icons.g_mobiledata_outlined,
-            title: isEs ? 'Cuenta Google' : 'Google account',
-            body: isProtected
-                ? accountLabel
-                : (isEs
-                    ? 'Vincula Google para recuperar tu cuenta.'
-                    : 'Link Google to recover your account.'),
+            title: copy.settingsGoogleAccountTitle,
+            body: isProtected ? accountLabel : copy.settingsGoogleAccountBody,
             statusLabel: isProtected
-                ? (isEs ? 'Activa' : 'Active')
-                : (isEs ? 'Sin vincular' : 'Not linked'),
+                ? copy.settingsActiveStatus
+                : copy.settingsNotLinkedStatus,
             accentColor:
                 isProtected ? colorScheme.primary : colorScheme.tertiary,
             onTap: onProtectAccount,
@@ -2095,9 +1946,7 @@ class _AccountBackupsSheet extends StatelessWidget {
           _ProtectionActionTile(
             icon: Icons.cloud_upload_outlined,
             title: 'Google Drive',
-            body: isEs
-                ? 'Guarda una copia cifrada en tu propio Drive.'
-                : 'Store an encrypted copy in your own Drive.',
+            body: copy.settingsGoogleDriveBackupBody,
             statusLabel: driveSubtitle,
             accentColor: const Color(0xFF0EA5E9),
             onTap: onConfigureBackup,
@@ -2105,11 +1954,9 @@ class _AccountBackupsSheet extends StatelessWidget {
           Divider(height: 1, color: colorScheme.outlineVariant),
           _ProtectionActionTile(
             icon: Icons.folder_zip_outlined,
-            title: isEs ? 'Exportar ZIP' : 'Export ZIP',
-            body: isEs
-                ? 'Copia local/manual para guardar o mover datos.'
-                : 'Manual local copy to store or move data.',
-            statusLabel: isEs ? 'Manual' : 'Manual',
+            title: copy.settingsExportZipTitle,
+            body: copy.settingsExportZipBody,
+            statusLabel: copy.settingsManualStatus,
             accentColor: const Color(0xFFF59E0B),
             onTap: onExportZip,
           ),

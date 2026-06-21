@@ -216,6 +216,25 @@ export const BillingPanel: React.FC = () => {
           </div>
         )}
 
+        {billingSummary.proStatus === 'trialing' && billingSummary.clientLimit === 1 && (
+          <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+            <div className="flex items-start gap-2.5">
+              <BadgeCheck className="h-5 w-5 shrink-0 text-primary" />
+              <div className="space-y-1">
+                <p className="font-bold text-foreground">
+                  {tr('Estás en el plan de prueba gratuito', 'You are on the free trial plan')}
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {tr(
+                    'Tu cuenta de prueba te permite conectar con exactamente 1 cliente de manera gratuita. Para ampliar tu límite e invitar a más clientes, selecciona uno de los planes profesionales a continuación.',
+                    'Your trial account allows you to connect with exactly 1 client for free. To expand your limit and invite more clients, select one of the professional plans below.',
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <SummaryCard
             label={tr('Estado de acceso', 'Access status')}
