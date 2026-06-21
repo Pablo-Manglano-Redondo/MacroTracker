@@ -86,13 +86,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
           });
         } else if (state is ScannerFailedState) {
           final isProductNotFound = state.type == ScannerFailedStateType.productNotFound;
-          final isEs = Localizations.localeOf(context).languageCode == 'es';
-          
+
           return Scaffold(
             appBar: AppBar(
               title: Text(isProductNotFound 
-                  ? (isEs ? 'No encontrado' : 'Not Found') 
-                  : (isEs ? 'Error' : 'Error')),
+                  ? S.of(context).scannerNotFoundTitle
+                  : S.of(context).scannerErrorTitle),
             ),
             body: SafeArea(
               child: Padding(
@@ -128,7 +127,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     if (isProductNotFound && _scannedBarcode != null) ...[
                       const SizedBox(height: 12),
                       Text(
-                        '${isEs ? "Código" : "Barcode"}: $_scannedBarcode',
+                        S.of(context).scannerBarcodeValue(_scannedBarcode!),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -140,14 +139,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     if (isProductNotFound && _scannedBarcode != null) ...[
                       FilledButton.icon(
                         icon: const Icon(Icons.add_circle_outline_outlined),
-                        label: Text(isEs ? 'Crear alimento manualmente' : 'Create food manually'),
+                        label: Text(S.of(context).scannerCreateFoodManually),
                         onPressed: _onCreateCustomFoodPressed,
                       ),
                       const SizedBox(height: 12),
                     ],
                     OutlinedButton.icon(
                       icon: const Icon(Icons.refresh_outlined),
-                      label: Text(isEs ? 'Reintentar escaneo' : 'Retry scanning'),
+                      label: Text(S.of(context).scannerRetryScanning),
                       onPressed: () {
                         setState(() {
                           _isHandlingDetection = false;
@@ -170,14 +169,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
   }
 
   Scaffold _getScannerContent(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).scanProductLabel),
         actions: [
           IconButton(
             icon: const Icon(Icons.keyboard_outlined),
-            tooltip: isEs ? 'Escribir código' : 'Enter code',
+            tooltip: S.of(context).scannerEnterCodeTooltip,
             onPressed: _showManualBarcodeDialog,
           ),
           IconButton(
@@ -236,13 +234,12 @@ class _ScannerScreenState extends State<ScannerScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        final isEs = Localizations.localeOf(context).languageCode == 'es';
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            isEs ? 'Introducir Código de Barras' : 'Enter Barcode',
+            S.of(context).scannerManualBarcodeTitle,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: TextField(
@@ -251,7 +248,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             autofocus: true,
             decoration: InputDecoration(
               hintText: 'e.g. 8410012345678',
-              labelText: isEs ? 'Código de barras' : 'Barcode number',
+              labelText: S.of(context).scannerBarcodeNumberLabel,
               prefixIcon: const Icon(Icons.pin_outlined),
             ),
             inputFormatters: [
@@ -261,7 +258,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(isEs ? 'Cancelar' : 'Cancel'),
+              child: Text(S.of(context).dialogCancelLabel),
             ),
             FilledButton(
               onPressed: () {
@@ -274,7 +271,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   _scannerBloc.add(ScannerLoadProductEvent(barcode: code));
                 }
               },
-              child: Text(isEs ? 'Buscar' : 'Search'),
+              child: Text(S.of(context).searchLabel),
             ),
           ],
         );

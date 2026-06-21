@@ -6,6 +6,7 @@ import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class GymHabitsCardController extends ChangeNotifier {
   void refresh() {
@@ -521,13 +522,13 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   String _focusLabel(BuildContext context, DailyFocusEntity focus) {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return _isEs(context) ? 'Día de pierna' : 'Leg day';
+        return S.of(context).gymHabitsFocusLowerBody;
       case DailyFocusEntity.upperBody:
-        return _isEs(context) ? 'Día de torso' : 'Upper body day';
+        return S.of(context).gymHabitsFocusUpperBody;
       case DailyFocusEntity.cardio:
-        return _isEs(context) ? 'Día de cardio' : 'Cardio day';
+        return S.of(context).gymHabitsFocusCardio;
       case DailyFocusEntity.rest:
-        return _isEs(context) ? 'Día de descanso' : 'Rest day';
+        return S.of(context).gymHabitsFocusRest;
     }
   }
 
@@ -552,21 +553,13 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     final goal = _formatWater(hydrationGoalLiters);
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return _isEs(context)
-            ? 'En pierna sube hidratación: objetivo $goal.'
-            : 'Higher hydration target for leg day: $goal.';
+        return S.of(context).gymHabitsHydrationHintLowerBody(goal);
       case DailyFocusEntity.upperBody:
-        return _isEs(context)
-            ? 'En torso mantén hidratación alta: objetivo $goal.'
-            : 'Keep hydration high today: $goal.';
+        return S.of(context).gymHabitsHydrationHintUpperBody(goal);
       case DailyFocusEntity.cardio:
-        return _isEs(context)
-            ? 'En cardio prioriza líquidos: objetivo $goal.'
-            : 'Prioritize fluids today: $goal.';
+        return S.of(context).gymHabitsHydrationHintCardio(goal);
       case DailyFocusEntity.rest:
-        return _isEs(context)
-            ? 'En descanso mantén hidratación: objetivo $goal.'
-            : 'Keep hydration steady today: $goal.';
+        return S.of(context).gymHabitsHydrationHintRest(goal);
     }
   }
 
@@ -594,27 +587,23 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     return const _ReadinessTone.caution();
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   String _title(BuildContext context) =>
-      _isEs(context) ? 'Hábitos y recuperación' : 'Habits and recovery';
+      S.of(context).gymHabitsTitle;
 
   String _completedToday(BuildContext context, int count) =>
-      _isEs(context) ? '$count/7 hoy' : '$count/7 today';
+      S.of(context).gymHabitsCompletedToday(count);
 
   String _hydrationTitle(BuildContext context) =>
-      _isEs(context) ? 'Hidratación' : 'Hydration';
+      S.of(context).hydrationTitle;
 
   String _sleepTitle(BuildContext context) =>
-      _isEs(context) ? 'Sueño' : 'Sleep';
+      S.of(context).gymHabitsSleepTitle;
 
   String _stepsTitle(BuildContext context) =>
-      _isEs(context) ? 'Pasos' : 'Steps';
+      S.of(context).gymHabitsStepsTitle;
 
   String _energyTitle(BuildContext context) =>
-      _isEs(context) ? 'Energía' : 'Energy';
+      S.of(context).gymHabitsEnergyTitle;
 }
 
 class _HabitChip extends StatelessWidget {

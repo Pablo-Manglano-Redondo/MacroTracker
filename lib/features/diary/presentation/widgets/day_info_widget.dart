@@ -448,7 +448,6 @@ class _DaySummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final kcalTracked = trackedDay.caloriesTracked.isNegative
         ? 0
         : trackedDay.caloriesTracked.toInt();
@@ -532,7 +531,7 @@ class _DaySummaryCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isEs ? 'Calorías' : 'Calories',
+                        S.of(context).professionalMacroCalories,
                         style: theme.textTheme.labelLarge?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.w800,
@@ -577,7 +576,7 @@ class _DaySummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _MacroDetailTile(
-                    label: isEs ? 'Carbos' : 'Carbs',
+                    label: S.of(context).carbsLabel,
                     tracked: trackedDay.carbsTracked ?? 0,
                     goal: trackedDay.carbsGoal ?? 0,
                     color: const Color(0xFF0EA5E9),
@@ -586,7 +585,7 @@ class _DaySummaryCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _MacroDetailTile(
-                    label: isEs ? 'Grasas' : 'Fats',
+                    label: S.of(context).fatLabel,
                     tracked: trackedDay.fatTracked ?? 0,
                     goal: trackedDay.fatGoal ?? 0,
                     color: const Color(0xFFF59E0B),
@@ -595,7 +594,7 @@ class _DaySummaryCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: _MacroDetailTile(
-                    label: isEs ? 'Proteína' : 'Protein',
+                    label: S.of(context).proteinLabel,
                     tracked: trackedDay.proteinTracked ?? 0,
                     goal: trackedDay.proteinGoal ?? 0,
                     color: colorScheme.tertiary,
@@ -652,7 +651,6 @@ class _DiaryEmptyDayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Card(
       child: Padding(
@@ -682,7 +680,7 @@ class _DiaryEmptyDayCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isEs ? 'Dia sin registros' : 'No logs for this day',
+                        S.of(context).diaryEmptyDayTitle,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
@@ -690,9 +688,7 @@ class _DiaryEmptyDayCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isEs
-                            ? 'Todavia no hay comidas ni actividad en este dia.'
-                            : 'There are no meals or activities on this day yet.',
+                        S.of(context).diaryEmptyDaySubtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -711,22 +707,22 @@ class _DiaryEmptyDayCard extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onAddMeal,
                   icon: const Icon(Icons.restaurant_outlined),
-                  label: Text(isEs ? 'Añadir comida' : 'Add meal'),
+                  label: Text(S.of(context).diaryAddMealAction),
                 ),
                 IconButton.filledTonal(
                   onPressed: onScanPressed,
                   icon: const Icon(Icons.qr_code_scanner_outlined),
-                  tooltip: isEs ? 'Escanear' : 'Scan',
+                  tooltip: S.of(context).scanProductLabel,
                 ),
                 IconButton.filledTonal(
                   onPressed: onTextAIPressed,
                   icon: const Icon(Icons.edit_note_outlined),
-                  tooltip: isEs ? 'IA texto' : 'AI text',
+                  tooltip: S.of(context).addMealText,
                 ),
                 IconButton.filledTonal(
                   onPressed: onPhotoAIPressed,
                   icon: const Icon(Icons.add_a_photo_outlined),
-                  tooltip: isEs ? 'IA foto' : 'AI photo',
+                  tooltip: S.of(context).addMealPhoto,
                 ),
               ],
             ),

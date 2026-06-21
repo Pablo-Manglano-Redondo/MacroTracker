@@ -83,18 +83,14 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _isSpanish
-                            ? 'Describe tu comida'
-                            : 'Describe your meal',
+                        S.of(context).aiTextDescribeMealTitle,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w700,
                             ),
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        _isSpanish
-                            ? 'Escribe ingredientes, cantidades o una comida completa para que la IA te prepare un borrador.'
-                            : 'Write ingredients, quantities, or a full meal so AI can prepare a draft for you.',
+                        S.of(context).aiTextDescribeMealSubtitle,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -118,9 +114,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                _isSpanish
-                                    ? 'La IA crea un borrador editable. Tu revisas ingredientes y macros antes de guardar.'
-                                    : 'AI creates an editable draft. You review ingredients and macros before saving.',
+                                S.of(context).aiTextReviewNotice,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -149,9 +143,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                _isSpanish
-                                    ? 'Que has comido'
-                                    : 'What did you eat',
+                                S.of(context).aiTextWhatDidYouEat,
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
@@ -167,7 +159,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                                   setState(() {});
                                 },
                                 child: Text(
-                                  _isSpanish ? 'Limpiar' : 'Clear',
+                                  S.of(context).aiTextClear,
                                 ),
                               ),
                           ],
@@ -180,18 +172,14 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                           onChanged: (_) => setState(() {}),
                           textCapitalization: TextCapitalization.sentences,
                           decoration: InputDecoration(
-                            hintText: _isSpanish
-                                ? 'Ej: 200 g de pollo, 150 g de arroz, ensalada con aceite de oliva y un yogur griego'
-                                : 'Example: 200 g chicken, 150 g rice, salad with olive oil, and a Greek yogurt',
+                            hintText: S.of(context).aiTextInputHint,
                             alignLabelWithHint: true,
                             border: const OutlineInputBorder(),
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          _isSpanish
-                              ? 'Cuanto más concreto seas, mejor saldrá el borrador.'
-                              : 'The more specific you are, the better the draft will be.',
+                          S.of(context).aiTextSpecificityHint,
                           style:
                               Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: colorScheme.onSurfaceVariant,
@@ -203,7 +191,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _isSpanish ? 'Ejemplos rápidos' : 'Quick examples',
+                  S.of(context).aiTextQuickExamples,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -215,29 +203,21 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                   children: [
                     _ExampleChip(
                       label:
-                          _isSpanish ? 'Desayuno simple' : 'Simple breakfast',
+                          S.of(context).aiTextExampleSimpleBreakfastLabel,
                       onTap: () => _applyExample(
-                        _isSpanish
-                            ? 'Café con leche, tostada con tomate y dos huevos'
-                            : 'Coffee with milk, toast with tomato, and two eggs',
+                        S.of(context).aiTextExampleSimpleBreakfastValue,
                       ),
                     ),
                     _ExampleChip(
-                      label: _isSpanish
-                          ? 'Comida con cantidades'
-                          : 'Meal with amounts',
+                      label: S.of(context).aiTextExampleAmountsLabel,
                       onTap: () => _applyExample(
-                        _isSpanish
-                            ? '180 g de salmón, 220 g de patata asada y ensalada con 10 ml de aceite de oliva'
-                            : '180 g salmon, 220 g roasted potato, and salad with 10 ml olive oil',
+                        S.of(context).aiTextExampleAmountsValue,
                       ),
                     ),
                     _ExampleChip(
-                      label: _isSpanish ? 'Cena rápida' : 'Quick dinner',
+                      label: S.of(context).aiTextExampleQuickDinnerLabel,
                       onTap: () => _applyExample(
-                        _isSpanish
-                            ? 'Burrito de pollo con queso, guacamole y una coca cola zero'
-                            : 'Chicken burrito with cheese, guacamole, and a Coke Zero',
+                        S.of(context).aiTextExampleQuickDinnerValue,
                       ),
                     ),
                   ],
@@ -249,15 +229,13 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                     onPressed: _isLoading ? null : _createDraft,
                     icon: const Icon(Icons.auto_awesome),
                     label: Text(
-                      _isSpanish ? 'Crear borrador con IA' : 'Create AI draft',
+                      S.of(context).aiTextCreateDraft,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _isSpanish
-                      ? 'Podrás corregir ingredientes antes de guardar.'
-                      : 'You will be able to correct ingredients before saving.',
+                  S.of(context).aiPhotoCorrectionHint,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -277,45 +255,31 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                       color: colorScheme.primary,
                     ),
                     title: Text(
-                      _isSpanish ? '¿Qué funciona mejor?' : 'What works best?',
+                      S.of(context).aiTextBestPracticesTitle,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                     subtitle: Text(
-                      _isSpanish
-                          ? 'Abre esto si quieres mejores resultados.'
-                          : 'Open this if you want better results.',
+                      S.of(context).aiTextBestPracticesSubtitle,
                     ),
                     children: [
                       _TextHintRow(
                         icon: Icons.straighten_outlined,
-                        title: _isSpanish
-                            ? 'Incluye cantidades si las sabes'
-                            : 'Include amounts if you know them',
-                        subtitle: _isSpanish
-                            ? 'Gramajes, unidades o cucharadas ayudan mucho a estimar mejor.'
-                            : 'Grams, units, or tablespoons help estimate more accurately.',
+                        title: S.of(context).aiTextHintAmountsTitle,
+                        subtitle: S.of(context).aiTextHintAmountsSubtitle,
                       ),
                       const SizedBox(height: 10),
                       _TextHintRow(
                         icon: Icons.restaurant_menu_outlined,
-                        title: _isSpanish
-                            ? 'Escribe plato y acompañamientos'
-                            : 'Write the dish and the sides',
-                        subtitle: _isSpanish
-                            ? 'No pongas solo "pasta"; mejor "pasta con atún y tomate".'
-                            : 'Do not write only "pasta"; better "pasta with tuna and tomato".',
+                        title: S.of(context).aiTextHintDishTitle,
+                        subtitle: S.of(context).aiTextHintDishSubtitle,
                       ),
                       const SizedBox(height: 10),
                       _TextHintRow(
                         icon: Icons.local_drink_outlined,
-                        title: _isSpanish
-                            ? 'No olvides bebidas y salsas'
-                            : 'Do not forget drinks and sauces',
-                        subtitle: _isSpanish
-                            ? 'Suelen cambiar bastante las calorías finales.'
-                            : 'They often change the final calories quite a bit.',
+                        title: S.of(context).aiTextHintSaucesTitle,
+                        subtitle: S.of(context).aiTextHintSaucesSubtitle,
                       ),
                     ],
                   ),
@@ -374,9 +338,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                _isSpanish
-                    ? 'Esto suele tardar entre 5 y 10 segundos.'
-                    : 'This usually takes 5 to 10 seconds.',
+                S.of(context).aiCaptureProcessingTime,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -401,9 +363,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        _isSpanish
-                            ? 'La IA prepara un borrador. Luego podrás revisar, corregir o borrar ingredientes antes de guardar.'
-                            : 'AI is preparing a draft. Later you will be able to review, edit, or remove ingredients before saving.',
+                        S.of(context).aiCaptureDraftReviewNotice,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.35,
@@ -505,8 +465,6 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
     }
   }
 
-  bool get _isSpanish => Localizations.localeOf(context).languageCode == 'es';
-
   String _appLocaleTag(BuildContext context) {
     final locale = Localizations.localeOf(context);
     final countryCode = locale.countryCode;
@@ -516,9 +474,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
     return '${locale.languageCode}-$countryCode';
   }
 
-  String get _loadingStepLabel => _isSpanish
-      ? 'Analizando ingredientes y cantidades'
-      : 'Analyzing ingredients and quantities';
+  String get _loadingStepLabel => S.current.aiTextAnalyzingIngredients;
 
   void _applyExample(String value) {
     _controller
@@ -552,25 +508,15 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
   String _buildFailureMessage(MealInterpretationRemoteException error) {
     switch (error.category) {
       case MealInterpretationFailureCategory.timeout:
-        return _isSpanish
-            ? 'La petición de IA tardó demasiado. Reintenta o sigue con revisión manual.'
-            : 'The AI request timed out. Retry or continue with a manual review.';
+        return S.current.aiFailureTimeoutManualReview;
       case MealInterpretationFailureCategory.noNetwork:
-        return _isSpanish
-            ? 'No hay conexión. Reintenta cuando vuelvas a tener red o sigue manualmente.'
-            : 'No network connection. Retry when you are back online or continue manually.';
+        return S.current.aiFailureNoNetworkManualReview;
       case MealInterpretationFailureCategory.authInvalid:
-        return _isSpanish
-            ? 'Tu sesión cloud caducó. Protege o reabre tu cuenta cloud y vuelve a intentarlo.'
-            : 'Your cloud session expired. Protect or reopen your cloud account and try again.';
+        return S.current.aiFailureCloudSessionInvalid;
       case MealInterpretationFailureCategory.invalidResponse:
-        return _isSpanish
-            ? 'La respuesta de IA no se pudo usar. Reintenta o sigue con borrador manual.'
-            : 'The AI response could not be used. Retry or continue with a manual draft.';
+        return S.current.aiFailureInvalidResponseManualDraft;
       case MealInterpretationFailureCategory.unavailable:
-        return _isSpanish
-            ? 'La interpretación de comidas por IA no está disponible temporalmente. Reintenta o sigue manualmente.'
-            : 'AI meal interpretation is temporarily unavailable. Retry or continue manually.';
+        return S.current.aiFailureUnavailableManual;
     }
   }
 
@@ -582,7 +528,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(_isSpanish ? 'IA no disponible' : 'AI unavailable'),
+        title: Text(S.of(context).aiUnavailableTitle),
         content: Text(message),
         actions: [
           TextButton(
@@ -591,7 +537,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
               await onContinueManually();
             },
             child: Text(
-              _isSpanish ? 'Seguir manual' : 'Continue manually',
+              S.of(context).aiContinueManually,
             ),
           ),
           FilledButton(
@@ -599,7 +545,7 @@ class _MealTextCaptureScreenState extends State<MealTextCaptureScreen> {
               Navigator.of(dialogContext).pop();
               await onRetry();
             },
-            child: Text(_isSpanish ? 'Reintentar' : 'Retry'),
+            child: Text(S.of(context).aiRetry),
           ),
         ],
       ),

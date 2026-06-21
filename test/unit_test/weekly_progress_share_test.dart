@@ -57,40 +57,62 @@ void main() {
       final report = WeeklyProgressShareSheet.buildWeeklyProgressTextReport(
         insights: insights,
         dateRangeText: '1 jun - 7 jun',
-        isEs: true,
+        title: 'Mi resumen semanal (MacroTracker)',
+        rangeLabel: 'Rango',
+        averageCaloriesLabel: 'Calorías promedio',
+        averageProteinLabel: 'Proteína promedio',
+        averageCarbsLabel: 'Carbohidratos promedio',
+        averageFatLabel: 'Grasa promedio',
+        goalAdherenceLabel: 'Adherencia al objetivo',
+        proteinConsistencyLabel: 'Consistencia proteica',
+        daysTrackedLabel: 'Días registrados',
+        weightDeltaLabel: 'Cambio de peso',
+        daysUnit: 'día',
+        footer: 'Enviado desde MacroTracker.',
       );
 
-      expect(report, contains('📈 MI RESUMEN SEMANAL (MacroTracker)'));
-      expect(report, contains('📅 Rango: 1 jun - 7 jun'));
-      expect(report, contains('🔥 Calorías promedio: 2150 kcal/día'));
-      expect(report, contains('🥚 Proteína promedio: 140.8 g/día'));
-      expect(report, contains('🍞 Carbohidratos promedio: 230.1 g/día'));
-      expect(report, contains('💧 Grasa promedio: 65.2 g/día'));
-      expect(report, contains('🎯 Adherencia al objetivo: 86%'));
-      expect(report, contains('⚡ Consistencia proteica: 71%'));
-      expect(report, contains('📊 Días registrados: 5 / 7 días'));
-      expect(report, contains('⚖️ Cambio de peso: -0.45 kg'));
-      expect(report, contains('Enviado desde MacroTracker App 🚀'));
+      expect(report, contains('Mi resumen semanal (MacroTracker)'));
+      expect(report, contains('Rango: 1 jun - 7 jun'));
+      expect(report, contains('Calorías promedio: 2150 kcal/día'));
+      expect(report, contains('Proteína promedio: 140.8 g/día'));
+      expect(report, contains('Carbohidratos promedio: 230.1 g/día'));
+      expect(report, contains('Grasa promedio: 65.2 g/día'));
+      expect(report, contains('Adherencia al objetivo: 86%'));
+      expect(report, contains('Consistencia proteica: 71%'));
+      expect(report, contains('Días registrados: 5 / 7 día'));
+      expect(report, contains('Cambio de peso: -0.45 kg'));
+      expect(report, contains('Enviado desde MacroTracker.'));
     });
 
     test('buildWeeklyProgressTextReport formats English report correctly', () {
       final report = WeeklyProgressShareSheet.buildWeeklyProgressTextReport(
         insights: insights,
         dateRangeText: 'Jun 1 - Jun 7',
-        isEs: false,
+        title: 'My weekly progress (MacroTracker)',
+        rangeLabel: 'Range',
+        averageCaloriesLabel: 'Average calories',
+        averageProteinLabel: 'Average protein',
+        averageCarbsLabel: 'Average carbs',
+        averageFatLabel: 'Average fat',
+        goalAdherenceLabel: 'Goal adherence',
+        proteinConsistencyLabel: 'Protein consistency',
+        daysTrackedLabel: 'Days tracked',
+        weightDeltaLabel: 'Weight change',
+        daysUnit: 'day',
+        footer: 'Sent from MacroTracker.',
       );
 
-      expect(report, contains('📈 MY WEEKLY PROGRESS (MacroTracker)'));
-      expect(report, contains('📅 Range: Jun 1 - Jun 7'));
-      expect(report, contains('🔥 Average Calories: 2150 kcal/day'));
-      expect(report, contains('🥚 Average Protein: 140.8 g/day'));
-      expect(report, contains('🍞 Average Carbs: 230.1 g/day'));
-      expect(report, contains('💧 Average Fat: 65.2 g/day'));
-      expect(report, contains('🎯 Goal Adherence: 86%'));
-      expect(report, contains('⚡ Protein Consistency: 71%'));
-      expect(report, contains('📊 Days Tracked: 5 / 7 days'));
-      expect(report, contains('⚖️ Weight Delta: -0.45 kg'));
-      expect(report, contains('Sent via MacroTracker App 🚀'));
+      expect(report, contains('My weekly progress (MacroTracker)'));
+      expect(report, contains('Range: Jun 1 - Jun 7'));
+      expect(report, contains('Average calories: 2150 kcal/day'));
+      expect(report, contains('Average protein: 140.8 g/day'));
+      expect(report, contains('Average carbs: 230.1 g/day'));
+      expect(report, contains('Average fat: 65.2 g/day'));
+      expect(report, contains('Goal adherence: 86%'));
+      expect(report, contains('Protein consistency: 71%'));
+      expect(report, contains('Days tracked: 5 / 7 day'));
+      expect(report, contains('Weight change: -0.45 kg'));
+      expect(report, contains('Sent from MacroTracker.'));
     });
 
     test('buildWeeklyProgressTextReport formats positive weight delta correctly', () {
@@ -115,16 +137,38 @@ void main() {
       final reportEs = WeeklyProgressShareSheet.buildWeeklyProgressTextReport(
         insights: positiveWeightInsights,
         dateRangeText: '1 jun - 7 jun',
-        isEs: true,
+        title: 'Mi resumen semanal (MacroTracker)',
+        rangeLabel: 'Rango',
+        averageCaloriesLabel: 'Calorías promedio',
+        averageProteinLabel: 'Proteína promedio',
+        averageCarbsLabel: 'Carbohidratos promedio',
+        averageFatLabel: 'Grasa promedio',
+        goalAdherenceLabel: 'Adherencia al objetivo',
+        proteinConsistencyLabel: 'Consistencia proteica',
+        daysTrackedLabel: 'Días registrados',
+        weightDeltaLabel: 'Cambio de peso',
+        daysUnit: 'día',
+        footer: 'Enviado desde MacroTracker.',
       );
-      expect(reportEs, contains('⚖️ Cambio de peso: +0.25 kg'));
+      expect(reportEs, contains('Cambio de peso: +0.25 kg'));
 
       final reportEn = WeeklyProgressShareSheet.buildWeeklyProgressTextReport(
         insights: positiveWeightInsights,
         dateRangeText: 'Jun 1 - Jun 7',
-        isEs: false,
+        title: 'My weekly progress (MacroTracker)',
+        rangeLabel: 'Range',
+        averageCaloriesLabel: 'Average calories',
+        averageProteinLabel: 'Average protein',
+        averageCarbsLabel: 'Average carbs',
+        averageFatLabel: 'Average fat',
+        goalAdherenceLabel: 'Goal adherence',
+        proteinConsistencyLabel: 'Protein consistency',
+        daysTrackedLabel: 'Days tracked',
+        weightDeltaLabel: 'Weight change',
+        daysUnit: 'day',
+        footer: 'Sent from MacroTracker.',
       );
-      expect(reportEn, contains('⚖️ Weight Delta: +0.25 kg'));
+      expect(reportEn, contains('Weight change: +0.25 kg'));
     });
   });
 }

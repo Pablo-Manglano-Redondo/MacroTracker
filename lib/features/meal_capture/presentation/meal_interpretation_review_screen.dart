@@ -2160,7 +2160,6 @@ class _AiSaveConversionCard extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final isEs = Localizations.localeOf(context).languageCode == 'es';
         final colorScheme = Theme.of(context).colorScheme;
         final isBlocked = !state.isPremium && state.remaining <= 0;
 
@@ -2191,7 +2190,7 @@ class _AiSaveConversionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs ? 'Borrador IA listo' : 'AI draft ready',
+                      S.of(context).aiDraftReadyTitle,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -2199,7 +2198,7 @@ class _AiSaveConversionCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       _message(
-                        isEs: isEs,
+                        context: context,
                         state: state,
                         kcal: kcal,
                         activeItemCount: activeItemCount,
@@ -2221,7 +2220,7 @@ class _AiSaveConversionCard extends StatelessWidget {
                       trialState: state,
                     ),
                   ),
-                  child: Text(isEs ? 'Premium' : 'Upgrade'),
+                  child: Text(S.of(context).aiDraftUpgradeAction),
                 ),
             ],
           ),
@@ -2231,25 +2230,21 @@ class _AiSaveConversionCard extends StatelessWidget {
   }
 
   String _message({
-    required bool isEs,
+    required BuildContext context,
     required AiTrialState state,
     required double kcal,
     required int activeItemCount,
   }) {
     final kcalText = kcal.toStringAsFixed(0);
     if (state.isPremium) {
-      return isEs
-          ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Puedes guardar sin consumir usos.'
-          : '$activeItemCount ingredients detected, about $kcalText kcal. You can save without using trials.';
+      return S.of(context).aiDraftPremiumMessage(activeItemCount, kcalText);
     }
     if (state.remaining > 0) {
-      return isEs
-          ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Revisar es gratis; guardar consumira 1 de tus ${state.remaining} usos.'
-          : '$activeItemCount ingredients detected, about $kcalText kcal. Reviewing is free; saving uses 1 of your ${state.remaining} trials.';
+      return S
+          .of(context)
+          .aiDraftTrialMessage(activeItemCount, kcalText, state.remaining);
     }
-    return isEs
-        ? '$activeItemCount ingredientes detectados, $kcalText kcal aprox. Activa Premium para guardar comidas IA ilimitadas.'
-        : '$activeItemCount ingredients detected, about $kcalText kcal. Upgrade to save unlimited AI meals.';
+    return S.of(context).aiDraftBlockedMessage(activeItemCount, kcalText);
   }
 }
 

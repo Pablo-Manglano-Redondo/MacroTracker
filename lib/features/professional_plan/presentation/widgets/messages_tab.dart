@@ -43,7 +43,7 @@ class _MessagesTabState extends State<MessagesTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader(
-              eyebrow: uiText(context, es: 'Mensajes', en: 'Messages'),
+              eyebrow: S.of(context).professionalTabMessages,
               title: S.of(context).professionalTabMessages,
               subtitle: S.of(context).professionalMessagesUnavailableBody,
             ),
@@ -71,13 +71,9 @@ class _MessagesTabState extends State<MessagesTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Conversación', en: 'Conversation'),
-                title: uiText(context, es: 'Hilo de chat', en: 'Chat thread'),
-                subtitle: uiText(
-                  context,
-                  es: 'Los mensajes del profesional no leídos se marcan al tocarlos.',
-                  en: 'Unread professional messages are marked read when tapped.',
-                ),
+                eyebrow: S.of(context).professionalMessagesConversationEyebrow,
+                title: S.of(context).professionalMessagesChatThreadTitle,
+                subtitle: S.of(context).professionalMessagesThreadSubtitle,
               ),
               const SizedBox(height: 16),
               
@@ -86,11 +82,7 @@ class _MessagesTabState extends State<MessagesTab> {
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Center(
                     child: Text(
-                      uiText(
-                        context,
-                        es: 'Todavía no hay mensajes en esta conversación.',
-                        en: 'There are no messages in this conversation yet.',
-                      ),
+                      S.of(context).professionalMessagesEmpty,
                       style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   ),
@@ -125,11 +117,7 @@ class _MessagesTabState extends State<MessagesTab> {
         if (!messages.messagesEnabled)
           Panel(
             child: Text(
-              uiText(
-                context,
-                es: 'La mensajería existe, pero está desactivada para esta conexión.',
-                en: 'Messaging exists, but it is disabled for this connection.',
-              ),
+              S.of(context).professionalMessagesDisabled,
             ),
           )
         else
@@ -138,13 +126,9 @@ class _MessagesTabState extends State<MessagesTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionHeader(
-                  eyebrow: uiText(context, es: 'Nuevo mensaje', en: 'New message'),
-                  title: uiText(context, es: 'Escribe al profesional', en: 'Write to your professional'),
-                  subtitle: uiText(
-                    context,
-                    es: 'Da contexto breve y accionable.',
-                    en: 'Keep it brief and actionable.',
-                  ),
+                  eyebrow: S.of(context).professionalMessagesNewEyebrow,
+                  title: S.of(context).professionalMessagesWriteTitle,
+                  subtitle: S.of(context).professionalMessagesWriteSubtitle,
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -152,11 +136,7 @@ class _MessagesTabState extends State<MessagesTab> {
                   minLines: 2,
                   maxLines: 5,
                   decoration: InputDecoration(
-                    hintText: uiText(
-                      context,
-                      es: 'Ejemplo: hoy me he quedado corto en proteína y quiero ajustar la cena',
-                      en: 'Example: today I fell short on protein and want to adjust dinner',
-                    ),
+                    hintText: S.of(context).professionalMessagesInputHint,
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(16)),
                     ),
@@ -188,7 +168,7 @@ class _MessagesTabState extends State<MessagesTab> {
                           )
                         : const Icon(Icons.send_outlined),
                     label: Text(
-                      uiText(context, es: 'Enviar', en: 'Send'),
+                      S.of(context).professionalMessagesSend,
                     ),
                   ),
                 ),
@@ -202,7 +182,6 @@ class _MessagesTabState extends State<MessagesTab> {
   void _showMessageDetailSheet(BuildContext context, ProfessionalMessageEntity message) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final fromClient = message.authorRole == 'client';
 
     showModalBottomSheet(
@@ -251,9 +230,7 @@ class _MessagesTabState extends State<MessagesTab> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              fromClient
-                                  ? (isEs ? 'Tú (Paciente)' : 'You (Client)')
-                                  : (isEs ? 'Tu Profesional' : 'Your Professional'),
+                              fromClient ? S.of(context).professionalMessagesAuthorClientFull : S.of(context).professionalMessagesAuthorProfessionalFull,
                               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -280,7 +257,7 @@ class _MessagesTabState extends State<MessagesTab> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  isEs ? 'Mensaje Completo' : 'Full Message',
+                  S.of(context).professionalMessagesFullMessage,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
                         color: colorScheme.primary,
                         fontWeight: FontWeight.w800,
@@ -309,7 +286,7 @@ class _MessagesTabState extends State<MessagesTab> {
                   width: double.infinity,
                   child: FilledButton(
                     onPressed: () => Navigator.of(sheetContext).pop(),
-                    child: Text(isEs ? 'Entendido' : 'Got it'),
+                    child: Text(S.of(context).professionalMessagesGotIt),
                   ),
                 ),
               ],
@@ -381,9 +358,7 @@ class MessageBubbleCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    fromClient
-                        ? uiText(context, es: 'Tú', en: 'You')
-                        : uiText(context, es: 'Profesional', en: 'Professional'),
+                    fromClient ? S.of(context).professionalMessagesAuthorClientShort : S.of(context).professionalMessagesAuthorProfessionalShort,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: fromClient ? colorScheme.primary : colorScheme.onSurfaceVariant,

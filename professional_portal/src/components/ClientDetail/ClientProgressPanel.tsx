@@ -218,7 +218,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
             ).map((field) => (
               <div key={field} className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground capitalize">
-                  {field.replace('_', ' ')}
+                  {progressFieldLabel(field, tr)}
                 </label>
                 <input
                   type="number"
@@ -343,3 +343,25 @@ const MetricCard: React.FC<{
     {note ? <p className="mt-1 text-xs text-muted-foreground">{note}</p> : null}
   </div>
 );
+
+function progressFieldLabel(
+  field: 'weight_kg' | 'body_fat_pct' | 'waist_cm' | 'hip_cm' | 'chest_cm' | 'arm_cm' | 'thigh_cm',
+  tr: (es: string, en: string) => string,
+) {
+  switch (field) {
+    case 'weight_kg':
+      return tr('Peso', 'Weight');
+    case 'body_fat_pct':
+      return tr('Grasa corporal', 'Body fat');
+    case 'waist_cm':
+      return tr('Cintura', 'Waist');
+    case 'hip_cm':
+      return tr('Cadera', 'Hip');
+    case 'chest_cm':
+      return tr('Pecho', 'Chest');
+    case 'arm_cm':
+      return tr('Brazo', 'Arm');
+    case 'thigh_cm':
+      return tr('Muslo', 'Thigh');
+  }
+}

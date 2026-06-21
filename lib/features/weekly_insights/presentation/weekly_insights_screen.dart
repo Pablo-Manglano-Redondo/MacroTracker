@@ -119,7 +119,6 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
     bool isPremium,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     
     final delta = insights.weeklyWeightDeltaKg;
     final Color badgeBg;
@@ -155,7 +154,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  isEs ? 'Resumen semanal' : 'Weekly Summary',
+                  S.of(context).weeklyInsightsWeeklySummary,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -199,14 +198,14 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs ? 'Tendencia de peso' : 'Weight trend',
+                      S.of(context).weeklyInsightsWeightTrendLabel,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isEs ? 'Cambio esta semana' : 'Weekly change',
+                      S.of(context).weeklyInsightsWeeklyChangeLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                           ),
@@ -251,7 +250,6 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
   Widget _buildAveragesCard(BuildContext context, WeeklyInsightsEntity insights) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Card(
       elevation: 0,
@@ -261,7 +259,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEs ? 'Promedios diarios' : 'Daily averages',
+              S.of(context).weeklyInsightsDailyAverages,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -294,7 +292,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isEs ? 'Calorías ingeridas' : 'Calorie intake',
+                          S.of(context).weeklyInsightsCalorieIntake,
                           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                 color: colorScheme.onSurfaceVariant,
                               ),
@@ -312,7 +310,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                                     ),
                               ),
                               TextSpan(
-                                text: ' kcal / ${isEs ? "día" : "day"}',
+                                text: ' kcal / ${S.of(context).weeklyInsightsPerDay}',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
                                     ),
@@ -332,7 +330,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                 Expanded(
                   child: _buildMacroColumn(
                     context: context,
-                    label: isEs ? 'Prot.' : 'Prot',
+                    label: S.of(context).weeklyInsightsProteinShort,
                     value: '${insights.averageProtein.toStringAsFixed(1)} g',
                     color: const Color(0xFF10B981),
                     icon: Icons.egg_alt_outlined,
@@ -342,7 +340,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                 Expanded(
                   child: _buildMacroColumn(
                     context: context,
-                    label: isEs ? 'Carb.' : 'Carb',
+                    label: S.of(context).weeklyInsightsCarbShort,
                     value: '${insights.averageCarbs.toStringAsFixed(1)} g',
                     color: const Color(0xFFF59E0B),
                     icon: Icons.cookie_outlined,
@@ -352,7 +350,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                 Expanded(
                   child: _buildMacroColumn(
                     context: context,
-                    label: isEs ? 'Grasa' : 'Fat',
+                    label: S.of(context).weeklyInsightsFatShort,
                     value: '${insights.averageFat.toStringAsFixed(1)} g',
                     color: const Color(0xFF3B82F6),
                     icon: Icons.opacity_outlined,
@@ -408,7 +406,6 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
   }
 
   Widget _buildMetricsGrid(BuildContext context, WeeklyInsightsEntity insights) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     final adherencePercent = insights.goalAdherenceRate;
     final proteinPercent = insights.proteinConsistencyRate;
@@ -420,7 +417,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
             Expanded(
               child: _buildMetricTile(
                 context: context,
-                title: isEs ? 'Cobertura' : 'Coverage',
+                title: S.of(context).weeklyInsightsCoverage,
                 icon: Icons.calendar_today_outlined,
                 iconColor: colorScheme.primary,
                 child: Column(
@@ -437,7 +434,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                                 ),
                           ),
                           TextSpan(
-                            text: ' / 7 ${isEs ? "días" : "days"}',
+                            text: ' / 7 ${S.of(context).weeklyInsightsDaysSuffix}',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant,
                                 ),
@@ -463,7 +460,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
             Expanded(
               child: _buildMetricTile(
                 context: context,
-                title: isEs ? 'Patrón de sobreingesta' : 'Overeating pattern',
+                title: S.of(context).weeklyInsightsOvereatingPattern,
                 icon: Icons.access_time_outlined,
                 iconColor: const Color(0xFF8B5CF6),
                 child: Column(
@@ -480,7 +477,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isEs ? 'Momentos de sobreingesta' : 'Periods of overeating',
+                      S.of(context).weeklyInsightsOvereatingPeriods,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                             fontSize: 10,
@@ -498,7 +495,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
             Expanded(
               child: _buildMetricTile(
                 context: context,
-                title: isEs ? 'Adherencia' : 'Adherence',
+                title: S.of(context).weeklyInsightsAdherence,
                 icon: Icons.track_changes_outlined,
                 iconColor: const Color(0xFFF59E0B),
                 child: Row(
@@ -515,7 +512,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isEs ? 'Días cumplidos' : 'Days met',
+                            S.of(context).weeklyInsightsDaysMet,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                   fontSize: 10,
@@ -542,7 +539,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
             Expanded(
               child: _buildMetricTile(
                 context: context,
-                title: isEs ? 'Consistencia Prot.' : 'Protein Cons.',
+                title: S.of(context).weeklyInsightsProteinConsistencyShort,
                 icon: Icons.fitness_center_outlined,
                 iconColor: const Color(0xFF10B981),
                 child: Row(
@@ -559,7 +556,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            isEs ? 'Días consistentes' : 'Consistent days',
+                            S.of(context).weeklyInsightsConsistentDays,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                                   fontSize: 10,
@@ -629,7 +626,6 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
   }
 
   Widget _buildTopMealsCard(BuildContext context, WeeklyInsightsEntity insights) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
 
@@ -641,7 +637,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEs ? 'Comidas más frecuentes' : 'Most frequent meals',
+              S.of(context).weeklyInsightsTopMeals,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -697,7 +693,7 @@ class _WeeklyInsightsScreenState extends State<WeeklyInsightsScreen> {
                                   color: colorScheme.secondaryContainer,
                                 ),
                                 child: Text(
-                                  isEs ? '${meal.count} veces' : '${meal.count} times',
+                                  S.of(context).weeklyInsightsMealCountTimes(meal.count),
                                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                         color: colorScheme.onSecondaryContainer,
                                         fontWeight: FontWeight.bold,
@@ -910,7 +906,6 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -930,7 +925,7 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isEs ? 'Recomendación de Ajuste Inteligente' : 'Smart Adjustment Recommendation',
+                  S.of(context).weeklyInsightsSmartAdjustmentRecommendation,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
@@ -957,7 +952,7 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEs ? 'Nuevo objetivo diario' : 'New daily target',
+                            S.of(context).weeklyInsightsNewDailyTarget,
                             style: const TextStyle(fontSize: 12),
                           ),
                           const SizedBox(height: 4),
@@ -985,9 +980,7 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isEs
-                ? 'Tus tendencias de peso e ingesta indican que deberías ajustar tus calorías diarias. Premium calcula el cambio exacto y lo aplica automáticamente.'
-                : 'Your weight trends and intake indicate you should adjust your daily calories. Premium calculates the exact change and applies it automatically.',
+            S.of(context).weeklyInsightsLockedAdjustmentBody,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -998,7 +991,7 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
           FilledButton.icon(
             onPressed: onOpenPaywall,
             icon: const Icon(Icons.lock_open_outlined, size: 16),
-            label: Text(isEs ? 'Ver ajuste Premium' : 'Reveal recommended adjustment'),
+            label: Text(S.of(context).weeklyInsightsRevealAdjustment),
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, 36),
             ),
@@ -1008,5 +1001,3 @@ class _LockedWeeklyAdjustmentCard extends StatelessWidget {
     );
   }
 }
-
-

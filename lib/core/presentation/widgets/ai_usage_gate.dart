@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -122,7 +123,6 @@ class AiTrialBanner extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final isEs = Localizations.localeOf(context).languageCode == 'es';
         final colorScheme = Theme.of(context).colorScheme;
         final remaining = state.remaining;
         final isBlocked = remaining <= 0;
@@ -152,15 +152,11 @@ class AiTrialBanner extends StatelessWidget {
                 child: Text(
                   isBlocked
                       ? state.requiresProtectedAccount
-                          ? (isEs
-                              ? 'Has agotado el cupo de invitado. Protege tu cuenta para desbloquear ${state.lockedFreeUses} usos gratis mas.'
-                              : 'You have used the guest allowance. Protect your account to unlock ${state.lockedFreeUses} more free uses.')
-                          : (isEs
-                              ? 'Has usado tus ${state.limit} pruebas de IA.'
-                              : 'You have used your ${state.limit} AI trials.')
-                      : (isEs
-                          ? '$remaining pruebas de IA gratis restantes.'
-                          : '$remaining free AI trials remaining.'),
+                          ? S.of(context).aiTrialGuestAllowanceUsed(
+                                state.lockedFreeUses,
+                              )
+                          : S.of(context).aiTrialLimitUsed(state.limit)
+                      : S.of(context).aiTrialRemaining(remaining),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -177,8 +173,8 @@ class AiTrialBanner extends StatelessWidget {
                 ),
                 child: Text(
                   state.requiresProtectedAccount
-                      ? (isEs ? 'Google' : 'Google')
-                      : (isEs ? 'Premium' : 'Upgrade'),
+                      ? S.of(context).aiTrialGoogleAction
+                      : S.of(context).aiTrialUpgradeAction,
                 ),
               ),
             ],

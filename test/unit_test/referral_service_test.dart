@@ -452,17 +452,5 @@ void main() {
         expect(monetizationService.grantBonusCalls, 0);
       });
     });
-
-    group('buildShareMessage', () {
-      test('returns correct messages', () {
-        final en = service.buildShareMessage('TEST12', isEs: false);
-        final es = service.buildShareMessage('TEST12', isEs: true);
-        expect(en, contains('TEST12'));
-        expect(en, contains('referral?code=TEST12'));
-        expect(es, contains('TEST12'));
-        expect(es, contains('referral?code=TEST12'));
-        expect(es, contains('¡Prueba MacroTracker!'));
-      });
-    });
   });
 }

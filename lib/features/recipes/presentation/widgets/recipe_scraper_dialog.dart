@@ -8,6 +8,7 @@ import 'package:macrotracker/features/add_meal/domain/entity/meal_nutriments_ent
 import 'package:macrotracker/features/recipes/data/data_source/recipe_scraper_data_source.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_entity.dart';
 import 'package:macrotracker/features/recipes/domain/entity/recipe_ingredient_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class RecipeScraperDialog extends StatefulWidget {
   const RecipeScraperDialog({super.key});
@@ -96,25 +97,18 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
     super.dispose();
   }
 
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
-
   Future<void> _scrape() async {
     final url = _controller.text.trim();
     if (url.isEmpty) {
       setState(() {
-        _errorMessage = _isEs(context)
-            ? 'Por favor, introduce un enlace válido.'
-            : 'Please enter a valid URL.';
+        _errorMessage = S.of(context).recipeScraperInvalidUrl;
       });
       return;
     }
 
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       setState(() {
-        _errorMessage = _isEs(context)
-            ? 'El enlace debe comenzar con http:// o https://'
-            : 'URL must start with http:// or https://';
+        _errorMessage = S.of(context).recipeScraperUrlSchemeError;
       });
       return;
     }
@@ -169,11 +163,10 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isEs = _isEs(context);
 
     return AlertDialog(
       title: Text(
-        isEs ? 'Importar receta con IA' : 'Import recipe with AI',
+        S.of(context).recipeScraperTitle,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       content: Column(
@@ -181,25 +174,23 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            isEs
-                ? 'Pega el enlace de un blog de cocina o receta para que la IA la extraiga automáticamente.'
-                : 'Paste a link to a cooking blog or recipe and the AI will extract it automatically.',
+            S.of(context).recipeScraperSubtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 16),
           if (_isLoading) ...[
-            const Center(
+            Center(
               child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 24.0),
+                padding: const EdgeInsets.symmetric(vertical: 24.0),
                 child: Column(
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 12),
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 12),
                     Text(
-                      'Extrayendo receta con IA...',
-                      style: TextStyle(fontStyle: FontStyle.italic),
+                      S.of(context).recipeScraperLoading,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
                     ),
                   ],
                 ),
@@ -212,7 +203,7 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
               keyboardType: TextInputType.url,
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
-                labelText: isEs ? 'Enlace de la receta (URL)' : 'Recipe URL',
+                labelText: S.of(context).recipeScraperUrlLabel,
                 hintText: 'https://...',
                 border: const OutlineInputBorder(),
                 errorText: _errorMessage,
@@ -225,11 +216,11 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: Text(isEs ? 'Cancelar' : 'Cancel'),
+          child: Text(S.of(context).dialogCancelLabel),
         ),
         FilledButton(
           onPressed: _isLoading ? null : _scrape,
-          child: Text(isEs ? 'Importar' : 'Import'),
+          child: Text(S.of(context).importAction),
         ),
       ],
     );

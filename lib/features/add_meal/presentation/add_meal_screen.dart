@@ -174,7 +174,6 @@ class _AddMealScreenState extends State<AddMealScreen>
                                     localizations.noResultsFound,
                                   );
                           } else if (state is ProductsOfflineState) {
-                            final isEs = Localizations.localeOf(context).languageCode == 'es';
                             return state.cachedProducts.isNotEmpty
                                 ? Flexible(
                                     child: Column(
@@ -193,9 +192,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Text(
-                                                  isEs
-                                                      ? 'Sin conexión. Mostrando caché local.'
-                                                      : 'Offline. Showing cached results.',
+                                                  localizations.addMealOfflineCachedResults,
                                                   style: TextStyle(
                                                     color: Theme.of(context).colorScheme.error,
                                                     fontSize: 12,
@@ -222,9 +219,7 @@ class _AddMealScreenState extends State<AddMealScreen>
                                     ),
                                   )
                                 : NoResultsWidget.message(
-                                    isEs
-                                        ? 'Sin conexión y sin resultados en caché.'
-                                        : 'Offline. No cached results found.',
+                                    localizations.addMealOfflineNoCachedResults,
                                   );
                           } else if (state is ProductsFailedState) {
                             return ErrorDialog(
@@ -374,25 +369,19 @@ class _AddMealQuickActions extends StatelessWidget {
         children: [
           _QuickActionChip(
             icon: Icons.edit_note_outlined,
-            label: Localizations.localeOf(context).languageCode == 'es'
-                ? 'Texto'
-                : 'Text',
+            label: S.of(context).addMealText,
             onTap: onTextTap,
           ),
           const SizedBox(width: 8),
           _QuickActionChip(
             icon: Icons.add_a_photo_outlined,
-            label: Localizations.localeOf(context).languageCode == 'es'
-                ? 'Foto'
-                : 'Photo',
+            label: S.of(context).addMealPhoto,
             onTap: onPhotoTap,
           ),
           const SizedBox(width: 8),
           _QuickActionChip(
             icon: Icons.bookmarks_outlined,
-            label: Localizations.localeOf(context).languageCode == 'es'
-                ? 'Guardadas'
-                : 'Saved',
+            label: S.of(context).addMealSaved,
             onTap: onLibraryTap,
           ),
         ],

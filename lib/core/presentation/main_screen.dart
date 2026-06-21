@@ -24,6 +24,8 @@ import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/features/scanner/scanner_screen.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/update_daily_habit_log_usecase.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/feature_tour/presentation/bloc/feature_tour_bloc.dart';
+import 'package:macrotracker/features/feature_tour/presentation/widgets/product_tour_overlay.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -41,10 +43,14 @@ class _MainScreenState extends State<MainScreen> {
   StreamSubscription<BoxEvent>? _professionalConnectionSubscription;
   bool _hasProfessionalTab = false;
   int _professionalBadgeCount = 0;
+  late final FeatureTourBloc _featureTourBloc;
+  bool _hasCheckedRestartTour = false;
 
   @override
   void initState() {
     super.initState();
+    _featureTourBloc = locator<FeatureTourBloc>();
+    _featureTourBloc.add(const LoadFeatureTourEvent());
     _appLinks = AppLinks();
     _hasProfessionalTab = _hasActiveProfessionalConnection();
     unawaited(_refreshProfessionalBadgeCount());
@@ -83,12 +89,23 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_hasCheckedRestartTour) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args != null && args['restart_tour'] == true) {
+        _hasCheckedRestartTour = true;
+        setState(() {
+          _selectedPageIndex = 0;
+        });
+        _featureTourBloc.add(const LoadFeatureTourEvent(force: true));
+      }
+    }
   }
 
   @override
   void dispose() {
     _appLinkSubscription?.cancel();
     _professionalConnectionSubscription?.cancel();
+    _featureTourBloc.close();
     super.dispose();
   }
 
@@ -116,10 +133,9 @@ class _MainScreenState extends State<MainScreen> {
           );
           locator<HomeBloc>().add(const LoadItemsEvent());
           if (mounted) {
-            final isEs = Localizations.localeOf(context).languageCode == 'es';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(isEs ? '+250 ml de agua registrados' : '+250 ml of water registered'),
+                content: Text(S.of(context).mainWaterAddedSnack),
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -190,6 +206,10 @@ class _MainScreenState extends State<MainScreen> {
   void _toggleFab() {
     HapticFeedback.selectionClick();
     MealEntryActionSheet.show(context, day: DateTime.now());
+    if (!_featureTourBloc.state.isCompleted &&
+        _featureTourBloc.state.currentSlideIndex == 1) {
+      _featureTourBloc.add(NextSlideEvent());
+    }
   }
 
   @override
@@ -197,19 +217,29 @@ class _MainScreenState extends State<MainScreen> {
     final bodyPages = _buildBodyPages();
     final appbarPages = _buildAppbarPages(context);
     final destinations = _buildDestinations(context);
-    return Scaffold(
-      appBar: appbarPages[_selectedPageIndex],
-      body: IndexedStack(
-        index: _selectedPageIndex,
-        children: bodyPages,
-      ),
-      floatingActionButton:
-          _selectedPageIndex == 0 ? _buildSpeedDial(context) : null,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedPageIndex,
-        onDestinationSelected: _setPage,
-        destinations: destinations,
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: appbarPages[_selectedPageIndex],
+          body: IndexedStack(
+            index: _selectedPageIndex,
+            children: bodyPages,
+          ),
+          floatingActionButton:
+              _selectedPageIndex == 0 ? _buildSpeedDial(context) : null,
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _selectedPageIndex,
+            onDestinationSelected: _setPage,
+            destinations: destinations,
+          ),
+        ),
+        ProductTourOverlay(
+          featureTourBloc: _featureTourBloc,
+          hasProfessionalTab: _hasProfessionalTab,
+          activePageIndex: _selectedPageIndex,
+          onTabChanged: _setPage,
+        ),
+      ],
     );
   }
 
@@ -227,7 +257,7 @@ class _MainScreenState extends State<MainScreen> {
       const HomeAppbar(),
       if (_hasProfessionalTab)
         MainAppbar(
-          title: _isEs(context) ? 'Nutricionista' : 'Nutritionist',
+          title: S.of(context).professionalScreenTitle,
           iconData: Icons.medical_services_outlined,
         ),
       MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
@@ -251,7 +281,7 @@ class _MainScreenState extends State<MainScreen> {
       destinations.add(
         NavigationDestination(
           icon: _professionalTabIcon(selected: _selectedPageIndex == 1),
-          label: _isEs(context) ? 'Nutricionista' : 'Nutritionist',
+          label: S.of(context).professionalScreenTitle,
         ),
       );
     }
@@ -275,15 +305,14 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Widget _buildSpeedDial(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         FloatingActionButton(
+          key: ProductTourKeys.fabKey,
           onPressed: _toggleFab,
-          tooltip: isEs ? 'Añadir comida' : 'Add meal',
+          tooltip: S.of(context).mealEntryTitle,
           child: const Icon(Icons.add),
         ),
       ],
@@ -295,6 +324,18 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _selectedPageIndex = selectedIndex;
     });
+    if (!_featureTourBloc.state.isCompleted) {
+      final currentStep = _featureTourBloc.state.currentSlideIndex;
+      final diaryIndex = _hasProfessionalTab ? 2 : 1;
+      final profileIndex = _hasProfessionalTab ? 3 : 2;
+      if (currentStep == 6 && _hasProfessionalTab && selectedIndex == 1) {
+        _featureTourBloc.add(NextSlideEvent());
+      } else if (currentStep == 7 && selectedIndex == diaryIndex) {
+        _featureTourBloc.add(NextSlideEvent());
+      } else if (currentStep == 10 && selectedIndex == profileIndex) {
+        _featureTourBloc.add(NextSlideEvent());
+      }
+    }
   }
 
   bool _hasActiveProfessionalConnection() {
@@ -373,7 +414,4 @@ class _MainScreenState extends State<MainScreen> {
       ],
     );
   }
-
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
 }

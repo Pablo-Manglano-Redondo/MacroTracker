@@ -1,9 +1,11 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_category_entity.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_frequent_intake_presets_usecase.dart';
 import 'package:macrotracker/features/recipes/domain/usecase/get_recipe_library_usecase.dart';
@@ -33,6 +35,9 @@ class GenerateMacroSuggestionsUsecase {
     if (remainingKcal <= 0 && remainingProtein <= 0) {
       return const [];
     }
+
+    final localeCode = languageCode.split(RegExp(r'[-_]')).first;
+    final copy = await S.load(Locale(localeCode));
 
     final recipes = await _getRecipeLibraryUsecase.getAllRecipes();
     final frequentPresets =
@@ -120,6 +125,7 @@ class GenerateMacroSuggestionsUsecase {
         predictedFat: predictedFat,
         predictedProtein: predictedProtein,
         rationale: _buildRationale(
+          copy: copy,
           dailyFocus: dailyFocus,
           nutritionPhase: nutritionPhase,
           category: category,
@@ -129,7 +135,6 @@ class GenerateMacroSuggestionsUsecase {
           predictedFat: predictedFat,
           predictedProtein: predictedProtein,
           predictedKcal: predictedKcal,
-          languageCode: languageCode,
         ),
         score: score,
       ));
@@ -205,59 +210,44 @@ class GenerateMacroSuggestionsUsecase {
     required DailyFocusEntity dailyFocus,
     required UserWeightGoalEntity nutritionPhase,
     required QuickRecipeCategoryEntity category,
+    required S copy,
     required double remainingProtein,
     required double remainingKcal,
     required double predictedCarbs,
     required double predictedFat,
     required double predictedProtein,
     required double predictedKcal,
-    required String languageCode,
   }) {
-    final isEs = languageCode == 'es';
     if (nutritionPhase == UserWeightGoalEntity.loseWeight &&
         predictedProtein >= 20 &&
         predictedKcal <= max(remainingKcal, 220) &&
         predictedFat <= _remainingFatCap(predictedKcal)) {
-      return isEs
-          ? 'Cierre limpio para definir: prioridad a la proteina con calorias controladas.'
-          : 'Lean close for cut days: protein-first with calories kept tight.';
+      return copy.macroSuggestionsRationaleCutClose;
     }
     if ((dailyFocus == DailyFocusEntity.lowerBody ||
             dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.postWorkout &&
         predictedProtein >= 20 &&
         predictedCarbs >= 25) {
-      return isEs
-          ? 'Recuperacion post-entreno con carbohidratos y proteina suficientes para recargar.'
-          : 'Post-workout recovery hit with enough carbs and protein to reload.';
+      return copy.macroSuggestionsRationalePostWorkout;
     }
     if ((dailyFocus == DailyFocusEntity.lowerBody ||
             dailyFocus == DailyFocusEntity.upperBody) &&
         category == QuickRecipeCategoryEntity.preWorkout &&
         predictedCarbs >= 20 &&
         predictedFat <= 18) {
-      return isEs
-          ? 'Buen combustible pre-entreno: carbohidratos utiles sin mucha carga digestiva.'
-          : 'Good pre-workout fuel: useful carbs without much digestive drag.';
+      return copy.macroSuggestionsRationalePreWorkout;
     }
     if (remainingProtein > 25 && predictedProtein > 20) {
-      return isEs
-          ? 'Cierre alto en proteina para terminar el dia sin improvisar.'
-          : 'Protein-first close to finish the day without guessing.';
+      return copy.macroSuggestionsRationaleProteinClose;
     }
     if (category == QuickRecipeCategoryEntity.shake && predictedKcal < 260) {
-      return isEs
-          ? 'Batido ligero para sumar proteina rapido y registrarlo facil.'
-          : 'Fast protein touch when you want something light and easy to log.';
+      return copy.macroSuggestionsRationaleShakeLight;
     }
     if ((remainingKcal - predictedKcal).abs() < 120) {
-      return isEs
-          ? 'Ajuste limpio para las calorias que te quedan hoy.'
-          : 'Clean fit for the calories you still have left.';
+      return copy.macroSuggestionsRationaleCalorieFit;
     }
-    return isEs
-        ? 'Opcion solida para gimnasio que mantiene el dia bien encaminado.'
-        : 'Solid gym-friendly option that keeps the day moving in the right direction.';
+    return copy.macroSuggestionsRationaleDefault;
   }
 
   (double, double) _servingBounds(

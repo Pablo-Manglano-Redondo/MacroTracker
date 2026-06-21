@@ -36,11 +36,7 @@ class InviteEntryView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(
-                  context,
-                  es: 'Activacion privada',
-                  en: 'Private activation',
-                ),
+                eyebrow: S.of(context).professionalInvitePrivateActivation,
                 title: S.of(context).professionalInviteSectionTitle,
                 subtitle: S.of(context).professionalInviteSectionBody,
               ),
@@ -72,13 +68,9 @@ class InviteEntryView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Codigo', en: 'Code'),
+                eyebrow: S.of(context).professionalInviteCodeEyebrow,
                 title: S.of(context).professionalInviteCodeLabel,
-                subtitle: uiText(
-                  context,
-                  es: 'Introduce la invitacion para revisar antes de compartir nada.',
-                  en: 'Enter the invite to review it before sharing anything.',
-                ),
+                subtitle: S.of(context).professionalInviteReviewBeforeSharing,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -155,17 +147,9 @@ class ConsentCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(
-              context,
-              es: 'Revision de consentimiento',
-              en: 'Consent review',
-            ),
+            eyebrow: S.of(context).professionalConsentReviewEyebrow,
             title: invitePreview.professionalName,
-            subtitle: uiText(
-              context,
-              es: 'Antes de conectar puedes revisar exactamente que se comparte hoy y que sigue fuera.',
-              en: 'Before connecting you can review exactly what is shared today and what stays outside.',
-            ),
+            subtitle: S.of(context).professionalConsentReviewSubtitle,
           ),
           const SizedBox(height: 14),
           ConsentGroup(

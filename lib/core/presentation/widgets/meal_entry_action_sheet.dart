@@ -37,64 +37,52 @@ class MealEntryActionSheet extends StatelessWidget {
       ),
     );
   }
-
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = _isEs(context);
     final mealType = preferredMealType ?? _defaultMealTypeForNow();
     final intakeType = mealType.getIntakeType();
 
     final primaryActions = [
       _EntryAction(
         icon: Icons.search_outlined,
-        title: isEs ? 'Buscar producto' : 'Search food',
-        subtitle:
-            isEs ? 'Base de datos y recientes' : 'Database and recent meals',
+        title: S.of(context).mealEntrySearchFood,
+        subtitle: S.of(context).mealEntrySearchFoodSubtitle,
         color: colorScheme.primary,
         onTap: () => _openAddMeal(context, mealType),
       ),
       _EntryAction(
         icon: Icons.qr_code_scanner_outlined,
-        title: isEs ? 'Escanear codigo' : 'Scan barcode',
-        subtitle: isEs ? 'Producto envasado' : 'Packaged food',
+        title: S.of(context).mealEntryScanBarcode,
+        subtitle: S.of(context).mealEntryScanBarcodeSubtitle,
         color: const Color(0xFF0EA5E9),
         onTap: () => _openScanner(context, intakeType),
       ),
       _EntryAction(
         icon: Icons.edit_note_outlined,
-        title: isEs ? 'IA texto' : 'AI text',
-        subtitle: isEs
-            ? 'Revisa cantidades antes de guardar'
-            : 'Review amounts before saving',
+        title: S.of(context).mealEntryAiText,
+        subtitle: S.of(context).mealEntryReviewBeforeSaving,
         color: const Color(0xFF8B5CF6),
         onTap: () => _openTextCapture(context, intakeType),
       ),
       _EntryAction(
         icon: Icons.add_a_photo_outlined,
-        title: isEs ? 'IA foto' : 'AI photo',
-        subtitle: isEs
-            ? 'Revisa cantidades antes de guardar'
-            : 'Review amounts before saving',
+        title: S.of(context).mealEntryAiPhoto,
+        subtitle: S.of(context).mealEntryReviewBeforeSaving,
         color: const Color(0xFFEC4899),
         onTap: () => _openPhotoCapture(context, intakeType),
       ),
       _EntryAction(
         icon: Icons.bookmarks_outlined,
-        title: isEs ? 'Recetas y frecuentes' : 'Recipes and frequent',
-        subtitle:
-            isEs ? 'Guardadas, fijadas y presets' : 'Saved meals and presets',
+        title: S.of(context).mealEntryRecipesAndFrequent,
+        subtitle: S.of(context).mealEntryRecipesAndFrequentSubtitle,
         color: const Color(0xFFF59E0B),
         onTap: () => _openRecipeLibrary(context, intakeType),
       ),
       _EntryAction(
         icon: UserActivityEntity.getIconData(),
         title: S.of(context).activityLabel,
-        subtitle:
-            isEs ? 'Entrenamiento o gasto extra' : 'Workout or extra burn',
+        subtitle: S.of(context).mealEntryActivitySubtitle,
         color: const Color(0xFFEF4444),
         onTap: () => _openAddActivity(context),
       ),
@@ -108,16 +96,16 @@ class MealEntryActionSheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEs ? 'Añadir comida' : 'Add meal',
+              S.of(context).mealEntryTitle,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              isEs
-                  ? 'Elige como quieres registrar. La comida se guardará en ${_mealTypeLabel(context, mealType).toLowerCase()}.'
-                  : 'Choose how to log it. The meal will be saved to ${_mealTypeLabel(context, mealType).toLowerCase()}.',
+              S.of(context).mealEntrySubtitle(
+                    _mealTypeLabel(context, mealType).toLowerCase(),
+                  ),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

@@ -341,7 +341,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Verify locked overlay is shown
-    expect(find.text('Recomendación de Ajuste Inteligente'), findsOneWidget);
+    expect(find.text('Recomendación de ajuste inteligente'), findsOneWidget);
     expect(find.text('Ver ajuste Premium'), findsOneWidget);
 
     // Tap button to reveal adjustment (opens paywall)
@@ -426,11 +426,11 @@ void main() {
     expect(find.text('Resumen copiado al portapapeles con éxito.'), findsOneWidget);
 
     // Verify Clipboard contents
-    expect(mockClipboardText, contains('📈 MI RESUMEN SEMANAL (MacroTracker)'));
-    expect(mockClipboardText, contains('🔥 Calorías promedio: 2050 kcal/día'));
-    expect(mockClipboardText, contains('🥚 Proteína promedio: 145.0 g/día'));
-    expect(mockClipboardText, contains('🎯 Adherencia al objetivo: 85%'));
-    expect(mockClipboardText, contains('⚡ Consistencia proteica: 70%'));
+    expect(mockClipboardText, contains('Mi resumen semanal (MacroTracker)'));
+    expect(mockClipboardText, contains('Calorías promedio: 2050 kcal/día'));
+    expect(mockClipboardText, contains('Proteína promedio: 145.0 g/día'));
+    expect(mockClipboardText, contains('Adherencia al objetivo: 85%'));
+    expect(mockClipboardText, contains('Consistencia proteica: 70%'));
   });
 }
 

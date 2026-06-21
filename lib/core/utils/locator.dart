@@ -86,6 +86,7 @@ import 'package:macrotracker/features/meal_capture/domain/usecase/interpret_meal
 import 'package:macrotracker/features/meal_capture/domain/usecase/save_interpretation_draft_usecase.dart';
 import 'package:macrotracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:macrotracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
+import 'package:macrotracker/features/feature_tour/presentation/bloc/feature_tour_bloc.dart';
 import 'package:macrotracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
@@ -171,6 +172,8 @@ Future<void> initLocator() async {
       () => MacroTrackerImageCacheManager.instance);
 
   // BLoCs
+  locator.registerLazySingleton<FeatureTourBloc>(
+      () => FeatureTourBloc(locator<HiveDBProvider>().monetizationBox));
   locator.registerLazySingleton<OnboardingBloc>(
       () => OnboardingBloc(locator(), locator(), locator()));
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc(

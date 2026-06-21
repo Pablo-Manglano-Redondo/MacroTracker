@@ -40,7 +40,6 @@ class RecipeDetailBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     
     final defaultServings = recipe.defaultServings;
     final scaleFactor = defaultServings > 0 ? (servings / defaultServings) : 1.0;
@@ -99,12 +98,14 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 Text(
                                   isCoachSuggestion
-                                      ? (isEs
-                                          ? 'Sugerencia de consumo: $formattedServings ${servings == 1 ? "racion" : "raciones"}'
-                                          : 'Suggested intake: $formattedServings ${servings == 1 ? "serving" : "servings"}')
-                                      : (isEs
-                                          ? 'Racion: $formattedServings ${servings == 1 ? "racion" : "raciones"}'
-                                          : 'Serving: $formattedServings ${servings == 1 ? "serving" : "servings"}'),
+                                      ? S.of(context).recipeDetailSuggestedIntake(
+                                            formattedServings,
+                                            _servingsUnit(context, servings),
+                                          )
+                                      : S.of(context).recipeDetailServing(
+                                            formattedServings,
+                                            _servingsUnit(context, servings),
+                                          ),
                                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                         color: colorScheme.onSurfaceVariant,
                                         fontWeight: FontWeight.w500,
@@ -142,7 +143,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                         children: [
                           Expanded(
                             child: _MacroPanel(
-                              label: isEs ? 'Calorías' : 'Calories',
+                              label: S.of(context).professionalMacroCalories,
                               value: '${kcal.toStringAsFixed(0)} kcal',
                               color: const Color(0xFFEF4444),
                               icon: Icons.local_fire_department_outlined,
@@ -151,7 +152,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _MacroPanel(
-                              label: isEs ? 'Proteína' : 'Protein',
+                              label: S.of(context).professionalMacroProtein,
                               value: '${protein.toStringAsFixed(1)} g',
                               color: const Color(0xFF10B981),
                               icon: Icons.egg_alt_outlined,
@@ -160,7 +161,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _MacroPanel(
-                              label: isEs ? 'Carb.' : 'Carbs',
+                              label: S.of(context).professionalMacroCarbs,
                               value: '${carbs.toStringAsFixed(1)} g',
                               color: const Color(0xFFF59E0B),
                               icon: Icons.cookie_outlined,
@@ -169,7 +170,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _MacroPanel(
-                              label: isEs ? 'Grasa' : 'Fat',
+                              label: S.of(context).professionalMacroFat,
                               value: '${fat.toStringAsFixed(1)} g',
                               color: const Color(0xFF3B82F6),
                               icon: Icons.opacity_outlined,
@@ -211,8 +212,8 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                                   Text(
                                     rationaleTitle ??
                                         (isCoachSuggestion
-                                            ? (isEs ? 'Recomendacion del Coach' : 'Coach Recommendation')
-                                            : (isEs ? 'Notas de la receta' : 'Recipe notes')),
+                                            ? S.of(context).recipeDetailCoachRecommendation
+                                            : S.of(context).recipeDetailRecipeNotes),
                                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                           color: isCoachSuggestion
                                               ? colorScheme.tertiary
@@ -235,7 +236,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                       ],
                       const SizedBox(height: 24),
                       Text(
-                        isEs ? 'Ingredientes' : 'Ingredients',
+                        S.of(context).professionalPlanRecipeIngredients,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -243,9 +244,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                       const SizedBox(height: 10),
                       if (recipe.ingredients.isEmpty)
                         Text(
-                          isEs
-                              ? 'No hay ingredientes detallados para esta receta.'
-                              : 'No detailed ingredients for this recipe.',
+                          S.of(context).recipeDetailNoDetailedIngredients,
                           style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
                         )
                       else
@@ -274,7 +273,8 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    ingredient.mealSnapshot.name ?? (isEs ? 'Ingrediente' : 'Ingredient'),
+                                    ingredient.mealSnapshot.name ??
+                                        S.of(context).recipeDetailIngredientFallback,
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -310,7 +310,7 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                       onPressed: onLogPressed,
                       icon: const Icon(Icons.add_task_outlined, size: 18),
                       label: Text(
-                        isEs ? 'Registrar en el Diario' : 'Log to Diary',
+                        S.of(context).professionalPlanLogToDiary,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: FilledButton.styleFrom(
@@ -326,8 +326,8 @@ class RecipeDetailBottomSheet extends StatelessWidget {
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       label: Text(
                         isCoachSuggestion
-                            ? (isEs ? 'Personalizar receta' : 'Customize recipe')
-                            : (isEs ? 'Editar receta' : 'Edit recipe'),
+                            ? S.of(context).recipeDetailCustomizeRecipe
+                            : S.of(context).recipeDetailEditRecipe,
                       ),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 44),
@@ -348,6 +348,12 @@ class RecipeDetailBottomSheet extends StatelessWidget {
 
   String _formatAmount(double amount) {
     return amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toStringAsFixed(1);
+  }
+
+  String _servingsUnit(BuildContext context, double amount) {
+    return amount == 1
+        ? S.of(context).recipeDetailServingUnitSingular
+        : S.of(context).recipeDetailServingUnitPlural;
   }
 
   String? _cleanRecipeNotes(String? notes) {

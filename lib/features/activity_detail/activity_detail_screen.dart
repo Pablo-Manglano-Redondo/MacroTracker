@@ -261,7 +261,6 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
@@ -277,7 +276,7 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isEs ? 'Detalle del registro' : 'Logged entry details',
+            S.of(context).loggedEntryDetailsLabel,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -305,7 +304,7 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
                     : Icons.edit_outlined,
                 label: activity.source == UserActivitySourceEntity.healthConnect
                     ? (Platform.isIOS ? 'Apple Health' : 'Health Connect')
-                    : (isEs ? 'Manual' : 'Manual'),
+                    : S.of(context).habitSourceManual,
               ),
             ],
           ),
@@ -342,9 +341,7 @@ class _ActivityMetricsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            Localizations.localeOf(context).languageCode == 'es'
-                ? 'Resumen de actividad'
-                : 'Activity summary',
+            S.of(context).activitySummaryLabel,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -354,9 +351,7 @@ class _ActivityMetricsCard extends StatelessWidget {
             children: [
               Expanded(
                 child: _MetricStat(
-                  label: Localizations.localeOf(context).languageCode == 'es'
-                      ? 'Duración'
-                      : 'Duration',
+                  label: S.of(context).durationLabel,
                   value: '${durationMinutes.toStringAsFixed(0)} min',
                 ),
               ),

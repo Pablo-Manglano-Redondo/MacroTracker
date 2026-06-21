@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 
 class WeeklyProgressShareSheet extends StatefulWidget {
@@ -33,36 +34,34 @@ class WeeklyProgressShareSheet extends StatefulWidget {
   static String buildWeeklyProgressTextReport({
     required WeeklyInsightsEntity insights,
     required String dateRangeText,
-    required bool isEs,
+    required String title,
+    required String rangeLabel,
+    required String averageCaloriesLabel,
+    required String averageProteinLabel,
+    required String averageCarbsLabel,
+    required String averageFatLabel,
+    required String goalAdherenceLabel,
+    required String proteinConsistencyLabel,
+    required String daysTrackedLabel,
+    required String weightDeltaLabel,
+    required String daysUnit,
+    required String footer,
   }) {
     final adherence = (insights.goalAdherenceRate * 100).round();
     final proteinConsistency = (insights.proteinConsistencyRate * 100).round();
+    final weightDelta =
+        '${insights.weeklyWeightDeltaKg > 0 ? "+" : ""}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg';
 
-    if (isEs) {
-      return '📈 MI RESUMEN SEMANAL (MacroTracker)\n'
-          '📅 Rango: $dateRangeText\n'
-          '🔥 Calorías promedio: ${insights.averageCalories.toStringAsFixed(0)} kcal/día\n'
-          '🥚 Proteína promedio: ${insights.averageProtein.toStringAsFixed(1)} g/día\n'
-          '🍞 Carbohidratos promedio: ${insights.averageCarbs.toStringAsFixed(1)} g/día\n'
-          '💧 Grasa promedio: ${insights.averageFat.toStringAsFixed(1)} g/día\n'
-          '🎯 Adherencia al objetivo: $adherence%\n'
-          '⚡ Consistencia proteica: $proteinConsistency%\n'
-          '📊 Días registrados: ${insights.trackedDays} / 7 días\n'
-          '⚖️ Cambio de peso: ${insights.weeklyWeightDeltaKg > 0 ? "+" : ""}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg\n'
-          'Enviado desde MacroTracker App 🚀';
-    } else {
-      return '📈 MY WEEKLY PROGRESS (MacroTracker)\n'
-          '📅 Range: $dateRangeText\n'
-          '🔥 Average Calories: ${insights.averageCalories.toStringAsFixed(0)} kcal/day\n'
-          '🥚 Average Protein: ${insights.averageProtein.toStringAsFixed(1)} g/day\n'
-          '🍞 Average Carbs: ${insights.averageCarbs.toStringAsFixed(1)} g/day\n'
-          '💧 Average Fat: ${insights.averageFat.toStringAsFixed(1)} g/day\n'
-          '🎯 Goal Adherence: $adherence%\n'
-          '⚡ Protein Consistency: $proteinConsistency%\n'
-          '📊 Days Tracked: ${insights.trackedDays} / 7 days\n'
-          '⚖️ Weight Delta: ${insights.weeklyWeightDeltaKg > 0 ? "+" : ""}${insights.weeklyWeightDeltaKg.toStringAsFixed(2)} kg\n'
-          'Sent via MacroTracker App 🚀';
-    }
+    return '$title\n'
+        '$rangeLabel: $dateRangeText\n'
+        '$averageCaloriesLabel: ${insights.averageCalories.toStringAsFixed(0)} kcal/$daysUnit\n'
+        '$averageProteinLabel: ${insights.averageProtein.toStringAsFixed(1)} g/$daysUnit\n'
+        '$averageCarbsLabel: ${insights.averageCarbs.toStringAsFixed(1)} g/$daysUnit\n'
+        '$averageFatLabel: ${insights.averageFat.toStringAsFixed(1)} g/$daysUnit\n'
+        '$goalAdherenceLabel: $adherence%\n'
+        '$proteinConsistencyLabel: $proteinConsistency%\n'
+        '$daysTrackedLabel: ${insights.trackedDays} / 7 $daysUnit\n'
+        '$weightDeltaLabel: $weightDelta\n$footer';
   }
 
   @override
@@ -73,22 +72,31 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
   final GlobalKey _cardKey = GlobalKey();
   bool _isSharing = false;
 
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
-
   String _formatDateRange(BuildContext context, DateTime start, DateTime end) {
     final locale = Localizations.localeOf(context).toLanguageTag();
     return WeeklyProgressShareSheet.formatWeeklyDateRange(start, end, locale);
   }
 
   String _buildTextReport(BuildContext context) {
-    final isEs = _isEs(context);
+    final strings = S.of(context);
     final insights = widget.insights;
     final dates = _formatDateRange(context, insights.weekStart, insights.weekEnd);
     return WeeklyProgressShareSheet.buildWeeklyProgressTextReport(
       insights: insights,
       dateRangeText: dates,
-      isEs: isEs,
+      title: strings.weeklyShareTextReportTitle,
+      rangeLabel: strings.weeklyShareTextReportRange,
+      averageCaloriesLabel: strings.weeklyShareTextReportAverageCalories,
+      averageProteinLabel: strings.weeklyShareTextReportAverageProtein,
+      averageCarbsLabel: strings.weeklyShareTextReportAverageCarbs,
+      averageFatLabel: strings.weeklyShareTextReportAverageFat,
+      goalAdherenceLabel: strings.weeklyShareTextReportGoalAdherence,
+      proteinConsistencyLabel:
+          strings.weeklyShareTextReportProteinConsistency,
+      daysTrackedLabel: strings.weeklyShareTextReportDaysTracked,
+      weightDeltaLabel: strings.weeklyShareTextReportWeightDelta,
+      daysUnit: strings.weeklyShareTextReportDayUnit,
+      footer: strings.weeklyShareTextReportFooter,
     );
   }
 
@@ -97,14 +105,9 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
     await Clipboard.setData(ClipboardData(text: text));
     if (!mounted) return;
 
-    final isEs = _isEs(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          isEs
-              ? 'Resumen copiado al portapapeles con éxito.'
-              : 'Summary copied to clipboard successfully.',
-        ),
+        content: Text(S.of(context).weeklyShareCopiedSnackbar),
       ),
     );
   }
@@ -136,25 +139,18 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
 
       // Share via share_plus
       if (!mounted) return;
-      final isEs = _isEs(context);
-      final shareText = isEs ? 'Mi progreso semanal en MacroTracker' : 'My weekly progress on MacroTracker';
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'image/png')],
-          text: shareText,
+          text: S.of(context).weeklyShareImageText,
         ),
       );
     } catch (e) {
       debugPrint('Error sharing weekly progress card: $e');
       if (mounted) {
-        final isEs = _isEs(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              isEs
-                  ? 'No se pudo generar la tarjeta de imagen.'
-                  : 'Could not generate the progress card image.',
-            ),
+            content: Text(S.of(context).weeklyShareImageError),
           ),
         );
       }
@@ -169,7 +165,6 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = _isEs(context);
 
     return Container(
       decoration: BoxDecoration(
@@ -191,7 +186,7 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
           ),
           const SizedBox(height: 16),
           Text(
-            isEs ? 'Compartir progreso' : 'Share progress',
+            S.of(context).weeklyShareTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -206,7 +201,6 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
                 child: _WeeklyProgressCardWidget(
                   insights: widget.insights,
                   dateRangeText: _formatDateRange(context, widget.insights.weekStart, widget.insights.weekEnd),
-                  isEs: isEs,
                 ),
               ),
             ),
@@ -226,7 +220,7 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  label: Text(isEs ? 'Copiar texto' : 'Copy text'),
+                  label: Text(S.of(context).weeklyShareCopyText),
                 ),
               ),
               const SizedBox(width: 12),
@@ -249,7 +243,7 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  label: Text(isEs ? 'Compartir tarjeta' : 'Share card'),
+                  label: Text(S.of(context).weeklyShareShareCard),
                 ),
               ),
             ],
@@ -263,12 +257,10 @@ class _WeeklyProgressShareSheetState extends State<WeeklyProgressShareSheet> {
 class _WeeklyProgressCardWidget extends StatelessWidget {
   final WeeklyInsightsEntity insights;
   final String dateRangeText;
-  final bool isEs;
 
   const _WeeklyProgressCardWidget({
     required this.insights,
     required this.dateRangeText,
-    required this.isEs,
   });
 
   @override
@@ -363,9 +355,9 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Main Calorie Metric
-          const Text(
-            'PROMEDIO DIARIO',
-            style: TextStyle(
+          Text(
+            S.of(context).weeklyShareCardDailyAverageUpper,
+            style: const TextStyle(
               color: Color(0xFF10B981),
               fontSize: 9,
               letterSpacing: 1.5,
@@ -392,9 +384,9 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 6),
-              const Text(
-                'kcal / día',
-                style: TextStyle(
+              Text(
+                S.of(context).weeklyShareCardKcalPerDay,
+                style: const TextStyle(
                   color: Colors.white60,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -409,7 +401,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildMacroItem(
-                  label: isEs ? 'PROTEÍNA' : 'PROTEIN',
+                  label: S.of(context).weeklyShareCardProteinUpper,
                   value: '${insights.averageProtein.toStringAsFixed(0)}g',
                   color: const Color(0xFF10B981),
                 ),
@@ -417,7 +409,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildMacroItem(
-                  label: isEs ? 'CARBOS' : 'CARBS',
+                  label: S.of(context).weeklyShareCardCarbsUpper,
                   value: '${insights.averageCarbs.toStringAsFixed(0)}g',
                   color: const Color(0xFFF59E0B),
                 ),
@@ -425,7 +417,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildMacroItem(
-                  label: isEs ? 'GRASA' : 'FAT',
+                  label: S.of(context).weeklyShareCardFatUpper,
                   value: '${insights.averageFat.toStringAsFixed(0)}g',
                   color: const Color(0xFF3B82F6),
                 ),
@@ -444,7 +436,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs ? 'ADHERENCIA AL OBJETIVO' : 'GOAL ADHERENCE',
+                      S.of(context).weeklyShareCardGoalAdherenceUpper,
                       style: const TextStyle(
                         color: Colors.white38,
                         fontSize: 9,
@@ -463,9 +455,9 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isEs
-                          ? '${insights.trackedDays} de 7 días completados'
-                          : '${insights.trackedDays} of 7 days logged',
+                      S
+                          .of(context)
+                          .weeklyShareCardDaysLogged(insights.trackedDays),
                       style: const TextStyle(
                         color: Colors.white60,
                         fontSize: 11,
@@ -512,7 +504,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildMiniStat(
-                  label: isEs ? 'CONSISTENCIA PROT.' : 'PROTEIN CONS.',
+                  label: S.of(context).weeklyShareCardProteinConsistencyUpper,
                   value: '$proteinConsistency%',
                   icon: Icons.check_circle_outline,
                   iconColor: const Color(0xFF10B981),
@@ -520,7 +512,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
               ),
               Expanded(
                 child: _buildMiniStat(
-                  label: isEs ? 'CAMBIO DE PESO' : 'WEIGHT CHANGE',
+                  label: S.of(context).weeklyShareCardWeightChangeUpper,
                   value: '${weightDelta > 0 ? "+" : ""}${weightDelta.toStringAsFixed(2)} kg',
                   icon: Icons.scale_outlined,
                   iconColor: const Color(0xFF3B82F6),
@@ -535,7 +527,7 @@ class _WeeklyProgressCardWidget extends StatelessWidget {
           // Footer
           Center(
             child: Text(
-              isEs ? 'MI PROGRESO CON MACROTRACKER APP 🚀' : 'MY WEEKLY TRACKING WITH MACROTRACKER 🚀',
+              S.of(context).weeklyShareCardFooter,
               style: TextStyle(
                 color: const Color(0xFF10B981).withValues(alpha: 0.6),
                 fontSize: 8,

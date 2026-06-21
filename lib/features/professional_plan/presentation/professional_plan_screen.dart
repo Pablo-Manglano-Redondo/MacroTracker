@@ -523,16 +523,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       if (!mounted) return;
       _showSnackBar(
         sharingMode == 'detailed'
-            ? uiText(
-                context,
-                es: 'Diario detallado activado correctamente.',
-                en: 'Detailed diary enabled successfully.',
-              )
-            : uiText(
-                context,
-                es: 'Se ha vuelto al modo solo agregados.',
-                en: 'Switched back to aggregate-only sharing.',
-              ),
+            ? S.of(context).professionalSharingDetailedEnabled
+            : S.of(context).professionalSharingAggregateEnabled,
       );
     } catch (e) {
       if (!mounted) return;
@@ -551,47 +543,27 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         raw.contains('clientexception') ||
         raw.contains('failed host lookup') ||
         raw.contains('network')) {
-      return uiText(
-        context,
-        es: 'No se pudo cambiar el nivel de privacidad porque no hay conexión. Inténtalo otra vez cuando el móvil vuelva a tener red.',
-        en: 'Could not change the privacy level because the device is offline. Try again when the phone has network access.',
-      );
+      return S.of(context).professionalSharingModeOfflineError;
     }
     if (raw.contains('permission') ||
         raw.contains('row-level security') ||
         raw.contains('not return a relationship row') ||
         raw.contains('blocked by permissions')) {
-      return uiText(
-        context,
-        es: 'No se pudo actualizar el permiso con el profesional. La relación puede haberse revocado o el backend sigue bloqueando este cambio.',
-        en: 'Could not update the permission with this professional. The relationship may have been revoked or the backend is still blocking this change.',
-      );
+      return S.of(context).professionalSharingModePermissionError;
     }
     if (raw.contains('not persisted') ||
         raw.contains('expected "detailed"') ||
         raw.contains('expected "aggregate"')) {
-      return uiText(
-        context,
-        es: 'El cambio no quedó guardado en el servidor. Cierra y vuelve a abrir la sección antes de intentarlo otra vez.',
-        en: 'The change was not persisted on the server. Close and reopen this section before trying again.',
-      );
+      return S.of(context).professionalSharingModeNotPersistedError;
     }
     if (raw.contains('authentication') ||
         raw.contains('jwt') ||
         raw.contains('session') ||
         raw.contains('unauthorized') ||
         raw.contains('forbidden')) {
-      return uiText(
-        context,
-        es: 'Tu sesión de nube ya no es válida para cambiar este permiso. Vuelve a iniciar sesión e inténtalo de nuevo.',
-        en: 'Your cloud session is no longer valid for changing this permission. Sign in again and try once more.',
-      );
+      return S.of(context).professionalSharingModeSessionError;
     }
-    return uiText(
-      context,
-      es: 'No se pudo cambiar el nivel de privacidad de esta relación. Inténtalo de nuevo en unos segundos.',
-      en: 'Could not change the privacy level for this relationship. Try again in a few seconds.',
-    );
+    return S.of(context).professionalSharingModeGenericError;
   }
 
   Future<void> _updateDailyNote(String note) async {

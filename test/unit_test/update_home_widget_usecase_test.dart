@@ -192,9 +192,8 @@ void main() {
       expect(savedWidgetData['widget_steps_progress'], '9500 / 10000');
       expect(savedWidgetData['widget_sleep_progress'], '7.5 / 8.0h');
 
-      // Check focus label Spanish/English translation
-      final isEs = Platform.localeName.startsWith('es');
-      expect(savedWidgetData['widget_focus_label'], isEs ? 'Torso' : 'Upper Body');
+      // Check focus label Spanish/English translation (selectedLocale is es_ES)
+      expect(savedWidgetData['widget_focus_label'], 'Torso');
 
       // Check widgets updated
       expect(updatedWidgets, containsAll([

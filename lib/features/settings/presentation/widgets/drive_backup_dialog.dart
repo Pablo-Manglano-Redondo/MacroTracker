@@ -9,6 +9,7 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/settings/data/services/android_drive_backup_scheduler.dart';
 import 'package:macrotracker/features/settings/data/services/google_drive_backup_service.dart';
 import 'package:macrotracker/features/settings/domain/usecase/backup_to_drive_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class DriveBackupDialog extends StatefulWidget {
   const DriveBackupDialog({super.key});
@@ -85,18 +86,14 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _isEs(context)
-                                      ? 'Backup en Google Drive'
-                                      : 'Google Drive backup',
+                                  S.of(context).driveBackupTitle,
                                   style: theme.textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  _isEs(context)
-                                      ? 'Crea un ZIP cifrado de tus datos y lo guarda en tu propio Drive. Es independiente de la cuenta cloud de MacroTracker.'
-                                      : 'Creates an encrypted ZIP of your data and stores it in your own Drive. This is separate from your MacroTracker cloud account.',
+                                  S.of(context).driveBackupSubtitle,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     color: theme.colorScheme.onSurfaceVariant,
                                   ),
@@ -117,17 +114,14 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                       const SizedBox(height: 20),
                       _ConnectionPanel(
                         status: _status,
-                        isEs: _isEs(context),
                       ),
                       const SizedBox(height: 12),
                       _BackupSummaryPanel(
-                        isEs: _isEs(context),
                         config: _config,
                       ),
                       if (_isAndroid) ...[
                         const SizedBox(height: 12),
                         _AutomationPanel(
-                          isEs: _isEs(context),
                           enabled: _autoBackupEnabled,
                           signedIn: _signedIn,
                           runningAction: _runningAction,
@@ -145,17 +139,13 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                             OutlinedButton.icon(
                               onPressed: _runningAction ? null : _disconnect,
                               icon: const Icon(Icons.link_off_outlined),
-                              label: Text(
-                                _isEs(context) ? 'Desvincular' : 'Disconnect',
-                              ),
+                              label: Text(S.of(context).driveBackupDisconnect),
                             )
                           else
                             OutlinedButton.icon(
                               onPressed: _runningAction ? null : _signIn,
                               icon: const Icon(Icons.login_outlined),
-                              label: Text(
-                                _isEs(context) ? 'Conectar Drive' : 'Connect Drive',
-                              ),
+                              label: Text(S.of(context).driveBackupConnect),
                             ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -163,11 +153,7 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
                               onPressed:
                                   _runningAction || !_signedIn ? null : _backup,
                               icon: const Icon(Icons.cloud_upload_outlined),
-                              label: Text(
-                                _isEs(context)
-                                    ? 'Hacer copia ahora'
-                                    : 'Back up now',
-                              ),
+                              label: Text(S.of(context).driveBackupRunNow),
                             ),
                           ),
                         ],
@@ -202,23 +188,20 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
   }
 
   Future<void> _signIn() async {
-    final isSpanish = _isEs(context);
     await _runAction(() async {
       await _driveBackupService.authenticate();
       // Auto-activate backup by default upon sign in (opt-out)
       await _addConfigUsecase.setGoogleDriveAutoBackupEnabled(true);
       await _backupScheduler.syncFromConfig(true);
       await _refreshStatus();
+      if (!mounted) return;
       _showSnackBar(
-        isSpanish
-            ? 'Google Drive conectado. Esto no cambia tu cuenta cloud.'
-            : 'Google Drive connected. This does not change your cloud account.',
+        S.of(context).driveBackupConnectedSnack,
       );
     });
   }
 
   Future<void> _disconnect() async {
-    final isSpanish = _isEs(context);
     await _runAction(() async {
       await _driveBackupService.disconnect();
       if (_autoBackupEnabled) {
@@ -226,27 +209,27 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
         await _backupScheduler.cancelDailyBackup();
       }
       await _refreshStatus();
+      if (!mounted) return;
       _showSnackBar(
-        isSpanish ? 'Google Drive desvinculado.' : 'Google Drive disconnected.',
+        S.of(context).driveBackupDisconnectedSnack,
       );
     });
   }
 
   Future<void> _backup() async {
-    final isSpanish = _isEs(context);
     await _runAction(() async {
       final result = await _backupToDriveUsecase.performBackup();
       await _refreshStatus();
+      if (!mounted) return;
       _showSnackBar(
-        isSpanish
-            ? 'Backup subido a Google Drive: ${result.fileName ?? 'archivo'}.'
-            : 'Backup uploaded to Google Drive: ${result.fileName ?? 'file'}.',
+        S.of(context).driveBackupUploadedSnack(
+              result.fileName ?? S.of(context).driveBackupDefaultFileName,
+            ),
       );
     });
   }
 
   Future<void> _setAutoBackupEnabled(bool enabled) async {
-    final isSpanish = _isEs(context);
     await _runAction(() async {
       if (enabled && !_signedIn) {
         await _driveBackupService.authenticate();
@@ -254,14 +237,11 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
       await _addConfigUsecase.setGoogleDriveAutoBackupEnabled(enabled);
       await _backupScheduler.syncFromConfig(enabled);
       await _refreshStatus();
+      if (!mounted) return;
       _showSnackBar(
         enabled
-            ? (isSpanish
-                ? 'Backup diario activado en Android.'
-                : 'Daily backup enabled on Android.')
-            : (isSpanish
-                ? 'Backup diario desactivado.'
-                : 'Daily backup disabled.'),
+            ? S.of(context).driveBackupDailyEnabledSnack
+            : S.of(context).driveBackupDailyDisabledSnack,
       );
     });
   }
@@ -290,18 +270,13 @@ class _DriveBackupDialogState extends State<DriveBackupDialog> {
       SnackBar(content: Text(message)),
     );
   }
-
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
 }
 
 class _ConnectionPanel extends StatelessWidget {
   final DriveBackupStatus? status;
-  final bool isEs;
 
   const _ConnectionPanel({
     required this.status,
-    required this.isEs,
   });
 
   @override
@@ -335,8 +310,8 @@ class _ConnectionPanel extends StatelessWidget {
               Expanded(
                 child: Text(
                   signedIn
-                      ? (isEs ? 'Cuenta de Drive conectada' : 'Drive account connected')
-                      : (isEs ? 'Sin conectar' : 'Not connected'),
+                      ? S.of(context).driveBackupAccountConnected
+                      : S.of(context).driveBackupNotConnected,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -354,8 +329,8 @@ class _ConnectionPanel extends StatelessWidget {
                 ),
                 child: Text(
                   signedIn
-                      ? (isEs ? 'Listo' : 'Ready')
-                      : (isEs ? 'Pendiente' : 'Pending'),
+                      ? S.of(context).driveBackupReady
+                      : S.of(context).driveBackupPending,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: signedIn
                         ? theme.colorScheme.primary
@@ -391,9 +366,7 @@ class _ConnectionPanel extends StatelessWidget {
             _InlineNotice(
               icon: Icons.warning_amber_rounded,
               color: theme.colorScheme.error,
-              text: isEs
-                  ? 'Falta configurar OAuth de Google Drive para esta plataforma. Revisa docs/google-drive-backup-setup.md.'
-                  : 'Google Drive OAuth is still missing for this platform. See docs/google-drive-backup-setup.md.',
+              text: S.of(context).driveBackupOAuthMissing,
             ),
           ],
           if (errorMessage != null && errorMessage.isNotEmpty) ...[
@@ -411,11 +384,9 @@ class _ConnectionPanel extends StatelessWidget {
 }
 
 class _BackupSummaryPanel extends StatelessWidget {
-  final bool isEs;
   final ConfigEntity? config;
 
   const _BackupSummaryPanel({
-    required this.isEs,
     required this.config,
   });
 
@@ -431,10 +402,10 @@ class _BackupSummaryPanel extends StatelessWidget {
         (lastAttempt == null || lastAttempt != lastSuccess);
 
     final statusLabel = hasFailure
-        ? (isEs ? 'Ultimo intento con error' : 'Last attempt failed')
+        ? S.of(context).driveBackupLastAttemptFailed
         : lastSuccess != null
-            ? (isEs ? 'Ultima copia completada' : 'Last backup completed')
-            : (isEs ? 'Sin copias todavia' : 'No backups yet');
+            ? S.of(context).driveBackupLastCompleted
+            : S.of(context).driveBackupNoneYet;
 
     final statusColor = hasFailure
         ? theme.colorScheme.error
@@ -454,7 +425,7 @@ class _BackupSummaryPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isEs ? 'Estado del backup' : 'Backup status',
+            S.of(context).driveBackupStatusTitle,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -486,11 +457,9 @@ class _BackupSummaryPanel extends StatelessWidget {
                     Text(
                       hasFailure
                           ? _formatTimestamp(context, lastAttempt,
-                              fallback: isEs ? 'Sin fecha' : 'No timestamp')
+                              fallback: S.of(context).driveBackupNoTimestamp)
                           : _formatTimestamp(context, lastSuccess,
-                              fallback: isEs
-                                  ? 'Aún no se ha subido ninguna copia.'
-                                  : 'No backup has been uploaded yet.'),
+                              fallback: S.of(context).driveBackupNoUploadYet),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -515,14 +484,12 @@ class _BackupSummaryPanel extends StatelessWidget {
 }
 
 class _AutomationPanel extends StatelessWidget {
-  final bool isEs;
   final bool enabled;
   final bool signedIn;
   final bool runningAction;
   final ValueChanged<bool> onChanged;
 
   const _AutomationPanel({
-    required this.isEs,
     required this.enabled,
     required this.signedIn,
     required this.runningAction,
@@ -551,9 +518,7 @@ class _AutomationPanel extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs
-                          ? 'Backup automatico diario'
-                          : 'Daily automatic backup',
+                      S.of(context).driveBackupDailyTitle,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -561,12 +526,8 @@ class _AutomationPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       signedIn
-                          ? (isEs
-                              ? 'Android programara una copia al día cuando el sistema permita ejecutar trabajo en segundo plano.'
-                              : 'Android will schedule one backup per day when the system allows background work to run.')
-                          : (isEs
-                              ? 'Conecta primero Google Drive para activar el backup diario.'
-                              : 'Connect Google Drive first to enable daily backups.'),
+                          ? S.of(context).driveBackupDailySignedInBody
+                          : S.of(context).driveBackupDailyConnectFirstBody,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -584,9 +545,7 @@ class _AutomationPanel extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            isEs
-                ? 'La primera ejecucion se programa para la siguiente ventana nocturna aproximada. Android puede moverla unos minutos u horas segun bateria, red y ahorro de energia.'
-                : 'The first run is scheduled for the next overnight window. Android may shift it by minutes or hours depending on battery, network, and power-saving rules.',
+            S.of(context).driveBackupDailyScheduleNote,
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),

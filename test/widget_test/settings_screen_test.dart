@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:macrotracker/features/feature_tour/presentation/bloc/feature_tour_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
@@ -56,6 +57,7 @@ void main() {
   late _FakeDiaryBloc fakeDiaryBloc;
   late _FakeCalendarDayBloc fakeCalendarDayBloc;
   late _FakeProfileBloc fakeProfileBloc;
+  late _FakeFeatureTourBloc fakeFeatureTourBloc;
 
   late _FakeSupabaseClient fakeSupabaseClient;
   late _FakeCloudAccountService fakeCloudAccountService;
@@ -79,6 +81,7 @@ void main() {
     fakeDiaryBloc = _FakeDiaryBloc();
     fakeCalendarDayBloc = _FakeCalendarDayBloc();
     fakeProfileBloc = _FakeProfileBloc();
+    fakeFeatureTourBloc = _FakeFeatureTourBloc();
 
     fakeSupabaseClient = _FakeSupabaseClient();
     fakeCloudAccountService = _FakeCloudAccountService();
@@ -104,6 +107,7 @@ void main() {
     locator.registerSingleton<HomeBloc>(fakeHomeBloc);
     locator.registerSingleton<DiaryBloc>(fakeDiaryBloc);
     locator.registerSingleton<CalendarDayBloc>(fakeCalendarDayBloc);
+    locator.registerSingleton<FeatureTourBloc>(fakeFeatureTourBloc);
 
     locator.registerSingleton<SupabaseClient>(fakeSupabaseClient);
     locator.registerSingleton<CloudAccountService>(fakeCloudAccountService);
@@ -135,6 +139,7 @@ void main() {
     await fakeDiaryBloc.close();
     await fakeCalendarDayBloc.close();
     await fakeProfileBloc.close();
+    await fakeFeatureTourBloc.close();
     await locator.reset();
   });
 
@@ -682,11 +687,6 @@ class _FakeReferralService extends Fake implements ReferralService {
     redeemedCode = code;
     return SynchronousFuture(ReferralRedemptionResult.success);
   }
-
-  @override
-  String buildShareMessage(String code, {bool isEs = false}) {
-    return 'Share message: $code';
-  }
 }
 
 class _FakeMonetizationService extends Fake implements MonetizationService {
@@ -713,4 +713,13 @@ class _FakeConversionAnalyticsService extends Fake implements ConversionAnalytic
     savedEnabled = enabled;
     return SynchronousFuture(null);
   }
+}
+
+class _FakeFeatureTourBloc extends Bloc<FeatureTourEvent, FeatureTourState> implements FeatureTourBloc {
+  _FakeFeatureTourBloc() : super(FeatureTourState.initial().copyWith(isCompleted: true)) {
+    on<FeatureTourEvent>((event, emit) {});
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

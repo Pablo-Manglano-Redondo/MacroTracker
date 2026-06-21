@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../lib/auth-context';
+import { usePortalI18n } from '../lib/portal-i18n';
 import { useNotifications, useUnreadNotificationCount, useMarkNotificationRead } from '../hooks/queries/useNotifications';
 import { Bell, BellRing, CheckCheck, MessageSquare, UserPlus, ClipboardCheck, Activity } from 'lucide-react';
 
@@ -12,6 +13,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 
 export const NotificationBell: React.FC = () => {
   const { professional } = useAuth();
+  const { tr } = usePortalI18n();
   const { data: notifications = [] } = useNotifications(professional?.id);
   const { data: unreadCount = 0 } = useUnreadNotificationCount(professional?.id);
   const { markRead, markAllRead } = useMarkNotificationRead(professional?.id);
@@ -31,7 +33,11 @@ export const NotificationBell: React.FC = () => {
       <button
         onClick={() => setOpen(!open)}
         className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-black/10 dark:bg-white/5 border border-border/20 hover:bg-black/15 dark:hover:bg-white/10 hover:border-border/40 transition-all cursor-pointer"
-        aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+        aria-label={
+          unreadCount > 0
+            ? tr(`Notificaciones (${unreadCount} sin leer)`, `Notifications (${unreadCount} unread)`)
+            : tr('Notificaciones', 'Notifications')
+        }
       >
         {unreadCount > 0 ? <BellRing className="w-4 h-4 text-primary animate-pulse" /> : <Bell className="w-4 h-4 text-muted-foreground" />}
         {unreadCount > 0 && (
@@ -44,16 +50,18 @@ export const NotificationBell: React.FC = () => {
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 rounded-xl border border-border/40 bg-neutral-950/95 backdrop-blur-xl shadow-2xl z-50 overflow-hidden animate-fade-in-up">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/20 bg-white/1">
-            <p className="text-xs font-extrabold text-gradient">Notifications</p>
+            <p className="text-xs font-extrabold text-gradient">{tr('Notificaciones', 'Notifications')}</p>
             {unreadCount > 0 && (
               <button onClick={markAllRead} className="flex items-center gap-1 text-[10px] font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer">
-                <CheckCheck className="w-3.5 h-3.5" /> Mark all read
+                <CheckCheck className="w-3.5 h-3.5" /> {tr('Marcar todo como leído', 'Mark all read')}
               </button>
             )}
           </div>
           <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
             {notifications.length === 0 ? (
-              <div className="px-4 py-10 text-center text-xs text-muted-foreground font-semibold">No notifications yet</div>
+              <div className="px-4 py-10 text-center text-xs text-muted-foreground font-semibold">
+                {tr('Todavía no hay notificaciones', 'No notifications yet')}
+              </div>
             ) : (
               notifications.map(n => (
                 <button

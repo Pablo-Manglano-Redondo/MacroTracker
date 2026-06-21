@@ -277,43 +277,33 @@ class _MacroSuggestionsCardState extends State<MacroSuggestionsCard> {
   }
 
   String _title(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (widget.nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return isEs ? 'Coach de macros para definir' : 'Cut-focused Macro Coach';
+      return S.of(context).macroCoachTitleCut;
     }
     if (widget.dailyFocus == DailyFocusEntity.lowerBody) {
-      return isEs ? 'Coach para pierna hoy' : 'Leg day Macro Coach';
+      return S.of(context).macroCoachTitleLeg;
     }
     if (widget.dailyFocus == DailyFocusEntity.upperBody) {
-      return isEs ? 'Coach para torso hoy' : 'Upper day Macro Coach';
+      return S.of(context).macroCoachTitleUpper;
     }
     if (widget.dailyFocus == DailyFocusEntity.cardio) {
-      return isEs ? 'Coach para cardio hoy' : 'Cardio day Macro Coach';
+      return S.of(context).macroCoachTitleCardio;
     }
-    return isEs ? 'Coach de macros para hoy' : 'Today Macro Coach';
+    return S.of(context).macroCoachTitleToday;
   }
 
   String _subtitle(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (widget.dailyFocus == DailyFocusEntity.lowerBody ||
         widget.dailyFocus == DailyFocusEntity.upperBody) {
-      return isEs
-          ? 'Premium ajusta comidas reales a tu entrenamiento y macros restantes.'
-          : 'Premium adjusts real meals to your workout and remaining macros.';
+      return S.of(context).macroCoachSubtitleTraining;
     }
     if (widget.nutritionPhase == UserWeightGoalEntity.loseWeight) {
-      return isEs
-          ? 'Cierra el dia con proteína alta y calorías controladas.'
-          : 'Close the day with high protein and controlled calories.';
+      return S.of(context).macroCoachSubtitleCut;
     }
     if (widget.dailyFocus == DailyFocusEntity.rest) {
-      return isEs
-          ? 'Opciones ligeras para mantener adherencia sin pasarte.'
-          : 'Light options to keep adherence without overshooting.';
+      return S.of(context).macroCoachSubtitleRest;
     }
-    return isEs
-        ? 'Elige que comer ahora según lo que te falta hoy.'
-        : 'Choose what to eat now based on what is left today.';
+    return S.of(context).macroCoachSubtitleDefault;
   }
 
   String _slotLabel(BuildContext context, IntakeTypeEntity intakeType) {
@@ -372,7 +362,6 @@ class _LockedMacroCoach extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
     final cardBg = isDark ? const Color(0xFF121212) : Colors.white;
@@ -457,18 +446,14 @@ class _LockedMacroCoach extends StatelessWidget {
             Column(
               children: [
                 _BlurredSuggestionRow(
-                  title: isEs
-                      ? 'Pollo Teriyaki con Brócoli'
-                      : 'Teriyaki Chicken with Broccoli',
-                  category: isEs ? 'Almuerzo' : 'Lunch',
+                  title: S.of(context).macroCoachPreviewChicken,
+                  category: S.of(context).lunchLabel,
                   kcal: '540 kcal',
                   protein: 'P 42g',
                 ),
                 _BlurredSuggestionRow(
-                  title: isEs
-                      ? 'Tortilla de Espinacas y Pavo'
-                      : 'Spinach & Turkey Omelette',
-                  category: isEs ? 'Cena' : 'Dinner',
+                  title: S.of(context).macroCoachPreviewOmelette,
+                  category: S.of(context).dinnerLabel,
                   kcal: '380 kcal',
                   protein: 'P 34g',
                 ),
@@ -521,16 +506,14 @@ class _LockedMacroCoach extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      isEs ? 'Recomendaciones Premium' : 'Premium Suggestions',
+                      S.of(context).macroCoachLockedTitle,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      isEs
-                          ? 'Sugerencias personalizadas a tus macros diarios'
-                          : 'Custom suggestions tailored to your remaining macros',
+                      S.of(context).macroCoachLockedSubtitle,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontSize: 11,
@@ -542,7 +525,7 @@ class _LockedMacroCoach extends StatelessWidget {
                       onPressed: onUpgrade,
                       icon: const Icon(Icons.lock_open_outlined, size: 16),
                       label: Text(
-                        isEs ? 'Desbloquear Coach' : 'Unlock Coach',
+                        S.of(context).macroCoachUnlockAction,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       style: FilledButton.styleFrom(

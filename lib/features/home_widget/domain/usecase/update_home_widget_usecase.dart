@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart';
 
@@ -12,6 +13,7 @@ import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/utils/calc/unit_calc.dart';
 import 'package:macrotracker/features/daily_habits/domain/entity/daily_habit_log_entity.dart';
 import 'package:macrotracker/features/daily_habits/domain/usecase/get_daily_habit_log_usecase.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class UpdateHomeWidgetUsecase {
   static const androidWidgetProviderName = 'MacroTrackerSummaryWidgetProvider';
@@ -135,10 +137,10 @@ class UpdateHomeWidgetUsecase {
         '${habitLog.sleepHours.toStringAsFixed(1)} / ${sleepGoal.toStringAsFixed(1)}h',
       );
 
-      final isEs = Platform.localeName.startsWith('es');
+      final strings = await S.load(Locale(_languageCode(config.selectedLocale)));
       await HomeWidget.saveWidgetData<String>(
         _focusLabelKey,
-        _formatFocusLabel(config.dailyFocus, isEs),
+        _formatFocusLabel(config.dailyFocus, strings),
       );
 
       // Trigger updates for all 4 registered widgets
@@ -213,16 +215,23 @@ class UpdateHomeWidgetUsecase {
     }
   }
 
-  String _formatFocusLabel(DailyFocusEntity focus, bool isEs) {
+  String _languageCode(String? configuredLocale) {
+    if (configuredLocale != null && configuredLocale.isNotEmpty) {
+      return configuredLocale.split('_').first.toLowerCase();
+    }
+    return Platform.localeName.split('_').first.toLowerCase();
+  }
+
+  String _formatFocusLabel(DailyFocusEntity focus, S strings) {
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return isEs ? 'Pierna' : 'Lower Body';
+        return strings.homeFocusLowerBody;
       case DailyFocusEntity.upperBody:
-        return isEs ? 'Torso' : 'Upper Body';
+        return strings.homeFocusUpperBody;
       case DailyFocusEntity.cardio:
-        return isEs ? 'Cardio' : 'Cardio';
+        return strings.homeFocusCardio;
       case DailyFocusEntity.rest:
-        return isEs ? 'Descanso' : 'Rest';
+        return strings.homeFocusRest;
     }
   }
 }

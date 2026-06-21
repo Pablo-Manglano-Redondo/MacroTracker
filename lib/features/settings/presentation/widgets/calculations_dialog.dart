@@ -176,11 +176,11 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
                 segments: [
                   ButtonSegment(
                     value: MacroGoalModeEntity.percentage,
-                    label: Text(_isEs(context) ? 'Porcentaje' : 'Percentage'),
+                    label: Text(S.of(context).calculationsMacroModePercentage),
                   ),
                   ButtonSegment(
                     value: MacroGoalModeEntity.gramsPerKg,
-                    label: Text(_isEs(context) ? 'Gramos/kg' : 'Grams/kg'),
+                    label: Text(S.of(context).calculationsMacroModeGramsPerKg),
                   ),
                 ],
                 selected: {_macroGoalMode},
@@ -476,13 +476,7 @@ class _CalculationsDialogState extends State<CalculationsDialog> {
   String _gramPerKgHint(BuildContext context) {
     final weightLabel = _userWeightKg != null
         ? '${_userWeightKg!.toStringAsFixed(1)} kg'
-        : (_isEs(context) ? 'tu peso actual' : 'your current weight');
-    if (_isEs(context)) {
-      return 'Proteína y grasa se calcularán multiplicando cada valor por $weightLabel. Los carbos rellenarán las kcal restantes del objetivo automático.';
-    }
-    return 'Protein and fat will be calculated by multiplying each value by $weightLabel. Carbs will fill the remaining kcal from the automatic target.';
+        : S.of(context).calculationsCurrentWeightFallback;
+    return S.of(context).calculationsGramPerKgHint(weightLabel);
   }
-
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
 }

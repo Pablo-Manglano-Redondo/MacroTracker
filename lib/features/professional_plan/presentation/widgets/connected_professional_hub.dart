@@ -139,11 +139,7 @@ class HubOverviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      uiText(
-                        context,
-                        es: 'Conexión profesional activa',
-                        en: 'Professional connection active',
-                      ),
+                      S.of(context).professionalStatusConnected,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.w800,
@@ -175,7 +171,7 @@ class HubOverviewCard extends StatelessWidget {
           const SizedBox(height: 18),
           if (summary.todayTarget != null) ...[
             Text(
-              uiText(context, es: 'Objetivos diarios de tu plan', en: 'Plan daily targets'),
+              S.of(context).professionalHubPlanDailyTargets,
               style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w800,
@@ -186,14 +182,14 @@ class HubOverviewCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: CompactStat(
-                    label: uiText(context, es: 'Calorías', en: 'Calories'),
+                    label: S.of(context).professionalMacroCalories,
                     value: '${summary.todayTarget!.kcalGoal.round()} kcal',
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: CompactStat(
-                    label: uiText(context, es: 'Proteínas', en: 'Proteins'),
+                    label: S.of(context).professionalMacroProtein,
                     value: '${summary.todayTarget!.proteinGoal.round()}g',
                   ),
                 ),
@@ -204,14 +200,14 @@ class HubOverviewCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: CompactStat(
-                    label: uiText(context, es: 'Carbohidratos', en: 'Carbs'),
+                    label: S.of(context).professionalMacroCarbs,
                     value: '${summary.todayTarget!.carbsGoal.round()}g',
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: CompactStat(
-                    label: uiText(context, es: 'Grasas', en: 'Fats'),
+                    label: S.of(context).professionalMacroFat,
                     value: '${summary.todayTarget!.fatGoal.round()}g',
                   ),
                 ),
@@ -219,7 +215,7 @@ class HubOverviewCard extends StatelessWidget {
             ),
           ] else ...[
             CompactStat(
-              label: uiText(context, es: 'Objetivo hoy', en: 'Today target'),
+              label: S.of(context).professionalSummaryTodayTarget,
               value: S.of(context).professionalHubNoTodayTarget,
             ),
           ],

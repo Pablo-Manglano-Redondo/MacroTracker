@@ -12,9 +12,9 @@ import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <PortalI18nProvider>
+    <QueryClientProvider client={queryClient}>
+      <PortalI18nProvider>
+        <ErrorBoundary>
           <AuthProvider>
             <AppShell />
             <Toaster
@@ -26,8 +26,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               }}
             />
           </AuthProvider>
-        </PortalI18nProvider>
-      </QueryClientProvider>
-    </ErrorBoundary>
+        </ErrorBoundary>
+      </PortalI18nProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 );

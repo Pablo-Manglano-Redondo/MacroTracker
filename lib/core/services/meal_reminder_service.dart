@@ -1,19 +1,18 @@
 import 'dart:io';
-import 'dart:ui' show PlatformDispatcher;
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/data/repository/config_repository.dart';
 import 'package:macrotracker/core/domain/entity/config_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class MealReminderService {
   static const _channelId = 'meal_reminders';
-  static const _channelName = 'Meal reminders';
-  static const _channelDescription = 'Daily reminders to log your meals.';
 
   static const _morningId = 9101;
   static const _lunchId = 9102;
@@ -64,10 +63,13 @@ class MealReminderService {
     );
 
     if (Platform.isAndroid) {
-      const channel = AndroidNotificationChannel(
+      final strings = await S.load(
+        Locale(PlatformDispatcher.instance.locale.languageCode),
+      );
+      final channel = AndroidNotificationChannel(
         _channelId,
-        _channelName,
-        description: _channelDescription,
+        strings.mealReminderChannelName,
+        description: strings.mealReminderChannelDescription,
         importance: Importance.defaultImportance,
       );
       await _notificationsPlugin
@@ -146,37 +148,38 @@ class MealReminderService {
 
   Future<void> _scheduleFromConfig(ConfigEntity config) async {
     await cancelAllMealReminders();
+    final strings = await S.load(Locale(_languageCode(config)));
 
     await _scheduleDailyReminder(
       id: _morningId,
-      title: _isEs(config) ? 'Desayuno pendiente' : 'Breakfast reminder',
-      body: _isEs(config)
-          ? 'No olvides registrar tu desayuno.'
-          : 'Do not forget to log your breakfast.',
+      title: strings.mealReminderBreakfastTitle,
+      body: strings.mealReminderBreakfastBody,
+      channelName: strings.mealReminderChannelName,
+      channelDescription: strings.mealReminderChannelDescription,
       minutesOfDay: config.mealReminderMorningMinutes,
     );
     await _scheduleDailyReminder(
       id: _lunchId,
-      title: _isEs(config) ? 'Comida pendiente' : 'Lunch reminder',
-      body: _isEs(config)
-          ? 'Registra la comida cuando termines.'
-          : 'Log your lunch when you are done.',
+      title: strings.mealReminderLunchTitle,
+      body: strings.mealReminderLunchBody,
+      channelName: strings.mealReminderChannelName,
+      channelDescription: strings.mealReminderChannelDescription,
       minutesOfDay: config.mealReminderLunchMinutes,
     );
     await _scheduleDailyReminder(
       id: _afternoonId,
-      title: _isEs(config) ? 'Snack pendiente' : 'Snack reminder',
-      body: _isEs(config)
-          ? 'Aún puedes registrar tu snack o merienda.'
-          : 'You can still log your snack.',
+      title: strings.mealReminderSnackTitle,
+      body: strings.mealReminderSnackBody,
+      channelName: strings.mealReminderChannelName,
+      channelDescription: strings.mealReminderChannelDescription,
       minutesOfDay: config.mealReminderAfternoonMinutes,
     );
     await _scheduleDailyReminder(
       id: _eveningId,
-      title: _isEs(config) ? 'Cena pendiente' : 'Dinner reminder',
-      body: _isEs(config)
-          ? 'Cierra el día registrando la cena.'
-          : 'Close the day by logging dinner.',
+      title: strings.mealReminderDinnerTitle,
+      body: strings.mealReminderDinnerBody,
+      channelName: strings.mealReminderChannelName,
+      channelDescription: strings.mealReminderChannelDescription,
       minutesOfDay: config.mealReminderEveningMinutes,
     );
   }
@@ -185,6 +188,8 @@ class MealReminderService {
     required int id,
     required String title,
     required String body,
+    required String channelName,
+    required String channelDescription,
     required int minutesOfDay,
   }) async {
     final scheduledDate = _nextInstanceOfTime(minutesOfDay);
@@ -193,15 +198,15 @@ class MealReminderService {
       title: title,
       body: body,
       scheduledDate: scheduledDate,
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
-          _channelName,
-          channelDescription: _channelDescription,
+          channelName,
+          channelDescription: channelDescription,
           importance: Importance.defaultImportance,
           priority: Priority.defaultPriority,
         ),
-        iOS: DarwinNotificationDetails(
+        iOS: const DarwinNotificationDetails(
           presentAlert: true,
           presentBadge: true,
           presentSound: true,
@@ -232,13 +237,13 @@ class MealReminderService {
     return scheduled;
   }
 
-  bool _isEs(ConfigEntity config) {
+  String _languageCode(ConfigEntity config) {
     final configuredLocale = config.selectedLocale;
     if (configuredLocale != null && configuredLocale.isNotEmpty) {
-      return configuredLocale.toLowerCase().startsWith('es');
+      return configuredLocale.split('_').first.toLowerCase();
     }
 
     final deviceLocale = PlatformDispatcher.instance.locale.languageCode;
-    return deviceLocale.toLowerCase().startsWith('es');
+    return deviceLocale.toLowerCase();
   }
 }

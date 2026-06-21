@@ -141,7 +141,7 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                       },
                       icon: const Icon(Icons.bookmark_outline, size: 18),
                       label: Text(
-                        _isEs(context) ? 'Ver\nguardadas' : 'Saved\nrecipes',
+                        S.of(context).recipeLibraryManualSectionTitle,
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -422,62 +422,52 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
   String _labelForFilter(BuildContext context, _QuickGymMealsFilter filter) {
     switch (filter) {
       case _QuickGymMealsFilter.all:
-        return _isEs(context) ? 'Todo' : 'All';
+        return S.of(context).quickMealsFilterAll;
       case _QuickGymMealsFilter.breakfast:
-        return _isEs(context) ? 'Desayuno' : 'Breakfast';
+        return S.of(context).breakfastLabel;
       case _QuickGymMealsFilter.lunch:
-        return _isEs(context) ? 'Comida' : 'Lunch';
+        return S.of(context).lunchLabel;
       case _QuickGymMealsFilter.dinner:
-        return _isEs(context) ? 'Cena' : 'Dinner';
+        return S.of(context).dinnerLabel;
       case _QuickGymMealsFilter.preWorkout:
-        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
+        return S.of(context).quickMealsFilterPreWorkout;
       case _QuickGymMealsFilter.postWorkout:
-        return _isEs(context) ? 'Postentreno' : 'Post-workout';
+        return S.of(context).quickMealsFilterPostWorkout;
       case _QuickGymMealsFilter.shake:
-        return _isEs(context) ? 'Batido' : 'Shake';
+        return S.of(context).quickMealsFilterShake;
       case _QuickGymMealsFilter.snack:
-        return 'Snack';
+        return S.of(context).snackLabel;
     }
   }
 
   String _slotLabel(BuildContext context, IntakeTypeEntity intakeType) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return isEs ? 'desayuno' : 'breakfast';
+        return S.of(context).breakfastLabel.toLowerCase();
       case IntakeTypeEntity.lunch:
-        return isEs ? 'comida' : 'lunch';
+        return S.of(context).lunchLabel.toLowerCase();
       case IntakeTypeEntity.dinner:
-        return isEs ? 'cena' : 'dinner';
+        return S.of(context).dinnerLabel.toLowerCase();
       case IntakeTypeEntity.snack:
-        return 'snack';
+        return S.of(context).snackLabel.toLowerCase();
     }
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   String _title(BuildContext context) =>
-      _isEs(context) ? 'Comidas rápidas' : 'Quick meals';
+      S.of(context).quickMealsTitle;
 
-  String _subtitle(BuildContext context) => _isEs(context)
-      ? 'Tira primero de tus recetas guardadas. Un toque registra una ración.'
-      : 'Use your saved recipes first. One tap logs a serving fast.';
+  String _subtitle(BuildContext context) => S.of(context).quickMealsSubtitle;
 
   String _savedTooltip(BuildContext context) =>
-      _isEs(context) ? 'Abrir comidas guardadas' : 'Open saved meals';
+      S.of(context).quickMealsSavedTooltip;
 
-  String _emptyAll(BuildContext context) => _isEs(context)
-      ? 'Guarda comidas como recetas para tenerlas a un toque aquí.'
-      : 'Save meals as recipes to keep them one tap away here.';
+  String _emptyAll(BuildContext context) => S.of(context).quickMealsEmptyAll;
 
-  String _emptyFiltered(BuildContext context) => _isEs(context)
-      ? 'Aún no hay comidas rápidas en este bloque. Usa nombres claros de entreno para reconocerlas mejor después.'
-      : 'No quick meals in this lane yet. Use clear workout-style names so they are easier to recognize later.';
+  String _emptyFiltered(BuildContext context) =>
+      S.of(context).quickMealsEmptyFiltered;
 
   String _addedTo(BuildContext context, String recipe, String slot) =>
-      _isEs(context) ? '$recipe añadida a $slot' : '$recipe added to $slot';
+      S.of(context).quickMealsAddedTo(recipe, slot);
 }
 
 class _QuickRecipeTile extends StatelessWidget {
@@ -529,15 +519,12 @@ class _QuickRecipeTile extends StatelessWidget {
                   IconButton(
                     onPressed: onRemoveSavedPressed,
                     icon: const Icon(Icons.bookmark_remove_outlined),
-                    tooltip:
-                        _isEs(context) ? 'Quitar guardada' : 'Remove saved',
+                    tooltip: S.of(context).recipeLibraryRemoveFavorite,
                   ),
                   IconButton.filledTonal(
                     onPressed: onAddPressed,
                     icon: const Icon(Icons.add),
-                    tooltip: _isEs(context)
-                        ? 'Registrar una ración'
-                        : 'Log one serving',
+                    tooltip: S.of(context).quickMealsLogServing,
                   ),
                 ],
               ),
@@ -583,20 +570,18 @@ class _QuickRecipeTile extends StatelessWidget {
   ) {
     switch (category) {
       case QuickRecipeCategoryEntity.preWorkout:
-        return _isEs(context) ? 'Preentreno' : 'Pre-workout';
+        return S.of(context).quickCategoryPreWorkout;
       case QuickRecipeCategoryEntity.postWorkout:
-        return _isEs(context) ? 'Postentreno' : 'Post-workout';
+        return S.of(context).quickCategoryPostWorkout;
       case QuickRecipeCategoryEntity.shake:
-        return _isEs(context) ? 'Batido' : 'Shake';
+        return S.of(context).quickCategoryShake;
       case QuickRecipeCategoryEntity.leanMeal:
-        return 'Snack';
+        return S.of(context).quickCategoryLeanMeal;
     }
   }
 
   String _proteinShort(BuildContext context, double amount) {
-    return _isEs(context)
-        ? 'P ${amount.toStringAsFixed(1)}'
-        : 'P ${amount.toStringAsFixed(1)}';
+    return S.of(context).quickMealsProteinShort(amount.toStringAsFixed(1));
   }
 
   String _intakeTypeLabel(
@@ -605,13 +590,13 @@ class _QuickRecipeTile extends StatelessWidget {
   ) {
     switch (intakeType) {
       case IntakeTypeEntity.breakfast:
-        return _isEs(context) ? 'Desayuno' : 'Breakfast';
+        return S.of(context).breakfastLabel;
       case IntakeTypeEntity.lunch:
-        return _isEs(context) ? 'Comida' : 'Lunch';
+        return S.of(context).lunchLabel;
       case IntakeTypeEntity.dinner:
-        return _isEs(context) ? 'Cena' : 'Dinner';
+        return S.of(context).dinnerLabel;
       case IntakeTypeEntity.snack:
-        return 'Snack';
+        return S.of(context).snackLabel;
     }
   }
 
@@ -619,11 +604,7 @@ class _QuickRecipeTile extends StatelessWidget {
     final carbs = preset.carbsPerServing.toStringAsFixed(1);
     final fat = preset.fatPerServing.toStringAsFixed(1);
     final protein = preset.proteinPerServing.toStringAsFixed(1);
-    return 'C $carbs | F $fat | P $protein';
-  }
-
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
+    return S.of(context).quickMealsMacrosSummary(carbs, fat, protein);
   }
 }
 

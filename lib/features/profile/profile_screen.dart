@@ -75,7 +75,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       DailyFocusEntity dailyFocus,
       GymTargetsEntity currentTargets) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final weightLabel =
         '${_profileBloc.getDisplayWeight(user, usesImperialUnits)} ${usesImperialUnits ? S.of(context).lbsLabel : S.of(context).kgLabel}';
     final heightLabel =
@@ -208,26 +207,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () => _showSetPALCategoryDialog(context, user),
             ),
             _ProfileActionTile(
-              title: isEs ? 'Objetivo de pasos' : 'Steps goal',
+              title: S.of(context).profileStepsGoal,
               subtitle: user.targetSteps != null
                   ? '${user.targetSteps}'
-                  : (isEs ? 'Por defecto' : 'Default'),
+                  : S.of(context).profileDefaultTarget,
               icon: Icons.directions_run_outlined,
               onTap: () => _showSetTargetStepsDialog(context, user),
             ),
             _ProfileActionTile(
-              title: isEs ? 'Horas de dormir objetivo' : 'Sleep hours goal',
+              title: S.of(context).profileSleepGoal,
               subtitle: user.targetSleepHours != null
                   ? '${user.targetSleepHours} h'
-                  : (isEs ? 'Por defecto' : 'Default'),
+                  : S.of(context).profileDefaultTarget,
               icon: Icons.hotel_outlined,
               onTap: () => _showSetTargetSleepDialog(context, user),
             ),
             _ProfileActionTile(
-              title: isEs ? 'Objetivo de agua' : 'Water goal',
+              title: S.of(context).profileWaterGoal,
               subtitle: user.targetWaterLiters != null
                   ? _formatWater(user.targetWaterLiters!, usesImperialUnits)
-                  : (isEs ? 'Por defecto' : 'Default'),
+                  : S.of(context).profileDefaultTarget,
               icon: Icons.water_drop_outlined,
               onTap: () => _showSetTargetWaterDialog(context, user, usesImperialUnits),
             ),
@@ -282,7 +281,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final controller = TextEditingController(
       text: userEntity.targetSteps != null ? '${userEntity.targetSteps}' : '',
     );
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final selectedSteps = await showDialog<int>(
       context: context,
       builder: (context) {
@@ -291,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            isEs ? 'Objetivo de pasos diarios' : 'Daily Steps Goal',
+            S.of(context).profileDailyStepsGoalTitle,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
@@ -299,9 +297,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEs
-                    ? 'Establece tu meta diaria de pasos. Si la dejas vacía, se usará el valor predeterminado según el día.'
-                    : 'Set your daily steps goal. If left empty, the default value based on the day will be used.',
+                S.of(context).profileDailyStepsGoalBody,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -314,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'e.g. 10000',
-                  labelText: isEs ? 'Meta de pasos' : 'Steps target',
+                  labelText: S.of(context).profileStepsTargetLabel,
                   prefixIcon: const Icon(Icons.directions_walk_outlined),
                 ),
                 inputFormatters: [
@@ -329,7 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop(-1);
               },
               child: Text(
-                isEs ? 'Restablecer' : 'Reset',
+                S.of(context).buttonResetLabel,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
@@ -367,7 +363,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final controller = TextEditingController(
       text: userEntity.targetSleepHours != null ? '${userEntity.targetSleepHours}' : '',
     );
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final selectedSleep = await showDialog<double>(
       context: context,
       builder: (context) {
@@ -376,7 +371,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            isEs ? 'Objetivo de horas de sueño' : 'Sleep Hours Goal',
+            S.of(context).profileSleepHoursGoalTitle,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
@@ -384,9 +379,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEs
-                    ? 'Establece tu meta diaria de horas de sueño. Si la dejas vacía, se usará el valor predeterminado según el día.'
-                    : 'Set your daily sleep hours goal. If left empty, the default value based on the day will be used.',
+                S.of(context).profileSleepHoursGoalBody,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -399,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: 'e.g. 8.0',
-                  labelText: isEs ? 'Horas de sueño' : 'Sleep hours target',
+                  labelText: S.of(context).profileSleepHoursTargetLabel,
                   prefixIcon: const Icon(Icons.hotel_outlined),
                 ),
                 inputFormatters: [
@@ -414,7 +407,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop(-1.0);
               },
               child: Text(
-                isEs ? 'Restablecer' : 'Reset',
+                S.of(context).buttonResetLabel,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
@@ -616,7 +609,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final controller = TextEditingController(text: initialText);
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final unitLabel = usesImperialUnits ? 'fl oz' : 'L';
     final selectedWater = await showDialog<double>(
       context: context,
       builder: (context) {
@@ -625,7 +618,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            isEs ? 'Objetivo de agua diario' : 'Daily Water Goal',
+            S.of(context).profileDailyWaterGoalTitle,
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           content: Column(
@@ -633,9 +626,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                isEs
-                    ? 'Establece tu meta diaria de agua (${usesImperialUnits ? "fl oz" : "L"}). Si la dejas vacía, se usará el valor predeterminado según el día.'
-                    : 'Set your daily water goal (${usesImperialUnits ? "fl oz" : "L"}). If left empty, the default value based on the day will be used.',
+                S.of(context).profileDailyWaterGoalBody(unitLabel),
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 13,
@@ -648,9 +639,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 autofocus: true,
                 decoration: InputDecoration(
                   hintText: usesImperialUnits ? 'e.g. 100' : 'e.g. 3.0',
-                  labelText: isEs
-                      ? 'Meta de agua (${usesImperialUnits ? "fl oz" : "L"})'
-                      : 'Water target (${usesImperialUnits ? "fl oz" : "L"})',
+                  labelText: S.of(context).profileWaterTargetLabel(unitLabel),
                   prefixIcon: const Icon(Icons.water_drop_outlined),
                 ),
                 inputFormatters: [
@@ -665,7 +654,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pop(-1.0);
               },
               child: Text(
-                isEs ? 'Restablecer' : 'Reset',
+                S.of(context).buttonResetLabel,
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
@@ -752,14 +741,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (!mounted) {
       return;
     }
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(isEs
-            ? 'Objetivos recalculados. Puedes revisar la estrategia.'
-            : 'Targets recalculated. You can review the strategy.'),
+        content: Text(S.of(context).profileTargetsRecalculatedSnack),
         action: SnackBarAction(
-          label: isEs ? 'Revisar' : 'Review',
+          label: S.of(context).profileReviewAction,
           onPressed: () => _showSetGoalDialog(context, userEntity),
         ),
       ),
@@ -994,6 +980,7 @@ class _CurrentTargetsCard extends StatelessWidget {
   final GymTargetsEntity targets;
 
   const _CurrentTargetsCard({
+    super.key,
     required this.goalLabel,
     required this.goalHeadline,
     required this.focusLabel,

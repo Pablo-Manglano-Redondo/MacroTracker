@@ -126,9 +126,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                _isSpanish
-                                    ? 'La IA propone ingredientes y macros. Tu revisas todo antes de guardar.'
-                                    : 'AI suggests ingredients and macros. You review everything before saving.',
+                                S.of(context).aiPhotoReviewNotice,
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodySmall
@@ -164,9 +162,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                           ),
                     ),
                     subtitle: Text(
-                      _isSpanish
-                          ? 'Abre esto si quieres mejorar la deteccion.'
-                          : 'Open this if you want better detection.',
+                      S.of(context).aiPhotoHintSubtitle,
                     ),
                     children: [
                       _CaptureHintRow(
@@ -195,7 +191,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 if (_pendingPhoto != null) ...[
                   _SelectedPhotoPreview(
                     photo: _pendingPhoto!,
-                    isSpanish: _isSpanish,
                   ),
                   const SizedBox(height: 16),
                 ],
@@ -207,8 +202,8 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                     icon: const Icon(Icons.camera_alt_outlined),
                     label: Text(
                       _pendingPhoto == null
-                          ? (_isSpanish ? 'Hacer foto' : 'Take photo')
-                          : (_isSpanish ? 'Repetir foto' : 'Retake photo'),
+                          ? S.of(context).aiPhotoTakePhoto
+                          : S.of(context).aiPhotoRetakePhoto,
                     ),
                   ),
                 ),
@@ -219,15 +214,13 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                     onPressed: _isLoading ? null : _pickAndPreviewPhoto,
                     icon: const Icon(Icons.photo_library_outlined),
                     label: Text(
-                      _isSpanish ? 'Elegir de galeria' : 'Choose from gallery',
+                      S.of(context).aiPhotoChooseGallery,
                     ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _isSpanish
-                      ? 'Podras corregir ingredientes antes de guardar.'
-                      : 'You will be able to correct ingredients before saving.',
+                  S.of(context).aiPhotoCorrectionHint,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
@@ -242,7 +235,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                           _isLoading ? null : _confirmAndInterpretPendingPhoto,
                       icon: const Icon(Icons.auto_awesome),
                       label: Text(
-                        _isSpanish ? 'Usar esta foto' : 'Use this photo',
+                        S.of(context).aiPhotoUseThisPhoto,
                       ),
                     ),
                   ),
@@ -256,7 +249,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                             });
                           },
                     child: Text(
-                      _isSpanish ? 'Quitar foto' : 'Remove photo',
+                      S.of(context).aiPhotoRemovePhoto,
                     ),
                   ),
                 ],
@@ -313,9 +306,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                _isSpanish
-                    ? 'Esto suele tardar entre 5 y 10 segundos.'
-                    : 'This usually takes 5 to 10 seconds.',
+                S.of(context).aiCaptureProcessingTime,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
@@ -340,9 +331,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        _isSpanish
-                            ? 'La IA prepara un borrador. Tu podras revisar, corregir o borrar ingredientes antes de guardar.'
-                            : 'AI is preparing a draft. You will be able to review, edit, or remove ingredients before saving.',
+                        S.of(context).aiCaptureDraftReviewNotice,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                               height: 1.35,
@@ -434,9 +423,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     final navigator = Navigator.of(context);
 
     setState(() {
-      _loadingStatus = _isSpanish
-          ? 'Abriendo analisis por foto...'
-          : 'Opening photo analysis...';
+      _loadingStatus = localizer.aiPhotoOpeningAnalysis;
       _loadingPreviewBytes = bytes;
     });
     await WidgetsBinding.instance.endOfFrame;
@@ -678,25 +665,15 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     if (error is MealInterpretationRemoteException) {
       switch (error.category) {
         case MealInterpretationFailureCategory.timeout:
-          return _isSpanish
-              ? 'La petición de IA tardó demasiado. Reintenta o sigue con revisión manual.'
-              : 'The AI request timed out. Retry or continue with a manual review.';
+          return S.current.aiFailureTimeoutManualReview;
         case MealInterpretationFailureCategory.noNetwork:
-          return _isSpanish
-              ? 'No hay conexión. Reintenta cuando vuelvas a tener red o sigue con revisión manual.'
-              : 'No network connection. Retry when you are back online or continue with a manual review.';
+          return S.current.aiFailureNoNetworkManualReview;
         case MealInterpretationFailureCategory.authInvalid:
-          return _isSpanish
-              ? 'La sesión cloud ya no es válida. Vuelve a abrir o proteger tu cuenta y reintenta.'
-              : 'Your cloud session is no longer valid. Reopen or protect your cloud account and retry.';
+          return S.current.aiFailureCloudSessionInvalid;
         case MealInterpretationFailureCategory.invalidResponse:
-          return _isSpanish
-              ? 'La respuesta de IA no se pudo usar. Reintenta o sigue con borrador manual.'
-              : 'The AI response could not be used. Retry or continue with a manual draft.';
+          return S.current.aiFailureInvalidResponseManualDraft;
         case MealInterpretationFailureCategory.unavailable:
-          return _isSpanish
-              ? 'La interpretación por IA no está disponible temporalmente. Reintenta o sigue manual.'
-              : 'AI meal interpretation is temporarily unavailable. Retry or continue manually.';
+          return S.current.aiFailureUnavailableManual;
       }
     }
 
@@ -721,8 +698,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     return S.current.aiErrorGeneric;
   }
 
-  bool get _isSpanish => Localizations.localeOf(context).languageCode == 'es';
-
   Future<void> _showAiFailureDialog({
     required String message,
     required Future<void> Function() onRetry,
@@ -731,7 +706,7 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(_isSpanish ? 'IA no disponible' : 'AI unavailable'),
+        title: Text(S.of(context).aiUnavailableTitle),
         content: Text(message),
         actions: [
           TextButton(
@@ -739,14 +714,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
               Navigator.of(dialogContext).pop();
               await onContinueManually();
             },
-            child: Text(_isSpanish ? 'Seguir manual' : 'Continue manually'),
+            child: Text(S.of(context).aiContinueManually),
           ),
           FilledButton(
             onPressed: () async {
               Navigator.of(dialogContext).pop();
               await onRetry();
             },
-            child: Text(_isSpanish ? 'Reintentar' : 'Retry'),
+            child: Text(S.of(context).aiRetry),
           ),
         ],
       ),
@@ -975,11 +950,9 @@ class _CaptureHintRow extends StatelessWidget {
 
 class _SelectedPhotoPreview extends StatelessWidget {
   final _SelectedMealPhoto photo;
-  final bool isSpanish;
 
   const _SelectedPhotoPreview({
     required this.photo,
-    required this.isSpanish,
   });
 
   @override
@@ -1004,16 +977,14 @@ class _SelectedPhotoPreview extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              isSpanish ? 'Vista previa' : 'Preview',
+              S.of(context).aiPhotoPreviewTitle,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              isSpanish
-                  ? 'Confirma que la foto se ve bien antes de enviarla a IA.'
-                  : 'Confirm the photo looks good before sending it to AI.',
+              S.of(context).aiPhotoPreviewSubtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),

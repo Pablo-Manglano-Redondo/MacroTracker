@@ -160,11 +160,7 @@ class OnboardingOverviewPageBody extends StatelessWidget {
               ),
             ),
             child: Text(
-              _copy(
-                context,
-                es: 'Puedes ajustar estos objetivos despues desde Perfil. Tus datos empiezan en este dispositivo; al terminar podras guardar una cuenta cloud opcional para recuperarla.',
-                en: 'You can adjust these targets later from Profile. Your data starts on this device; after this you can optionally protect a cloud account for recovery.',
-              ),
+              S.of(context).onboardingOverviewDataFootnote,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 height: 1.35,
@@ -232,7 +228,4 @@ class OnboardingOverviewPageBody extends StatelessWidget {
     );
   }
 
-  String _copy(BuildContext context, {required String es, required String en}) {
-    return Localizations.localeOf(context).languageCode == 'es' ? es : en;
-  }
 }

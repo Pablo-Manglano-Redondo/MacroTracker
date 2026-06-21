@@ -76,7 +76,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.cloud_download_outlined),
-            tooltip: _isEs(context) ? 'Importar de la Web' : 'Import from Web',
+            tooltip: S.of(context).recipeLibraryImportFromWeb,
             onPressed: () => _importRecipeFromWeb(context),
           ),
         ],
@@ -270,14 +270,14 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                           if (recipe.pinned)
                             _RecipeMetaChip(
                               icon: Icons.push_pin_outlined,
-                              label: _isEs(context) ? 'Fijada' : 'Pinned',
+                              label: S.of(context).recipeLibraryPinned,
                             ),
                           if (recipe.timesUsed > 0)
                             _RecipeMetaChip(
                               icon: Icons.repeat_outlined,
-                              label: _isEs(context)
-                                  ? '${recipe.timesUsed} usos'
-                                  : '${recipe.timesUsed} uses',
+                              label: S
+                                  .of(context)
+                                  .recipeLibraryUses(recipe.timesUsed),
                             ),
                         ],
                       ),
@@ -296,8 +296,8 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                         color: recipe.pinned ? colorScheme.primary : colorScheme.onSurfaceVariant,
                       ),
                       tooltip: recipe.pinned
-                          ? (_isEs(context) ? 'Quitar pin' : 'Unpin')
-                          : (_isEs(context) ? 'Fijar' : 'Pin'),
+                          ? S.of(context).recipeLibraryUnpin
+                          : S.of(context).recipeLibraryPin,
                     ),
                     IconButton(
                       onPressed: () => _showRecipeActions(recipe),
@@ -305,7 +305,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
                         Icons.more_horiz,
                         color: colorScheme.onSurfaceVariant,
                       ),
-                      tooltip: _isEs(context) ? 'Acciones' : 'Actions',
+                      tooltip: S.of(context).recipeLibraryActions,
                     ),
                   ],
                 ),
@@ -400,8 +400,6 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     final carbs = (aggregateMeal.nutriments.carbohydratesPerUnit ?? 0) * servings;
     final fat = (aggregateMeal.nutriments.fatPerUnit ?? 0) * servings;
     final protein = (aggregateMeal.nutriments.proteinsPerUnit ?? 0) * servings;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -416,7 +414,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         fat: fat,
         protein: protein,
         rationale: _displayRecipeNotes(recipe.notes),
-        rationaleTitle: isEs ? 'Notas de la receta' : 'Recipe notes',
+        rationaleTitle: S.of(context).recipeDetailRecipeNotes,
         onLogPressed: () async {
           Navigator.of(sheetContext).pop();
           await locator<LogRecipeUsecase>()
@@ -456,7 +454,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
         .replaceAll(RegExp(r'#cena\b', caseSensitive: false), '')
         .replaceAll(RegExp(r'#snack\b', caseSensitive: false), '')
         .replaceAll(RegExp(r'#tentempie\b', caseSensitive: false), '')
-        .replaceAll(RegExp(r'#tentempiÃ©\b', caseSensitive: false), '')
+        .replaceAll(RegExp(r'#tentempié\b', caseSensitive: false), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
 
@@ -504,7 +502,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
             children: [
               ListTile(
                 leading: const Icon(Icons.edit_outlined),
-                title: Text(_isEs(context) ? 'Editar' : 'Edit'),
+                title: Text(S.of(context).recipeLibraryEdit),
                 onTap: () => Navigator.of(sheetContext).pop(_RecipeAction.edit),
               ),
               ListTile(
@@ -630,7 +628,7 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
   String _filterLabel(_RecipeLibraryFilter filter) {
     switch (filter) {
       case _RecipeLibraryFilter.all:
-        return _isEs(context) ? 'Todo' : 'All';
+        return S.of(context).recipeLibraryAllFilter;
       case _RecipeLibraryFilter.breakfast:
         return S.of(context).breakfastLabel;
       case _RecipeLibraryFilter.lunch:
@@ -686,29 +684,23 @@ class _RecipeLibraryScreenState extends State<RecipeLibraryScreen> {
     }
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   String _manualSectionTitle(BuildContext context) =>
-      _isEs(context) ? 'Recetas guardadas' : 'Saved recipes';
+      S.of(context).recipeLibraryManualSectionTitle;
 
   String _removeSavedLabel(BuildContext context) =>
-      _isEs(context) ? 'Quitar guardada' : 'Remove saved';
+      S.of(context).recipeLibraryRemoveFavorite;
 
-  String _manualSectionSubtitle(BuildContext context) => _isEs(context)
-      ? 'Se ordenan por pin y por uso reciente para que tengas primero las que más repites.'
-      : 'They are ordered by pin and recent usage so the ones you repeat most stay first.';
+  String _manualSectionSubtitle(BuildContext context) =>
+      S.of(context).recipeLibraryManualSectionSubtitle;
 
   String _frequentSectionTitle(BuildContext context) =>
-      _isEs(context) ? 'Sugeridas por repetición' : 'Repeated suggestions';
+      S.of(context).recipeLibraryFrequentSectionTitle;
 
-  String _frequentSectionSubtitle(BuildContext context) => _isEs(context)
-      ? 'Se detectan desde tu historial para repetirlas más rápido.'
-      : 'Detected from your history so you can repeat them faster.';
+  String _frequentSectionSubtitle(BuildContext context) =>
+      S.of(context).recipeLibraryFrequentSectionSubtitle;
 
   String _frequentUses(BuildContext context, int count) =>
-      _isEs(context) ? '$count usos' : '$count times';
+      S.of(context).recipeLibraryFrequentUses(count);
 }
 
 enum _RecipeAction {
@@ -761,7 +753,6 @@ class _LibraryIntroCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Container(
@@ -771,9 +762,7 @@ class _LibraryIntroCard extends StatelessWidget {
           color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         ),
         child: Text(
-          isEs
-              ? 'Filtra por bloque real, fija tus recetas clave y edítalas sin salir de la librería.'
-              : 'Filter by real category, pin key recipes, and edit them directly from the library.',
+          S.of(context).recipeLibraryIntroCard,
           style: Theme.of(context).textTheme.bodyMedium,
         ),
       ),

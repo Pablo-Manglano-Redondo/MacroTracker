@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logging/logging.dart';
@@ -24,6 +25,7 @@ import 'package:macrotracker/features/weekly_insights/presentation/weekly_insigh
 import 'package:macrotracker/features/daily_habits/domain/usecase/sync_sleep_from_health_connect_usecase.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_plan_card.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
+import 'package:macrotracker/features/feature_tour/presentation/widgets/product_tour_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   late HomeBloc _homeBloc;
   late final GymHabitsCardController _gymHabitsCardController;
+  late final ScrollController _scrollController;
   bool _isSyncingSleep = false;
   bool _didQueueDeferredStartupWork = false;
 
@@ -45,6 +48,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = locator<HomeBloc>();
     _gymHabitsCardController = GymHabitsCardController();
+    _scrollController = ScrollController();
+    locator.registerSingleton<ScrollController>(_scrollController, instanceName: 'homeScroll');
     super.initState();
     _queueDeferredStartupWork();
   }
@@ -53,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _gymHabitsCardController.dispose();
+    if (locator.isRegistered<ScrollController>(instanceName: 'homeScroll')) {
+      locator.unregister<ScrollController>(instanceName: 'homeScroll');
+    }
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -256,6 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: contentWidth),
             child: SingleChildScrollView(
+              controller: _scrollController,
               child: Column(
                 children: [
                   _HomeContextHeader(
@@ -266,6 +276,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
                   ),
                   DashboardWidget(
+                    key: ProductTourKeys.dashboardKey,
                     padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                     nutritionPhase: nutritionPhase,
                     onNutritionPhaseChanged: _homeBloc.setNutritionPhase,
@@ -313,6 +324,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     )
                   else
                     _ConnectNutritionistPromoCard(
+                      key: ProductTourKeys.nutritionistPromoKey,
                       padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
                       onTap: () {
                         Navigator.of(context).pushNamed(
@@ -323,16 +335,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   const SizedBox(height: 25.0),
                   _HomeSectionHeader(
                     padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
-                    title: _homeCopy(
-                      context,
-                      es: 'Acciones de hoy',
-                      en: 'Today actions',
-                    ),
-                    subtitle: _homeCopy(
-                      context,
-                      es: 'Sugerencias y comidas listas para cerrar macros sin perder tiempo.',
-                      en: 'Suggestions and ready meals to close macros without friction.',
-                    ),
+                    title: S.of(context).homeTodayActionsTitle,
+                    subtitle: S.of(context).homeTodayActionsSubtitle,
                   ),
                   _ResponsiveHomeGroup(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -359,16 +363,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   const SizedBox(height: 25.0),
                   _HomeSectionHeader(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    title: _homeCopy(
-                      context,
-                      es: 'Seguimiento',
-                      en: 'Tracking',
-                    ),
-                    subtitle: _homeCopy(
-                      context,
-                      es: 'Adherencia, progreso y tendencias para ajustar con criterio.',
-                      en: 'Adherence, progress, and trends for better adjustments.',
-                    ),
+                    title: S.of(context).homeTrackingTitle,
+                    subtitle: S.of(context).homeTrackingSubtitle,
                   ),
                   _buildOverviewSection(
                     context: context,
@@ -485,6 +481,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final bodyProgressCard = SizedBox(
       width: overviewCardWidth,
       child: BodyProgressCard(
+        key: ProductTourKeys.progressKey,
         padding: EdgeInsets.zero,
         usesImperialUnits: usesImperialUnits,
       ),
@@ -492,6 +489,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final gymHabitsCard = SizedBox(
       width: overviewCardWidth,
       child: GymHabitsCard(
+        key: ProductTourKeys.habitsKey,
         padding: EdgeInsets.zero,
         dailyFocus: dailyFocus,
         usesImperialUnits: usesImperialUnits,
@@ -504,6 +502,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final weeklyInsightsCard = SizedBox(
       width: overviewCardWidth,
       child: _WeeklyInsightsCard(
+        key: ProductTourKeys.insightsKey,
         onTap: () {
           Navigator.of(context).pushNamed(
             NavigationOptions.weeklyInsightsRoute,
@@ -558,9 +557,6 @@ class _HomeContextHeader extends StatelessWidget {
     this.onNutritionPhaseChanged,
   });
 
-  bool _isEs(BuildContext context) =>
-      Localizations.localeOf(context).languageCode == 'es';
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -576,11 +572,7 @@ class _HomeContextHeader extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          _homeCopy(
-            context,
-            es: 'Panel diario',
-            en: 'Daily board',
-          ),
+          S.of(context).homeDailyBoardTitle,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 height: 1.05,
@@ -594,7 +586,7 @@ class _HomeContextHeader extends StatelessWidget {
       alignment: WrapAlignment.start,
       children: [
         PopupMenuButton<DailyFocusEntity>(
-          tooltip: _isEs(context) ? 'Cambiar enfoque' : 'Change focus',
+          tooltip: S.of(context).homeChangeFocusTooltip,
           onSelected: onDailyFocusChanged,
           offset: const Offset(0, 40),
           shape: RoundedRectangleBorder(
@@ -622,7 +614,7 @@ class _HomeContextHeader extends StatelessWidget {
           ),
         ),
         PopupMenuButton<UserWeightGoalEntity>(
-          tooltip: _isEs(context) ? 'Cambiar objetivo' : 'Change goal',
+          tooltip: S.of(context).homeChangeGoalTooltip,
           onSelected: onNutritionPhaseChanged,
           offset: const Offset(0, 40),
           shape: RoundedRectangleBorder(
@@ -681,16 +673,15 @@ class _HomeContextHeader extends StatelessWidget {
   }
 
   String _focusLabel(BuildContext context, DailyFocusEntity focus) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (focus) {
       case DailyFocusEntity.lowerBody:
-        return isEs ? 'Pierna' : 'Legs';
+        return S.of(context).homeFocusLowerBody;
       case DailyFocusEntity.upperBody:
-        return isEs ? 'Torso' : 'Upper';
+        return S.of(context).homeFocusUpperBody;
       case DailyFocusEntity.cardio:
-        return isEs ? 'Cardio' : 'Cardio';
+        return S.of(context).homeFocusCardio;
       case DailyFocusEntity.rest:
-        return isEs ? 'Descanso' : 'Rest';
+        return S.of(context).homeFocusRest;
     }
   }
 
@@ -707,40 +698,8 @@ class _HomeContextHeader extends StatelessWidget {
 
   String _formattedToday(BuildContext context) {
     final now = DateTime.now();
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-    final weekdays = isEs
-        ? const ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom']
-        : const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    final months = isEs
-        ? const [
-            'ene',
-            'feb',
-            'mar',
-            'abr',
-            'may',
-            'jun',
-            'jul',
-            'ago',
-            'sep',
-            'oct',
-            'nov',
-            'dic',
-          ]
-        : const [
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-            'May',
-            'Jun',
-            'Jul',
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-          ];
-    return '${weekdays[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    return DateFormat('EEE, d MMM', locale).format(now);
   }
 }
 
@@ -908,15 +867,11 @@ class _ResponsiveHomeGroup extends StatelessWidget {
   }
 }
 
-String _homeCopy(BuildContext context,
-    {required String es, required String en}) {
-  return Localizations.localeOf(context).languageCode == 'es' ? es : en;
-}
-
 class _WeeklyInsightsCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _WeeklyInsightsCard({
+    super.key,
     required this.onTap,
   });
 
@@ -986,6 +941,7 @@ class _ConnectNutritionistPromoCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _ConnectNutritionistPromoCard({
+    super.key,
     required this.padding,
     required this.onTap,
   });
@@ -994,7 +950,6 @@ class _ConnectNutritionistPromoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Padding(
       padding: padding,
@@ -1039,7 +994,7 @@ class _ConnectNutritionistPromoCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        isEs ? '¿Trabajas con un nutricionista?' : 'Working with a nutritionist?',
+                        S.of(context).homeNutritionistPromoTitle,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                           height: 1.15,
@@ -1047,9 +1002,7 @@ class _ConnectNutritionistPromoCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        isEs
-                            ? 'Sincroniza tus macros, recibe planes de comidas personalizados y chatea directamente.'
-                            : 'Sync macros, get tailored meal guides, and chat directly with your professional.',
+                        S.of(context).homeNutritionistPromoSubtitle,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                           height: 1.35,
@@ -1059,7 +1012,7 @@ class _ConnectNutritionistPromoCard extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            isEs ? 'Vincular cuenta' : 'Connect account',
+                            S.of(context).homeNutritionistPromoAction,
                             style: theme.textTheme.labelLarge?.copyWith(
                               color: colorScheme.primary,
                               fontWeight: FontWeight.w800,

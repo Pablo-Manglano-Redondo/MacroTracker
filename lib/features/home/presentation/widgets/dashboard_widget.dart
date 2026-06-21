@@ -8,6 +8,7 @@ import 'package:macrotracker/core/domain/entity/user_weight_goal_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/features/meal_capture/presentation/meal_photo_capture_screen.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class DashboardWidget extends StatelessWidget {
   final EdgeInsetsGeometry padding;
@@ -171,7 +172,7 @@ class DashboardWidget extends StatelessWidget {
             ),
             if (totalKcalSupplied == 0) ...[
               const SizedBox(height: 14),
-              _DashboardEmptyState(isEs: _isEs(context)),
+              const _DashboardEmptyState(),
             ],
             const SizedBox(height: 18),
             _PrimaryMetric(
@@ -221,38 +222,26 @@ class DashboardWidget extends StatelessWidget {
     return value;
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   String _dashboardTitle(BuildContext context) =>
-      _isEs(context) ? 'Nutrición de gimnasio' : 'Gym nutrition';
+      S.of(context).homeDashboardTitle;
 
   String _dashboardSubtitle(BuildContext context) =>
-      _isEs(context) ? 'Lo importante de hoy.' : 'Today at a glance.';
+      S.of(context).homeDashboardSubtitle;
 
-  String _mealsChip(BuildContext context, int count) {
-    if (_isEs(context)) {
-      return count == 1 ? '1 comida' : '$count comidas';
-    }
-    return count == 1 ? '1 meal' : '$count meals';
-  }
+  String _mealsChip(BuildContext context, int count) =>
+      S.of(context).homeDashboardMealsChip(count);
 
-  String _sessionsChip(BuildContext context, int count) {
-    if (_isEs(context)) {
-      return count == 1 ? '1 sesión' : '$count sesiones';
-    }
-    return count == 1 ? '1 session' : '$count sessions';
-  }
+  String _sessionsChip(BuildContext context, int count) =>
+      S.of(context).homeDashboardSessionsChip(count);
 
   String _burnedChip(BuildContext context, int count) =>
-      _isEs(context) ? '$count kcals' : '$count burned';
+      S.of(context).homeDashboardBurnedChip(count);
 
   String _kcalRemainingLabel(BuildContext context) =>
-      _isEs(context) ? 'Kcal restantes' : 'Kcal left';
+      S.of(context).homeDashboardKcalRemaining;
 
   String _overGoalLabel(BuildContext context) =>
-      _isEs(context) ? 'Sobre objetivo' : 'Over goal';
+      S.of(context).homeDashboardOverGoal;
 }
 
 class _FoodQualityDailyStrip extends StatelessWidget {
@@ -270,7 +259,6 @@ class _FoodQualityDailyStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final accentColor = FoodQualityUiMeta.bandColor(context, band);
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Container(
       width: double.infinity,
@@ -284,9 +272,7 @@ class _FoodQualityDailyStrip extends StatelessWidget {
       ),
       child: mealsCount == 0
           ? Text(
-              isEs
-                  ? 'Aún no hay datos suficientes de calidad.'
-                  : 'No food quality data yet.',
+              S.of(context).homeDashboardNoFoodQualityData,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -316,9 +302,9 @@ class _FoodQualityDailyStrip extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        isEs
-                            ? 'Media diaria basada en $mealsCount comidas'
-                            : 'Daily average across $mealsCount meals',
+                        S
+                            .of(context)
+                            .homeDashboardFoodQualityAverage(mealsCount),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -547,8 +533,6 @@ class _MacroTrackCircles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -557,7 +541,7 @@ class _MacroTrackCircles extends StatelessWidget {
           children: [
             Expanded(
               child: _MacroCircleItem(
-                label: isEs ? 'Proteínas' : 'Protein',
+                label: S.of(context).proteinLabel,
                 intake: proteinIntake,
                 goal: proteinGoal,
                 remaining: proteinRemaining,
@@ -566,7 +550,7 @@ class _MacroTrackCircles extends StatelessWidget {
             ),
             Expanded(
               child: _MacroCircleItem(
-                label: isEs ? 'Carbohidratos' : 'Carbs',
+                label: S.of(context).carbsLabel,
                 intake: carbsIntake,
                 goal: carbsGoal,
                 remaining: carbsRemaining,
@@ -575,7 +559,7 @@ class _MacroTrackCircles extends StatelessWidget {
             ),
             Expanded(
               child: _MacroCircleItem(
-                label: isEs ? 'Grasas' : 'Fats',
+                label: S.of(context).fatLabel,
                 intake: fatIntake,
                 goal: fatGoal,
                 remaining: fatRemaining,
@@ -607,7 +591,6 @@ class _MacroCircleItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = goal <= 0 ? 0.0 : (intake / goal).clamp(0.0, 1.0);
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
 
@@ -675,9 +658,7 @@ class _MacroCircleItem extends StatelessWidget {
         ),
         const SizedBox(height: 2),
         Text(
-          isEs
-              ? '${remaining.toInt()}g restantes'
-              : '${remaining.toInt()}g left',
+          S.of(context).homeDashboardMacroRemaining(remaining.toInt()),
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                 fontSize: 10,
@@ -741,8 +722,7 @@ class DashedRectPainter extends CustomPainter {
 }
 
 class _DashboardEmptyState extends StatefulWidget {
-  final bool isEs;
-  const _DashboardEmptyState({required this.isEs});
+  const _DashboardEmptyState();
 
   @override
   State<_DashboardEmptyState> createState() => _DashboardEmptyStateState();
@@ -821,7 +801,7 @@ class _DashboardEmptyStateState extends State<_DashboardEmptyState>
             ),
             const SizedBox(height: 12),
             Text(
-              widget.isEs ? '¡Empieza a registrar!' : 'Start logging your day!',
+              S.of(context).homeDashboardEmptyTitle,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: colorScheme.onSurface,
@@ -829,9 +809,7 @@ class _DashboardEmptyStateState extends State<_DashboardEmptyState>
             ),
             const SizedBox(height: 4),
             Text(
-              widget.isEs
-                  ? 'Haz una foto a tu comida y la IA lo calcula todo.'
-                  : 'Take a photo of your meal and AI does the rest.',
+              S.of(context).homeDashboardEmptySubtitle,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
@@ -851,7 +829,7 @@ class _DashboardEmptyStateState extends State<_DashboardEmptyState>
               },
               icon: const Icon(Icons.add_a_photo_outlined, size: 16),
               label: Text(
-                widget.isEs ? 'Hacer foto con IA' : 'Take AI Photo',
+                S.of(context).homeDashboardEmptyAction,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               style: FilledButton.styleFrom(

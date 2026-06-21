@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 
 class ProfessionalPlanCard extends StatelessWidget {
@@ -16,15 +17,14 @@ class ProfessionalPlanCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final adherencePct = (summary.adherenceRatio * 100).round();
     final kcalDelta = summary.kcalDelta.round();
     final isOverPlan = kcalDelta > 0;
     final remainingLabel = kcalDelta == 0
-        ? (isEs ? 'En objetivo' : 'On target')
+        ? S.of(context).professionalPlanOnTarget
         : isOverPlan
-            ? (isEs ? 'Sobre plan' : 'Over plan')
-            : (isEs ? 'Restantes' : 'Left');
+            ? S.of(context).professionalPlanOverPlan
+            : S.of(context).professionalPlanRemaining;
     final remainingValue = kcalDelta == 0
         ? '0'
         : isOverPlan
@@ -73,7 +73,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                             color: colorScheme.primary.withValues(alpha: 0.12),
                           ),
                           child: Text(
-                            isEs ? 'Plan activo' : 'Active plan',
+                            S.of(context).professionalSummaryActivePlan,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelSmall
@@ -85,7 +85,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 7),
                         Text(
-                          isEs ? 'Plan vs realidad' : 'Plan vs actual',
+                          S.of(context).professionalPlanVsActual,
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.w800,
@@ -122,7 +122,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _HeroMetric(
-                      label: isEs ? 'Adherencia' : 'Adherence',
+                      label: S.of(context).professionalPlanAdherence,
                       value: adherencePct.toString(),
                       suffix: '%',
                       color: colorScheme.tertiary,
@@ -148,22 +148,22 @@ class ProfessionalPlanCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _MetricPill(
-                    label: isEs ? 'Kcal' : 'Kcal',
+                    label: 'Kcal',
                     value:
                         '${summary.kcalActual.round()} / ${summary.kcalTarget.round()}',
                   ),
                   _MetricPill(
-                    label: isEs ? 'Proteína' : 'Protein',
+                    label: S.of(context).professionalMacroProtein,
                     value:
                         '${summary.proteinActual.round()} / ${summary.proteinTarget.round()}g',
                   ),
                   _MetricPill(
-                    label: isEs ? 'Carbos' : 'Carbs',
+                    label: S.of(context).professionalMacroCarbs,
                     value:
                         '${summary.carbsActual.round()} / ${summary.carbsTarget.round()}g',
                   ),
                   _MetricPill(
-                    label: isEs ? 'Grasa' : 'Fat',
+                    label: S.of(context).professionalMacroFat,
                     value:
                         '${summary.fatActual.round()} / ${summary.fatTarget.round()}g',
                   ),
@@ -183,7 +183,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                   final button = FilledButton.tonalIcon(
                     onPressed: onOpenPlan,
                     icon: const Icon(Icons.open_in_new_outlined, size: 18),
-                    label: Text(isEs ? 'Ver plan' : 'View plan'),
+                    label: Text(S.of(context).professionalPlanViewPlan),
                   );
                   if (constraints.maxWidth < 340) {
                     return Column(
@@ -215,20 +215,13 @@ class ProfessionalPlanCard extends StatelessWidget {
   }
 
   String _statusText(BuildContext context, int kcalDelta) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (kcalDelta == 0) {
-      return isEs
-          ? 'Vas exactamente sobre el objetivo de hoy.'
-          : 'You are exactly on today target.';
+      return S.of(context).professionalPlanStatusExact;
     }
     if (kcalDelta > 0) {
-      return isEs
-          ? '+$kcalDelta kcal sobre el plan de hoy.'
-          : '+$kcalDelta kcal over today plan.';
+      return S.of(context).professionalPlanStatusOver(kcalDelta);
     }
-    return isEs
-        ? '${kcalDelta.abs()} kcal restantes sobre el plan.'
-        : '${kcalDelta.abs()} kcal left on the plan.';
+    return S.of(context).professionalPlanStatusLeft(kcalDelta.abs());
   }
 }
 

@@ -50,14 +50,10 @@ class PlanTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Plan activo', en: 'Active plan'),
+                eyebrow: S.of(context).professionalPlanActiveEyebrow,
                 title: plan.name,
                 subtitle: plan.objective.isEmpty
-                    ? uiText(
-                        context,
-                        es: 'Tu profesional ha preparado esta estructura para guiar tu semana.',
-                        en: 'Your professional prepared this structure to guide your week.',
-                      )
+                    ? S.of(context).professionalPlanDefaultObjective
                     : plan.objective,
               ),
               const SizedBox(height: 14),
@@ -66,17 +62,15 @@ class PlanTab extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   CompactStat(
-                    label: uiText(context,
-                        es: 'Comidas sugeridas', en: 'Suggested meals'),
+                    label: S.of(context).professionalPlanSuggestedMeals,
                     value: plan.meals.length.toString(),
                   ),
                   CompactStat(
-                    label: uiText(context,
-                        es: 'Días plantilla', en: 'Template days'),
+                    label: S.of(context).professionalPlanTemplateDays,
                     value: fallbackDays.toString(),
                   ),
                   CompactStat(
-                    label: uiText(context, es: 'Actualizado', en: 'Updated'),
+                    label: S.of(context).professionalPlanUpdated,
                     value: formatShortDate(
                         context, plan.updatedAt ?? plan.createdAt),
                   ),
@@ -122,14 +116,9 @@ class PlanTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow:
-                    uiText(context, es: 'Visión semanal', en: 'Weekly view'),
+                eyebrow: S.of(context).professionalPlanWeeklyView,
                 title: S.of(context).professionalPlanWeeklyView,
-                subtitle: uiText(
-                  context,
-                  es: 'Toca un día para abrir su desglose calórico detallado y registrar sus comidas.',
-                  en: 'Tap a day to view its detailed caloric breakdown and log its meals.',
-                ),
+                subtitle: S.of(context).professionalPlanWeeklyViewSubtitle,
               ),
               const SizedBox(height: 14),
               for (final day in summary.weekPlan)
@@ -162,14 +151,9 @@ class PlanTab extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SectionHeader(
-                  eyebrow:
-                      uiText(context, es: 'Guía de comidas', en: 'Meal guide'),
+                  eyebrow: S.of(context).professionalPlanMealGuideEyebrow,
                   title: S.of(context).professionalPlanSuggestedMeals,
-                  subtitle: uiText(
-                    context,
-                    es: 'Toca una comida para ver su desglose de macronutrientes, o usa "+" para añadirla a tu diario de hoy.',
-                    en: 'Tap a meal to view its macronutrient breakdown, or use "+" to add it to today\'s diary.',
-                  ),
+                  subtitle: S.of(context).professionalPlanMealGuideSubtitle,
                 ),
                 const SizedBox(height: 14),
                 for (final meal in plan.meals)
@@ -203,19 +187,19 @@ class PlanTab extends StatelessWidget {
 
   Future<void> _handleLogSuggestedMeal(
       BuildContext context, NutritionPlanMealEntity suggestedMeal) async {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final slotName = _slotDisplayName(context, suggestedMeal.slot);
     final kcal = suggestedMeal.kcal?.round() ?? 0;
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title:
-            Text(isEs ? '¿Registrar comida sugerida?' : 'Log suggested meal?'),
+        title: Text(S.of(context).professionalPlanLogSuggestedMealTitle),
         content: Text(
-          isEs
-              ? '¿Deseas añadir "${suggestedMeal.title}" ($kcal kcal) a tu diario de hoy en la sección de "$slotName"?'
-              : 'Do you want to add "${suggestedMeal.title}" ($kcal kcal) to today\'s diary under "$slotName"?',
+          S.of(context).professionalPlanLogSuggestedMealBody(
+                suggestedMeal.title,
+                kcal,
+                slotName,
+              ),
         ),
         actions: [
           TextButton(
@@ -224,7 +208,7 @@ class PlanTab extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(isEs ? 'Registrar' : 'Log Meal'),
+            child: Text(S.of(context).professionalPlanLogMeal),
           ),
         ],
       ),
@@ -280,7 +264,6 @@ class PlanTab extends StatelessWidget {
         dateTime: today,
       );
 
-      // Save to databases
       await addIntakeUseCase.addIntake(intake);
 
       final hasTrackedDay = await addTrackedDayUsecase.hasTrackedDay(today);
@@ -303,7 +286,6 @@ class PlanTab extends StatelessWidget {
         proteinTracked: intake.totalProteinsGram,
       );
 
-      // Trigger Bloc Refreshes
       locator<HomeBloc>().add(const LoadItemsEvent(
         refreshRemotePlan: false,
         uploadProfessionalSnapshot: true,
@@ -315,9 +297,9 @@ class PlanTab extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEs
-                  ? '"${suggestedMeal.title}" registrada con éxito.'
-                  : '"${suggestedMeal.title}" logged successfully.',
+              S.of(context).professionalPlanLogSuggestedMealSuccess(
+                    suggestedMeal.title,
+                  ),
             ),
           ),
         );
@@ -326,11 +308,7 @@ class PlanTab extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              isEs
-                  ? 'Error al registrar la comida.'
-                  : 'Error logging the meal.',
-            ),
+            content: Text(S.of(context).professionalPlanLogSuggestedMealError),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -363,23 +341,22 @@ class PlanTab extends StatelessWidget {
 
   String _slotDisplayName(BuildContext context, String slot) {
     final clean = slot.trim().toLowerCase();
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (clean) {
       case 'breakfast':
       case 'desayuno':
-        return isEs ? 'Desayuno' : 'Breakfast';
+        return S.of(context).professionalPlanSlotBreakfast;
       case 'lunch':
       case 'comida':
       case 'almuerzo':
-        return isEs ? 'Comida' : 'Lunch';
+        return S.of(context).professionalPlanSlotLunch;
       case 'dinner':
       case 'cena':
-        return isEs ? 'Cena' : 'Dinner';
+        return S.of(context).professionalPlanSlotDinner;
       case 'snack':
       case 'merienda':
       case 'tentempié':
       case 'tentempie':
-        return isEs ? 'Merienda/Snack' : 'Snack';
+        return S.of(context).professionalPlanSlotSnack;
       default:
         return slot;
     }
@@ -431,7 +408,7 @@ class _WeekPlanRow extends StatelessWidget {
                 if (day.isToday)
                   StatusPill(
                     icon: Icons.today_outlined,
-                    label: uiText(context, es: 'Hoy', en: 'Today'),
+                    label: S.of(context).todayLabel,
                   ),
                 if (day.usesWeekdayFallback) ...[
                   const SizedBox(width: 8),
@@ -472,7 +449,6 @@ class _SuggestedMealRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final slotLabel = _slotDisplayName(context, meal.slot);
 
     return InkWell(
@@ -575,7 +551,7 @@ class _SuggestedMealRow extends StatelessWidget {
                       onPressed: onLogMeal,
                       icon: const Icon(Icons.playlist_add_rounded, size: 20),
                       label: Text(
-                        isEs ? 'Registrar en Diario' : 'Log to Diary',
+                        S.of(context).professionalPlanLogToDiary,
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
@@ -591,23 +567,22 @@ class _SuggestedMealRow extends StatelessWidget {
 
   String _slotDisplayName(BuildContext context, String slot) {
     final clean = slot.trim().toLowerCase();
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (clean) {
       case 'breakfast':
       case 'desayuno':
-        return isEs ? 'Desayuno' : 'Breakfast';
+        return S.of(context).professionalPlanSlotBreakfast;
       case 'lunch':
       case 'comida':
       case 'almuerzo':
-        return isEs ? 'Comida' : 'Lunch';
+        return S.of(context).professionalPlanSlotLunch;
       case 'dinner':
       case 'cena':
-        return isEs ? 'Cena' : 'Dinner';
+        return S.of(context).professionalPlanSlotDinner;
       case 'snack':
       case 'merienda':
       case 'tentempié':
       case 'tentempie':
-        return isEs ? 'Merienda/Snack' : 'Snack';
+        return S.of(context).professionalPlanSlotSnack;
       default:
         return slot;
     }
@@ -631,8 +606,7 @@ class _EmptyPlanCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(context,
-                es: 'Sin plan publicado', en: 'No published plan'),
+            eyebrow: S.of(context).professionalSummaryNoPublishedPlan,
             title: S.of(context).professionalConnectedNoPlan,
             subtitle: S.of(context).professionalEmptyPlanBody,
           ),
@@ -678,8 +652,6 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     final kcal = meal.kcal ?? 0;
     final protein = meal.protein ?? 0;
     final carbs = meal.carbs ?? 0;
@@ -736,9 +708,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          isEs
-                              ? 'Comida sugerida del plan'
-                              : 'Suggested plan meal',
+                          S.of(context).professionalPlanSuggestedPlanMeal,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.primary,
@@ -763,7 +733,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _MacroPanel(
-                      label: isEs ? 'Calorías' : 'Calories',
+                      label: S.of(context).professionalMacroCalories,
                       value: '${kcal.round()} kcal',
                       color: const Color(0xFFEF4444),
                       icon: Icons.local_fire_department_outlined,
@@ -772,7 +742,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _MacroPanel(
-                      label: isEs ? 'Proteína' : 'Protein',
+                      label: S.of(context).professionalMacroProtein,
                       value: '${protein.round()} g',
                       color: const Color(0xFF10B981),
                       icon: Icons.egg_alt_outlined,
@@ -781,7 +751,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _MacroPanel(
-                      label: isEs ? 'Carb.' : 'Carbs',
+                      label: S.of(context).professionalMacroCarbs,
                       value: '${carbs.round()} g',
                       color: const Color(0xFFF59E0B),
                       icon: Icons.cookie_outlined,
@@ -790,7 +760,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: _MacroPanel(
-                      label: isEs ? 'Grasa' : 'Fat',
+                      label: S.of(context).professionalMacroFat,
                       value: '${fat.round()} g',
                       color: const Color(0xFF3B82F6),
                       icon: Icons.opacity_outlined,
@@ -812,9 +782,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isEs
-                          ? 'Aporte de Energía de Macros'
-                          : 'Macronutrient Energy Split',
+                      S.of(context).professionalPlanMacroEnergySplit,
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: colorScheme.onSurfaceVariant,
@@ -825,15 +793,15 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _PctPill(
-                            label: isEs ? 'Proteína' : 'Protein',
+                            label: S.of(context).professionalMacroProtein,
                             pct: pPct,
                             color: const Color(0xFF10B981)),
                         _PctPill(
-                            label: isEs ? 'Carbos' : 'Carbs',
+                            label: S.of(context).professionalMacroCarbs,
                             pct: cPct,
                             color: const Color(0xFFF59E0B)),
                         _PctPill(
-                            label: isEs ? 'Grasas' : 'Fats',
+                            label: S.of(context).professionalMacroFat,
                             pct: fPct,
                             color: const Color(0xFF3B82F6)),
                       ],
@@ -845,7 +813,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
               if (meal.notes?.isNotEmpty == true) ...[
                 const SizedBox(height: 20),
                 Text(
-                  isEs ? 'Pautas del Nutricionista' : 'Nutritionist Guidelines',
+                  S.of(context).professionalPlanNutritionistGuidelines,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -882,7 +850,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                   onPressed: () => _handleViewRecipe(context, meal.recipeId!),
                   icon: const Icon(Icons.menu_book_outlined, size: 20),
                   label: Text(
-                    isEs ? 'Ver Receta' : 'View Recipe',
+                    S.of(context).professionalPlanViewRecipe,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: OutlinedButton.styleFrom(
@@ -901,7 +869,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
                 },
                 icon: const Icon(Icons.playlist_add_rounded, size: 22),
                 label: Text(
-                  isEs ? 'Registrar en Diario de Hoy' : 'Log to Today\'s Diary',
+                  S.of(context).professionalPlanLogToTodaysDiary,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 style: FilledButton.styleFrom(
@@ -919,8 +887,6 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
   }
 
   void _handleViewRecipe(BuildContext context, String recipeId) async {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -941,11 +907,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                isEs
-                    ? 'No se pudo cargar la receta.'
-                    : 'Could not load recipe.',
-              ),
+              content: Text(S.of(context).professionalPlanRecipeLoadUnavailable),
             ),
           );
         }
@@ -967,9 +929,7 @@ class SuggestedMealDetailBottomSheet extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              isEs
-                  ? 'Error al cargar la receta: $e'
-                  : 'Error loading recipe: $e',
+              S.of(context).professionalPlanRecipeLoadError(e),
             ),
           ),
         );
@@ -990,7 +950,6 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Container(
       decoration: BoxDecoration(
@@ -1035,7 +994,7 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          isEs ? 'Detalle de Receta' : 'Recipe Details',
+                          S.of(context).professionalPlanRecipeDetails,
                           style:
                               Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: colorScheme.primary,
@@ -1077,26 +1036,26 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                       if (recipe.prepTimeMin != null)
                         _RecipeInfoIcon(
                           icon: Icons.timer_outlined,
-                          label: isEs ? 'Prep' : 'Prep',
+                          label: S.of(context).professionalPlanRecipePrep,
                           value: '${recipe.prepTimeMin}m',
                         ),
                       if (recipe.cookTimeMin != null)
                         _RecipeInfoIcon(
                           icon: Icons.soup_kitchen_outlined,
-                          label: isEs ? 'Cocción' : 'Cook',
+                          label: S.of(context).professionalPlanRecipeCook,
                           value: '${recipe.cookTimeMin}m',
                         ),
                       if (recipe.servings != null)
                         _RecipeInfoIcon(
                           icon: Icons.restaurant_outlined,
-                          label: isEs ? 'Porciones' : 'Servings',
+                          label: S.of(context).professionalPlanRecipeServings,
                           value: '${recipe.servings}',
                         ),
                     ],
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    isEs ? 'Ingredientes' : 'Ingredients',
+                    S.of(context).professionalPlanRecipeIngredients,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -1114,9 +1073,9 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                       children: [
                         if (recipe.ingredients == null ||
                             recipe.ingredients!.isEmpty)
-                          Text(isEs
-                              ? 'Sin ingredientes especificados'
-                              : 'No ingredients specified')
+                          Text(S
+                              .of(context)
+                              .professionalPlanRecipeNoIngredients)
                         else
                           for (final rawIng in recipe.ingredients!)
                             if (rawIng is Map)
@@ -1150,7 +1109,7 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    isEs ? 'Preparación' : 'Instructions',
+                    S.of(context).professionalPlanRecipeInstructions,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -1158,7 +1117,7 @@ class ProfessionalRecipeDetailBottomSheet extends StatelessWidget {
                   const SizedBox(height: 10),
                   if (recipe.instructions == null ||
                       recipe.instructions!.trim().isEmpty)
-                    Text(isEs ? 'Sin instrucciones' : 'No instructions')
+                    Text(S.of(context).professionalPlanRecipeNoInstructions)
                   else
                     Text(
                       recipe.instructions!,
@@ -1225,7 +1184,6 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
     final target = day.target;
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = colorScheme.brightness == Brightness.dark;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     if (target == null) {
       return Container(
@@ -1303,9 +1261,9 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                                     : Icons.today_outlined,
                                 label: day.usesWeekdayFallback
                                     ? S.of(context).professionalWeekTemplate
-                                    : (isEs
-                                        ? 'Objetivo específico'
-                                        : 'Specific target'),
+                                    : S
+                                        .of(context)
+                                        .professionalPlanSpecificTarget,
                               ),
                             ],
                           ),
@@ -1332,7 +1290,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _MacroPanel(
-                            label: isEs ? 'Calorías' : 'Calories',
+                            label: S.of(context).professionalMacroCalories,
                             value: '${kcal.round()} kcal',
                             color: const Color(0xFFEF4444),
                             icon: Icons.local_fire_department_outlined,
@@ -1341,7 +1299,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _MacroPanel(
-                            label: isEs ? 'Proteína' : 'Protein',
+                            label: S.of(context).professionalMacroProtein,
                             value: '${protein.round()} g',
                             color: const Color(0xFF10B981),
                             icon: Icons.egg_alt_outlined,
@@ -1350,7 +1308,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _MacroPanel(
-                            label: isEs ? 'Carb.' : 'Carbs',
+                            label: S.of(context).professionalMacroCarbs,
                             value: '${carbs.round()} g',
                             color: const Color(0xFFF59E0B),
                             icon: Icons.cookie_outlined,
@@ -1359,7 +1317,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         const SizedBox(width: 8),
                         Expanded(
                           child: _MacroPanel(
-                            label: isEs ? 'Grasa' : 'Fat',
+                            label: S.of(context).professionalMacroFat,
                             value: '${fat.round()} g',
                             color: const Color(0xFF3B82F6),
                             icon: Icons.opacity_outlined,
@@ -1379,9 +1337,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEs
-                                ? 'Aporte de Energía de Macros'
-                                : 'Macronutrient Energy Split',
+                            S.of(context).professionalPlanMacroEnergySplit,
                             style: Theme.of(context)
                                 .textTheme
                                 .labelMedium
@@ -1395,15 +1351,15 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
                               _PctPill(
-                                  label: isEs ? 'Proteína' : 'Protein',
+                                  label: S.of(context).professionalMacroProtein,
                                   pct: pPct,
                                   color: const Color(0xFF10B981)),
                               _PctPill(
-                                  label: isEs ? 'Carbos' : 'Carbs',
+                                  label: S.of(context).professionalMacroCarbs,
                                   pct: cPct,
                                   color: const Color(0xFFF59E0B)),
                               _PctPill(
-                                  label: isEs ? 'Grasas' : 'Fats',
+                                  label: S.of(context).professionalMacroFat,
                                   pct: fPct,
                                   color: const Color(0xFF3B82F6)),
                             ],
@@ -1413,7 +1369,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      isEs ? 'Comidas recomendadas' : 'Suggested meals',
+                      S.of(context).professionalPlanSuggestedMeals,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
                           ),
@@ -1424,9 +1380,7 @@ class WeekdayDetailBottomSheet extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         child: Center(
                           child: Text(
-                            isEs
-                                ? 'No hay comidas sugeridas'
-                                : 'No suggested meals',
+                            S.of(context).professionalPlanNoSuggestedMeals,
                             style:
                                 TextStyle(color: colorScheme.onSurfaceVariant),
                           ),
@@ -1762,7 +1716,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
+    final localeCode = Localizations.localeOf(context).languageCode;
 
     final hasProtein = widget.protein >= 5;
     final hasCarbs = widget.carbs >= 5;
@@ -1821,7 +1775,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                isEs ? 'Alternativas y Sustitutos' : 'Equivalent Substitutes',
+                S.of(context).professionalPlanEquivalentSubstitutes,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -1835,9 +1789,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
           ),
           const SizedBox(height: 6),
           Text(
-            isEs
-                ? 'Equivalencias calculadas para aportar los mismos gramos de macronutrientes.'
-                : 'Portions scaled to match the exact target macronutrients of this meal.',
+            S.of(context).professionalPlanEquivalentSubstitutesSubtitle,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -1850,7 +1802,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: _MacroSelectorButton(
-                      label: isEs ? 'Proteína' : 'Protein',
+                      label: S.of(context).professionalMacroProtein,
                       isSelected: _selectedMacro == 'protein',
                       color: const Color(0xFF10B981),
                       onTap: () => setState(() => _selectedMacro = 'protein'),
@@ -1862,7 +1814,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
                   child: Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: _MacroSelectorButton(
-                      label: isEs ? 'Carbos' : 'Carbs',
+                      label: S.of(context).professionalMacroCarbs,
                       isSelected: _selectedMacro == 'carbs',
                       color: const Color(0xFFF59E0B),
                       onTap: () => setState(() => _selectedMacro = 'carbs'),
@@ -1872,7 +1824,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
               if (hasFat)
                 Expanded(
                   child: _MacroSelectorButton(
-                    label: isEs ? 'Grasa' : 'Fat',
+                    label: S.of(context).professionalMacroFat,
                     isSelected: _selectedMacro == 'fat',
                     color: const Color(0xFF3B82F6),
                     onTap: () => setState(() => _selectedMacro = 'fat'),
@@ -1911,7 +1863,7 @@ class _MealSubstitutionsWidgetState extends State<_MealSubstitutionsWidget> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      isEs ? food.nameEs : food.nameEn,
+                      localeCode == 'es' ? food.nameEs : food.nameEn,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),

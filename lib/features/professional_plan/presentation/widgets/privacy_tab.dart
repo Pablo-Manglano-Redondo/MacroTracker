@@ -35,13 +35,9 @@ class PrivacyTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Control de privacidad', en: 'Privacy control'),
+                eyebrow: S.of(context).professionalPrivacyControlEyebrow,
                 title: S.of(context).professionalPrivacyCurrentLevel,
-                subtitle: uiText(
-                  context,
-                  es: 'Esta sección describe el nivel real de datos compartidos ahora mismo, sin prometer más de lo activo.',
-                  en: 'This section describes the real level of data being shared right now, without promising more than what is active.',
-                ),
+                subtitle: S.of(context).professionalPrivacyCurrentLevelSubtitle,
               ),
               const SizedBox(height: 14),
               Wrap(
@@ -53,7 +49,7 @@ class PrivacyTab extends StatelessWidget {
                     label: sharingScope.sharingMode == 'aggregate'
                         ? S.of(context).professionalPrivacyAggregateOnly
                         : (sharingScope.sharingMode == 'detailed'
-                            ? (uiText(context, es: 'Detallado', en: 'Detailed'))
+                            ? (S.of(context).professionalPrivacyDetailed)
                             : sharingScope.sharingMode),
                   ),
                   StatusPill(
@@ -82,21 +78,9 @@ class PrivacyTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(
-                  context,
-                  es: 'Nivel de acceso',
-                  en: 'Access level',
-                ),
-                title: uiText(
-                  context,
-                  es: 'Decide si compartes solo agregados o diario detallado',
-                  en: 'Choose between aggregate-only or detailed diary sharing',
-                ),
-                subtitle: uiText(
-                  context,
-                  es: 'El nivel agregado mantiene objetivos, adherencia, resumenes y mensajeria. El nivel detallado desbloquea el diario crudo para este profesional hasta que lo vuelvas a cambiar.',
-                  en: 'Aggregate keeps targets, adherence, snapshots, and messaging. Detailed also unlocks your raw diary for this professional until you change it again.',
-                ),
+                eyebrow: S.of(context).professionalPrivacyAccessLevelEyebrow,
+                title: S.of(context).professionalPrivacySharingModeTitle,
+                subtitle: S.of(context).professionalPrivacySharingModeSubtitle,
               ),
               const SizedBox(height: 14),
               Wrap(
@@ -105,7 +89,7 @@ class PrivacyTab extends StatelessWidget {
                 children: [
                   ChoiceChip(
                     label: Text(
-                      uiText(context, es: 'Solo agregados', en: 'Aggregate only'),
+                      S.of(context).professionalPrivacyAggregateOnly,
                     ),
                     selected: isAggregate,
                     onSelected: isAggregate
@@ -114,7 +98,7 @@ class PrivacyTab extends StatelessWidget {
                   ),
                   ChoiceChip(
                     label: Text(
-                      uiText(context, es: 'Diario detallado', en: 'Detailed diary'),
+                      S.of(context).professionalPrivacyDetailed,
                     ),
                     selected: isDetailed,
                     onSelected: isDetailed
@@ -126,16 +110,8 @@ class PrivacyTab extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 isAggregate
-                    ? uiText(
-                        context,
-                        es: 'Ahora mismo el profesional no puede leer tu diario crudo ni el detalle por comida.',
-                        en: 'Right now the professional cannot read your raw diary or per-meal detail.',
-                      )
-                    : uiText(
-                        context,
-                        es: 'Ahora mismo el profesional puede leer tu diario crudo y el detalle por comida de esta relacion.',
-                        en: 'Right now the professional can read your raw diary and per-meal detail for this relationship.',
-                      ),
+                    ? S.of(context).professionalPrivacyAggregateModeBody
+                    : S.of(context).professionalPrivacyDetailedModeBody,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       height: 1.35,
@@ -151,7 +127,7 @@ class PrivacyTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Acceso', en: 'Access'),
+                eyebrow: S.of(context).professionalPrivacyAccessEyebrow,
                 title: S.of(context).professionalPrivacyAccessControl,
                 subtitle: S.of(context).professionalPrivacyAccessControlBody,
               ),

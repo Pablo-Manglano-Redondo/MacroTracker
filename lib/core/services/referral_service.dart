@@ -62,7 +62,9 @@ class ReferralService {
       return newCode;
     } on AuthApiException catch (e) {
       if (e.code == 'anonymous_provider_disabled') {
-        _log.info('Supabase anonymous sign-ins are disabled. Referral code features are disabled for guests.');
+        _log.info(
+          'Supabase anonymous sign-ins are disabled. Referral code features are disabled for guests.',
+        );
       } else {
         _log.warning('Failed to get/create referral code', e);
       }
@@ -82,8 +84,8 @@ class ReferralService {
     try {
       await _identityService.ensureUserSession();
 
-      final response = await _supabase
-          .rpc('redeem_referral_code', params: {'p_code': code});
+      final response =
+          await _supabase.rpc('redeem_referral_code', params: {'p_code': code});
 
       if (response is List && response.isNotEmpty) {
         // Grant share bonus to the redeemer.
@@ -127,7 +129,9 @@ class ReferralService {
       return response != null;
     } on AuthApiException catch (e) {
       if (e.code == 'anonymous_provider_disabled') {
-        _log.info('Supabase anonymous sign-ins are disabled. Cannot check if guest user redeemed a code.');
+        _log.info(
+          'Supabase anonymous sign-ins are disabled. Cannot check if guest user redeemed a code.',
+        );
       } else {
         _log.warning('Failed to check if user redeemed any code', e);
       }
@@ -151,7 +155,9 @@ class ReferralService {
       return (count as num?)?.toInt() ?? 0;
     } on AuthApiException catch (e) {
       if (e.code == 'anonymous_provider_disabled') {
-        _log.info('Supabase anonymous sign-ins are disabled. Cannot get referral count for guest.');
+        _log.info(
+          'Supabase anonymous sign-ins are disabled. Cannot get referral count for guest.',
+        );
       } else {
         _log.warning('Failed to get referral count', e);
       }
@@ -173,24 +179,6 @@ class ReferralService {
       await _monetizationService.grantShareBonus();
       await _analyticsService.logShareBonusGranted();
     }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Share link
-  // ---------------------------------------------------------------------------
-
-  /// Build a shareable text message containing the referral code.
-  String buildShareMessage(String code, {bool isEs = false}) {
-    if (isEs) {
-      return '¡Prueba MacroTracker! Registra comidas con IA en segundos. '
-          'Usa mi código de invitación: $code '
-          'y ambos obtenemos usos extra de IA gratis. '
-          'https://macrotracker.app/referral?code=$code';
-    }
-    return 'Try MacroTracker! Log meals with AI in seconds. '
-        'Use my referral code: $code '
-        'and we both get extra free AI uses. '
-        'https://macrotracker.app/referral?code=$code';
   }
 
   // ---------------------------------------------------------------------------

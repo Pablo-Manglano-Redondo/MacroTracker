@@ -291,7 +291,7 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
                 if (_loggedIntake != null) ...[
                   const SizedBox(height: 16),
                   Text(
-                    _isEs(context) ? 'Macros del registro' : 'Logged macros',
+                    S.of(context).loggedMacrosLabel,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -500,10 +500,6 @@ class _MealDetailScreenState extends State<MealDetailScreen> {
     return amount % 1 == 0 ? amount.toStringAsFixed(0) : amount.toString();
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   String _quickCategoryLabel(
     BuildContext context,
     QuickRecipeCategoryEntity category,
@@ -572,7 +568,6 @@ class _LoggedIntakeSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final colorScheme = Theme.of(context).colorScheme;
     final timeLabel = DateFormat.Hm().format(intake.dateTime);
     final mealTypeLabel = _mealTypeLabel(context, intake.type);
@@ -591,7 +586,7 @@ class _LoggedIntakeSummaryCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            isEs ? 'Detalle del registro' : 'Logged entry details',
+            S.of(context).loggedEntryDetailsLabel,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                 ),
@@ -625,7 +620,7 @@ class _LoggedIntakeSummaryCard extends StatelessWidget {
                   color: colorScheme.onSurface,
                   fontWeight: FontWeight.w700,
                 ),
-            prefix: isEs ? 'Cantidad: ' : 'Amount: ',
+            prefix: S.of(context).amountPrefixLabel,
           ),
         ],
       ),

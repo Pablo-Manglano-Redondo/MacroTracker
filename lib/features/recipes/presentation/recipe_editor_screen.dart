@@ -79,7 +79,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEs(context) ? 'Editar receta' : 'Edit recipe'),
+        title: Text(S.of(context).recipeDetailEditRecipe),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 104),
@@ -97,9 +97,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: S.of(context).servingsLabel,
-              helperText: _isEs(context)
-                  ? 'Ración por defecto al registrar esta receta.'
-                  : 'Default serving amount when logging this recipe.',
+              helperText: S.of(context).recipeEditorServingsHelper,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -133,7 +131,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             minLines: 2,
             maxLines: 4,
             decoration: InputDecoration(
-              labelText: _isEs(context) ? 'Notas de la receta' : 'Recipe notes',
+              labelText: S.of(context).recipeDetailRecipeNotes,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -155,7 +153,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.save_outlined),
-            label: Text(_isEs(context) ? 'Guardar receta' : 'Save recipe'),
+            label: Text(S.of(context).recipeEditorSaveRecipe),
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 52),
             ),
@@ -166,8 +164,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   }
 
   Widget _buildIngredientsSection() {
-    final isEs = _isEs(context);
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -178,7 +174,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    isEs ? 'Ingredientes' : 'Ingredients',
+                    S.of(context).professionalPlanRecipeIngredients,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -187,16 +183,14 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                 TextButton.icon(
                   onPressed: _addIngredient,
                   icon: const Icon(Icons.add_outlined),
-                  label: Text(isEs ? 'Añadir' : 'Add'),
+                  label: Text(S.of(context).addLabel),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             if (_ingredients.isEmpty)
               Text(
-                isEs
-                    ? 'Añade alimentos para poder ajustar la receta.'
-                    : 'Add foods to adjust this recipe.',
+                S.of(context).recipeEditorIngredientsEmpty,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -210,7 +204,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   }
 
   Widget _buildMacroSummary() {
-    final isEs = _isEs(context);
     final totals = _currentTotals();
     final servings = _parsedServings();
     final perServing = servings > 0
@@ -229,7 +222,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              isEs ? 'Resumen nutricional' : 'Nutrition summary',
+              S.of(context).recipeEditorNutritionSummary,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -259,9 +252,9 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              isEs
-                  ? 'Por racion. Total receta: ${totals.kcal.toStringAsFixed(0)} kcal.'
-                  : 'Per serving. Full recipe: ${totals.kcal.toStringAsFixed(0)} kcal.',
+              S
+                  .of(context)
+                  .recipeEditorPerServingSummary(totals.kcal.toStringAsFixed(0)),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -273,7 +266,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   }
 
   Widget _buildIngredientEditor(_EditableRecipeIngredient ingredient) {
-    final isEs = _isEs(context);
     final colorScheme = Theme.of(context).colorScheme;
     final units = _allowedUnits(ingredient.meal, ingredient.unit);
     final nutrition = _ingredientNutrition(ingredient);
@@ -297,7 +289,8 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          ingredient.meal.name ?? (isEs ? 'Alimento' : 'Food'),
+                          ingredient.meal.name ??
+                              S.of(context).recipeDetailIngredientFallback,
                           style:
                               Theme.of(context).textTheme.titleSmall?.copyWith(
                                     fontWeight: FontWeight.w700,
@@ -322,17 +315,17 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                     ),
                   ),
                   IconButton(
-                    tooltip: isEs ? 'Cambiar alimento' : 'Change food',
+                    tooltip: S.of(context).recipeEditorChangeFood,
                     onPressed: () => _replaceIngredient(ingredient),
                     icon: const Icon(Icons.swap_horiz_outlined),
                   ),
                   IconButton(
-                    tooltip: isEs ? 'Duplicar' : 'Duplicate',
+                    tooltip: S.of(context).recipeEditorDuplicate,
                     onPressed: () => _duplicateIngredient(ingredient),
                     icon: const Icon(Icons.content_copy_outlined),
                   ),
                   IconButton(
-                    tooltip: isEs ? 'Eliminar' : 'Remove',
+                    tooltip: S.of(context).aiRemoveLabel,
                     onPressed: () => _removeIngredient(ingredient),
                     icon: const Icon(Icons.delete_outline),
                   ),
@@ -347,7 +340,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
-                        labelText: isEs ? 'Cantidad' : 'Amount',
+                        labelText: S.of(context).aiAmountLabel,
                         border: const OutlineInputBorder(),
                       ),
                       onChanged: (_) => setState(() {}),
@@ -361,7 +354,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
                           ? ingredient.unit
                           : units.first,
                       decoration: InputDecoration(
-                        labelText: isEs ? 'Unidad' : 'Unit',
+                        labelText: S.of(context).unitLabel,
                         border: const OutlineInputBorder(),
                       ),
                       items: units
@@ -547,7 +540,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
 
   String _unitLabel(String unit) {
     if (unit == 'serving') {
-      return _isEs(context) ? 'racion' : 'serving';
+      return S.of(context).recipeDetailServingUnitSingular;
     }
     return unit;
   }
@@ -615,9 +608,7 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
   void _showInvalidRecipeMessage() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_isEs(context)
-            ? 'Revisa nombre, raciones e ingredientes.'
-            : 'Check name, servings, and ingredients.'),
+        content: Text(S.of(context).recipeEditorInvalidRecipe),
       ),
     );
   }
@@ -666,9 +657,6 @@ class _RecipeEditorScreenState extends State<RecipeEditorScreen> {
     return cleaned.isEmpty ? null : cleaned;
   }
 
-  bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
 }
 
 class RecipeEditorScreenArguments {
@@ -745,8 +733,6 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.88,
@@ -758,7 +744,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
                 children: [
                   Expanded(
                     child: Text(
-                      isEs ? 'Buscar alimento' : 'Search food',
+                      S.of(context).mealEntrySearchFood,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -778,7 +764,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
                 autofocus: true,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
-                  labelText: isEs ? 'Alimento' : 'Food',
+                  labelText: S.of(context).searchFoodPage,
                   prefixIcon: const Icon(Icons.search_outlined),
                   suffixIcon: IconButton(
                     onPressed: _isLoading ? null : _search,
@@ -792,7 +778,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildResults(isEs),
+                child: _buildResults(),
               ),
             ),
           ],
@@ -801,25 +787,21 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
     );
   }
 
-  Widget _buildResults(bool isEs) {
+  Widget _buildResults() {
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (!_hasSearched) {
       return Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          isEs
-              ? 'Busca un alimento para añadirlo a la receta.'
-              : 'Search for a food to add it to the recipe.',
-        ),
+        child: Text(S.of(context).recipeEditorSearchPrompt),
       );
     }
     if (_results.isEmpty) {
       return Align(
         alignment: Alignment.centerLeft,
         child: Text(
-          _errorMessage ?? (isEs ? 'Sin resultados.' : 'No results.'),
+          _errorMessage ?? S.of(context).aiReplaceNoResults,
         ),
       );
     }
@@ -833,15 +815,13 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
           return ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.offline_pin_outlined),
-            title: Text(
-              isEs ? 'Resultados de cache local' : 'Local cache results',
-            ),
+            title: Text(S.of(context).recipeEditorLocalCacheResults),
           );
         }
         final meal = _results[_usedOfflineCache ? index - 1 : index];
         return ListTile(
           contentPadding: EdgeInsets.zero,
-          title: Text(meal.name ?? (isEs ? 'Alimento' : 'Food')),
+          title: Text(meal.name ?? S.of(context).recipeDetailIngredientFallback),
           subtitle: Text(_mealSubtitle(meal)),
           trailing: Text(
             '${((meal.nutriments.energyPerUnit ?? 0) * _initialAmount(meal)).toStringAsFixed(0)} kcal',
@@ -926,9 +906,7 @@ class _MealPickerSheetState extends State<_MealPickerSheet> {
           _results = const [];
           _isLoading = false;
           _usedOfflineCache = false;
-          _errorMessage = Localizations.localeOf(context).languageCode == 'es'
-              ? 'No se pudo buscar ahora. Revisa la conexion e intentalo de nuevo.'
-              : 'Search is unavailable right now. Check the connection and try again.';
+          _errorMessage = S.of(context).recipeEditorSearchUnavailable;
         });
       }
     }

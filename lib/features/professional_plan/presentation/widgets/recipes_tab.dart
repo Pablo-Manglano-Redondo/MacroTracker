@@ -5,6 +5,7 @@ import 'package:macrotracker/features/professional_plan/data/repository/professi
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_proposed_recipes_usecase.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class RecipesTab extends StatefulWidget {
   final ProfessionalSectionSummaryEntity summary;
@@ -51,7 +52,7 @@ class _RecipesTabState extends State<RecipesTab> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          SnackBar(content: Text(S.of(context).professionalRecipesUpdateError(e))),
         );
       }
     }
@@ -86,14 +87,14 @@ class _RecipesTabState extends State<RecipesTab> {
               Icon(Icons.restaurant_outlined, size: 48, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text(
-                'No recipe proposals yet',
+                S.of(context).professionalRecipesEmptyTitle,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Your nutritionist will send you recipes here.',
+                S.of(context).professionalRecipesEmptyBody,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                 ),
@@ -141,7 +142,7 @@ class _RecipesTabState extends State<RecipesTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          recipe?.title ?? 'Recipe',
+                          recipe?.title ?? S.of(context).professionalRecipesRecipeFallback,
                           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -171,9 +172,9 @@ class _RecipesTabState extends State<RecipesTab> {
                   runSpacing: 4,
                   children: [
                     if (recipe.kcal != null) _macroChip(colorScheme, '${recipe.kcal!.toInt()} kcal', Icons.local_fire_department),
-                    if (recipe.protein != null) _macroChip(colorScheme, '${recipe.protein!.toInt()}g protein', Icons.fitness_center),
-                    if (recipe.carbs != null) _macroChip(colorScheme, '${recipe.carbs!.toInt()}g carbs', Icons.grain),
-                    if (recipe.fat != null) _macroChip(colorScheme, '${recipe.fat!.toInt()}g fat', Icons.water_drop),
+                    if (recipe.protein != null) _macroChip(colorScheme, '${recipe.protein!.toInt()}g ${S.of(context).proteinLabel}', Icons.fitness_center),
+                    if (recipe.carbs != null) _macroChip(colorScheme, '${recipe.carbs!.toInt()}g ${S.of(context).carbsLabel}', Icons.grain),
+                    if (recipe.fat != null) _macroChip(colorScheme, '${recipe.fat!.toInt()}g ${S.of(context).fatLabel}', Icons.water_drop),
                     if (recipe.mealType != null) _macroChip(colorScheme, recipe.mealType!, Icons.schedule),
                   ],
                 ),
@@ -203,14 +204,14 @@ class _RecipesTabState extends State<RecipesTab> {
                       child: FilledButton.icon(
                         onPressed: () => _updateStatus(proposal.id, 'saved', recipe),
                         icon: const Icon(Icons.bookmark_add, size: 18),
-                        label: const Text('Save to my recipes'),
+                        label: Text(S.of(context).professionalRecipesSaveToMine),
                       ),
                     ),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
                       onPressed: () => _updateStatus(proposal.id, 'declined', null),
                       icon: const Icon(Icons.close, size: 18),
-                      label: const Text('Decline'),
+                      label: Text(S.of(context).professionalRecipesDecline),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.error,
                       ),
@@ -227,9 +228,9 @@ class _RecipesTabState extends State<RecipesTab> {
 
   Widget _statusChip(String status, ColorScheme colorScheme) {
     final (icon, label, bg, fg) = switch (status) {
-      'pending' => (Icons.hourglass_empty, 'Pending', colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer),
-      'saved' => (Icons.check_circle, 'Saved', colorScheme.secondaryContainer, colorScheme.onSecondaryContainer),
-      'declined' => (Icons.cancel, 'Declined', colorScheme.errorContainer, colorScheme.onErrorContainer),
+      'pending' => (Icons.hourglass_empty, S.of(context).professionalSummaryPending, colorScheme.tertiaryContainer, colorScheme.onTertiaryContainer),
+      'saved' => (Icons.check_circle, S.of(context).addMealSaved, colorScheme.secondaryContainer, colorScheme.onSecondaryContainer),
+      'declined' => (Icons.cancel, S.of(context).professionalRecipesDeclined, colorScheme.errorContainer, colorScheme.onErrorContainer),
       _ => (Icons.help_outline, status, colorScheme.surfaceContainerHigh, colorScheme.onSurfaceVariant),
     };
     return Container(

@@ -52,15 +52,17 @@ String formatShortDate(BuildContext context, DateTime? value) {
   return '$day/$month';
 }
 
-String uiText(BuildContext context, {required String es, required String en}) {
-  return Localizations.localeOf(context).languageCode == 'es' ? es : en;
-}
-
 String formatWeekday(BuildContext context, DateTime date) {
-  const es = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
-  const en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  final labels = Localizations.localeOf(context).languageCode == 'es' ? es : en;
-  final label = labels[date.weekday - 1];
+  final label = switch (date.weekday) {
+    DateTime.monday => S.of(context).professionalWeekdayMonday,
+    DateTime.tuesday => S.of(context).professionalWeekdayTuesday,
+    DateTime.wednesday => S.of(context).professionalWeekdayWednesday,
+    DateTime.thursday => S.of(context).professionalWeekdayThursday,
+    DateTime.friday => S.of(context).professionalWeekdayFriday,
+    DateTime.saturday => S.of(context).professionalWeekdaySaturday,
+    DateTime.sunday => S.of(context).professionalWeekdaySunday,
+    _ => '',
+  };
   final day = date.day.toString().padLeft(2, '0');
   final month = date.month.toString().padLeft(2, '0');
   return '$label $day/$month';

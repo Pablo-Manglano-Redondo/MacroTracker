@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
+import 'package:macrotracker/generated/l10n.dart';
 
 class FoodQualityScoreCard extends StatelessWidget {
   final FoodQualityScoreEntity score;
@@ -137,32 +138,25 @@ class FoodQualityScoreCard extends StatelessWidget {
 }
 
 class FoodQualityUiMeta {
-  static bool _isEs(BuildContext context) {
-    return Localizations.localeOf(context).languageCode == 'es';
-  }
-
   static String title(BuildContext context) =>
-      _isEs(context) ? 'Calidad alimentaria' : 'Food quality';
+      S.of(context).foodQualityTitle;
 
-  static String subtitle(BuildContext context) => _isEs(context)
-      ? 'Nota nutricional estimada'
-      : 'Estimated nutrition score';
+  static String subtitle(BuildContext context) =>
+      S.of(context).foodQualitySubtitle;
 
-  static String partialSubtitle(BuildContext context) => _isEs(context)
-      ? 'Estimacion basada en datos parciales'
-      : 'Estimate based on partial data';
+  static String partialSubtitle(BuildContext context) =>
+      S.of(context).foodQualityPartialSubtitle;
 
   static String bandLabel(BuildContext context, FoodQualityBandEntity band) {
-    final isEs = _isEs(context);
     switch (band) {
       case FoodQualityBandEntity.excellent:
-        return isEs ? 'Excelente' : 'Excellent';
+        return S.of(context).foodQualityBandExcellent;
       case FoodQualityBandEntity.good:
-        return isEs ? 'Buena' : 'Good';
+        return S.of(context).foodQualityBandGood;
       case FoodQualityBandEntity.fair:
-        return isEs ? 'Aceptable' : 'Fair';
+        return S.of(context).foodQualityBandFair;
       case FoodQualityBandEntity.poor:
-        return isEs ? 'Baja' : 'Poor';
+        return S.of(context).foodQualityBandPoor;
     }
   }
 
@@ -181,28 +175,25 @@ class FoodQualityUiMeta {
 
   static String reasonLabel(
       BuildContext context, FoodQualityReasonCode reason) {
-    final isEs = _isEs(context);
     switch (reason) {
       case FoodQualityReasonCode.highFiber:
-        return isEs ? 'Alta en fibra' : 'High fiber';
+        return S.of(context).foodQualityReasonHighFiber;
       case FoodQualityReasonCode.goodProtein:
-        return isEs ? 'Buena proteína' : 'Good protein';
+        return S.of(context).foodQualityReasonGoodProtein;
       case FoodQualityReasonCode.balancedProfile:
-        return isEs ? 'Perfil equilibrado' : 'Balanced profile';
+        return S.of(context).foodQualityReasonBalancedProfile;
       case FoodQualityReasonCode.lowSugar:
-        return isEs ? 'Azúcar contenido' : 'Moderate sugar';
+        return S.of(context).foodQualityReasonLowSugar;
       case FoodQualityReasonCode.highSugar:
-        return isEs ? 'Azúcar alto' : 'High sugar';
+        return S.of(context).foodQualityReasonHighSugar;
       case FoodQualityReasonCode.highEnergyDensity:
-        return isEs ? 'Muy densa en calorías' : 'Calorie dense';
+        return S.of(context).foodQualityReasonHighEnergyDensity;
       case FoodQualityReasonCode.lowEnergyDensity:
-        return isEs
-            ? 'Densidad calórica razonable'
-            : 'Reasonable calorie density';
+        return S.of(context).foodQualityReasonLowEnergyDensity;
       case FoodQualityReasonCode.highSaturatedFat:
-        return isEs ? 'Grasas saturadas altas' : 'High saturated fat';
+        return S.of(context).foodQualityReasonHighSaturatedFat;
       case FoodQualityReasonCode.partialData:
-        return isEs ? 'Datos parciales' : 'Partial data';
+        return S.of(context).foodQualityReasonPartialData;
     }
   }
 }

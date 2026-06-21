@@ -53,7 +53,6 @@ class _SummaryTabState extends State<SummaryTab> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final syncStatus = widget.summary.syncStatus;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,13 +62,9 @@ class _SummaryTabState extends State<SummaryTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context, es: 'Operación', en: 'Operations'),
+                eyebrow: S.of(context).professionalSummaryOperationsEyebrow,
                 title: S.of(context).professionalTabSummary,
-                subtitle: uiText(
-                  context,
-                  es: 'Plan activo, objetivo del día y estado de sincronización.',
-                  en: 'Active plan, today target, and sync status.',
-                ),
+                subtitle: S.of(context).professionalSummaryOperationsSubtitle,
               ),
               const SizedBox(height: 14),
               Wrap(
@@ -89,7 +84,7 @@ class _SummaryTabState extends State<SummaryTab> {
                   ),
                   StatusPill(
                     icon: Icons.sync_outlined,
-                    label: '${syncStatus.pendingSyncCount} pendientes',
+                    label: S.of(context).professionalHubPendingCount(syncStatus.pendingSyncCount),
                   ),
                 ],
               ),
@@ -124,11 +119,7 @@ class _SummaryTabState extends State<SummaryTab> {
               children: [
                 SectionHeader(
                   eyebrow: S.of(context).todayLabel,
-                  title: uiText(
-                    context,
-                    es: 'Plan vs realidad del día',
-                    en: 'Today plan vs reality',
-                  ),
+                  title: S.of(context).professionalSummaryTodayPlanVsReality,
                   subtitle: S.of(context).professionalSharingPendingSnapshots(
                         widget.summary.syncStatus.pendingSyncCount,
                       ),
@@ -179,16 +170,14 @@ class _SummaryTabState extends State<SummaryTab> {
 
                 // Daily Context Note Section
                 Text(
-                  isEs ? 'Nota de Contexto Diaria' : 'Daily Context Note',
+                  S.of(context).professionalSummaryDailyContextTitle,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  isEs
-                      ? 'Comparte detalles de tu día (energía, digestión, eventos) con tu nutricionista.'
-                      : 'Share details of your day (energy, digestion, events) with your nutritionist.',
+                  S.of(context).professionalSummaryDailyContextSubtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -199,9 +188,7 @@ class _SummaryTabState extends State<SummaryTab> {
                   maxLines: 3,
                   style: Theme.of(context).textTheme.bodyMedium,
                   decoration: InputDecoration(
-                    hintText: isEs
-                        ? 'Escribe tu nota aquí...'
-                        : 'Write your note here...',
+                    hintText: S.of(context).professionalSummaryDailyContextHint,
                     filled: true,
                     fillColor: colorScheme.surfaceContainerHighest
                         .withValues(alpha: 0.15),
@@ -242,7 +229,7 @@ class _SummaryTabState extends State<SummaryTab> {
                           });
                         },
                         icon: const Icon(Icons.undo_rounded, size: 18),
-                        label: Text(isEs ? 'Deshacer' : 'Undo'),
+                        label: Text(S.of(context).professionalSummaryUndo),
                       ),
                     const SizedBox(width: 8),
                     FilledButton.icon(
@@ -267,8 +254,7 @@ class _SummaryTabState extends State<SummaryTab> {
                           : const Icon(Icons.save_outlined, size: 18),
                       label: Text(
                         _isSaving
-                            ? (isEs ? 'Guardando...' : 'Saving...')
-                            : (isEs ? 'Guardar Nota' : 'Save Note'),
+                            ? S.of(context).professionalSummarySavingNote : S.of(context).professionalSummarySaveNote,
                       ),
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
@@ -303,7 +289,6 @@ class _CalorieOverviewRing extends StatelessWidget {
     final percent = target <= 0 ? 0.0 : (actual / target).clamp(0.0, 1.0);
     final remaining = (target - actual).round();
     final isOver = remaining < 0;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return Row(
       children: [
@@ -341,8 +326,8 @@ class _CalorieOverviewRing extends StatelessWidget {
             children: [
               Text(
                 isOver
-                    ? (isEs ? 'Límite superado' : 'Target exceeded')
-                    : (isEs ? 'Restantes' : 'Remaining kcal'),
+                    ? S.of(context).professionalSummaryTargetExceeded
+                    : S.of(context).professionalSummaryRemainingKcal,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
@@ -358,9 +343,7 @@ class _CalorieOverviewRing extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                isEs
-                    ? 'Progreso diario comparado con las metas asignadas por tu profesional.'
-                    : 'Daily progress compared to targets assigned by your nutritionist.',
+                S.of(context).professionalSummaryCalorieProgressBody,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       height: 1.3,
@@ -512,8 +495,7 @@ class _EmptyPlanPlaceholder extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: uiText(context,
-                es: 'Sin plan publicado', en: 'No published plan'),
+            eyebrow: S.of(context).professionalSummaryNoPublishedPlan,
             title: S.of(context).professionalConnectedNoPlan,
             subtitle: S.of(context).professionalEmptyPlanBody,
           ),

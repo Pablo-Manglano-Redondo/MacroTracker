@@ -117,8 +117,6 @@ class _CheckinTabState extends State<CheckinTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
-
     if (_loadingTemplate) {
       return const Center(
         child: Padding(
@@ -266,7 +264,7 @@ class _CheckinTabState extends State<CheckinTab> {
           if (_template != null && _template!.questions.isNotEmpty) ...[
             const Divider(height: 32),
             Text(
-              isEs ? 'Preguntas del Nutricionista' : 'Nutritionist Questions',
+              S.of(context).checkinTabNutritionistQuestions,
               style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -280,7 +278,7 @@ class _CheckinTabState extends State<CheckinTab> {
                 TextField(
                   controller: _textControllers[q.id],
                   decoration: InputDecoration(
-                    hintText: isEs ? 'Escribe tu respuesta...' : 'Type your answer...',
+                    hintText: S.of(context).checkinTabAnswerHint,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     contentPadding: const EdgeInsets.all(12),
                   ),
@@ -328,7 +326,7 @@ class _CheckinTabState extends State<CheckinTab> {
                 Row(
                   children: [
                     ChoiceChip(
-                      label: Text(isEs ? 'Sí' : 'Yes'),
+                      label: Text(S.of(context).dialogYesLabel),
                       selected: _answers[q.id] == true,
                       onSelected: (selected) {
                         if (selected) setState(() => _answers[q.id] = true);
@@ -336,7 +334,7 @@ class _CheckinTabState extends State<CheckinTab> {
                     ),
                     const SizedBox(width: 12),
                     ChoiceChip(
-                      label: Text(isEs ? 'No' : 'No'),
+                      label: Text(S.of(context).dialogNoLabel),
                       selected: _answers[q.id] == false,
                       onSelected: (selected) {
                         if (selected) setState(() => _answers[q.id] = false);

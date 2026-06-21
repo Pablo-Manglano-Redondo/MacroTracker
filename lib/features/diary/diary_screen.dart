@@ -22,6 +22,7 @@ import 'package:macrotracker/features/meal_detail/presentation/bloc/meal_detail_
 import 'package:macrotracker/features/weekly_insights/domain/entity/weekly_insights_entity.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
+import 'package:macrotracker/features/feature_tour/presentation/widgets/product_tour_overlay.dart';
 
 class DiaryScreen extends StatefulWidget {
   const DiaryScreen({super.key});
@@ -61,12 +62,16 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
     _getIntakeUsecase = locator<GetIntakeUsecase>();
     _getUserActivityUsecase = locator<GetUserActivityUsecase>();
     _buildWeeklyInsightsUsecase = locator<BuildWeeklyInsightsUsecase>();
+    locator.registerSingleton<ScrollController>(_scrollController, instanceName: 'diaryScroll');
     super.initState();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    if (locator.isRegistered<ScrollController>(instanceName: 'diaryScroll')) {
+      locator.unregister<ScrollController>(instanceName: 'diaryScroll');
+    }
     _scrollController.dispose();
     super.dispose();
   }
@@ -141,6 +146,7 @@ class _DiaryScreenState extends State<DiaryScreen> with WidgetsBindingObserver {
               return _getLoadingContent();
             } else if (state is CalendarDayLoaded) {
               return DayInfoWidget(
+                key: ProductTourKeys.diaryEntriesKey,
                 trackedDayEntity: state.trackedDayEntity,
                 selectedDay: _selectedDate,
                 userActivities: state.userActivityList,
@@ -409,7 +415,6 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
   Widget build(BuildContext context) {
     super.build(context);
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
 
     return FutureBuilder<WeeklyInsightsEntity>(
       future: _future,
@@ -459,7 +464,7 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
                       child: _WeeklyMetricTile(
                         icon: Icons.track_changes_rounded,
                         value: "${(weekly.goalAdherenceRate * 100).round()}%",
-                        label: isEs ? "adherencia" : "adherence",
+                        label: S.of(context).diaryWeeklyAdherenceLabel,
                         color: colorScheme.primary,
                       ),
                     ),
@@ -472,7 +477,7 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
                       child: _WeeklyMetricTile(
                         icon: Icons.egg_alt_rounded,
                         value: "${weekly.averageProtein.toStringAsFixed(0)}g",
-                        label: isEs ? "proteína" : "protein",
+                        label: S.of(context).diaryWeeklyProteinLabel,
                         color: colorScheme.tertiary,
                       ),
                     ),
@@ -485,7 +490,7 @@ class _DiaryWeeklyStripState extends State<_DiaryWeeklyStrip>
                       child: _WeeklyMetricTile(
                         icon: Icons.calendar_view_week_rounded,
                         value: "${weekly.trackedDays}/7",
-                        label: isEs ? "días" : "days",
+                        label: S.of(context).diaryWeeklyDaysLabel,
                         color: colorScheme.secondary,
                       ),
                     ),

@@ -34,14 +34,9 @@ class TrackingTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context,
-                    es: 'Seguimiento diario', en: 'Daily follow-up'),
+                eyebrow: S.of(context).professionalTrackingDailyEyebrow,
                 title: S.of(context).professionalTrackingTodayTitle,
-                subtitle: uiText(
-                  context,
-                  es: 'Lectura rápida de adherencia para que sepas cómo va el día frente al plan.',
-                  en: 'Quick adherence read so you know how the day is going against the plan.',
-                ),
+                subtitle: S.of(context).professionalTrackingDailySubtitle,
               ),
               const SizedBox(height: 14),
               _TrackingScoreCard(
@@ -64,19 +59,13 @@ class TrackingTab extends StatelessWidget {
                 children: [
                   StatusPill(
                     icon: Icons.bolt_outlined,
-                    label: uiText(
-                      context,
-                      es: '$todayPercent% del objetivo kcal hoy',
-                      en: '$todayPercent% of today kcal target',
-                    ),
+                    label: S
+                        .of(context)
+                        .professionalTrackingTodayKcalTarget(todayPercent),
                   ),
                   StatusPill(
                     icon: Icons.event_note_outlined,
-                    label: uiText(
-                      context,
-                      es: '${summary.today.mealsLogged} comidas registradas',
-                      en: '${summary.today.mealsLogged} meals logged',
-                    ),
+                    label: S.of(context).professionalTrackingMealsLoggedCount(summary.today.mealsLogged),
                   ),
                 ],
               ),
@@ -91,14 +80,9 @@ class TrackingTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: uiText(context,
-                    es: 'Perspectiva semanal', en: 'Weekly perspective'),
+                eyebrow: S.of(context).professionalTrackingWeeklyEyebrow,
                 title: S.of(context).professionalTrackingWeekTitle,
-                subtitle: uiText(
-                  context,
-                  es: 'Aquí ves si la semana mantiene dirección, no solo si un día salió perfecto.',
-                  en: 'This shows whether the week keeps its direction, not only whether a single day was perfect.',
-                ),
+                subtitle: S.of(context).professionalTrackingWeeklySubtitle,
               ),
               const SizedBox(height: 14),
               Wrap(
@@ -106,7 +90,7 @@ class TrackingTab extends StatelessWidget {
                 runSpacing: 10,
                 children: [
                   CompactStat(
-                    label: uiText(context, es: 'Semana kcal', en: 'Week kcal'),
+                    label: S.of(context).professionalTrackingWeekKcal,
                     value: '$weekPercent%',
                   ),
                   CompactStat(
@@ -302,14 +286,10 @@ class _ProgressSummaryRow extends StatelessWidget {
         target <= 0 ? 0.0 : (actual / target).clamp(0, 1).toDouble();
     final suffix = unit.isEmpty ? '' : unit;
     final delta = (actual - target).round();
+    final deltaValue = delta > 0 ? '+$delta' : delta.toString();
     final deltaLabel = delta == 0
-        ? uiText(context, es: 'En objetivo', en: 'On target')
-        : delta > 0
-            ? uiText(context,
-                es: '+$delta$suffix vs objetivo',
-                en: '+$delta$suffix vs target')
-            : uiText(context,
-                es: '$delta$suffix vs objetivo', en: '$delta$suffix vs target');
+        ? S.of(context).professionalTrackingOnTarget
+        : S.of(context).professionalTrackingVsTarget(deltaValue, suffix);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -391,44 +371,42 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
       '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 
   String _weekdayName(BuildContext context, int weekday) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (weekday) {
       case 1:
-        return isEs ? 'Lunes' : 'Monday';
+        return S.of(context).professionalWeekdayMonday;
       case 2:
-        return isEs ? 'Martes' : 'Tuesday';
+        return S.of(context).professionalWeekdayTuesday;
       case 3:
-        return isEs ? 'Miércoles' : 'Wednesday';
+        return S.of(context).professionalWeekdayWednesday;
       case 4:
-        return isEs ? 'Jueves' : 'Thursday';
+        return S.of(context).professionalWeekdayThursday;
       case 5:
-        return isEs ? 'Viernes' : 'Friday';
+        return S.of(context).professionalWeekdayFriday;
       case 6:
-        return isEs ? 'Sábado' : 'Saturday';
+        return S.of(context).professionalWeekdaySaturday;
       case 7:
-        return isEs ? 'Domingo' : 'Sunday';
+        return S.of(context).professionalWeekdaySunday;
       default:
         return '';
     }
   }
 
   String _weekdayInitial(BuildContext context, int weekday) {
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     switch (weekday) {
       case 1:
-        return 'L';
+        return S.of(context).professionalWeekdayInitialMonday;
       case 2:
-        return 'M';
+        return S.of(context).professionalWeekdayInitialTuesday;
       case 3:
-        return isEs ? 'X' : 'W';
+        return S.of(context).professionalWeekdayInitialWednesday;
       case 4:
-        return 'J';
+        return S.of(context).professionalWeekdayInitialThursday;
       case 5:
-        return 'V';
+        return S.of(context).professionalWeekdayInitialFriday;
       case 6:
-        return 'S';
+        return S.of(context).professionalWeekdayInitialSaturday;
       case 7:
-        return 'D';
+        return S.of(context).professionalWeekdayInitialSunday;
       default:
         return '';
     }
@@ -437,7 +415,6 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     final weekPlan = widget.summary.weekPlan;
     final weekTrackedDays = widget.summary.weekTrackedDays;
 
@@ -470,9 +447,7 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
 
     maxCal = maxCal * 1.1;
 
-    String detailText = isEs
-        ? 'Toca una columna para ver detalle'
-        : 'Tap a column to view detail';
+    String detailText = S.of(context).professionalTrackingTapBarHint;
     if (_selectedBarIndex >= 0 && _selectedBarIndex < dailyData.length) {
       final selected = dailyData[_selectedBarIndex];
       final day = selected['day'] as NutritionPlanResolvedDayEntity;
@@ -481,9 +456,8 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
 
       final dayName = _weekdayName(context, day.effectiveDate.weekday);
       final pct = target <= 0 ? 0 : ((actual / target) * 100).round();
-      detailText = isEs
-          ? '$dayName: ${actual.round()} kcal / ${target.round()} kcal ($pct%)'
-          : '$dayName: ${actual.round()} kcal / ${target.round()} kcal ($pct%)';
+      detailText =
+          '$dayName: ${actual.round()} kcal / ${target.round()} kcal ($pct%)';
     }
 
     return Panel(
@@ -491,13 +465,9 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SectionHeader(
-            eyebrow: isEs ? 'Historial de adherencia' : 'Adherence History',
-            title: isEs
-                ? 'Consumo vs Objetivo Semanal'
-                : 'Weekly Calories vs Target',
-            subtitle: isEs
-                ? 'Comparativa visual diaria de calorías consumidas frente al objetivo propuesto.'
-                : 'Daily visual comparison of calories consumed vs nutritionist targets.',
+            eyebrow: S.of(context).professionalTrackingAdherenceHistory,
+            title: S.of(context).professionalTrackingWeeklyCaloriesVsTarget,
+            subtitle: S.of(context).professionalTrackingWeeklyChartSubtitle,
           ),
           const SizedBox(height: 12),
           Container(
@@ -621,11 +591,11 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _LegendItem(
-                  label: isEs ? 'Consumido' : 'Consumed',
+                  label: S.of(context).professionalTrackingConsumed,
                   color: colorScheme.primary),
               const SizedBox(width: 20),
               _LegendItem(
-                  label: isEs ? 'Objetivo Plan' : 'Plan Target',
+                  label: S.of(context).professionalTrackingPlanTarget,
                   color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
             ],
           ),
