@@ -156,6 +156,10 @@ class ProfessionalPlanDataSource {
       return null;
     }
     final refreshedConnection = await _refreshRemoteConnection(connection);
+    if (refreshedConnection == null) {
+      await clearActiveConnection();
+      return null;
+    }
     final plan = await fetchActivePlan(connection.clientId);
     final refreshed = refreshedConnection.copyWith(
       activePlan: plan,
@@ -620,7 +624,7 @@ class ProfessionalPlanDataSource {
     }
   }
 
-  Future<ProfessionalConnectionEntity> _refreshRemoteConnection(
+  Future<ProfessionalConnectionEntity?> _refreshRemoteConnection(
     ProfessionalConnectionEntity connection,
   ) async {
     if (kDebugMode && connection.relationshipId == 'debug-relationship') {
@@ -638,7 +642,7 @@ class ProfessionalPlanDataSource {
         .maybeSingle();
 
     if (response == null) {
-      return connection;
+      return null;
     }
 
     final row = Map<String, dynamic>.from(response);
