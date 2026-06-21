@@ -399,7 +399,7 @@ function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
     "",
   ];
 
-  if (mode !== "photo") {
+  if (mode === "text") {
     base.push(
       "## Text-Specific Rules",
       "- Parse exactly what the user described \u2014 do not add ingredients they didn't mention",
@@ -797,9 +797,9 @@ function sanitizeAlmostJson(text: string): string {
 function summarizeGeminiPayload(payload: any): string {
   const candidates = Array.isArray(payload?.candidates) ? payload.candidates : [];
   const finishReasons = candidates
-    .map((candidate) => candidate?.finishReason)
-    .filter((value) => typeof value === "string");
-  const textParts = candidates.reduce((count, candidate) => {
+    .map((candidate: any) => candidate?.finishReason)
+    .filter((value: any) => typeof value === "string");
+  const textParts = candidates.reduce((count: number, candidate: any) => {
     const parts = Array.isArray(candidate?.content?.parts)
       ? candidate.content.parts
       : [];
@@ -807,7 +807,7 @@ function summarizeGeminiPayload(payload: any): string {
   }, 0);
   const promptBlockReason = payload?.promptFeedback?.blockReason;
   const firstTextPreview = candidates
-    .flatMap((candidate) => {
+    .flatMap((candidate: any) => {
       const parts = Array.isArray(candidate?.content?.parts)
         ? candidate.content.parts
         : [];
