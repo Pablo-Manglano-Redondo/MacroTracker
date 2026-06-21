@@ -46,19 +46,33 @@ class ProfessionalPlanDataSource {
     await _box.delete(_activeConnectionKey);
     await _box.delete(_lastSeenPlanSignatureKey);
     await _box.delete(_lastSeenMessagesCountKey);
+
+    // Clear any pending syncs for this connection in the queue
+    if (connection != null) {
+      final keysToRemove = _syncQueueBox.keys.where((key) {
+        final item = _syncQueueBox.get(key);
+        return item?.relationshipId == connection.relationshipId;
+      }).toList();
+      for (final key in keysToRemove) {
+        await _syncQueueBox.delete(key);
+      }
+    }
+
     if (kDebugMode && connection?.relationshipId == 'debug-relationship') {
       return;
     }
     if (connection != null && connection.relationshipId.isNotEmpty) {
       await _identityService.ensureUserSession();
-      await _supabaseClient
-          .from('professional_clients')
-          .update({
-            'status': 'revoked',
-            'revoked_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', connection.relationshipId)
-          .eq('client_id', connection.clientId);
+      try {
+        await _supabaseClient
+            .from('professional_clients')
+            .update({
+              'status': 'revoked',
+              'revoked_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .eq('id', connection.relationshipId)
+            .eq('client_id', connection.clientId);
+      } catch (_) {}
     }
   }
 
@@ -287,9 +301,18 @@ class ProfessionalPlanDataSource {
       return;
     }
     final keys = List<dynamic>.from(_syncQueueBox.keys);
+    final activeConnection = await getActiveConnection();
+    
     for (final key in keys) {
       final pending = _syncQueueBox.get(key);
       if (pending == null) continue;
+
+      // Discard pending syncs if the relationship is no longer active
+      if (activeConnection == null ||
+          activeConnection.relationshipId != pending.relationshipId) {
+        await _syncQueueBox.delete(key);
+        continue;
+      }
 
       try {
         await _identityService.ensureUserSession();
