@@ -1,77 +1,16 @@
-# MacroTracker - AI Agent Context
+# Repository Guidelines
 
-## Tech Stack
-- **Flutter** 3.x (pinned via `.fvmrc`), **Dart** 3.x+
-- **State management:** `flutter_bloc` (17 BLoCs) + `GetIt` DI (94+ registrations)
-- **Local DB:** Hive (encrypted, NoSQL, local-first)
-- **Cloud:** Supabase (auth, edge functions in Deno, RLS)
-- **AI:** Gemini via Supabase Edge Functions
-- **Payments:** RevenueCat (B2C) + Stripe (B2B via Supabase)
-- **Crash/Error:** Sentry (opt-in, user-consented)
-- **Analytics:** Firebase Analytics + Firebase Cloud Messaging
-- **CI:** GitHub Actions (Android + iOS, builds + TestFlight)
+## Project Structure & Module Organization
+MacroTracker is a small monorepo with three active surfaces: the Flutter app in `lib/`, the professional React/Vite portal in `professional_portal/`, and Supabase migrations/functions in `supabase/`. The mobile app follows feature-first Clean Architecture: `data/`, `domain/`, and `presentation/` under each feature, with shared infrastructure in `lib/core/`. `lib/main.dart` plus `lib/core/utils/locator.dart` are the composition root: Hive, Supabase, RevenueCat, analytics, and nearly all BLoCs/use cases/services are wired there. Keep product logic in Dart; platform folders are integration shells, not feature homes. For mobile UI state, the app relies on `GetIt` lookups and direct bloc-to-bloc dispatches such as `locator<HomeBloc>().add(...)`; `ThemeModeProvider` is the notable `Provider` exception for theme/locale only.
 
-## Architecture
-- **Clean Architecture** enforced per feature: `data/` -> `domain/` -> `presentation/`
-- **Local-first** - all core data stored on-device in Hive; cloud sync optional for professional plan
-- **19 features** in `lib/features/`, shared infrastructure in `lib/core/`
-- **Dependency injection** via `GetIt` service locator in `lib/core/utils/locator.dart` (487 lines)
+## Build, Test, and Development Commands
+Use the pinned SDK from `.fvmrc` (`Flutter 3.41.9`). Core mobile flow: `flutter pub get`, then `dart run build_runner build --delete-conflicting-outputs`, then `flutter test`. Run a single test file with `flutter test test/unit_test/home_bloc_test.dart`. The repo's real regression gate is `powershell -ExecutionPolicy Bypass -File .\scripts\check-product-readiness.ps1`; Android-only validation is `powershell -ExecutionPolicy Bypass -File .\scripts\check-android-debug.ps1 -SkipPubGet`. Release packaging uses `pwsh .\scripts\build-aab.ps1` or `pwsh .\scripts\build-apk.ps1`. For Supabase, use `pwsh ./supabase/test.functions.ps1`, `pwsh ./supabase/serve.functions.ps1`, and `pwsh ./supabase/deploy.functions.ps1 -ProjectRef <ref>`. For the portal, use `npm --prefix professional_portal run verify` or `npm --prefix professional_portal run dev`.
 
-## Directory Conventions (MUST FOLLOW)
-```
-lib/
-  core/              # Shared infra: data sources, repos, entities, use cases, services, utils
-  features/          # Feature slices
-    <feature>/
-      data/          # data_source/ (singular), dbo/, repository/
-      domain/        # entity/, usecase/
-      presentation/  # bloc/, widgets/, <feature>_screen.dart
-  generated/         # l10n (EN + ES), code-gen outputs
-  l10n/              # ARB source files
-```
+## Coding Style & Naming Conventions
+`analysis_options.yaml` only includes `package:flutter_lints/flutter.yaml`, so keep Flutter code idiomatic and conservative. Follow the repo's actual naming rules: `snake_case.dart`, `_screen.dart` for screens, `data_source/` singular, `dbo/`, `bloc/`, and `widgets/`. New persistence models should use `DBO`, not expand the older `dto/` pockets already present in `add_meal/`. Preserve the existing local-first boundary: Hive is the default source of truth, while Supabase/Stripe/RevenueCat/Firebase integrations stay behind services, repositories, or data sources. In the portal, `tsconfig.json` is strict and path aliases use `@/*`.
 
-## Naming Rules
-- Directories: `data_source/` (singular), `dbo/` (not dto/), `widgets/` (plural), `bloc/`
-- Files: `snake_case.dart`
-- Classes: `PascalCase`, suffix `*Entity` / `*DBO` / `*Bloc` / `*Usecase`
-- Screen files: `_screen.dart` suffix (not `_page.dart`)
+## Testing Guidelines
+Mobile tests live in `test/unit_test/`, `test/widget_test/`, and `test/fixture/`. The established pattern is inline manual fakes with `_Fake...` classes instead of a mocking framework. When changing monetization, AI capture, cloud account, reminders, analytics, or professional-plan flows, update or extend the focused readiness ladder rather than relying only on broad test runs. Supabase shared logic is covered with Deno tests under `supabase/functions/_shared/`, and the portal uses Vitest via `npm --prefix professional_portal run test`.
 
-## DI Pattern
-- All BLoCs, use cases, repos, data sources, services registered in `locator.dart`
-- **6 LazySingleton BLoCs** (app-shell: HomeBloc, DiaryBloc, CalendarDayBloc, ProfileBloc, SettingsBloc, OnboardingBloc)
-- **11 Factory BLoCs** (screen-scoped: AddMeal, Scanner, EditMeal, etc.)
-- No `BlocProvider` used - BLoCs resolved via `locator<Bloc>()` in `initState`
-- `Provider` only for `ThemeModeProvider` (theme + locale)
-
-## BLoC-to-BLoC Communication
-- Via global locator: `locator<DiaryBloc>().add(...)` - no event bus
-- Covers 12+ widgets/BLoCs. Grep for `locator<.*Bloc>` to find coupling points.
-
-## Testing
-- `flutter test` runs all tests
-- Unit tests in `test/unit_test/`, widget tests in `test/widget_test/`
-- Fixtures in `test/fixture/` (MealEntityFixtures, UserEntityFixtures, PhysicalActivityFixtures)
-- **Manual fakes pattern** - no mocking framework. Fakes defined inline in each test file with `_Fake` prefix.
-- CI gate: `scripts/check-product-readiness.ps1` - update when adding critical tests
-- Coverage target: 40%+ (currently ~12%)
-
-## Build
-- `flutter build appbundle` (Android) / `flutter build ios` (iOS)
-- `dart run build_runner build --delete-conflicting-outputs` before build
-- Flutter version managed via `.fvmrc`
-
-## Platform Folders
-- `lib/` is the product source of truth; the platform folders are integration shells around it.
-- `android/` and `ios/` are first-class runtime targets for this app. Keep native config, permissions, signing, build settings, Firebase wiring, and plugin integration changes there when required.
-- `web/`, `windows/`, `macos/`, and `linux/` are Flutter host shells generated for those targets. Treat them as platform wrappers, not as feature code locations.
-- Do not move Dart feature logic into platform folders unless a capability is genuinely platform-specific and cannot live behind a Dart abstraction in `lib/core/`.
-- Before deleting any platform folder, confirm the target is intentionally unsupported in product scope and CI/release tooling.
-
-## Known Technical Debt
-1. **HomeBloc** has 17 dependencies - do NOT add more. Create new BLoCs instead.
-2. **locator.dart** is 487 lines - register new deps with clear section header at bottom of `initLocator()`
-3. **workmanager_android** should resolve from `pub.dev` - do not reintroduce a local override or vendored copy unless there is a documented Android bug and a reproducible need
-4. **Google Drive backup** uses `google_sign_in` plus `googleapis/drive` - keep the current auth/upload pattern unless there is a concrete product or platform reason to change it
-5. **Test coverage low** (~12%) - every new business logic MUST include tests
-6. **`data_source/` vs `data_sources/`:** use `data_source/` (singular). `add_meal/` and `meal_capture/` need migration.
-7. **Entity mutability:** `UserEntity` has public non-final fields. Use `copyWith` or migrate to `freezed`.
+## Commit & Pull Request Guidelines
+Recent history favors short conventional subjects such as `fix: ...`, `test: ...`, and `feat(app): ...`, although older commits include vague messages like `sync` and `save`. Prefer the explicit style used in the newer commits, keep the subject scoped to the surface you changed, and mention cross-surface impacts in the PR body when a change spans Flutter, portal, and Supabase together. There is no PR template in `.github/`, so include validation evidence explicitly.
