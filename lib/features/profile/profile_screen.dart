@@ -980,7 +980,6 @@ class _CurrentTargetsCard extends StatelessWidget {
   final GymTargetsEntity targets;
 
   const _CurrentTargetsCard({
-    super.key,
     required this.goalLabel,
     required this.goalHeadline,
     required this.focusLabel,
