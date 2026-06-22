@@ -279,17 +279,17 @@ void main() {
 
       final now = DateTime.now();
       // Ensure the test data date matches the current local time day of week
-      final startOfWeekDay = now.subtract(Duration(days: now.weekday - 1));
       final todayDate = DateTime(now.year, now.month, now.day);
-      final prevDate = DateTime(
-          startOfWeekDay.year, startOfWeekDay.month, startOfWeekDay.day);
+      final comparisonDate = now.weekday == DateTime.monday
+          ? todayDate.add(const Duration(days: 1))
+          : todayDate.subtract(const Duration(days: 1));
 
       repo.dailyNotes[
               '${todayDate.year}-${todayDate.month.toString().padLeft(2, '0')}-${todayDate.day.toString().padLeft(2, '0')}'] =
           'Felt good today';
 
       final trackedDay1 = TrackedDayEntity(
-        day: prevDate,
+        day: comparisonDate,
         calorieGoal: 2000,
         caloriesTracked: 1900,
         carbsGoal: 250,
@@ -320,10 +320,10 @@ void main() {
         amount: 100,
         type: IntakeTypeEntity.breakfast,
         meal: MealEntityFixtures.mealOne,
-        dateTime: prevDate,
+        dateTime: comparisonDate,
       );
       final key =
-          '${prevDate.year}-${prevDate.month.toString().padLeft(2, '0')}-${prevDate.day.toString().padLeft(2, '0')}-breakfast';
+          '${comparisonDate.year}-${comparisonDate.month.toString().padLeft(2, '0')}-${comparisonDate.day.toString().padLeft(2, '0')}-breakfast';
       getIntakeUsecase.intakesByDay[key] = [intake];
 
       final usecase = GetProfessionalSectionSummaryUsecase(

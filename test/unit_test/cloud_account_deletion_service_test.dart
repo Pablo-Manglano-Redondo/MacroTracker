@@ -42,7 +42,7 @@ void main() {
         gateway: gateway,
       );
 
-      expect(
+      await expectLater(
         service.deleteCurrentAccount(),
         throwsA(isA<CloudAccountDeletionException>()),
       );
@@ -62,13 +62,14 @@ void main() {
         gateway: gateway,
       );
 
-      expect(
+      await expectLater(
         service.deleteCurrentAccount(),
         throwsA(
           predicate(
             (error) =>
                 error is CloudAccountDeletionException &&
-                error.message.contains('session is no longer valid'),
+                error.message ==
+                    CloudAccountDeletionService.sessionInvalidErrorCode,
           ),
         ),
       );
