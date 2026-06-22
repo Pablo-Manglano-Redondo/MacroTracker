@@ -10,7 +10,7 @@ interface SnapshotsPanelProps {
 }
 
 export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const [showAll, setShowAll] = useState(false);
   const snapshots = client.client_shared_snapshots || [];
 
@@ -79,9 +79,9 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
           <Calendar className="h-4 w-4 text-primary" />
         </div>
         <div>
-          <p className="text-sm font-bold leading-none">{tr('Snapshots', 'Snapshots')}</p>
+          <p className="text-sm font-bold leading-none">{t('components.clientdetail.snapshotspanel.snapshots')}</p>
           <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-            {tr(`${snapshots.length} registrados`, `${snapshots.length} recorded`)}
+            {t('components.clientdetail.snapshotspanel.recorded', { snapshots_length: snapshots.length })}
           </p>
         </div>
       </div>
@@ -90,13 +90,10 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
         <div className="space-y-0.5">
           <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-            {tr('Nota de sincronización', 'Sync note')}
+            {t('components.clientdetail.snapshotspanel.sync_note')}
           </p>
           <p className="text-[10px] font-medium leading-relaxed text-emerald-800/80 dark:text-emerald-300/80">
-            {tr(
-              'Los snapshots diarios y el peso se importan directamente desde la app local-first del cliente. La edición de snapshots permanece desactivada en la web para que el portal siga siendo una superficie analítica de solo lectura.',
-              'Daily snapshots and weights are imported directly from the client\'s local-first app. Snapshot editing stays disabled on the web so the portal remains a read-only analytical surface.',
-            )}
+            {t('components.clientdetail.snapshotspanel.daily_snapshots_and_weights_are_imported_directly_from_the_client_s_loca')}
           </p>
         </div>
       </div>
@@ -107,9 +104,9 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted/10">
               <Calendar className="h-5 w-5 text-muted-foreground/60" />
             </div>
-            <p className="text-xs font-bold text-foreground">{tr('Todavía no hay snapshots', 'No snapshots yet')}</p>
+            <p className="text-xs font-bold text-foreground">{t('components.clientdetail.snapshotspanel.no_snapshots_yet')}</p>
             <p className="mt-1 text-[10px] font-semibold text-muted-foreground">
-              {tr('Los datos compartidos por el cliente aparecerán aquí.', 'Shared client snapshot data will appear here.')}
+              {t('components.clientdetail.snapshotspanel.shared_client_snapshot_data_will_appear_here')}
             </p>
           </div>
         ) : (
@@ -131,15 +128,15 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
                 </div>
 
                 <div className="grid grid-cols-1 gap-y-2.5 pl-8">
-                  {renderBar('Kcal', snap.kcal_actual, snap.kcal_target, 'kcal')}
+                  {renderBar(t('common.kcal'), snap.kcal_actual, snap.kcal_target, t('common.kcal_unit'))}
                   {renderBar(
-                    tr('Proteína', 'Protein'),
+                    t('components.clientdetail.snapshotspanel.protein'),
                     snap.protein_actual,
                     snap.protein_target,
                     'g',
                   )}
-                  {renderBar(tr('Carbohidratos', 'Carbs'), snap.carbs_actual, snap.carbs_target, 'g')}
-                  {renderBar(tr('Grasas', 'Fat'), snap.fat_actual, snap.fat_target, 'g')}
+                  {renderBar(t('components.clientdetail.snapshotspanel.carbs'), snap.carbs_actual, snap.carbs_target, 'g')}
+                  {renderBar(t('components.clientdetail.snapshotspanel.fat'), snap.fat_actual, snap.fat_target, 'g')}
                 </div>
               </div>
             ))}
@@ -155,12 +152,12 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
           >
             {showAll ? (
               <>
-                <ChevronUp className="h-3 w-3" /> {tr('Mostrar menos', 'Show less')}
+                <ChevronUp className="h-3 w-3" /> {t('components.clientdetail.snapshotspanel.show_less')}
               </>
             ) : (
               <>
                 <ChevronDown className="h-3 w-3" />{' '}
-                {tr(`Mostrar ${sortedSnapshots.length - INITIAL_SHOWN} más`, `Show ${sortedSnapshots.length - INITIAL_SHOWN} more`)}
+                {t('components.clientdetail.snapshotspanel.show_more', { length_initial_shown: sortedSnapshots.length - INITIAL_SHOWN })}
               </>
             )}
           </button>

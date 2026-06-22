@@ -19,7 +19,7 @@ interface OnboardingWizardProps {
 
 export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCancel }) => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const [step, setStep] = useState<WizardStep>('invite');
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [newClientId, setNewClientId] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
   // Step 1: Create invite code
   const handleCreateInvite = () => {
     if (!professional) {
-      toast.error(tr('Guarda primero tu perfil.', 'Save your profile first.'));
+      toast.error(t('components.onboardingwizard.save_your_profile_first'));
       return;
     }
 
@@ -38,11 +38,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
       onSuccess: (data) => {
         setInviteCode(data.invite_code);
         setStep('waiting');
-        toast.success(tr('Código de invitación creado', 'Invite code created'));
+        toast.success(t('components.onboardingwizard.invite_code_created'));
       },
       onError: (err: any) => {
-        toast.error(tr('No se pudo crear la invitación', 'Failed to create invite'), {
-          description: err?.message || tr('Error desconocido', 'Unknown error'),
+        toast.error(t('components.onboardingwizard.failed_to_create_invite'), {
+          description: err?.message || t('components.onboardingwizard.unknown_error'),
         });
       },
     });
@@ -67,7 +67,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
           const newRel = payload.new as { client_id: string };
           setNewClientId(newRel.client_id);
           setStep('complete');
-          toast.success(tr('El cliente aceptó la invitación', 'Client accepted the invite'));
+          toast.success(t('components.onboardingwizard.client_accepted_the_invite'));
         }
       )
       .subscribe();
@@ -94,17 +94,14 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
       if (data && data.length > 0) {
         setNewClientId(data[0]!.client_id);
         setStep('complete');
-        toast.success(tr('Cliente encontrado', 'Client found'));
+        toast.success(t('components.onboardingwizard.client_found'));
       } else {
         toast.info(
-          tr(
-            'Todavía no hay ningún cliente conectado. Comparte el código de invitación.',
-            'No client has accepted yet. Share the invite code.',
-          ),
+          t('components.onboardingwizard.no_client_has_accepted_yet_share_the_invite_code'),
         );
       }
     } catch {
-      toast.error(tr('No se pudo comprobar la conexión del cliente', 'Failed to check for client connection'));
+      toast.error(t('components.onboardingwizard.failed_to_check_for_client_connection'));
     }
   }, [professional]);
 
@@ -112,7 +109,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
     if (!inviteCode) return;
     navigator.clipboard.writeText(inviteCode);
     setCopied(true);
-    toast.success(tr('Copiado', 'Copied'));
+    toast.success(t('components.onboardingwizard.copied'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -155,17 +152,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
                     isActive ? 'text-primary' : 'text-muted-foreground'
                   }`}>
                     {s === 'invite'
-                      ? tr('Paso 1', 'Step 1')
+                      ? t('components.onboardingwizard.step_1')
                       : s === 'waiting'
-                        ? tr('Paso 2', 'Step 2')
-                        : tr('Paso 3', 'Step 3')}
+                        ? t('components.onboardingwizard.step_2')
+                        : t('components.onboardingwizard.step_3')}
                   </span>
                   <p className={`text-xs font-extrabold -mt-0.5 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
                     {s === 'invite'
-                      ? tr('Crear invitacion', 'Create invite')
+                      ? t('components.onboardingwizard.create_invite')
                       : s === 'waiting'
-                        ? tr('Compartir codigo', 'Share code')
-                        : tr('Conexion lista', 'Connected')}
+                        ? t('components.onboardingwizard.share_code')
+                        : t('components.onboardingwizard.connected')}
                   </p>
                 </div>
               </div>
@@ -184,12 +181,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
             <UserPlus className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-gradient">{tr('Añadir cliente', 'Add a new client')}</h3>
+            <h3 className="text-sm font-extrabold text-gradient">{t('components.onboardingwizard.add_a_new_client')}</h3>
             <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
-              {tr(
-                'Genera un código único de 8 caracteres para conectar el seguimiento móvil del cliente con tu portal profesional.',
-                "Generate a unique 8-character code that connects your client's mobile tracking to your professional portal.",
-              )}
+              {t('components.onboardingwizard.generate_a_unique_8_character_code_that_connects_your_client_s_mobile_tr')}
             </p>
           </div>
           <Button
@@ -202,11 +196,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
             ) : (
               <Sparkles className="w-4 h-4 mr-2" />
             )}
-            {tr('Generar invitación', 'Generate invite code')}
+            {t('components.onboardingwizard.generate_invite_code')}
           </Button>
           <div>
             <button onClick={onCancel} className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-              {tr('Volver al portal', 'Back to portal')}
+              {t('components.onboardingwizard.back_to_portal')}
             </button>
           </div>
         </div>
@@ -218,14 +212,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
             <Loader2 className="w-6 h-6 animate-spin" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-gradient">{tr('Compartir invitación', 'Share invite code')}</h3>
+            <h3 className="text-sm font-extrabold text-gradient">{t('components.onboardingwizard.share_invite_code')}</h3>
             <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
-              {tr(
-                'Pide al cliente que introduzca este código dentro de la app MacroTracker, en la sección ',
-                'Ask your client to enter this code inside the MacroTracker mobile app under the ',
-              )}
-              <strong className="text-primary font-bold">{tr('Nutricionista', 'Nutritionist')}</strong>
-              {tr('.', ' section.')}
+              {t('components.onboardingwizard.ask_your_client_to_enter_this_code_inside_the_macrotracker_mobile_app_un')}
+              <strong className="text-primary font-bold">{t('components.onboardingwizard.nutritionist')}</strong>
+              {t('components.onboardingwizard.section')}
             </p>
           </div>
 
@@ -233,13 +224,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
             <div className="border border-border/40 bg-black/10 dark:bg-white/5 p-5 rounded-2xl max-w-xs mx-auto shadow-inner relative overflow-hidden">
               <div className="absolute top-0 right-0 w-16 h-16 bg-primary/5 rounded-full blur-xl pointer-events-none" />
               <p className="text-[8px] font-black text-primary uppercase tracking-widest mb-1">
-                {tr('Código activo', 'Active invite code')}
+                {t('components.onboardingwizard.active_invite_code')}
               </p>
               <div className="text-3xl font-mono font-black tracking-[0.2em] text-foreground select-all pl-2">
                 {inviteCode}
               </div>
               <p className="text-[9px] font-bold text-muted-foreground/60 mt-1">
-                {tr('Caduca en 14 días', 'Expires in 14 days')}
+                {t('components.onboardingwizard.expires_in_14_days')}
               </p>
             </div>
           )}
@@ -254,27 +245,24 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
               ) : (
                 <Copy className="w-4 h-4 mr-2" />
               )}
-              {tr('Copiar código', 'Copy code')}
+              {t('components.onboardingwizard.copy_code')}
             </Button>
             <Button
               onClick={handleCheckForClient}
               className="px-4 py-2 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              {tr('Actualizar', 'Refresh')}
+              {t('components.onboardingwizard.refresh')}
             </Button>
           </div>
 
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground/70 animate-pulse">
-            {tr(
-              'Esperando activación desde el dispositivo... Actualización en tiempo real.',
-              'Waiting for device activation... Real-time updates.',
-            )}
+            {t('components.onboardingwizard.waiting_for_device_activation_real_time_updates')}
           </p>
 
           <div>
             <button onClick={onCancel} className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-              {tr('Cancelar conexión', 'Cancel connection')}
+              {t('components.onboardingwizard.cancel_connection')}
             </button>
           </div>
         </div>
@@ -286,12 +274,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-gradient">{tr('Conexión completada', 'Connection successful')}</h3>
+            <h3 className="text-sm font-extrabold text-gradient">{t('components.onboardingwizard.connection_successful')}</h3>
             <p className="text-xs text-muted-foreground mt-2 max-w-sm mx-auto leading-relaxed font-semibold">
-              {tr(
-                'El perfil del cliente ya esta vinculado y listo para recibir planes y seguimiento desde el portal.',
-                'The client profile is now linked and ready to receive plans and follow-up from the portal.',
-              )}
+              {t('components.onboardingwizard.the_client_profile_is_now_linked_and_ready_to_receive_plans_and_follow_u')}
             </p>
           </div>
           <div className="flex items-center justify-center gap-3.5">
@@ -300,13 +285,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ onDone, onCa
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-primary to-teal-500 text-white font-extrabold uppercase tracking-wider text-xs hover:brightness-110 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all cursor-pointer"
             >
               <ArrowRight className="w-4 h-4 mr-2" />
-              {tr('Abrir cliente conectado', 'Open connected client')}
+              {t('components.onboardingwizard.open_connected_client')}
             </Button>
             <Button
               onClick={onCancel}
               className="px-4 py-2.5 rounded-xl bg-white/5 border border-border/40 text-foreground text-xs font-bold hover:bg-white/10 transition-colors cursor-pointer"
             >
-              {tr('Volver al roster', 'Back to roster')}
+              {t('components.onboardingwizard.back_to_roster')}
             </Button>
           </div>
         </div>

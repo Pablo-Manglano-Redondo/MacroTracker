@@ -13,7 +13,7 @@ import { usePortalI18n } from '../lib/portal-i18n';
 
 export const PlanTemplatesPanel: React.FC = () => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const queryClient = useQueryClient();
   const { data: templates, isLoading } = usePlanTemplates(professional?.id);
   const { data: clients } = useClients(professional?.id);
@@ -29,6 +29,12 @@ export const PlanTemplatesPanel: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [applyTarget, setApplyTarget] = useState<{ templateId: string; templateName: string } | null>(null);
   const [applyClientId, setApplyClientId] = useState('');
+  const macroCards = [
+    { label: t('common.kcal'), shortLabel: t('common.kcal'), value: templateKcal, set: setTemplateKcal, suffix: undefined, tone: 'rose' as const },
+    { label: t('common.protein'), shortLabel: t('common.protein_short'), value: templateProtein, set: setTemplateProtein, suffix: t('common.grams_unit'), tone: 'emerald' as const },
+    { label: t('common.carbs'), shortLabel: t('common.carbs_short'), value: templateCarbs, set: setTemplateCarbs, suffix: t('common.grams_unit'), tone: 'blue' as const },
+    { label: t('common.fat'), shortLabel: t('common.fat_short'), value: templateFat, set: setTemplateFat, suffix: t('common.grams_unit'), tone: 'amber' as const },
+  ];
 
   const totalTemplates = templates?.length ?? 0;
   const connectedClients = useMemo(
@@ -58,12 +64,12 @@ export const PlanTemplatesPanel: React.FC = () => {
         meals,
       });
       queryClient.invalidateQueries({ queryKey: ['plan-templates', professional.id] });
-      toast.success(tr('Plantilla creada', 'Template created'));
+      toast.success(t('components.plantemplatespanel.template_created'));
       setShowForm(false);
       setName('');
       setDescription('');
     } catch {
-      toast.error(tr('No se pudo crear la plantilla', 'Failed to create template'));
+      toast.error(t('components.plantemplatespanel.failed_to_create_template'));
     }
   };
 
@@ -74,10 +80,10 @@ export const PlanTemplatesPanel: React.FC = () => {
     try {
       await planTemplateRepository.remove(supabase, id);
       queryClient.invalidateQueries({ queryKey: ['plan-templates', professional.id] });
-      toast.success(tr('Plantilla eliminada', 'Template deleted'));
+      toast.success(t('components.plantemplatespanel.template_deleted'));
       setDeleteConfirm(null);
     } catch {
-      toast.error(tr('No se pudo eliminar la plantilla', 'Failed to delete template'));
+      toast.error(t('components.plantemplatespanel.failed_to_delete_template'));
     }
   };
 
@@ -87,13 +93,13 @@ export const PlanTemplatesPanel: React.FC = () => {
     }
     const client = clients?.find((c) => c.client_id === applyClientId);
     if (!client) {
-      toast.error(tr('Selecciona un cliente', 'Select a client'));
+      toast.error(t('components.plantemplatespanel.select_a_client'));
       return;
     }
 
     const template = templates?.find((t) => t.id === applyTarget.templateId);
     if (!template) {
-      toast.error(tr('Plantilla no encontrada', 'Template not found'));
+      toast.error(t('components.plantemplatespanel.template_not_found'));
       return;
     }
 
@@ -113,10 +119,7 @@ export const PlanTemplatesPanel: React.FC = () => {
     } catch {}
 
     toast.success(
-      tr(
-        `Plantilla "${template.name}" preparada para revisar en Plan Builder`,
-        `Template "${template.name}" queued for review in Plan Builder`,
-      ),
+      t('components.plantemplatespanel.template_queued_for_review_in_plan_builder', { template_name: template.name }),
     );
     setApplyTarget(null);
     setApplyClientId('');
@@ -124,11 +127,11 @@ export const PlanTemplatesPanel: React.FC = () => {
 
   const objectiveLabel = (value: string) =>
     ({
-      general_fitness: tr('Fitness general', 'General fitness'),
-      weight_loss: tr('Pérdida de peso', 'Weight loss'),
-      muscle_gain: tr('Ganancia muscular', 'Muscle gain'),
-      maintenance: tr('Mantenimiento', 'Maintenance'),
-      performance: tr('Rendimiento', 'Performance'),
+      general_fitness: t('components.plantemplatespanel.general_fitness'),
+      weight_loss: t('components.plantemplatespanel.weight_loss'),
+      muscle_gain: t('components.plantemplatespanel.muscle_gain'),
+      maintenance: t('components.plantemplatespanel.maintenance'),
+      performance: t('components.plantemplatespanel.performance'),
     })[value] ?? value;
 
   return (
@@ -136,18 +139,12 @@ export const PlanTemplatesPanel: React.FC = () => {
       <section className="portal-hero rounded-[1.8rem] p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <p className="portal-kicker">{tr('Plantillas de planes', 'Plan templates')}</p>
+            <p className="portal-kicker">{t('components.plantemplatespanel.plan_templates')}</p>
             <h2 className="portal-title text-3xl text-foreground">
-              {tr(
-                'Estructuras reutilizables para operar más rápido.',
-                'Reusable structures to operate faster.',
-              )}
+              {t('components.plantemplatespanel.reusable_structures_to_operate_faster')}
             </h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'Guarda duraciones, objetivos y macros base que luego puedas aplicar a clientes conectados y revisar antes de publicar.',
-                'Save durations, objectives, and baseline macros that you can later apply to connected clients and review before publishing.',
-              )}
+              {t('components.plantemplatespanel.save_durations_objectives_and_baseline_macros_that_you_can_later_apply_t')}
             </p>
           </div>
           <button
@@ -155,26 +152,26 @@ export const PlanTemplatesPanel: React.FC = () => {
             className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
-            {tr('Nueva plantilla', 'New template')}
+            {t('components.plantemplatespanel.new_template')}
           </button>
         </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard
-          label={tr('Plantillas', 'Templates')}
+          label={t('components.plantemplatespanel.templates')}
           value={totalTemplates}
-          note={tr('Biblioteca reusable actual', 'Current reusable library')}
+          note={t('components.plantemplatespanel.current_reusable_library')}
         />
         <StatCard
-          label={tr('Clientes conectados', 'Connected clients')}
+          label={t('components.plantemplatespanel.connected_clients')}
           value={connectedClients.length}
-          note={tr('Destino válido para aplicar plantillas', 'Valid targets for applying templates')}
+          note={t('components.plantemplatespanel.valid_targets_for_applying_templates')}
         />
         <StatCard
-          label={tr('Objetivos listos', 'Objectives ready')}
+          label={t('components.plantemplatespanel.objectives_ready')}
           value={5}
-          note={tr('Catálogo base del builder', 'Baseline builder catalog')}
+          note={t('components.plantemplatespanel.baseline_builder_catalog')}
         />
       </section>
 
@@ -190,20 +187,17 @@ export const PlanTemplatesPanel: React.FC = () => {
             <ClipboardCopy className="h-8 w-8" />
           </div>
           <h3 className="portal-title mt-5 text-2xl text-foreground">
-            {tr('Todavía no hay plantillas', 'No templates yet')}
+            {t('components.plantemplatespanel.no_templates_yet')}
           </h3>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-            {tr(
-              'Crea una primera estructura reusable para acelerar la publicación de planes en clientes conectados.',
-              'Create a first reusable structure to speed up plan publishing for connected clients.',
-            )}
+            {t('components.plantemplatespanel.create_a_first_reusable_structure_to_speed_up_plan_publishing_for_connec')}
           </p>
           <button
             onClick={() => setShowForm(true)}
             className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
-            {tr('Crear primera plantilla', 'Create first template')}
+            {t('components.plantemplatespanel.create_first_template')}
           </button>
         </div>
       ) : (
@@ -231,7 +225,7 @@ export const PlanTemplatesPanel: React.FC = () => {
                   <button
                     onClick={() => setDeleteConfirm(template.id)}
                     className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
-                    title={tr('Eliminar plantilla', 'Delete template')}
+                    title={t('components.plantemplatespanel.delete_template')}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -239,22 +233,22 @@ export const PlanTemplatesPanel: React.FC = () => {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className="portal-chip rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em]">
-                    {template.duration_days} {tr('días', 'days')}
+                    {template.duration_days} {t('components.plantemplatespanel.days')}
                   </span>
                   <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
                     {objectiveLabel(template.objective || 'general_fitness')}
                   </span>
                   <span className="rounded-full bg-background px-3 py-1 text-[10px] font-semibold text-muted-foreground">
-                    {tr(`Usada ${template.use_count} veces`, `Used ${template.use_count} times`)}
+                    {t('components.plantemplatespanel.used_times', { template_use_count: template.use_count })}
                   </span>
                 </div>
 
                 {macroTarget && (
                   <div className="mt-4 grid grid-cols-4 gap-2">
-                    <MacroCard label="Kcal" value={macroTarget.kcal} tone="rose" />
-                    <MacroCard label="P" value={macroTarget.protein} tone="emerald" suffix="g" />
-                    <MacroCard label="C" value={macroTarget.carbs} tone="blue" suffix="g" />
-                    <MacroCard label="F" value={macroTarget.fat} tone="amber" suffix="g" />
+                    <MacroCard label={t('common.kcal')} value={macroTarget.kcal} tone="rose" />
+                    <MacroCard label={t('common.protein_short')} value={macroTarget.protein} tone="emerald" suffix={t('common.grams_unit')} />
+                    <MacroCard label={t('common.carbs_short')} value={macroTarget.carbs} tone="blue" suffix={t('common.grams_unit')} />
+                    <MacroCard label={t('common.fat_short')} value={macroTarget.fat} tone="amber" suffix={t('common.grams_unit')} />
                   </div>
                 )}
 
@@ -265,7 +259,7 @@ export const PlanTemplatesPanel: React.FC = () => {
                   className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                 >
                   <Target className="h-4 w-4" />
-                  {tr('Aplicar a cliente', 'Apply to client')}
+                  {t('components.plantemplatespanel.apply_to_client')}
                 </button>
               </article>
             );
@@ -286,13 +280,10 @@ export const PlanTemplatesPanel: React.FC = () => {
               <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
                 <div>
                   <h3 className="text-lg font-bold text-foreground">
-                    {tr('Crear plantilla de plan', 'Create plan template')}
+                    {t('components.plantemplatespanel.create_plan_template')}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {tr(
-                      'Define objetivos y macros base para reutilizar después.',
-                      'Define objectives and baseline macros for later reuse.',
-                    )}
+                    {t('components.plantemplatespanel.define_objectives_and_baseline_macros_for_later_reuse')}
                   </p>
                 </div>
                 <button
@@ -304,27 +295,27 @@ export const PlanTemplatesPanel: React.FC = () => {
               </div>
 
               <div className="space-y-4">
-                <Field label={tr('Nombre de la plantilla', 'Template name')} required>
+                <Field label={t('components.plantemplatespanel.template_name')} required>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder={tr('Ej. Déficit 8 semanas', 'E.g. 8-week cut')}
+                    placeholder={t('components.plantemplatespanel.e_g_8_week_cut')}
                     className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
                   />
                 </Field>
 
-                <Field label={tr('Descripción', 'Description')}>
+                <Field label={t('components.plantemplatespanel.description')}>
                   <textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
-                    placeholder={tr('Notas de uso o contexto...', 'Usage notes or context...')}
+                    placeholder={t('components.plantemplatespanel.usage_notes_or_context')}
                     className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
                   />
                 </Field>
 
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label={tr('Duración (días)', 'Duration (days)')}>
+                  <Field label={t('components.plantemplatespanel.duration_days')}>
                     <input
                       type="number"
                       min={1}
@@ -333,48 +324,27 @@ export const PlanTemplatesPanel: React.FC = () => {
                       className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
                     />
                   </Field>
-                  <Field label={tr('Objetivo', 'Objective')}>
+                  <Field label={t('components.plantemplatespanel.objective')}>
                     <select
                       value={objective}
                       onChange={(e) => setObjective(e.target.value)}
                       className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
                     >
-                      <option value="general_fitness">{tr('Fitness general', 'General fitness')}</option>
-                      <option value="weight_loss">{tr('Pérdida de peso', 'Weight loss')}</option>
-                      <option value="muscle_gain">{tr('Ganancia muscular', 'Muscle gain')}</option>
-                      <option value="maintenance">{tr('Mantenimiento', 'Maintenance')}</option>
-                      <option value="performance">{tr('Rendimiento', 'Performance')}</option>
+                      <option value="general_fitness">{t('components.plantemplatespanel.general_fitness')}</option>
+                      <option value="weight_loss">{t('components.plantemplatespanel.weight_loss')}</option>
+                      <option value="muscle_gain">{t('components.plantemplatespanel.muscle_gain')}</option>
+                      <option value="maintenance">{t('components.plantemplatespanel.maintenance')}</option>
+                      <option value="performance">{t('components.plantemplatespanel.performance')}</option>
                     </select>
                   </Field>
                 </div>
 
                 <div className="rounded-2xl border border-border bg-background/60 p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                    {tr('Macros por defecto', 'Default macros')}
+                    {t('components.plantemplatespanel.default_macros')}
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {[
-                      {
-                        label: 'Kcal',
-                        value: templateKcal,
-                        set: setTemplateKcal,
-                      },
-                      {
-                        label: 'Protein',
-                        value: templateProtein,
-                        set: setTemplateProtein,
-                      },
-                      {
-                        label: 'Carbs',
-                        value: templateCarbs,
-                        set: setTemplateCarbs,
-                      },
-                      {
-                        label: 'Fat',
-                        value: templateFat,
-                        set: setTemplateFat,
-                      },
-                    ].map((macro) => (
+                    {macroCards.map((macro) => (
                       <div key={macro.label} className="space-y-1.5">
                         <label className="text-xs font-semibold text-muted-foreground">{macro.label}</label>
                         <input
@@ -393,14 +363,14 @@ export const PlanTemplatesPanel: React.FC = () => {
                     onClick={() => setShowForm(false)}
                     className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
                   >
-                    {tr('Cancelar', 'Cancel')}
+                    {t('components.plantemplatespanel.cancel')}
                   </button>
                   <button
                     onClick={handleCreate}
                     disabled={!name.trim()}
                     className="rounded-xl bg-primary px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
                   >
-                    {tr('Crear plantilla', 'Create template')}
+                    {t('components.plantemplatespanel.create_template')}
                   </button>
                 </div>
               </div>
@@ -429,10 +399,10 @@ export const PlanTemplatesPanel: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-foreground">
-                      {tr('Aplicar plantilla', 'Apply template')}
+                      {t('components.plantemplatespanel.apply_template')}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {tr('Asignar a un cliente conectado', 'Assign to a connected client')}
+                      {t('components.plantemplatespanel.assign_to_a_connected_client')}
                     </p>
                   </div>
                 </div>
@@ -448,20 +418,17 @@ export const PlanTemplatesPanel: React.FC = () => {
               </div>
 
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {tr(
-                  `Selecciona un cliente para aplicar "${applyTarget.templateName}". Después podrás revisar comidas y ajustar el plan antes de publicar.`,
-                  `Select a client to apply "${applyTarget.templateName}". You will be able to review meals and adjust the plan before publishing.`,
-                )}
+                {t('components.plantemplatespanel.select_a_client_to_apply_you_will_be_able_to_review_meals_and_adjust_the', { applytarget_templatename: applyTarget.templateName })}
               </p>
 
               <div className="mt-4 space-y-4">
-                <Field label={tr('Cliente', 'Client')}>
+                <Field label={t('components.plantemplatespanel.client')}>
                   <select
                     value={applyClientId}
                     onChange={(e) => setApplyClientId(e.target.value)}
                     className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
                   >
-                    <option value="">{tr('Selecciona un cliente...', 'Select a client...')}</option>
+                    <option value="">{t('components.plantemplatespanel.select_a_client_2')}</option>
                     {connectedClients.map((client) => (
                       <option key={client.id} value={client.client_id}>
                         {client.display_name || client.client_id.slice(0, 8)}
@@ -478,14 +445,14 @@ export const PlanTemplatesPanel: React.FC = () => {
                     }}
                     className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
                   >
-                    {tr('Cancelar', 'Cancel')}
+                    {t('components.plantemplatespanel.cancel')}
                   </button>
                   <button
                     onClick={handleApplyTemplate}
                     disabled={!applyClientId}
                     className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
                   >
-                    {tr('Aplicar y abrir', 'Apply and open')}
+                    {t('components.plantemplatespanel.apply_and_open')}
                   </button>
                 </div>
               </div>
@@ -496,11 +463,8 @@ export const PlanTemplatesPanel: React.FC = () => {
 
       <ConfirmDialog
         open={deleteConfirm !== null}
-        title={tr('Eliminar plantilla', 'Delete template')}
-        message={tr(
-          'Esta acción no se puede deshacer. La plantilla se eliminará definitivamente de la biblioteca profesional.',
-          'This action cannot be undone. The template will be permanently removed from the professional library.',
-        )}
+        title={t('components.plantemplatespanel.delete_template')}
+        message={t('components.plantemplatespanel.this_action_cannot_be_undone_the_template_will_be_permanently_removed_fr')}
         onConfirm={() => {
           if (deleteConfirm) {
             handleDelete(deleteConfirm);

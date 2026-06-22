@@ -1,24 +1,32 @@
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { buildMealInterpretationDraft } from "../_shared/meal_interpretation.ts";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 
 Deno.serve(async (request) => {
+  let locale = resolveRequestLocale(request);
+
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   if (request.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse({ error: t(locale, "common.methodNotAllowed") }, 405);
   }
 
   try {
     const body = await request.json();
+    locale = resolveRequestLocale(request, body);
     const text = typeof body?.text === "string" ? body.text.trim() : "";
 
     if (text.length < 2) {
-      return jsonResponse({ error: "text must contain at least 2 characters" }, 400);
+      return jsonResponse({
+        error: t(locale, "mealInterpretationsText.minChars"),
+      }, 400);
     }
     if (text.length > 800) {
-      return jsonResponse({ error: "text is too long" }, 400);
+      return jsonResponse({
+        error: t(locale, "mealInterpretationsText.tooLong"),
+      }, 400);
     }
 
     const draft = await buildMealInterpretationDraft({
@@ -32,15 +40,16 @@ Deno.serve(async (request) => {
       analysisContext:
         typeof body?.analysisContext === "string" ? body.analysisContext : null,
       personalExamples: Array.isArray(body?.personalExamples)
-          ? body.personalExamples
-          : null,
+        ? body.personalExamples
+        : null,
     });
 
     return jsonResponse(draft);
   } catch (error) {
+    console.error("[meal-interpretations-text] failed", error);
     return jsonResponse(
       {
-        error: error instanceof Error ? error.message : "Unexpected error",
+        error: t(locale, "mealInterpretationsText.processingFailed"),
       },
       500,
     );

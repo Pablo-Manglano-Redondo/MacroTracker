@@ -5,6 +5,11 @@ import 'package:macrotracker/core/utils/secure_app_storage_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CloudAccountDeletionService {
+  static const sessionInvalidErrorCode = 'cloud_session_invalid';
+  static const noActiveSessionErrorCode = 'cloud_no_active_session';
+  static const cloudUnreachableErrorCode = 'cloud_unreachable';
+  static const localDataKeptErrorCode = 'cloud_delete_local_data_kept';
+
   final CloudAccountDeletionGateway _gateway;
   final SupabaseIdentityService _identityService;
   final LocalAccountDataResetter _localResetter;
@@ -53,17 +58,17 @@ class CloudAccountDeletionService {
         message.contains('403') ||
         message.contains('jwt') ||
         message.contains('auth')) {
-      return 'Your cloud session is no longer valid. Please sign in again and retry.';
+      return sessionInvalidErrorCode;
     }
     if (message.contains('no active cloud session')) {
-      return 'No active cloud session was found. Your local data was kept on this device.';
+      return noActiveSessionErrorCode;
     }
     if (message.contains('timeout') ||
         message.contains('socket') ||
         message.contains('network')) {
-      return 'Could not reach the cloud service. Check your connection and try again.';
+      return cloudUnreachableErrorCode;
     }
-    return 'We could not delete your cloud account right now. Your local data was kept on this device.';
+    return localDataKeptErrorCode;
   }
 }
 

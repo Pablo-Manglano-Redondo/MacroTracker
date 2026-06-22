@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -8,6 +9,8 @@ const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 Deno.serve(async (request) => {
+  const locale = resolveRequestLocale(request);
+
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -15,15 +18,19 @@ Deno.serve(async (request) => {
     });
   }
   if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, 405);
+    return json({ error: t(locale, "common.methodNotAllowed") }, 405);
   }
   if (!supabaseUrl || !serviceRoleKey) {
-    return json({ error: "Server auth is not configured" }, 500);
+    return json({
+      error: t(locale, "deleteCurrentAccount.serverAuthNotConfigured"),
+    }, 500);
   }
 
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !/^Bearer\s+/i.test(authHeader)) {
-    return json({ error: "Authentication is required" }, 401);
+    return json({
+      error: t(locale, "common.authenticationRequired"),
+    }, 401);
   }
 
   const token = authHeader.replace(/^Bearer\s+/i, "");
@@ -31,7 +38,9 @@ Deno.serve(async (request) => {
     token,
   );
   if (authError || !authData.user) {
-    return json({ error: "Invalid authentication" }, 401);
+    return json({
+      error: t(locale, "common.invalidAuthentication"),
+    }, 401);
   }
 
   const userId = authData.user.id;
@@ -46,20 +55,21 @@ Deno.serve(async (request) => {
       if (details.includes("violates foreign key constraint")) {
         return json(
           {
-            error:
-              "Account deletion is blocked by database constraints. Apply the latest Supabase migrations before deploying this function.",
+            error: t(locale, "deleteCurrentAccount.blockedByConstraints"),
           },
           500,
         );
       }
-      return json({ error: deleteError.message }, 500);
+      console.error("[delete-current-account] deleteUser failed", deleteError);
+      return json({ error: t(locale, "deleteCurrentAccount.deleteFailed") }, 500);
     }
 
     return json({ success: true, userId });
   } catch (error) {
+    console.error("[delete-current-account] unexpected failure", error);
     return json(
       {
-        error: error instanceof Error ? error.message : "Unexpected error",
+        error: t(locale, "deleteCurrentAccount.deleteFailed"),
       },
       500,
     );

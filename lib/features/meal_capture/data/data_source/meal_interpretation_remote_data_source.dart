@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logging/logging.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/confidence_band_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_item_entity.dart';
@@ -71,10 +73,11 @@ class MealInterpretationRemoteDataSource {
     String? analysisContext,
     List<Map<String, dynamic>> personalExamples = const [],
   }) async {
+    final copy = await _loadCopy(locale);
     return _runInterpretation(
       inputType: 'photo',
       timeout: _photoTimeout,
-      fallbackTitle: _localizedPhotoMealTitle(locale),
+      fallbackTitle: copy.mealCaptureFallbackPhotoMealTitle,
       locale: locale,
       invoke: () async {
         final response = await _client.functions.invoke(
@@ -121,7 +124,7 @@ class MealInterpretationRemoteDataSource {
         final payload = _normalizePayload(rawPayload);
         final diagnostics = _extractDiagnostics(payload);
         final result = MealInterpretationRemoteResult(
-          draft: mapDraftResponse(
+          draft: await mapDraftResponse(
             payload,
             fallbackTitle: fallbackTitle,
             locale: locale,
@@ -259,8 +262,9 @@ class MealInterpretationRemoteDataSource {
       needles.any(message.contains);
 
   @visibleForTesting
-  InterpretationDraftEntity mapDraftResponse(dynamic data,
-      {required String fallbackTitle, String? locale}) {
+  Future<InterpretationDraftEntity> mapDraftResponse(dynamic data,
+      {required String fallbackTitle, String? locale}) async {
+    final copy = await _loadCopy(locale);
     final normalized = _normalizePayload(data);
     if (normalized is! Map<String, dynamic>) {
       throw const FormatException('Invalid draft response format');
@@ -279,7 +283,8 @@ class MealInterpretationRemoteDataSource {
       inputText: data['inputText'] as String?,
       localImagePath: null,
       title: (data['title'] as String?) ?? fallbackTitle,
-      summary: data['summary'] as String? ?? _localizedEstimatedSummary(locale),
+      summary: data['summary'] as String? ??
+          copy.mealCaptureFallbackEstimatedSummary,
       totalKcal: _toDouble(totals['kcal']),
       totalCarbs: _toDouble(totals['carbs']),
       totalFat: _toDouble(totals['fat']),
@@ -291,7 +296,7 @@ class MealInterpretationRemoteDataSource {
       status: DraftStatusEntity.ready,
       createdAt: DateTime.now(),
       expiresAt: expiresAt ?? DateTime.now().add(const Duration(days: 1)),
-      items: items.map((item) => _mapItem(item, locale: locale)).toList(),
+      items: items.map((item) => _mapItem(item, copy: copy)).toList(),
     );
   }
 
@@ -334,14 +339,14 @@ class MealInterpretationRemoteDataSource {
     );
   }
 
-  InterpretationDraftItemEntity _mapItem(dynamic item, {String? locale}) {
+  InterpretationDraftItemEntity _mapItem(dynamic item, {required S copy}) {
     if (item is! Map<String, dynamic>) {
       throw const FormatException('Invalid draft item format');
     }
 
     return InterpretationDraftItemEntity(
       id: (item['id'] as String?) ?? IdGenerator.getUniqueID(),
-      label: (item['label'] as String?) ?? _localizedDetectedItem(locale),
+      label: (item['label'] as String?) ?? copy.mealCaptureFallbackDetectedItem,
       matchedMealSnapshot: null,
       amount: _toDouble(item['amount']),
       unit: (item['unit'] as String?) ?? 'serving',
@@ -424,22 +429,11 @@ class MealInterpretationRemoteDataSource {
     return null;
   }
 
-  String _localizedPhotoMealTitle(String? locale) {
-    return _isSpanishLocale(locale) ? 'Comida por foto' : 'Photo meal';
-  }
-
-  String _localizedEstimatedSummary(String? locale) {
-    return _isSpanishLocale(locale)
-        ? 'Estimacion de comida generada por IA.'
-        : 'Estimated meal interpretation.';
-  }
-
-  String _localizedDetectedItem(String? locale) {
-    return _isSpanishLocale(locale) ? 'Ingrediente detectado' : 'Detected item';
-  }
-
-  bool _isSpanishLocale(String? locale) {
-    return (locale ?? '').split(RegExp('[-_]')).first.toLowerCase() == 'es';
+  Future<S> _loadCopy(String? locale) async {
+    final localeCode = (locale?.trim().isNotEmpty == true ? locale! : 'en')
+        .split(RegExp(r'[-_]'))
+        .first;
+    return S.load(Locale(localeCode));
   }
 }
 

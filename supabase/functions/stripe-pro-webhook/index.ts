@@ -1,5 +1,6 @@
 import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 import { mapSubscriptionToProConfig } from "../_shared/pro_billing.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -12,19 +13,20 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 Deno.serve(async (request) => {
+  const locale = resolveRequestLocale(request);
   if (request.method !== "POST") {
-    return new Response("Method not allowed", { status: 405 });
+    return new Response(t(locale, "common.methodNotAllowed"), { status: 405 });
   }
 
   if (!stripeSecretKey || !webhookSecret) {
-    return new Response("Missing Stripe webhook configuration", {
+    return new Response(t(locale, "stripeProWebhook.missingConfiguration"), {
       status: 400,
     });
   }
 
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
-    return new Response("Missing Stripe signature", {
+    return new Response(t(locale, "stripeProWebhook.missingSignature"), {
       status: 400,
     });
   }
@@ -41,7 +43,9 @@ Deno.serve(async (request) => {
       webhookSecret,
     );
   } catch (error) {
-    return new Response(`Invalid Stripe signature: ${errorMessage(error)}`, {
+    return new Response(t(locale, "stripeProWebhook.invalidSignature", {
+      details: errorMessage(error),
+    }), {
       status: 400,
     });
   }
@@ -62,7 +66,9 @@ Deno.serve(async (request) => {
         break;
     }
   } catch (error) {
-    return new Response(`Webhook handling failed: ${errorMessage(error)}`, {
+    return new Response(t(locale, "stripeProWebhook.handlingFailed", {
+      details: errorMessage(error),
+    }), {
       status: 500,
     });
   }

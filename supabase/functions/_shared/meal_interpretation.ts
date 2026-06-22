@@ -1,3 +1,4 @@
+import { normalizeRequestLocale, t } from "./i18n.ts";
 import { mealInterpretationSchema } from "./meal_interpretation_schema.ts";
 
 export type InterpretationMode = "text" | "photo";
@@ -64,6 +65,28 @@ export type MealInterpretationDiagnostics = {
   correctionExamplesCount: number;
   modelAttempts: number;
   fallbackUsed: boolean;
+};
+
+type MealInterpretationLocaleCopy = {
+  photoMealTitle: string;
+  estimatedSummary: string;
+  detectedItemLabel: string;
+  mealItemLabel: string;
+};
+
+const MEAL_INTERPRETATION_COPY: Record<string, MealInterpretationLocaleCopy> = {
+  en: {
+    photoMealTitle: "Photo meal",
+    estimatedSummary: "Estimated meal interpretation.",
+    detectedItemLabel: "Detected item",
+    mealItemLabel: "Meal item",
+  },
+  es: {
+    photoMealTitle: "Comida por foto",
+    estimatedSummary: "Estimación de comida generada por IA.",
+    detectedItemLabel: "Ingrediente detectado",
+    mealItemLabel: "Elemento de comida",
+  },
 };
 
 export async function buildMealInterpretationDraft(
@@ -493,17 +516,27 @@ function localizedFallbackTitle(request: MealInterpretationRequest): string {
 }
 
 function localizedPhotoMealTitle(locale?: string): string {
-  return isSpanishLocale(locale) ? "Comida por foto" : "Photo meal";
+  return getMealInterpretationCopy(locale).photoMealTitle;
 }
 
 function localizedEstimatedSummary(locale?: string): string {
-  return isSpanishLocale(locale)
-    ? "Estimacion de comida generada por IA."
-    : "Estimated meal interpretation.";
+  return getMealInterpretationCopy(locale).estimatedSummary;
 }
 
 function isSpanishLocale(locale?: string): boolean {
   return (locale || "").split(/[-_]/)[0]?.toLowerCase() === "es";
+}
+
+function getMealInterpretationCopy(
+  locale?: string,
+): MealInterpretationLocaleCopy {
+  const resolvedLocale = normalizeRequestLocale(locale);
+  return {
+    photoMealTitle: t(resolvedLocale, "mealInterpretation.photoMealTitle"),
+    estimatedSummary: t(resolvedLocale, "mealInterpretation.estimatedSummary"),
+    detectedItemLabel: t(resolvedLocale, "mealInterpretation.detectedItemLabel"),
+    mealItemLabel: t(resolvedLocale, "mealInterpretation.mealItemLabel"),
+  };
 }
 
 function buildUserContentParts(request: MealInterpretationRequest) {
@@ -1151,14 +1184,10 @@ function buildFallbackItemLabel(
   index: number,
   locale?: string,
 ): string {
-  if (isSpanishLocale(locale)) {
-    return mode === "photo"
-      ? `Ingrediente detectado ${index + 1}`
-      : `Elemento de comida ${index + 1}`;
-  }
+  const copy = getMealInterpretationCopy(locale);
   return mode === "photo"
-    ? `Detected item ${index + 1}`
-    : `Meal item ${index + 1}`;
+    ? `${copy.detectedItemLabel} ${index + 1}`
+    : `${copy.mealItemLabel} ${index + 1}`;
 }
 
 function toPositiveNumber(value: unknown, fallback: number): number {

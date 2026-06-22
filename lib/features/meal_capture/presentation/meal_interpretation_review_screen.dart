@@ -560,8 +560,8 @@ class _MealInterpretationReviewScreenState
                             protein: protein,
                           );
                           return InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'kcal',
+                            decoration: InputDecoration(
+                              labelText: S.of(context).kcalLabel,
                               border: OutlineInputBorder(),
                             ),
                             child: Text(derivedKcal.toStringAsFixed(0)),

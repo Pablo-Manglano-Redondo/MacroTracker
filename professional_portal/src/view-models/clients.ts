@@ -2,6 +2,9 @@ import type {
   ClientSharedSnapshot,
   ProfessionalClient,
 } from '../types/database.types';
+import type { PortalTranslationKey } from '../lib/generated/i18n';
+
+type TranslateFn = (key: PortalTranslationKey) => string;
 
 export function getClientDisplayName(client: ProfessionalClient) {
   return client.display_name?.trim() || client.client_id.slice(0, 8);
@@ -17,16 +20,16 @@ export function getClientInitials(client: ProfessionalClient) {
     .toUpperCase();
 }
 
-export function getRelationshipStatusLabel(status: string) {
-  if (status === 'connected') return 'Activo';
-  if (status === 'revoked') return 'Revocado';
-  if (status === 'archived') return 'Archivado';
+export function getRelationshipStatusLabel(status: string, t: TranslateFn) {
+  if (status === 'connected') return t('components.clientspanel.connected');
+  if (status === 'revoked') return t('components.clientspanel.revoked');
+  if (status === 'archived') return t('components.clientspanel.archived');
   return status;
 }
 
-export function getSharingModeLabel(sharingMode: string) {
-  if (sharingMode === 'detailed') return 'Detallado';
-  if (sharingMode === 'aggregate') return 'Agregado';
+export function getSharingModeLabel(sharingMode: string, t: TranslateFn) {
+  if (sharingMode === 'detailed') return t('components.clientspanel.detailed');
+  if (sharingMode === 'aggregate') return t('components.clientspanel.aggregate');
   return sharingMode;
 }
 

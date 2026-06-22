@@ -16,7 +16,7 @@ type AuthMode = 'magic-link' | 'password' | 'signup';
 
 export const AuthPanel: React.FC = () => {
   const { login, loginWithPassword, signUpWithPassword } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -40,7 +40,7 @@ export const AuthPanel: React.FC = () => {
     const emailResult = z.string().email().safeParse(email.trim());
     if (!emailResult.success) {
       setFieldErrors({
-        email: tr('Introduce un correo electrónico válido.', 'Please enter a valid email address.'),
+        email: t('components.authpanel.please_enter_a_valid_email_address'),
       });
       return;
     }
@@ -49,16 +49,13 @@ export const AuthPanel: React.FC = () => {
     if (authMode !== 'magic-link') {
       if (!password) {
         setFieldErrors({
-          password: tr('La contraseña es obligatoria.', 'Password is required.'),
+          password: t('components.authpanel.password_is_required'),
         });
         return;
       }
       if (password.length < 8) {
         setFieldErrors({
-          password: tr(
-            'La contraseña debe tener al menos 8 caracteres.',
-            'Password must be at least 8 characters.',
-          ),
+          password: t('components.authpanel.password_must_be_at_least_8_characters'),
         });
         return;
       }
@@ -67,19 +64,13 @@ export const AuthPanel: React.FC = () => {
     if (authMode === 'signup') {
       if (!confirmPassword) {
         setFieldErrors({
-          confirmPassword: tr(
-            'Confirma la contraseña para crear la cuenta.',
-            'Confirm the password to create the account.',
-          ),
+          confirmPassword: t('components.authpanel.confirm_the_password_to_create_the_account'),
         });
         return;
       }
       if (confirmPassword !== password) {
         setFieldErrors({
-          confirmPassword: tr(
-            'Las contraseñas no coinciden.',
-            'Passwords do not match.',
-          ),
+          confirmPassword: t('components.authpanel.passwords_do_not_match'),
         });
         return;
       }
@@ -106,10 +97,7 @@ export const AuthPanel: React.FC = () => {
         setSuccessState('signup_confirmation_sent');
       } else {
         toast.success(
-          tr(
-            'Cuenta creada. Ya puedes completar tu perfil profesional.',
-            'Account created. You can now complete your professional profile.',
-          ),
+          t('components.authpanel.account_created_you_can_now_complete_your_professional_profile'),
         );
       }
       setLoading(false);
@@ -125,24 +113,18 @@ export const AuthPanel: React.FC = () => {
 
   const title =
     authMode === 'signup'
-      ? tr('Crea tu acceso profesional.', 'Create your professional access.')
-      : tr('Entra en tu portal profesional.', 'Sign in to your professional portal.');
+      ? t('components.authpanel.create_your_professional_access')
+      : t('components.authpanel.sign_in_to_your_professional_portal');
 
   const body =
     authMode === 'signup'
-      ? tr(
-          'Primero crea la cuenta en Supabase Auth. Después podrás guardar el perfil profesional sin chocar con la FK de `professionals.user_id`.',
-          'First create the account in Supabase Auth. After that you can save the professional profile without hitting the `professionals.user_id` foreign key.',
-        )
-      : tr(
-          'Accede al roster real, los planes, el seguimiento y la configuración operativa de tu consulta.',
-          'Access your real roster, plans, follow-up, and practice operations.',
-        );
+      ? t('components.authpanel.first_create_the_account_in_supabase_auth_after_that_you_can_save_the_pr')
+      : t('components.authpanel.access_your_real_roster_plans_follow_up_and_practice_operations');
 
   return (
     <div className="glass-card rounded-[2rem] p-8 md:p-10">
       <div className="mb-8">
-        <p className="portal-kicker">{tr('Acceso profesional', 'Professional access')}</p>
+        <p className="portal-kicker">{t('components.authpanel.professional_access')}</p>
         <h2 className="portal-title mt-3 text-3xl text-foreground">{title}</h2>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">{body}</p>
       </div>
@@ -159,7 +141,7 @@ export const AuthPanel: React.FC = () => {
           }`}
         >
           <Send className="h-4 w-4" />
-          {tr('Magic link', 'Magic link')}
+          {t('components.authpanel.magic_link')}
         </button>
         <button
           type="button"
@@ -172,7 +154,7 @@ export const AuthPanel: React.FC = () => {
           }`}
         >
           <Lock className="h-4 w-4" />
-          {tr('Contraseña', 'Password')}
+          {t('components.authpanel.password')}
         </button>
         <button
           type="button"
@@ -185,7 +167,7 @@ export const AuthPanel: React.FC = () => {
           }`}
         >
           <UserCheck className="h-4 w-4" />
-          {tr('Crear cuenta', 'Create account')}
+          {t('components.authpanel.create_account')}
         </button>
       </div>
 
@@ -196,19 +178,13 @@ export const AuthPanel: React.FC = () => {
           </div>
           <h4 className="mt-4 text-lg font-bold text-foreground">
             {successState === 'magic_link_sent'
-              ? tr('Enlace enviado', 'Magic link sent')
-              : tr('Cuenta creada', 'Account created')}
+              ? t('components.authpanel.magic_link_sent')
+              : t('components.authpanel.account_created')}
           </h4>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             {successState === 'magic_link_sent'
-              ? tr(
-                  `Revisa la bandeja de entrada de ${email} para completar el acceso.`,
-                  `Check ${email} to complete sign-in.`,
-                )
-              : tr(
-                  `Revisa ${email} y confirma el correo antes de guardar el perfil, si tu proyecto exige verificación por email.`,
-                  `Check ${email} and confirm the email before saving the profile if your project requires email verification.`,
-                )}
+              ? t('components.authpanel.check_to_complete_sign_in', { email: email })
+              : t('components.authpanel.check_and_confirm_the_email_before_saving_the_profile_if_your_project_re', { email: email })}
           </p>
           <button
             type="button"
@@ -218,14 +194,14 @@ export const AuthPanel: React.FC = () => {
             }}
             className="mt-5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
           >
-            {tr('Volver', 'Back')}
+            {t('components.authpanel.back')}
           </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-              {tr('Correo profesional', 'Professional email')}
+              {t('components.authpanel.professional_email')}
             </label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -246,7 +222,7 @@ export const AuthPanel: React.FC = () => {
           {authMode !== 'magic-link' && (
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                {tr('Contraseña', 'Password')}
+                {t('components.authpanel.password')}
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -268,7 +244,7 @@ export const AuthPanel: React.FC = () => {
           {authMode === 'signup' && (
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                {tr('Confirmar contraseña', 'Confirm password')}
+                {t('components.authpanel.confirm_password')}
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -293,12 +269,12 @@ export const AuthPanel: React.FC = () => {
             className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
           >
             {loading
-              ? tr('Enviando...', 'Sending...')
+              ? t('components.authpanel.sending')
               : authMode === 'magic-link'
-                ? tr('Enviar magic link', 'Send magic link')
+                ? t('components.authpanel.send_magic_link')
                 : authMode === 'password'
-                  ? tr('Entrar', 'Sign in')
-                  : tr('Crear cuenta', 'Create account')}
+                  ? t('components.authpanel.sign_in')
+                  : t('components.authpanel.create_account')}
             {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
         </form>
@@ -309,10 +285,10 @@ export const AuthPanel: React.FC = () => {
           <ShieldCheck className="h-5 w-5 text-primary" />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              {tr('Conexión cifrada', 'Encrypted connection')}
+              {t('components.authpanel.encrypted_connection')}
             </p>
             <p className="text-xs text-muted-foreground">
-              {tr('Acceso autenticado con Supabase.', 'Authenticated with Supabase.')}
+              {t('components.authpanel.authenticated_with_supabase')}
             </p>
           </div>
         </div>
@@ -320,13 +296,10 @@ export const AuthPanel: React.FC = () => {
           <UserCheck className="h-5 w-5 text-primary" />
           <div>
             <p className="text-sm font-semibold text-foreground">
-              {tr('Datos protegidos', 'Protected data')}
+              {t('components.authpanel.protected_data')}
             </p>
             <p className="text-xs text-muted-foreground">
-              {tr(
-                'La visibilidad depende de la relación activa y del consentimiento.',
-                'Visibility depends on the active relationship and consent.',
-              )}
+              {t('components.authpanel.visibility_depends_on_the_active_relationship_and_consent')}
             </p>
           </div>
         </div>

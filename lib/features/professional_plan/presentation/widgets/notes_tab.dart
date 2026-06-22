@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_client_notes_usecase.dart';
@@ -54,6 +55,7 @@ class _NotesTabState extends State<NotesTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final copy = S.of(context);
 
     if (_loading) return const Center(child: CircularProgressIndicator());
 
@@ -79,11 +81,11 @@ class _NotesTabState extends State<NotesTab> {
                   size: 48,
                   color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
-              Text('No notes yet',
+              Text(copy.professionalNotesEmptyTitle,
                   style: theme.textTheme.titleSmall
                       ?.copyWith(color: colorScheme.onSurfaceVariant)),
               const SizedBox(height: 4),
-              Text('Your nutritionist has not written any notes.',
+              Text(copy.professionalNotesEmptyBody,
                   style: theme.textTheme.bodySmall?.copyWith(
                       color:
                           colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
@@ -102,7 +104,7 @@ class _NotesTabState extends State<NotesTab> {
         final note = _notes![index];
         final pinned = note['pinned'] == true;
         final category = note['category'] as String? ?? 'general';
-        final title = note['title'] as String? ?? 'Note';
+        final title = note['title'] as String? ?? copy.professionalNotesFallbackTitle;
         final body = note['body'] as String? ?? '';
 
         return Panel(
@@ -125,7 +127,7 @@ class _NotesTabState extends State<NotesTab> {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
-                      category,
+                      _categoryLabel(copy, category),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -164,6 +166,17 @@ class _NotesTabState extends State<NotesTab> {
       'billing' => Colors.amber.shade700,
       'other' => cs.onSurfaceVariant,
       _ => cs.primary,
+    };
+  }
+
+  String _categoryLabel(S copy, String category) {
+    return switch (category) {
+      'assessment' => copy.professionalNotesCategoryAssessment,
+      'medical' => copy.professionalNotesCategoryMedical,
+      'progress' => copy.professionalNotesCategoryProgress,
+      'billing' => copy.professionalNotesCategoryBilling,
+      'other' => copy.professionalNotesCategoryOther,
+      _ => copy.professionalNotesCategoryGeneral,
     };
   }
 

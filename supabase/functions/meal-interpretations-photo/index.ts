@@ -1,28 +1,36 @@
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { buildMealInterpretationDraft } from "../_shared/meal_interpretation.ts";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 
 Deno.serve(async (request) => {
+  let locale = resolveRequestLocale(request);
+
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   if (request.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse({ error: t(locale, "common.methodNotAllowed") }, 405);
   }
 
   try {
     const startedAt = performance.now();
     const body = await request.json();
+    locale = resolveRequestLocale(request, body);
     const imageBase64 = typeof body?.imageBase64 === "string"
       ? body.imageBase64.trim().replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, "")
       : "";
     const mimeType = resolveMimeType(body?.mimeType, body?.fileName);
 
     if (imageBase64.length < 32) {
-      return jsonResponse({ error: "imageBase64 payload is missing" }, 400);
+      return jsonResponse({
+        error: t(locale, "mealInterpretationsPhoto.missingImageBase64"),
+      }, 400);
     }
     if (imageBase64.length > 20_000_000) {
-      return jsonResponse({ error: "image payload is too large" }, 400);
+      return jsonResponse({
+        error: t(locale, "mealInterpretationsPhoto.imageTooLarge"),
+      }, 400);
     }
 
     const draft = await buildMealInterpretationDraft({
@@ -37,8 +45,8 @@ Deno.serve(async (request) => {
       analysisContext:
         typeof body?.analysisContext === "string" ? body.analysisContext : null,
       personalExamples: Array.isArray(body?.personalExamples)
-          ? body.personalExamples
-          : null,
+        ? body.personalExamples
+        : null,
     });
 
     const diagnostics = draft?.processing?.diagnostics;
@@ -60,9 +68,10 @@ Deno.serve(async (request) => {
 
     return jsonResponse(draft);
   } catch (error) {
+    console.error("[meal-interpretations-photo] failed", error);
     return jsonResponse(
       {
-        error: error instanceof Error ? error.message : "Unexpected error",
+        error: t(locale, "mealInterpretationsPhoto.processingFailed"),
       },
       500,
     );

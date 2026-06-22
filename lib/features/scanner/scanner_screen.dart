@@ -247,7 +247,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             keyboardType: TextInputType.number,
             autofocus: true,
             decoration: InputDecoration(
-              hintText: 'e.g. 8410012345678',
+              hintText: S.of(context).scannerBarcodeExampleHint,
               labelText: S.of(context).scannerBarcodeNumberLabel,
               prefixIcon: const Icon(Icons.pin_outlined),
             ),

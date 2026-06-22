@@ -7,23 +7,21 @@ import {
   Users,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
+import type { PortalTranslationKey } from '../lib/generated/i18n';
 import { toast } from '../lib/toast';
 import { useStripeCheckout } from '../hooks/mutations/useStripeCheckout';
 import { getBillingSummary } from '../view-models/professional';
 import { usePortalI18n } from '../lib/portal-i18n';
 
 type BillingInterval = 'monthly' | 'annual';
+type BillingTierId = 'starter' | 'growth' | 'studio';
 
 type TierCard = {
-  id: 'starter' | 'growth' | 'studio';
+  id: BillingTierId;
   name: string;
   monthlyPrice: string;
   annualPrice: string;
   clientLimit: number;
-  summaryEs: string;
-  summaryEn: string;
-  featuresEs: string[];
-  featuresEn: string[];
 };
 
 const TIERS: TierCard[] = [
@@ -33,18 +31,6 @@ const TIERS: TierCard[] = [
     monthlyPrice: '$29',
     annualPrice: '$276',
     clientLimit: 10,
-    summaryEs: 'Para nutricionistas individuales que validan el flujo con un roster pequeño.',
-    summaryEn: 'For solo nutritionists validating the workflow with a small roster.',
-    featuresEs: [
-      'Hasta 10 relaciones activas',
-      'Planes, notas, check-ins y snapshots aggregate',
-      'Diario detailed solo con consentimiento explícito del cliente',
-    ],
-    featuresEn: [
-      'Up to 10 active client relationships',
-      'Plans, notes, check-ins, and aggregate snapshots',
-      'Detailed diary only when the client grants explicit consent',
-    ],
   },
   {
     id: 'growth',
@@ -52,18 +38,6 @@ const TIERS: TierCard[] = [
     monthlyPrice: '$79',
     annualPrice: '$756',
     clientLimit: 50,
-    summaryEs: 'Para consultas que ya gestionan una base estable de clientes recurrentes.',
-    summaryEn: 'For practices already managing a stable book of recurring clients.',
-    featuresEs: [
-      'Hasta 50 relaciones activas',
-      'Las mismas superficies operativas que Starter',
-      'Más capacidad para publicar planes e invitar clientes',
-    ],
-    featuresEn: [
-      'Up to 50 active client relationships',
-      'The same operational surfaces as Starter',
-      'More capacity for plan publishing and invite operations',
-    ],
   },
   {
     id: 'studio',
@@ -71,24 +45,39 @@ const TIERS: TierCard[] = [
     monthlyPrice: '$199',
     annualPrice: '$1908',
     clientLimit: 500,
-    summaryEs: 'Para equipos más grandes que usan el portal como operación interna controlada.',
-    summaryEn: 'For larger teams using the portal as a controlled internal operation.',
-    featuresEs: [
-      'Hasta 500 relaciones activas',
-      'Mismo contrato de datos y privacidad',
-      'Pensado para operaciones invite-only de mayor volumen',
-    ],
-    featuresEn: [
-      'Up to 500 active client relationships',
-      'The same data contract and privacy model',
-      'Built for higher-volume invite-only operations',
-    ],
   },
 ];
 
+const tierSummaryKey: Record<BillingTierId, PortalTranslationKey> = {
+  starter:
+    'components.billingpanel.for_solo_nutritionists_validating_the_workflow_with_a_small_roster',
+  growth:
+    'components.billingpanel.for_practices_already_managing_a_stable_book_of_recurring_clients',
+  studio:
+    'components.billingpanel.for_larger_teams_using_the_portal_as_a_controlled_internal_operation',
+};
+
+const tierFeatureKeys: Record<BillingTierId, PortalTranslationKey[]> = {
+  starter: [
+    'components.billingpanel.up_to_10_active_client_relationships',
+    'components.billingpanel.plans_notes_check_ins_and_aggregate_snapshots',
+    'components.billingpanel.detailed_diary_only_when_the_client_grants_explicit_consent',
+  ],
+  growth: [
+    'components.billingpanel.up_to_50_active_client_relationships',
+    'components.billingpanel.the_same_operational_surfaces_as_starter',
+    'components.billingpanel.more_capacity_for_plan_publishing_and_invite_operations',
+  ],
+  studio: [
+    'components.billingpanel.up_to_500_active_client_relationships',
+    'components.billingpanel.the_same_data_contract_and_privacy_model',
+    'components.billingpanel.built_for_higher_volume_invite_only_operations',
+  ],
+};
+
 export const BillingPanel: React.FC = () => {
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t } = usePortalI18n();
   const checkoutMutation = useStripeCheckout();
   const [selectedInterval, setSelectedInterval] = useState<BillingInterval>('monthly');
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
@@ -97,14 +86,14 @@ export const BillingPanel: React.FC = () => {
   const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
   const billingIntervalLabel =
     billingSummary.billingInterval === 'annual'
-      ? tr('Anual', 'Annual')
-      : tr('Mensual', 'Monthly');
+      ? t('components.billingpanel.annual')
+      : t('components.billingpanel.monthly');
   const proStatusLabelMap: Record<string, string> = {
-    inactive: tr('Inactivo', 'Inactive'),
-    trialing: tr('Prueba activa', 'Trial active'),
-    active: tr('Activo', 'Active'),
-    past_due: tr('Pago pendiente', 'Past due'),
-    canceled: tr('Cancelado', 'Canceled'),
+    inactive: t('components.billingpanel.inactive'),
+    trialing: t('components.billingpanel.trial_active'),
+    active: t('components.billingpanel.active'),
+    past_due: t('components.billingpanel.past_due'),
+    canceled: t('components.billingpanel.canceled'),
   };
   const proStatusLabel = proStatusLabelMap[billingSummary.proStatus] ?? billingSummary.proStatus;
 
@@ -131,10 +120,7 @@ export const BillingPanel: React.FC = () => {
   const handleCheckout = (tierId: TierCard['id']) => {
     if (!professional) {
       toast.error(
-        tr(
-          'Crea primero el perfil profesional para abrir Stripe Checkout.',
-          'Create the professional profile before opening Stripe checkout.',
-        ),
+        t('components.billingpanel.create_the_professional_profile_before_opening_stripe_checkout'),
       );
       return;
     }
@@ -154,8 +140,8 @@ export const BillingPanel: React.FC = () => {
           const message =
             error instanceof Error
               ? error.message
-              : tr('Stripe checkout ha fallado.', 'Stripe checkout failed.');
-          toast.error(tr('Checkout no disponible', 'Checkout unavailable'), { description: message });
+              : t('components.billingpanel.stripe_checkout_failed');
+          toast.error(t('components.billingpanel.checkout_unavailable'), { description: message });
           setLoadingTier(null);
         },
       },
@@ -169,16 +155,13 @@ export const BillingPanel: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-primary">
               <CreditCard className="h-5 w-5" />
-              <p className="portal-kicker">{tr('Facturación', 'Billing')}</p>
+              <p className="portal-kicker">{t('components.billingpanel.billing')}</p>
             </div>
             <h2 className="portal-title text-3xl text-foreground">
-              {tr('Acceso, tier y capacidad.', 'Access, tier, and capacity.')}
+              {t('components.billingpanel.access_tier_and_capacity')}
             </h2>
             <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'El portal separa estado de acceso, tier comercial e intervalo de cobro. Un plan da capacidad operativa; no cambia el contrato de privacidad con clientes.',
-                'The portal separates access status, commercial tier, and billing interval. A plan unlocks operational capacity; it does not change the privacy contract with clients.',
-              )}
+              {t('components.billingpanel.the_portal_separates_access_status_commercial_tier_and_billing_interval_')}
             </p>
           </div>
 
@@ -193,7 +176,7 @@ export const BillingPanel: React.FC = () => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {interval === 'monthly' ? tr('Mensual', 'Monthly') : tr('Anual', 'Annual')}
+                {interval === 'monthly' ? t('components.billingpanel.monthly') : t('components.billingpanel.annual')}
               </button>
             ))}
           </div>
@@ -201,18 +184,12 @@ export const BillingPanel: React.FC = () => {
 
         {checkoutStatus === 'success' && (
           <div className="mt-4 rounded-xl border border-primary/25 bg-primary/10 p-3 text-sm font-semibold text-primary">
-            {tr(
-              'Checkout completado. Si el webhook de Stripe aún no aterrizó, refresca el perfil en unos segundos.',
-              'Checkout completed. If the Stripe webhook has not landed yet, refresh the profile in a few seconds.',
-            )}
+            {t('components.billingpanel.checkout_completed_if_the_stripe_webhook_has_not_landed_yet_refresh_the_')}
           </div>
         )}
         {checkoutStatus === 'canceled' && (
           <div className="mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-3 text-sm font-semibold text-amber-700 dark:text-amber-300">
-            {tr(
-              'Checkout cancelado. No se aplicó ningún cambio de facturación.',
-              'Checkout canceled. No billing change was applied.',
-            )}
+            {t('components.billingpanel.checkout_canceled_no_billing_change_was_applied')}
           </div>
         )}
 
@@ -222,13 +199,10 @@ export const BillingPanel: React.FC = () => {
               <BadgeCheck className="h-5 w-5 shrink-0 text-primary" />
               <div className="space-y-1">
                 <p className="font-bold text-foreground">
-                  {tr('Estás en el plan de prueba gratuito', 'You are on the free trial plan')}
+                  {t('components.billingpanel.you_are_on_the_free_trial_plan')}
                 </p>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  {tr(
-                    'Tu cuenta de prueba te permite conectar con exactamente 1 cliente de manera gratuita. Para ampliar tu límite e invitar a más clientes, selecciona uno de los planes profesionales a continuación.',
-                    'Your trial account allows you to connect with exactly 1 client for free. To expand your limit and invite more clients, select one of the professional plans below.',
-                  )}
+                  {t('components.billingpanel.your_trial_account_allows_you_to_connect_with_exactly_1_client_for_free_')}
                 </p>
               </div>
             </div>
@@ -237,39 +211,32 @@ export const BillingPanel: React.FC = () => {
 
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           <SummaryCard
-            label={tr('Estado de acceso', 'Access status')}
+            label={t('components.billingpanel.access_status')}
             value={proStatusLabel}
             tone={billingSummary.hasProfessionalAccess ? 'good' : 'warn'}
             note={
               billingSummary.hasProfessionalAccess
-                ? tr('Invitaciones y publicación de planes habilitadas.', 'Invites and plan publishing are enabled.')
-                : tr('Invitaciones y nuevos planes bloqueados hasta reactivar facturación.', 'Invites and new plans stay blocked until billing is active.')
+                ? t('components.billingpanel.invites_and_plan_publishing_are_enabled')
+                : t('components.billingpanel.invites_and_new_plans_stay_blocked_until_billing_is_active')
             }
           />
           <SummaryCard
-            label={tr('Tier comercial', 'Commercial tier')}
+            label={t('components.billingpanel.commercial_tier')}
             value={billingSummary.tierLabel}
-            note={tr(
-              `${billingSummary.clientLimit} clientes activos incluidos`,
-              `${billingSummary.clientLimit} active clients included`,
-            )}
+            note={t('components.billingpanel.active_clients_included', {
+              billingsummary_clientlimit: billingSummary.clientLimit,
+            })}
           />
           <SummaryCard
-            label={tr('Intervalo de cobro', 'Billing interval')}
+            label={t('components.billingpanel.billing_interval')}
             value={billingIntervalLabel}
-            note={tr(
-              'Guardado por separado del estado de suscripción',
-              'Stored separately from subscription status',
-            )}
+            note={t('components.billingpanel.stored_separately_from_subscription_status')}
           />
         </div>
 
         {selectedInterval === 'annual' && (
           <div className="portal-soft-panel mt-4 rounded-xl p-3 text-xs leading-relaxed text-muted-foreground">
-            {tr(
-              'El checkout anual depende de que los secrets `*_ANNUAL_PRICE_ID` estén configurados en Supabase. Si faltan, el error es explícito.',
-              'Annual checkout depends on the matching `*_ANNUAL_PRICE_ID` secrets being configured in Supabase. If they are missing, the error is explicit.',
-            )}
+            {t('components.billingpanel.annual_checkout_depends_on_the_matching_annual_price_id_secrets_being_co')}
           </div>
         )}
       </section>
@@ -280,13 +247,12 @@ export const BillingPanel: React.FC = () => {
             <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
             <div className="space-y-1">
               <p className="text-sm font-bold text-foreground dark:text-white">
-                {tr('La consulta aún no está operativa', 'Practice not operational yet')}
+                {t('components.billingpanel.practice_not_operational_yet')}
               </p>
               <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
-                {tr(
-                  `Los registros existentes pueden seguir en lectura, pero nuevas invitaciones y nuevos planes deben quedar bloqueados mientras el estado sea "${billingSummary.proStatus}".`,
-                  `Existing records may remain readable, but new invites and new plans should stay blocked while access status is "${billingSummary.proStatus}".`,
-                )}
+                {t('components.billingpanel.existing_records_may_remain_readable_but_new_invites_and_new_plans_shoul', {
+                  billingsummary_prostatus: billingSummary.proStatus,
+                })}
               </p>
             </div>
           </div>
@@ -323,7 +289,7 @@ export const BillingPanel: React.FC = () => {
                 </div>
                 <div className="portal-soft-panel rounded-xl px-3 py-2 text-right">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {tr('Capacidad', 'Capacity')}
+                    {t('components.billingpanel.capacity')}
                   </p>
                   <p className="mt-1 flex items-center gap-1 text-sm font-bold text-foreground">
                     <Users className="h-4 w-4 text-primary" />
@@ -333,14 +299,14 @@ export const BillingPanel: React.FC = () => {
               </div>
 
               <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-                {locale === 'es' ? tier.summaryEs : tier.summaryEn}
+                {t(tierSummaryKey[tier.id])}
               </p>
 
               <ul className="mt-5 space-y-3">
-                {(locale === 'es' ? tier.featuresEs : tier.featuresEn).map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+                {tierFeatureKeys[tier.id].map((featureKey) => (
+                  <li key={featureKey} className="flex items-start gap-2 text-sm text-muted-foreground">
                     <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{feature}</span>
+                    <span>{t(featureKey)}</span>
                   </li>
                 ))}
               </ul>
@@ -357,12 +323,12 @@ export const BillingPanel: React.FC = () => {
                 {isLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    {tr('Redirigiendo', 'Redirecting')}
+                    {t('components.billingpanel.redirecting')}
                   </>
                 ) : isCurrentPlan ? (
-                  tr('Plan actual', 'Current plan')
+                  t('components.billingpanel.current_plan')
                 ) : (
-                  tr('Abrir checkout', 'Open checkout')
+                  t('components.billingpanel.open_checkout')
                 )}
               </button>
             </article>
@@ -372,36 +338,24 @@ export const BillingPanel: React.FC = () => {
 
       <section className="portal-panel rounded-[1.6rem] p-6">
         <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-          {tr('Recordatorios del contrato de datos', 'Data contract reminders')}
+          {t('components.billingpanel.data_contract_reminders')}
         </h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <InfoCard
-            title={tr('Aggregate siempre es la base', 'Aggregate sharing is the baseline')}
-            body={tr(
-              'Snapshots, adherencia de macros y progreso resumido pueden ser visibles con una relación activa.',
-              'Snapshots, macro adherence, and summary progress can be visible with an active relationship.',
-            )}
+            title={t('components.billingpanel.aggregate_sharing_is_the_baseline')}
+            body={t('components.billingpanel.snapshots_macro_adherence_and_summary_progress_can_be_visible_with_an_ac')}
           />
           <InfoCard
-            title={tr('Detailed requiere consentimiento', 'Detailed requires consent')}
-            body={tr(
-              'Las filas crudas del diario solo aparecen cuando el cliente mantiene la relación activa y el modo es detailed.',
-              'Raw diary rows only appear when the client keeps the relationship active and the mode is detailed.',
-            )}
+            title={t('components.billingpanel.detailed_requires_consent')}
+            body={t('components.billingpanel.raw_diary_rows_only_appear_when_the_client_keeps_the_relationship_active')}
           />
           <InfoCard
-            title={tr('Billing no anula privacidad', 'Billing does not override privacy')}
-            body={tr(
-              'Un tier superior aumenta capacidad, no la cantidad de datos privados que el profesional puede ver.',
-              'A higher tier increases capacity, not the amount of private data the professional may access.',
-            )}
+            title={t('components.billingpanel.billing_does_not_override_privacy')}
+            body={t('components.billingpanel.a_higher_tier_increases_capacity_not_the_amount_of_private_data_the_prof')}
           />
           <InfoCard
-            title={tr('El fallback read-only es honesto', 'Read-only fallback stays honest')}
-            body={tr(
-              'Cuando billing cae, el histórico puede seguir legible mientras nuevas invitaciones y nuevos planes quedan bloqueados.',
-              'When billing lapses, historical records can remain readable while new invites and new plans are blocked.',
-            )}
+            title={t('components.billingpanel.read_only_fallback_stays_honest')}
+            body={t('components.billingpanel.when_billing_lapses_historical_records_can_remain_readable_while_new_inv')}
           />
         </div>
       </section>

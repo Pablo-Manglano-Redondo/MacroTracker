@@ -207,6 +207,23 @@ void main() {
         FakeSupabaseIdentityService(),
       );
 
+      final connection = ProfessionalConnectionEntity(
+        relationshipId: 'rel-123',
+        professionalId: 'pro-456',
+        clientId: 'user-789',
+        professionalName: 'Dr. John Doe',
+        connectedAt: DateTime.now(),
+        consentAcceptedAt: DateTime.now(),
+        lastPlanSyncAt: DateTime.now(),
+        lastSnapshotSyncAt: null,
+        pendingSyncCount: 1,
+        sharingMode: 'aggregate',
+        messagesEnabled: false,
+        connectionStatus: 'active',
+        activePlan: null,
+      );
+      await dataSource.saveActiveConnection(connection);
+
       // Pre-populate queue
       final pendingItem = PendingSnapshotSyncDBO(
         id: 'rel-123_2026-06-07',
@@ -252,6 +269,23 @@ void main() {
           ensureUserSessionError: StateError('session refresh required'),
         ),
       );
+
+      final connection = ProfessionalConnectionEntity(
+        relationshipId: 'rel-123',
+        professionalId: 'pro-456',
+        clientId: 'user-789',
+        professionalName: 'Dr. John Doe',
+        connectedAt: DateTime.now(),
+        consentAcceptedAt: DateTime.now(),
+        lastPlanSyncAt: DateTime.now(),
+        lastSnapshotSyncAt: null,
+        pendingSyncCount: 1,
+        sharingMode: 'aggregate',
+        messagesEnabled: false,
+        connectionStatus: 'active',
+        activePlan: null,
+      );
+      await dataSource.saveActiveConnection(connection);
 
       final pendingItem = PendingSnapshotSyncDBO(
         id: 'rel-123_2026-06-07',

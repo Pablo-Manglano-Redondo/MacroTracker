@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/domain/entity/daily_focus_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
@@ -8,6 +10,7 @@ import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/core/utils/id_generator.dart';
 import 'package:macrotracker/core/utils/meal_aggregate_factory.dart';
 import 'package:macrotracker/core/utils/meal_portion_nutrition.dart';
+import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/ai_food_memory_entry.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/ai_meal_memory_entry.dart';
@@ -40,6 +43,7 @@ class MealInterpretationPersonalizationUsecase {
     String? freeText,
   }) async {
     final config = await _getConfigUsecase.getConfig();
+    final copy = await _loadCopy(config.selectedLocale);
     final user = await _getUserUsecase.getUserData();
     final recipes = await _getRecipeLibraryUsecase.getAllRecipes();
     final frequentMeals =
@@ -51,6 +55,7 @@ class MealInterpretationPersonalizationUsecase {
       recipes: recipes,
       memories: foodMemories,
       mealMemories: mealMemories,
+      copy: copy,
     );
 
     final mealQuery = freeText?.trim();
@@ -263,6 +268,8 @@ class MealInterpretationPersonalizationUsecase {
     String? inputText,
     String? localImagePath,
   }) async {
+    final copy =
+        await _loadCopy((await _getConfigUsecase.getConfig()).selectedLocale);
     final context = await buildContext(
       intakeType: intakeType,
       freeText: inputText ?? title,
@@ -299,8 +306,7 @@ class MealInterpretationPersonalizationUsecase {
         inputText: inputText,
         localImagePath: localImagePath,
         title: bestMatch.candidate.title,
-        summary:
-            'Interpretaci\u00f3n remota no disponible. Se propuso una comida tuya parecida para acelerar la correcci\u00f3n.',
+        summary: copy.mealCaptureFallbackSimilarMealSummary,
         totalKcal: nutrition.kcal,
         totalCarbs: nutrition.carbs,
         totalFat: nutrition.fat,
@@ -321,8 +327,7 @@ class MealInterpretationPersonalizationUsecase {
       inputText: inputText,
       localImagePath: localImagePath,
       title: title,
-      summary:
-          'Interpretaci\u00f3n remota no disponible. Revisa el borrador y usa tus sugerencias guardadas para ajustarlo r\u00e1pido.',
+      summary: copy.mealCaptureFallbackReviewDraftSummary,
       totalKcal: 0,
       totalCarbs: 0,
       totalFat: 0,
@@ -490,6 +495,7 @@ class MealInterpretationPersonalizationUsecase {
     required List<RecipeEntity> recipes,
     required List<AiFoodMemoryEntry> memories,
     required List<AiMealMemoryEntry> mealMemories,
+    required S copy,
   }) {
     final candidates = <MealInterpretationCandidate>[];
 
@@ -498,8 +504,9 @@ class MealInterpretationPersonalizationUsecase {
         MealInterpretationCandidate(
           id: 'meal-memory:${memory.key}',
           title: memory.title,
-          sourceLabel:
-              memory.uses > 1 ? 'Tu plato frecuente' : 'Tu plato guardado',
+          sourceLabel: memory.uses > 1
+              ? copy.mealCaptureSourceFrequentSavedMeal
+              : copy.mealCaptureSourceSavedMeal,
           meal: memory.mealSnapshot,
           defaultAmount: memory.defaultAmount,
           defaultUnit: memory.defaultUnit,
@@ -520,8 +527,8 @@ class MealInterpretationPersonalizationUsecase {
           id: 'memory:${memory.key}',
           title: memory.displayLabel,
           sourceLabel: memory.uses > 1
-              ? 'Tu correcci\u00f3n frecuente'
-              : 'Tu correcci\u00f3n',
+              ? copy.mealCaptureSourceFrequentCorrection
+              : copy.mealCaptureSourceSavedCorrection,
           meal: meal,
           defaultAmount: memory.amount,
           defaultUnit: memory.unit,
@@ -537,7 +544,7 @@ class MealInterpretationPersonalizationUsecase {
         MealInterpretationCandidate(
           id: 'preset:${preset.key}',
           title: preset.title,
-          sourceLabel: 'Comida frecuente (${preset.uses}x)',
+          sourceLabel: copy.mealCaptureSourceFrequentMealCount(preset.uses),
           meal: preset.meal,
           defaultAmount: preset.amount,
           defaultUnit: preset.unit,
@@ -553,7 +560,7 @@ class MealInterpretationPersonalizationUsecase {
         MealInterpretationCandidate(
           id: 'recipe:${recipe.id}',
           title: recipe.name,
-          sourceLabel: 'Receta guardada',
+          sourceLabel: copy.mealCaptureSourceSavedRecipe,
           meal: MealAggregateFactory.fromRecipe(recipe),
           defaultAmount: 1,
           defaultUnit: 'serving',
@@ -826,6 +833,15 @@ class MealInterpretationPersonalizationUsecase {
     normalized = normalized.replaceAll(RegExp(r'[^a-z0-9\s]'), ' ');
     normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
     return normalized;
+  }
+
+  Future<S> _loadCopy(String? selectedLocale) async {
+    final localeCode = (selectedLocale?.trim().isNotEmpty == true
+            ? selectedLocale!
+            : 'en')
+        .split(RegExp(r'[-_]'))
+        .first;
+    return S.load(Locale(localeCode));
   }
 
   String _draftSearchText(InterpretationDraftEntity draft) {

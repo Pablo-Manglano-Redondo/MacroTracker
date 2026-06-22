@@ -46,7 +46,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   onToggleRoster,
   unreadCount = 0,
 }) => {
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const [planView, setPlanView] = useState<PlanView>('list');
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('plans');
@@ -61,24 +61,24 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
   const relationshipLabel = useMemo(() => {
     if (client.status === 'connected') {
-      return tr('Conectado', 'Connected');
+      return t('components.clientdetail.index.connected');
     }
     if (client.status === 'revoked') {
-      return tr('Revocado', 'Revoked');
+      return t('components.clientdetail.index.revoked');
     }
     if (client.status === 'archived') {
-      return tr('Archivado', 'Archived');
+      return t('components.clientdetail.index.archived');
     }
     return client.status;
-  }, [client.status, tr]);
+  }, [client.status, t]);
 
   const sharingLabel =
     client.sharing_mode === 'detailed'
-      ? tr('Detallado', 'Detailed')
-      : tr('Agregado', 'Aggregate');
+      ? t('components.clientdetail.index.detailed')
+      : t('components.clientdetail.index.aggregate');
   const messagesLabel = client.messages_enabled
-    ? tr('Chat activo', 'Chat active')
-    : tr('Chat inactivo', 'Chat inactive');
+    ? t('components.clientdetail.index.chat_active')
+    : t('components.clientdetail.index.chat_inactive');
 
   const handleNewPlan = () => {
     setEditingPlanId(null);
@@ -96,18 +96,18 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   };
 
   const tabs: Array<{ id: DetailTab; label: string; icon: React.ReactNode; badge?: number }> = [
-    { id: 'plans', label: tr('Planes', 'Plans'), icon: <LayoutList className="h-3.5 w-3.5" /> },
-    { id: 'notes', label: tr('Notas', 'Notes'), icon: <FileText className="h-3.5 w-3.5" /> },
-    { id: 'progress', label: tr('Progreso', 'Progress'), icon: <Scale className="h-3.5 w-3.5" /> },
-    { id: 'checkins', label: tr('Check-ins', 'Check-ins'), icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
-    { id: 'diary', label: tr('Diario', 'Diary'), icon: <UtensilsCrossed className="h-3.5 w-3.5" /> },
+    { id: 'plans', label: t('components.clientdetail.index.plans'), icon: <LayoutList className="h-3.5 w-3.5" /> },
+    { id: 'notes', label: t('components.clientdetail.index.notes'), icon: <FileText className="h-3.5 w-3.5" /> },
+    { id: 'progress', label: t('components.clientdetail.index.progress'), icon: <Scale className="h-3.5 w-3.5" /> },
+    { id: 'checkins', label: t('components.clientdetail.index.check_ins'), icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
+    { id: 'diary', label: t('components.clientdetail.index.diary'), icon: <UtensilsCrossed className="h-3.5 w-3.5" /> },
     {
       id: 'chat',
-      label: 'Chat',
+      label: t('components.clientdetail.index.chat'),
       icon: <MessageSquare className="h-3.5 w-3.5" />,
       badge: unreadCount > 0 ? unreadCount : undefined,
     },
-    { id: 'profile', label: tr('Perfil', 'Profile'), icon: <User className="h-3.5 w-3.5" /> },
+    { id: 'profile', label: t('components.clientdetail.index.profile'), icon: <User className="h-3.5 w-3.5" /> },
   ];
 
   return (
@@ -119,7 +119,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               {initials}
             </div>
             <div className="min-w-0 space-y-2">
-              <p className="portal-kicker">{tr('Cliente seleccionado', 'Selected client')}</p>
+              <p className="portal-kicker">{t('components.clientdetail.index.selected_client')}</p>
               <h2 className="portal-title truncate text-2xl text-foreground">{clientName}</h2>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={client.status === 'connected' ? 'good' : 'neutral'}>
@@ -138,8 +138,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 className="rounded-xl border border-border bg-card p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:flex"
                 title={
                   isRosterCollapsed
-                    ? tr('Expandir roster', 'Expand roster')
-                    : tr('Colapsar roster', 'Collapse roster')
+                    ? t('components.clientdetail.index.expand_roster')
+                    : t('components.clientdetail.index.collapse_roster')
                 }
               >
                 {isRosterCollapsed ? (
@@ -152,7 +152,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             <button
               onClick={onClose}
               className="rounded-xl border border-border bg-card p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              aria-label={tr('Cerrar detalle', 'Close details')}
+              aria-label={t('components.clientdetail.index.close_details')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -198,7 +198,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             }`}
           >
             <LayoutList className="h-3.5 w-3.5" />
-            {tr('Planes', 'Plans')}
+            {t('components.clientdetail.index.plans')}
           </button>
           <button
             onClick={handleNewPlan}
@@ -209,7 +209,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             }`}
           >
             <Plus className="h-3.5 w-3.5" />
-            {tr('Nuevo plan', 'New plan')}
+            {t('components.clientdetail.index.new_plan')}
           </button>
         </div>
       )}
@@ -246,13 +246,10 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-500 dark:text-amber-300" />
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-foreground">
-                    {tr('Chat desactivado', 'Chat disabled')}
+                    {t('components.clientdetail.index.chat_disabled')}
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    {tr(
-                      'Este cliente ha desactivado los mensajes desde la configuración de privacidad de la app móvil.',
-                      'This client has disabled messages from the privacy settings in the mobile app.',
-                    )}
+                    {t('components.clientdetail.index.this_client_has_disabled_messages_from_the_privacy_settings_in_the_mobil')}
                   </p>
                 </div>
               </div>

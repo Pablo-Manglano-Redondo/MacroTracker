@@ -51,10 +51,17 @@ function loadTemplateDefaults(): { name: string; kcal: number; protein: number; 
 
 export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const template = loadTemplateDefaults();
-  const [planName, setPlanName] = useState(template?.name || tr('Plan nutricional semanal', 'Weekly nutrition plan'));
+  const mealSlotLabel = (slot: string) =>
+    ({
+      breakfast: t('components.clientdetail.planbuilder.breakfast'),
+      lunch: t('components.clientdetail.planbuilder.lunch'),
+      dinner: t('components.clientdetail.planbuilder.dinner'),
+      snack: t('components.clientdetail.planbuilder.snack'),
+    })[slot] ?? slot;
+  const [planName, setPlanName] = useState(template?.name || t('components.clientdetail.planbuilder.weekly_nutrition_plan'));
   const [kcal, setKcal] = useState(template?.kcal || 2200);
   const [protein, setProtein] = useState(template?.protein || 160);
   const [carbs, setCarbs] = useState(template?.carbs || 250);
@@ -62,10 +69,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
   const [published, setPublished] = useState(false);
   const [showMeals, setShowMeals] = useState(true);
   const [meals, setMeals] = useState<MealInput[]>([
-    { slot: 'breakfast', title: 'Breakfast', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'lunch', title: 'Lunch', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'dinner', title: 'Dinner', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'snack', title: 'Snack', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'breakfast', title: mealSlotLabel('breakfast'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'lunch', title: mealSlotLabel('lunch'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'dinner', title: mealSlotLabel('dinner'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'snack', title: mealSlotLabel('snack'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
   ]);
   const [recipePickerSlot, setRecipePickerSlot] = useState<string | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<string | null>(null);
@@ -103,34 +110,20 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
     [recipes, searchQuery, activeCategory],
   );
 
-  const mealSlotLabel = (slot: string) =>
-    ({
-      breakfast: tr('Desayuno', 'Breakfast'),
-      lunch: tr('Comida', 'Lunch'),
-      dinner: tr('Cena', 'Dinner'),
-      snack: tr('Snack', 'Snack'),
-    })[slot] ?? slot;
-
   const validate = (): boolean => {
     if (!professional) {
-      toast.error(tr('Guarda primero tu perfil.', 'Save your profile first.'));
+      toast.error(t('components.clientdetail.planbuilder.save_your_profile_first'));
       return false;
     }
     if (!billingSummary.hasProfessionalAccess) {
       toast.error(
-        tr(
-          'El acceso profesional debe estar activo o en trial para publicar planes.',
-          'Professional access must be active or trialing to publish plans.',
-        ),
+        t('components.clientdetail.planbuilder.professional_access_must_be_active_or_trialing_to_publish_plans'),
       );
       return false;
     }
     if (client.status !== 'connected') {
       toast.error(
-        tr(
-          `Esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}, así que nuevos planes deben seguir bloqueados.`,
-          `This relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}, so new plans should stay blocked.`,
-        ),
+        t('components.clientdetail.planbuilder.this_relationship_is_so_new_plans_should_stay_blocked', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() }),
       );
       return false;
     }
@@ -138,9 +131,9 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
     if (!result.success) {
       const firstIssue = result.error.issues[0];
       if (firstIssue?.path[0] === 'name') {
-        toast.error(tr('El nombre del plan es obligatorio.', 'Plan name is required.'));
+        toast.error(t('components.clientdetail.planbuilder.plan_name_is_required'));
       } else {
-        toast.error(firstIssue?.message || tr('Valores del plan no válidos', 'Invalid plan values'));
+        toast.error(firstIssue?.message || t('components.clientdetail.planbuilder.invalid_plan_values'));
       }
       return false;
     }
@@ -169,14 +162,14 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
           setPublished(true);
           toast.success(
             client.display_name
-              ? tr(`Plan publicado para ${client.display_name}`, `Plan published for ${client.display_name}`)
-              : tr('Plan publicado', 'Plan published'),
+              ? t('components.clientdetail.planbuilder.plan_published_for', { client_display_name: client.display_name })
+              : t('components.clientdetail.planbuilder.plan_published'),
           );
           setTimeout(() => setPublished(false), 5000);
         },
         onError: (err: any) => {
-          toast.error(tr('No se pudo publicar el plan', 'Failed to publish plan'), {
-            description: err?.message || tr('Error desconocido', 'Unknown error'),
+          toast.error(t('components.clientdetail.planbuilder.failed_to_publish_plan'), {
+            description: err?.message || t('components.clientdetail.planbuilder.unknown_error'),
           });
         },
       },
@@ -255,7 +248,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
           }),
         );
         toast.success(
-          tr(`Comida movida de ${data.fromSlot} a ${targetSlot}`, `Moved meal from ${data.fromSlot} to ${targetSlot}`),
+          t('components.clientdetail.planbuilder.moved_meal_from_to', { data_fromslot: data.fromSlot, targetslot: targetSlot }),
         );
       } else {
         setMeals((prev) =>
@@ -273,10 +266,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
               : meal,
           ),
         );
-        toast.success(tr(`Receta asignada a ${targetSlot}`, `Assigned recipe to ${targetSlot}`));
+        toast.success(t('components.clientdetail.planbuilder.assigned_recipe_to', { targetslot: targetSlot }));
       }
     } catch {
-      toast.error(tr('No se pudo soltar la receta', 'Failed to drop recipe'));
+      toast.error(t('components.clientdetail.planbuilder.failed_to_drop_recipe'));
     }
   };
 
@@ -286,9 +279,9 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
         <section className="portal-panel rounded-[1.6rem] p-6">
           <div className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="portal-kicker">{tr('Plan builder', 'Plan builder')}</p>
+              <p className="portal-kicker">{t('components.clientdetail.planbuilder.plan_builder')}</p>
               <h3 className="portal-title mt-2 text-2xl text-foreground">
-                {tr('Publicar un plan semanal', 'Publish a weekly plan')}
+                {t('components.clientdetail.planbuilder.publish_a_weekly_plan')}
               </h3>
             </div>
             <button
@@ -297,8 +290,8 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
               className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
               {publishMutation.isPending
-                ? tr('Publicando...', 'Publishing...')
-                : tr('Publicar plan', 'Publish plan')}
+                ? t('components.clientdetail.planbuilder.publishing')
+                : t('components.clientdetail.planbuilder.publish_plan')}
             </button>
           </div>
 
@@ -306,17 +299,11 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             <Notice tone="warn">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
               <div>
-                <p className="font-bold">{tr('Publicación no disponible', 'Publishing unavailable')}</p>
+                <p className="font-bold">{t('components.clientdetail.planbuilder.publishing_unavailable')}</p>
                 <p className="mt-1 text-sm leading-relaxed">
                   {client.status !== 'connected'
-                    ? tr(
-                        `Esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}, así que el portal no debe publicar nuevos planes.`,
-                        `This relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}, so the portal should not publish new plans.`,
-                      )
-                    : tr(
-                        'El acceso profesional debe estar activo o en trial para publicar planes.',
-                        'Professional access must be active or trialing to publish plans.',
-                      )}
+                    ? t('components.clientdetail.planbuilder.this_relationship_is_so_the_portal_should_not_publish_new_plans', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
+                    : t('components.clientdetail.planbuilder.professional_access_must_be_active_or_trialing_to_publish_plans')}
                 </p>
               </div>
             </Notice>
@@ -326,26 +313,26 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             <Notice tone="good">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
-                <p className="font-bold">{tr('Plan publicado correctamente', 'Plan published successfully')}</p>
+                <p className="font-bold">{t('components.clientdetail.planbuilder.plan_published_successfully')}</p>
               </div>
             </Notice>
           ) : null}
 
           <div className="space-y-6">
-            <Field label={tr('Nombre del plan', 'Plan name')}>
+            <Field label={t('components.clientdetail.planbuilder.plan_name')}>
               <input
                 value={planName}
                 onChange={(event) => setPlanName(event.target.value)}
-                placeholder={tr('Ej. Plan nutricional semanal', 'E.g. Weekly nutrition plan')}
+                placeholder={t('components.clientdetail.planbuilder.e_g_weekly_nutrition_plan')}
                 className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
               />
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <MacroStepper label="Protein" unit="g" value={protein} setValue={setProtein} step={5} tone="emerald" />
-              <MacroStepper label="Carbs" unit="g" value={carbs} setValue={setCarbs} step={5} tone="blue" />
-              <MacroStepper label="Fat" unit="g" value={fat} setValue={setFat} step={5} tone="amber" />
-              <MacroStepper label="Kcal" value={kcal} setValue={setKcal} step={50} tone="rose" />
+              <MacroStepper label={t('common.protein')} unit={t('common.grams_unit')} value={protein} setValue={setProtein} step={5} tone="emerald" caloriesPerUnit={4} kcalUnitLabel={t('common.kcal_unit')} />
+              <MacroStepper label={t('common.carbs')} unit={t('common.grams_unit')} value={carbs} setValue={setCarbs} step={5} tone="blue" caloriesPerUnit={4} kcalUnitLabel={t('common.kcal_unit')} />
+              <MacroStepper label={t('common.fat')} unit={t('common.grams_unit')} value={fat} setValue={setFat} step={5} tone="amber" caloriesPerUnit={9} kcalUnitLabel={t('common.kcal_unit')} />
+              <MacroStepper label={t('common.kcal')} value={kcal} setValue={setKcal} step={50} tone="rose" kcalUnitLabel={t('common.kcal_unit')} />
             </div>
 
             <Notice tone={hasDiscrepancy ? 'warn' : 'good'}>
@@ -358,14 +345,11 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                 <div>
                   <p className="font-bold">
                     {hasDiscrepancy
-                      ? tr('Hay discrepancia entre macros y kcal', 'There is a macro/kcal discrepancy')
-                      : tr('Macros y kcal alineados', 'Calories and macros are aligned')}
+                      ? t('components.clientdetail.planbuilder.there_is_a_macro_kcal_discrepancy')
+                      : t('components.clientdetail.planbuilder.calories_and_macros_are_aligned')}
                   </p>
                   <p className="mt-1 text-sm leading-relaxed">
-                    {tr(
-                      `La suma de macros da ${calculatedKcal} kcal y el objetivo declarado es ${kcal} kcal.`,
-                      `The macro sum yields ${calculatedKcal} kcal and the declared target is ${kcal} kcal.`,
-                    )}
+                    {t('components.clientdetail.planbuilder.the_macro_sum_yields_kcal_and_the_declared_target_is_kcal', { calculatedkcal: calculatedKcal, kcal: kcal })}
                   </p>
                 </div>
                 {hasDiscrepancy ? (
@@ -373,7 +357,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                     onClick={() => setKcal(calculatedKcal)}
                     className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
                   >
-                    {tr('Autocorregir kcal', 'Autocorrect kcal')}
+                    {t('components.clientdetail.planbuilder.autocorrect_kcal')}
                   </button>
                 ) : null}
               </div>
@@ -391,10 +375,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                   </div>
                   <div>
                     <p className="text-sm font-bold text-foreground">
-                      {tr('Configuración de comidas', 'Meal configuration')}
+                      {t('components.clientdetail.planbuilder.meal_configuration')}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {mealTotals.kcal} kcal · {mealTotals.protein}p · {mealTotals.carbs}c · {mealTotals.fat}f
+                      {mealTotals.kcal} {t('common.kcal_unit')} · {mealTotals.protein}{t('common.protein_short')} · {mealTotals.carbs}{t('common.carbs_short')} · {mealTotals.fat}{t('common.fat_short')}
                     </p>
                   </div>
                 </div>
@@ -410,16 +394,16 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                   <div className="rounded-xl border border-border bg-background/60 p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <span className="text-sm font-bold text-foreground">
-                        {tr('Distribución diaria', 'Daily distribution')}
+                        {t('components.clientdetail.planbuilder.daily_distribution')}
                       </span>
                       <span className="text-sm font-bold text-foreground">
-                        {mealTotals.kcal} / {kcal} kcal
+                        {mealTotals.kcal} / {kcal} {t('common.kcal_unit')}
                       </span>
                     </div>
                     <div className="mt-2 flex gap-4 text-xs font-bold text-muted-foreground">
-                      <span className="text-primary">P: {mealTotals.protein}/{protein}g</span>
-                      <span className="text-sky-500 dark:text-sky-300">C: {mealTotals.carbs}/{carbs}g</span>
-                      <span className="text-amber-500 dark:text-amber-300">F: {mealTotals.fat}/{fat}g</span>
+                      <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
+                      <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
+                      <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
                     </div>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
                       <div
@@ -476,13 +460,13 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                                       ),
                                     );
                                     toast.success(
-                                      tr(`Bloque ${mealSlotLabel(meal.slot)} limpiado`, `${mealSlotLabel(meal.slot)} cleared`),
+                                      t('components.clientdetail.planbuilder.cleared', { meal_slot: mealSlotLabel(meal.slot) }),
                                     );
                                   }}
                                   className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-500"
                                 >
                                   <Trash2 className="h-3 w-3" />
-                                  {tr('Limpiar', 'Clear')}
+                                  {t('components.clientdetail.planbuilder.clear')}
                                 </button>
                               ) : null}
                               <button
@@ -491,7 +475,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                                 className="inline-flex items-center gap-1 text-[10px] font-bold text-primary"
                               >
                                 <BookOpen className="h-3 w-3" />
-                                {meal.recipe_id ? tr('Cambiar', 'Change') : tr('Asignar', 'Assign')}
+                                {meal.recipe_id ? t('components.clientdetail.planbuilder.change') : t('components.clientdetail.planbuilder.assign')}
                               </button>
                             </div>
                           </div>
@@ -506,7 +490,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                               }
                               setMeals(next);
                             }}
-                            placeholder={tr(`${mealSlotLabel(meal.slot)}: nombre`, `${mealSlotLabel(meal.slot)} title`)}
+                            placeholder={t('components.clientdetail.planbuilder.title', { meal_slot: mealSlotLabel(meal.slot) })}
                             className="portal-input mt-3 h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
                           />
 
@@ -514,7 +498,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                             {(['kcal', 'protein', 'carbs', 'fat'] as const).map((field) => (
                               <div key={field} className="space-y-1">
                                 <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                  {field === 'protein' ? 'P' : field === 'carbs' ? 'C' : field === 'fat' ? 'F' : 'Kcal'}
+                                  {field === 'protein' ? t('common.protein_short') : field === 'carbs' ? t('common.carbs_short') : field === 'fat' ? t('common.fat_short') : t('common.kcal')}
                                 </label>
                                 <input
                                   type="number"
@@ -541,10 +525,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                             <div className="mt-3 rounded-xl border border-dashed border-border bg-background px-3 py-4 text-center">
                               <ChefHat className="mx-auto h-5 w-5 text-muted-foreground" />
                               <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                {tr('Slot vacío', 'Empty slot')}
+                                {t('components.clientdetail.planbuilder.empty_slot')}
                               </p>
                               <p className="mt-1 text-[11px] text-muted-foreground">
-                                {tr('Arrastra una receta o usa Asignar.', 'Drag a recipe or use Assign.')}
+                                {t('components.clientdetail.planbuilder.drag_a_recipe_or_use_assign')}
                               </p>
                             </div>
                           ) : null}
@@ -589,10 +573,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
           <div className="mb-3 border-b border-border pb-4">
             <div className="flex items-center gap-2">
               <ChefHat className="h-4.5 w-4.5 text-primary" />
-              <h4 className="text-base font-bold text-foreground">{tr('Biblioteca de recetas', 'Recipe library')}</h4>
+              <h4 className="text-base font-bold text-foreground">{t('components.clientdetail.planbuilder.recipe_library')}</h4>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {tr('Arrastra recetas al timeline o asígnalas por slot.', 'Drag recipes into the timeline or assign them by slot.')}
+              {t('components.clientdetail.planbuilder.drag_recipes_into_the_timeline_or_assign_them_by_slot')}
             </p>
           </div>
 
@@ -601,7 +585,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder={tr('Buscar recetas', 'Search recipes')}
+              placeholder={t('components.clientdetail.planbuilder.search_recipes')}
               className="portal-input h-10 w-full rounded-xl pl-9 pr-8 text-sm font-medium outline-none focus:border-primary"
             />
             {searchQuery ? (
@@ -626,7 +610,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                {category === 'all' ? tr('Todo', 'All') : mealSlotLabel(category)}
+                {category === 'all' ? t('components.clientdetail.planbuilder.all') : mealSlotLabel(category)}
               </button>
             ))}
           </div>
@@ -640,7 +624,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
               </div>
             ) : filteredRecipes.length === 0 ? (
               <div className="py-8 text-center text-sm text-muted-foreground">
-                {tr('No hay recetas para este filtro.', 'No matching recipes for this filter.')}
+                {t('components.clientdetail.planbuilder.no_matching_recipes_for_this_filter')}
               </div>
             ) : (
               filteredRecipes.map((recipe) => (
@@ -657,14 +641,14 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                     <div className="flex items-start justify-between gap-2">
                       <p className="truncate text-sm font-semibold text-foreground">{recipe.title}</p>
                       <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
-                        {recipe.meal_type ? mealSlotLabel(recipe.meal_type) : tr('Snack', 'Snack')}
+                        {recipe.meal_type ? mealSlotLabel(recipe.meal_type) : t('components.clientdetail.planbuilder.snack')}
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-bold text-muted-foreground">
-                      <span>{recipe.kcal || 0} kcal</span>
-                      <span className="text-primary">P: {recipe.protein || 0}g</span>
-                      <span className="text-sky-500 dark:text-sky-300">C: {recipe.carbs || 0}g</span>
-                      <span className="text-amber-500 dark:text-amber-300">F: {recipe.fat || 0}g</span>
+                      <span>{recipe.kcal || 0} {t('common.kcal_unit')}</span>
+                      <span className="text-primary">{t('common.protein_short')}: {recipe.protein || 0}{t('common.grams_unit')}</span>
+                      <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {recipe.carbs || 0}{t('common.grams_unit')}</span>
+                      <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {recipe.fat || 0}{t('common.grams_unit')}</span>
                     </div>
                   </div>
                 </div>
@@ -703,7 +687,9 @@ const MacroStepper: React.FC<{
   setValue: React.Dispatch<React.SetStateAction<number>>;
   step: number;
   tone: 'emerald' | 'blue' | 'amber' | 'rose';
-}> = ({ label, unit = '', value, setValue, step, tone }) => {
+  caloriesPerUnit?: number;
+  kcalUnitLabel: string;
+}> = ({ label, unit = '', value, setValue, step, tone, caloriesPerUnit, kcalUnitLabel }) => {
   const toneClass = {
     emerald: 'text-primary bg-primary/6',
     blue: 'text-sky-600 dark:text-sky-300 bg-sky-500/6',
@@ -735,7 +721,7 @@ const MacroStepper: React.FC<{
         </button>
       </div>
       <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
-        {label === 'Kcal' ? '' : `${label === 'Fat' ? value * 9 : value * 4} kcal`}
+        {caloriesPerUnit == null ? '' : `${value * caloriesPerUnit} ${kcalUnitLabel}`}
       </p>
     </div>
   );

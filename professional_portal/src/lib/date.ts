@@ -1,3 +1,9 @@
+import {
+  defaultPortalLocale,
+  portalLocaleMetadata,
+  type PortalLocale,
+} from './generated/i18n';
+
 export function toDateOnlyString(date: Date = new Date()): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -27,4 +33,36 @@ export function formatDateOnly(
   locale?: string,
 ): string {
   return parseDateOnly(value).toLocaleDateString(locale, options);
+}
+
+export function resolvePortalIntlLocale(locale?: PortalLocale | string): string {
+  const normalized = `${locale ?? defaultPortalLocale}`.replace('_', '-').toLowerCase();
+  const exact = portalLocaleMetadata.find(
+    (entry) => entry.code.toLowerCase() === normalized,
+  );
+  if (exact) {
+    return exact.code;
+  }
+
+  const baseLanguage = normalized.split('-')[0];
+  const base = portalLocaleMetadata.find(
+    (entry) => entry.languageCode.toLowerCase() === baseLanguage,
+  );
+  return base?.code ?? defaultPortalLocale;
+}
+
+export function formatPortalDate(
+  value: string | number | Date,
+  locale: PortalLocale | string,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  return new Date(value).toLocaleDateString(resolvePortalIntlLocale(locale), options);
+}
+
+export function formatPortalTime(
+  value: string | number | Date,
+  locale: PortalLocale | string,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  return new Date(value).toLocaleTimeString(resolvePortalIntlLocale(locale), options);
 }

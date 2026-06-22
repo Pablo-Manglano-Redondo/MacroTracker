@@ -40,7 +40,7 @@ class TrackingTab extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               _TrackingScoreCard(
-                label: 'Kcal',
+                label: S.of(context).macroKcalLabel,
                 actual: summary.today.kcalActual,
                 target: summary.today.kcalTarget,
                 adherence: summary.today.kcalAdherence,
@@ -105,7 +105,7 @@ class TrackingTab extends StatelessWidget {
               ),
               const SizedBox(height: 14),
               _ProgressSummaryRow(
-                label: 'Kcal',
+                label: S.of(context).macroKcalLabel,
                 actual: summary.week.kcalActual,
                 target: summary.week.kcalTarget,
               ),

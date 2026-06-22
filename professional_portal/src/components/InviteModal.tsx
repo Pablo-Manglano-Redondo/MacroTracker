@@ -14,6 +14,7 @@ import { useAuth } from '../lib/auth-context';
 import { useCreateInvite } from '../hooks/mutations/useCreateInvite';
 import { useClients } from '../hooks/queries/useClients';
 import { useInvites } from '../hooks/queries/useInvites';
+import { formatPortalDate } from '../lib/date';
 import { toast } from '../lib/toast';
 import { getBillingSummary } from '../view-models/professional';
 import { usePortalI18n } from '../lib/portal-i18n';
@@ -24,7 +25,7 @@ interface InviteModalProps {
 
 export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const [newCode, setNewCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -39,24 +40,18 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
 
   const handleCreateInvite = () => {
     if (!professional) {
-      toast.error(tr('Guarda primero tu perfil.', 'Save your profile first.'));
+      toast.error(t('components.invitemodal.save_your_profile_first'));
       return;
     }
     if (!activePro) {
       toast.error(
-        tr(
-          'La suscripción profesional debe estar activa para crear invitaciones.',
-          'Professional subscription must be active to create invites.',
-        ),
+        t('components.invitemodal.professional_subscription_must_be_active_to_create_invites'),
       );
       return;
     }
     if (atCapacity) {
       toast.error(
-        tr(
-          'Has alcanzado la capacidad del tier actual.',
-          'Client capacity reached for the current tier.',
-        ),
+        t('components.invitemodal.client_capacity_reached_for_the_current_tier'),
       );
       return;
     }
@@ -65,11 +60,11 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
       onSuccess: (data) => {
         setNewCode(data.invite_code);
         setShowQr(false);
-        toast.success(tr('Código generado', 'Invite code generated'));
+        toast.success(t('components.invitemodal.invite_code_generated'));
       },
       onError: (err: any) => {
-        toast.error(tr('No se pudo crear la invitación', 'Failed to create invite'), {
-          description: err?.message || tr('Error desconocido', 'Unknown error'),
+        toast.error(t('components.invitemodal.failed_to_create_invite'), {
+          description: err?.message || t('components.invitemodal.unknown_error'),
         });
       },
     });
@@ -78,7 +73,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
   const copyToClipboard = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success(tr('Código copiado', 'Code copied'));
+    toast.success(t('components.invitemodal.code_copied'));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -100,17 +95,17 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
             </div>
             <div>
               <h3 className="text-base font-bold tracking-tight text-foreground">
-                {tr('Invitar cliente', 'Invite client')}
+                {t('components.invitemodal.invite_client')}
               </h3>
               <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
-                {tr('Vincula cuentas con códigos de conexión', 'Link accounts using connection codes')}
+                {t('components.invitemodal.link_accounts_using_connection_codes')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            title={tr('Cerrar modal', 'Close modal')}
+            title={t('components.invitemodal.close_modal')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -121,10 +116,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
             <div className="flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-xs font-semibold leading-relaxed text-amber-800 dark:text-amber-100">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
               <span>
-                {tr(
-                  'Necesitas una suscripción profesional activa para invitar clientes. Revisa la facturación antes de abrir nuevas relaciones.',
-                  'You need an active professional subscription to invite clients. Review billing before opening new relationships.',
-                )}
+                {t('components.invitemodal.you_need_an_active_professional_subscription_to_invite_clients_review_bi')}
               </span>
             </div>
           )}
@@ -132,10 +124,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
             <div className="flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-xs font-semibold leading-relaxed text-amber-800 dark:text-amber-100">
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
               <span>
-                {tr(
-                  `Capacidad alcanzada: ${connectedClients}/${billingSummary.clientLimit} clientes activos en el tier ${billingSummary.tierLabel}.`,
-                  `Capacity reached: ${connectedClients}/${billingSummary.clientLimit} active clients on the ${billingSummary.tierLabel} tier.`,
-                )}
+                {t('components.invitemodal.capacity_reached_active_clients_on_the_tier', { connectedclients: connectedClients, billingsummary_clientlimit: billingSummary.clientLimit, billingsummary_tierlabel: billingSummary.tierLabel })}
               </span>
             </div>
           )}
@@ -147,16 +136,10 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   <Link className="h-4.5 w-4.5" />
                 </div>
                 <p className="mx-auto mb-4 max-w-sm text-sm font-medium leading-relaxed text-muted-foreground">
-                  {tr(
-                    'Genera un código único de 8 caracteres. El cliente lo introducirá en la app MacroTracker, dentro de la sección Nutricionista, para vincular la relación.',
-                    'Generate a unique 8-character code. The client will enter it in the MacroTracker app, inside the Nutritionist section, to link the relationship.',
-                  )}
+                  {t('components.invitemodal.generate_a_unique_8_character_code_the_client_will_enter_it_in_the_macro')}
                 </p>
                 <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                  {tr(
-                    `${connectedClients}/${billingSummary.clientLimit} clientes activos en uso`,
-                    `${connectedClients}/${billingSummary.clientLimit} active clients in use`,
-                  )}
+                  {t('components.invitemodal.active_clients_in_use', { connectedclients: connectedClients, billingsummary_clientlimit: billingSummary.clientLimit })}
                 </p>
                 <button
                   onClick={handleCreateInvite}
@@ -166,15 +149,15 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   <UserPlus className="h-4 w-4 stroke-[3]" />
                   <span>
                     {createInviteMutation.isPending
-                      ? tr('Generando...', 'Generating...')
-                      : tr('Generar código', 'Generate code')}
+                      ? t('components.invitemodal.generating')
+                      : t('components.invitemodal.generate_code')}
                   </span>
                 </button>
               </>
             ) : (
               <div className="flex w-full flex-col items-center">
                 <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                  {tr('Código activo listo', 'Active invite code ready')}
+                  {t('components.invitemodal.active_invite_code_ready')}
                 </p>
                 <div className="inline-flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3">
                   <span className="select-all pl-2 font-mono text-xl font-black tracking-[0.2em] text-foreground">
@@ -184,7 +167,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                     <button
                       onClick={() => copyToClipboard(newCode)}
                       className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                      title={tr('Copiar código', 'Copy code')}
+                      title={t('components.invitemodal.copy_code')}
                     >
                       {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                     </button>
@@ -193,7 +176,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                       className={`rounded-lg p-2 transition-colors ${
                         showQr ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                       }`}
-                      title={tr('Mostrar QR', 'Toggle QR code')}
+                      title={t('components.invitemodal.toggle_qr_code')}
                     >
                       <QrCode className="h-4 w-4" />
                     </button>
@@ -204,13 +187,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   <div className="mt-4 flex flex-col items-center rounded-2xl border border-border bg-white p-4 shadow-inner animate-fade-in-up">
                     <QRCode value={newCode} size={150} />
                     <p className="mt-2.5 select-none text-[9px] font-bold uppercase tracking-[0.16em] text-[#08080a]">
-                      {tr('Escanear en la app móvil', 'Scan in mobile app')}
+                      {t('components.invitemodal.scan_in_mobile_app')}
                     </p>
                   </div>
                 )}
 
                 <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                  {tr('Caduca en 14 días', 'Expires in 14 days')}
+                  {t('components.invitemodal.expires_in_14_days')}
                 </p>
 
                 <div className="mt-4 w-full border-t border-border pt-4">
@@ -219,7 +202,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                     disabled={createInviteMutation.isPending}
                     className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
                   >
-                    {tr('Generar nuevo código', 'Generate new code')}
+                    {t('components.invitemodal.generate_new_code')}
                   </button>
                 </div>
               </div>
@@ -229,7 +212,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
           <div className="portal-soft-panel space-y-4 rounded-2xl p-5">
             <h4 className="flex items-center gap-2 text-xs font-bold text-foreground">
               <History className="h-4 w-4 text-primary" />
-              <span>{tr('Historial de invitaciones', 'Invite history')}</span>
+              <span>{t('components.invitemodal.invite_history')}</span>
             </h4>
 
             {isLoading ? (
@@ -240,7 +223,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
               </div>
             ) : !invites?.length ? (
               <p className="py-6 text-center text-sm font-medium text-muted-foreground">
-                {tr('Todavía no se han generado códigos.', 'No connection codes generated yet.')}
+                {t('components.invitemodal.no_connection_codes_generated_yet')}
               </p>
             ) : (
               <div className="max-h-[180px] space-y-2 overflow-y-auto pr-1">
@@ -262,12 +245,12 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                               : 'border border-primary/20 bg-primary/10 text-primary'
                           }`}
                         >
-                          {expired ? tr('Caducado', 'Expired') : tr('Activo', 'Active')}
+                          {expired ? t('components.invitemodal.expired') : t('components.invitemodal.active')}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-semibold text-muted-foreground">
                         <span>
-                          {new Date(inv.created_at).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+                          {formatPortalDate(inv.created_at, locale, {
                             month: 'short',
                             day: 'numeric',
                           })}
@@ -275,7 +258,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                         <button
                           onClick={() => copyToClipboard(inv.invite_code)}
                           className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                          title={tr('Copiar código', 'Copy code')}
+                          title={t('components.invitemodal.copy_code')}
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </button>

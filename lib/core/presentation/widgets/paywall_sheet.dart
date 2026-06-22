@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
@@ -515,17 +515,17 @@ class _PaywallSheetState extends State<PaywallSheet> {
   }
 
   String _getMonthlyPriceString(StoreProduct product) {
+    final copy = S.of(context);
     final pricePerMonth = product.price / 12;
     final symbolRegExp = RegExp(r'[^\d\s\.,]+');
     final match = symbolRegExp.firstMatch(product.priceString);
     final symbol = match != null ? match.group(0) : product.currencyCode;
 
     final isSuffix = product.priceString.trim().endsWith(symbol ?? '');
-    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
     if (isSuffix) {
-      return '${pricePerMonth.toStringAsFixed(2)} $symbol/${isSpanish ? 'mes' : 'mo'}';
+      return '${pricePerMonth.toStringAsFixed(2)} $symbol/${copy.paywallMonthShort}';
     } else {
-      return '$symbol${pricePerMonth.toStringAsFixed(2)}/${isSpanish ? 'mes' : 'mo'}';
+      return '$symbol${pricePerMonth.toStringAsFixed(2)}/${copy.paywallMonthShort}';
     }
   }
 }
@@ -537,10 +537,9 @@ class _ComparisonTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isSpanish = Localizations.localeOf(context).languageCode == 'es';
-
-    final freeLabel = isSpanish ? 'Gratis' : 'Free';
-    final premiumLabel = isSpanish ? 'Premium' : 'Premium';
+    final copy = S.of(context);
+    final freeLabel = copy.settingsFreePlan;
+    final premiumLabel = copy.paywallPremiumTitle;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 16),
@@ -589,27 +588,27 @@ class _ComparisonTable extends StatelessWidget {
           const SizedBox(height: 6),
           _buildRow(
             context,
-            isSpanish ? 'Registro diario con IA' : 'Daily AI Logging',
-            isSpanish ? '5 comidas/día' : '5 meals/day',
-            isSpanish ? 'Ilimitado' : 'Unlimited',
+            copy.paywallComparisonDailyAiLogging,
+            copy.paywallComparisonFiveMealsDay,
+            copy.paywallComparisonUnlimited,
           ),
           _buildRow(
             context,
-            isSpanish ? 'Sugerencias Macro Coach' : 'Macro Coach Suggestions',
-            isSpanish ? 'Bloqueado' : 'Locked',
-            isSpanish ? 'Incluido' : 'Included',
+            copy.paywallComparisonMacroCoach,
+            copy.paywallComparisonLocked,
+            copy.paywallComparisonIncluded,
           ),
           _buildRow(
             context,
-            isSpanish ? 'Ajustes semanales' : 'Weekly adjustments',
-            isSpanish ? 'Bloqueado' : 'Locked',
-            isSpanish ? 'Incluido' : 'Included',
+            copy.paywallComparisonWeeklyAdjustments,
+            copy.paywallComparisonLocked,
+            copy.paywallComparisonIncluded,
           ),
           _buildRow(
             context,
-            isSpanish ? 'Sincronización en la nube' : 'Cloud sync & backup',
-            isSpanish ? 'Manual' : 'Manual',
-            isSpanish ? 'Automática' : 'Automatic',
+            copy.paywallComparisonCloudSyncBackup,
+            copy.settingsManualStatus,
+            copy.paywallComparisonAutomatic,
           ),
         ],
       ),
@@ -823,7 +822,7 @@ class _PaywallCopy {
         );
       case PaywallPlacement.settings:
         return _PaywallCopy(
-          title: 'MacroTracker Premium',
+          title: S.of(context).paywallPremiumTitle,
           subtitle: S.of(context).paywallSettingsSubtitle,
           badge: S.of(context).paywallLaunchAnnualOfferBadge,
           benefits: commonBenefits,

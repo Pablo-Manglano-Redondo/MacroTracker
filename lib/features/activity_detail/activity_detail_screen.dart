@@ -178,7 +178,7 @@ class _ActivityDetailScreenState extends State<ActivityDetailScreen> {
                     // set Focus
                     Text('~${totalKcal.toInt()} ${S.of(context).kcalLabel}',
                         style: Theme.of(context).textTheme.headlineSmall),
-                    Text(' / ${totalQuantity.toInt()} min')
+                    Text(' / ${totalQuantity.toInt()} ${S.of(context).minutesLabel}')
                   ],
                 ),
                 const SizedBox(height: 8.0),
@@ -292,7 +292,7 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
               ),
               _ActivityDetailPill(
                 icon: Icons.timer_outlined,
-                label: '${activity.duration.toStringAsFixed(0)} min',
+                label: '${activity.duration.toStringAsFixed(0)} ${S.of(context).minutesLabel}',
               ),
               _ActivityDetailPill(
                 icon: Icons.local_fire_department_outlined,
@@ -303,7 +303,9 @@ class _LoggedActivitySummaryCard extends StatelessWidget {
                     ? Icons.health_and_safety_outlined
                     : Icons.edit_outlined,
                 label: activity.source == UserActivitySourceEntity.healthConnect
-                    ? (Platform.isIOS ? 'Apple Health' : 'Health Connect')
+                    ? (Platform.isIOS
+                        ? S.of(context).appleHealthLabel
+                        : S.of(context).habitSourceHealthConnect)
                     : S.of(context).habitSourceManual,
               ),
             ],
@@ -352,20 +354,21 @@ class _ActivityMetricsCard extends StatelessWidget {
               Expanded(
                 child: _MetricStat(
                   label: S.of(context).durationLabel,
-                  value: '${durationMinutes.toStringAsFixed(0)} min',
+                  value:
+                      '${durationMinutes.toStringAsFixed(0)} ${S.of(context).minutesLabel}',
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _MetricStat(
-                  label: 'kcal',
+                  label: S.of(context).kcalLabel,
                   value: burnedKcal.toStringAsFixed(0),
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _MetricStat(
-                  label: 'MET',
+                  label: S.of(context).activityMetLabel,
                   value: activityEntity.mets.toStringAsFixed(1),
                 ),
               ),

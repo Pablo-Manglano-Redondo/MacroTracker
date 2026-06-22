@@ -1,5 +1,6 @@
 import Stripe from "npm:stripe@17.7.0";
 import { createClient } from "npm:@supabase/supabase-js@2.48.1";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 import {
   normalizeBillingInterval,
   normalizeProTier,
@@ -23,22 +24,28 @@ const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
 });
 
 Deno.serve(async (request) => {
+  let locale = resolveRequestLocale(request);
+
   if (request.method === "OPTIONS") {
     return new Response(null, {
       headers: corsHeaders(),
     });
   }
   if (request.method !== "POST") {
-    return json({ error: "Method not allowed" }, 405);
+    return json({ error: t(locale, "common.methodNotAllowed") }, 405);
   }
 
   if (!stripeSecretKey) {
-    return json({ error: "Missing STRIPE_SECRET_KEY" }, 500);
+    return json({
+      error: t(locale, "stripeProCheckout.missingSecretKey"),
+    }, 500);
   }
 
   const authHeader = request.headers.get("authorization");
   if (!authHeader) {
-    return json({ error: "Authentication is required" }, 401);
+    return json({
+      error: t(locale, "common.authenticationRequired"),
+    }, 401);
   }
 
   const token = authHeader.replace(/^Bearer\s+/i, "");
@@ -46,10 +53,13 @@ Deno.serve(async (request) => {
     token,
   );
   if (authError || !authData.user) {
-    return json({ error: "Invalid authentication" }, 401);
+    return json({
+      error: t(locale, "common.invalidAuthentication"),
+    }, 401);
   }
 
   const body = await request.json().catch(() => ({}));
+  locale = resolveRequestLocale(request, body);
   const tier = normalizeProTier(body.tier);
   const billingInterval = normalizeBillingInterval(body.billingInterval);
   const origin = body.origin || request.headers.get("origin") || "";
@@ -57,8 +67,10 @@ Deno.serve(async (request) => {
   if (!price) {
     return json({
       code: "missing_price_configuration",
-      error:
-        `Missing Stripe price for tier ${tier} with ${billingInterval} billing`,
+      error: t(locale, "stripeProCheckout.missingPriceConfiguration", {
+        tier,
+        billingInterval,
+      }),
       tier,
       billingInterval,
     }, 500);
@@ -72,7 +84,7 @@ Deno.serve(async (request) => {
   if (professionalError || !professional) {
     return json({
       code: "missing_professional_profile",
-      error: "Professional profile must be created first",
+      error: t(locale, "stripeProCheckout.missingProfessionalProfile"),
     }, 400);
   }
 

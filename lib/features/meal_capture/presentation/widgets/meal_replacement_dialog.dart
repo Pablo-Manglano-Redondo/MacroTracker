@@ -119,7 +119,7 @@ class _MealReplacementDialogState extends State<MealReplacementDialog> {
 
         return ListTile(
           dense: true,
-          title: Text(meal.name ?? 'Comida sin nombre'),
+          title: Text(meal.name ?? S.of(context).mealReplacementUnnamedMeal),
           subtitle: subtitle.isEmpty ? null : Text(subtitle),
           onTap: () => Navigator.of(context).pop(meal),
         );

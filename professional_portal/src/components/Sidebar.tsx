@@ -31,18 +31,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onInviteClient,
 }) => {
   const { professional, signOut } = useAuth();
-  const { locale, setLocale, tr } = usePortalI18n();
+  const { locale, setLocale, t } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const billingIntervalLabel =
     billingSummary.billingInterval === 'annual'
-      ? tr('Anual', 'Annual')
-      : tr('Mensual', 'Monthly');
+      ? t('components.sidebar.annual')
+      : t('components.sidebar.monthly');
   const statusLabelMap: Record<string, string> = {
-    inactive: tr('Inactivo', 'Inactive'),
-    trialing: tr('Prueba activa', 'Trial active'),
-    active: tr('Activo', 'Active'),
-    past_due: tr('Pago pendiente', 'Past due'),
-    canceled: tr('Cancelado', 'Canceled'),
+    inactive: t('components.sidebar.inactive'),
+    trialing: t('components.sidebar.trial_active'),
+    active: t('components.sidebar.active'),
+    past_due: t('components.sidebar.past_due'),
+    canceled: t('components.sidebar.canceled'),
   };
   const proStatusLabel = statusLabelMap[billingSummary.proStatus] ?? billingSummary.proStatus;
 
@@ -137,25 +137,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const navigationGroups = [
     {
-      title: tr('Operación', 'Operations'),
+      title: t('components.sidebar.operations'),
       items: [
-        { id: 'dashboard-panel', label: tr('Resumen', 'Overview'), icon: LayoutDashboard },
-        { id: 'clients-panel', label: tr('Clientes', 'Clients'), icon: Users },
-        { id: 'checkins-panel', label: tr('Check-ins', 'Check-ins'), icon: ClipboardCheck },
+        { id: 'dashboard-panel', label: t('components.sidebar.overview'), icon: LayoutDashboard },
+        { id: 'clients-panel', label: t('components.sidebar.clients'), icon: Users },
+        { id: 'checkins-panel', label: t('components.sidebar.check_ins'), icon: ClipboardCheck },
       ],
     },
     {
-      title: tr('Biblioteca', 'Library'),
+      title: t('components.sidebar.library'),
       items: [
-        { id: 'templates-panel', label: tr('Plantillas', 'Templates'), icon: Layers },
-        { id: 'recipes-panel', label: tr('Recetas', 'Recipes'), icon: ChefHat },
+        { id: 'templates-panel', label: t('components.sidebar.templates'), icon: Layers },
+        { id: 'recipes-panel', label: t('components.sidebar.recipes'), icon: ChefHat },
       ],
     },
     {
-      title: tr('Gestión', 'Management'),
+      title: t('components.sidebar.management'),
       items: [
-        { id: 'profile-panel', label: tr('Perfil', 'Profile'), icon: User },
-        { id: 'billing-panel', label: tr('Facturación', 'Billing'), icon: CreditCard },
+        { id: 'profile-panel', label: t('components.sidebar.profile'), icon: User },
+        { id: 'billing-panel', label: t('components.sidebar.billing'), icon: CreditCard },
       ],
     },
   ];
@@ -179,10 +179,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sidebar-muted">
-              MacroTracker {tr('Portal', 'Portal')}
+              MacroTracker {t('components.sidebar.portal')}
             </p>
             <p className="mt-1 truncate text-sm font-bold text-sidebar-foreground">
-              {professional?.business_name || tr('Consulta individual', 'Independent practice')}
+              {professional?.business_name || t('components.sidebar.independent_practice')}
             </p>
           </div>
           <SlidersHorizontal className="h-4 w-4 text-sidebar-muted" />
@@ -232,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sidebar-muted">
-                {tr('Plan actual', 'Current plan')}
+                {t('components.sidebar.current_plan')}
               </p>
               <h4 className="mt-2 text-sm font-bold text-sidebar-foreground">
                 {billingSummary.tierLabel} · {billingIntervalLabel}
@@ -250,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="mt-4 space-y-2">
             <div className="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-[0.16em] text-sidebar-muted">
-              <span>{tr('Progreso inicial', 'Setup progress')}</span>
+              <span>{t('components.sidebar.setup_progress')}</span>
               <span>
                 {stepsCount}/4
               </span>
@@ -269,8 +269,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <span>
               {isSetupComplete
-                ? tr('Espacio listo', 'Workspace ready')
-                : tr('Continuar configuración', 'Continue setup')}
+                ? t('components.sidebar.workspace_ready')
+                : t('components.sidebar.continue_setup')}
             </span>
             <ArrowRight className="h-4 w-4" />
           </button>
@@ -281,7 +281,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={!billingSummary.hasProfessionalAccess}
               className="mt-2 w-full rounded-xl border border-sidebar-border px-3.5 py-2.5 text-sm font-semibold text-sidebar-foreground transition-colors hover:bg-sidebar-accent disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {tr('Invitar cliente', 'Invite client')}
+              {t('components.sidebar.invite_client')}
             </button>
           )}
         </div>
@@ -290,7 +290,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-sidebar-foreground">
               <Languages className="h-4 w-4 text-sidebar-muted" />
-              <span>{tr('Idioma', 'Language')}</span>
+              <span>{t('components.sidebar.language')}</span>
             </div>
             <div className="flex rounded-xl border border-sidebar-border bg-black/10 p-1">
               {localeOptions.map((option) => (
@@ -311,11 +311,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <div className="mt-3 flex items-center justify-between rounded-xl border border-sidebar-border bg-black/10 px-3 py-2">
             <span className="text-sm font-semibold text-sidebar-foreground">
-              {theme === 'dark' ? tr('Modo oscuro', 'Dark mode') : tr('Modo claro', 'Light mode')}
+              {theme === 'dark' ? t('components.sidebar.dark_mode') : t('components.sidebar.light_mode')}
             </span>
             <button
               onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
-              aria-label={tr('Cambiar tema', 'Toggle theme')}
+              aria-label={t('components.sidebar.toggle_theme')}
               className="rounded-lg p-1.5 text-sidebar-muted transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
             >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
@@ -328,7 +328,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-sidebar-muted transition-colors hover:bg-rose-500/10 hover:text-rose-300"
         >
           <LogOut className="h-4 w-4 shrink-0" />
-          <span>{tr('Cerrar sesión', 'Sign out')}</span>
+          <span>{t('components.sidebar.sign_out')}</span>
         </button>
       </div>
     </aside>

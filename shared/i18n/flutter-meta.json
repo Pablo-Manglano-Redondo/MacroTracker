@@ -1,0 +1,112 @@
+{
+  "professionalPlanLogSuggestedMealSuccess": {
+    "placeholders": {
+      "title": {}
+    }
+  },
+  "settingsReportBugEmailBody": {
+    "placeholders": {
+      "platform": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsGuestAllowanceUsedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTrialProtectBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsTrialRemainingBody": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      },
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPlanLockedProgress": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPlanProgress": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsPlanMetricAiMeals": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsReferralShareMessage": {
+    "placeholders": {
+      "code": {},
+      "url": {}
+    }
+  },
+  "settingsDeleteConfirmTypePrompt": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "mealCaptureSourceFrequentMealCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "healthStatusUnavailableName": {
+    "placeholders": {
+      "integration": {}
+    }
+  },
+  "healthStatusPermissionsReview": {
+    "placeholders": {
+      "integration": {}
+    }
+  },
+  "featureTourStepCounter": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  }
+}

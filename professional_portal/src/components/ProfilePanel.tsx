@@ -5,12 +5,13 @@ import { Briefcase, Check, HeartHandshake, ShieldCheck, User } from 'lucide-reac
 import { useAuth } from '../lib/auth-context';
 import { profileSchema, type ProfileFormData } from '../lib/validation/schemas';
 import { useUpdateProfile } from '../hooks/mutations/useUpdateProfile';
+import { formatPortalDate } from '../lib/date';
 import { toast } from '../lib/toast';
 import { usePortalI18n } from '../lib/portal-i18n';
 
 export const ProfilePanel: React.FC = () => {
   const { user, professional, refreshProfile } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const updateProfile = useUpdateProfile();
 
   const {
@@ -56,22 +57,16 @@ export const ProfilePanel: React.FC = () => {
         business_name: data.businessName || undefined,
       });
       await refreshProfile();
-      toast.success(tr('Perfil guardado', 'Profile saved'));
+      toast.success(t('components.profilepanel.profile_saved'));
     } catch (err: any) {
       const rawMessage = String(err?.message || '');
       const description = rawMessage.includes('professionals_user_id_fkey')
-        ? tr(
-            'La sesión actual no corresponde a un usuario válido de Supabase Auth. Cierra sesión, crea la cuenta desde "Crear cuenta" o vuelve a iniciar sesión, y luego guarda el perfil.',
-            'The current session does not match a valid Supabase Auth user. Sign out, create the account from "Create account" or sign in again, and then save the profile.',
-          )
+        ? t('components.profilepanel.the_current_session_does_not_match_a_valid_supabase_auth_user_sign_out_c')
         : rawMessage.includes('Auth session is missing') || rawMessage.includes('out of sync')
-          ? tr(
-              'La sesión local ya no es válida. Vuelve a iniciar sesión antes de guardar el perfil.',
-              'The local session is no longer valid. Sign in again before saving the profile.',
-            )
-          : err?.message || tr('Error desconocido', 'Unknown error');
+          ? t('components.profilepanel.the_local_session_is_no_longer_valid_sign_in_again_before_saving_the_pro')
+          : err?.message || t('components.profilepanel.unknown_error');
 
-      toast.error(tr('No se pudo guardar el perfil', 'Failed to save profile'), {
+      toast.error(t('components.profilepanel.failed_to_save_profile'), {
         description,
       });
     }
@@ -81,18 +76,12 @@ export const ProfilePanel: React.FC = () => {
     <div className="space-y-6 select-none animate-fade-in-up">
       <section className="portal-hero rounded-[1.8rem] p-6">
         <div className="space-y-2">
-          <p className="portal-kicker">{tr('Perfil profesional', 'Professional profile')}</p>
+          <p className="portal-kicker">{t('components.profilepanel.professional_profile')}</p>
           <h2 className="portal-title text-3xl text-foreground">
-            {tr(
-              'Identidad, práctica y marco de confianza.',
-              'Identity, practice, and trust framework.',
-            )}
+            {t('components.profilepanel.identity_practice_and_trust_framework')}
           </h2>
           <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-            {tr(
-              'Gestiona cómo se presenta la consulta dentro del portal y mantén claro el marco operativo: relación activa, consentimiento y límites de acceso.',
-              'Manage how the practice appears inside the portal and keep the operating framework clear: active relationship, consent, and access boundaries.',
-            )}
+            {t('components.profilepanel.manage_how_the_practice_appears_inside_the_portal_and_keep_the_operating')}
           </p>
         </div>
       </section>
@@ -106,13 +95,10 @@ export const ProfilePanel: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-base font-bold text-foreground">
-                  {tr('Datos del profesional', 'Professional details')}
+                  {t('components.profilepanel.professional_details')}
                 </h3>
                 <p className="text-xs text-muted-foreground">
-                  {tr(
-                    'Información visible dentro del portal y en flujos relacionados.',
-                    'Information visible inside the portal and related flows.',
-                  )}
+                  {t('components.profilepanel.information_visible_inside_the_portal_and_related_flows')}
                 </p>
               </div>
             </div>
@@ -125,10 +111,10 @@ export const ProfilePanel: React.FC = () => {
               </div>
               <div className="text-center">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                  {tr('Vista previa', 'Preview')}
+                  {t('components.profilepanel.preview')}
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {tr('Iniciales visibles', 'Visible initials')}
+                  {t('components.profilepanel.visible_initials')}
                 </p>
               </div>
             </div>
@@ -136,13 +122,13 @@ export const ProfilePanel: React.FC = () => {
             <div className="space-y-5">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                  {tr('Nombre visible', 'Display name')} *
+                  {t('components.profilepanel.display_name')} *
                 </label>
                 <div className="relative">
                   <User className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     {...register('displayName')}
-                    placeholder={tr('Ej. Marta López', 'E.g. Marta Lopez')}
+                    placeholder={t('components.profilepanel.e_g_marta_lopez')}
                     disabled={updateProfile.isPending}
                     className="portal-input h-11 w-full rounded-xl pl-10 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
                   />
@@ -154,13 +140,13 @@ export const ProfilePanel: React.FC = () => {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                  {tr('Nombre de la consulta', 'Business name')}
+                  {t('components.profilepanel.business_name')}
                 </label>
                 <div className="relative">
                   <Briefcase className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <input
                     {...register('businessName')}
-                    placeholder={tr('Ej. Consulta Nutricional Norte', 'E.g. North Nutrition Practice')}
+                    placeholder={t('components.profilepanel.e_g_north_nutrition_practice')}
                     disabled={updateProfile.isPending}
                     className="portal-input h-11 w-full rounded-xl pl-10 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
                   />
@@ -170,18 +156,18 @@ export const ProfilePanel: React.FC = () => {
               <div className="grid gap-3 rounded-2xl border border-border bg-background/60 p-4 md:grid-cols-2">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {tr('Usuario', 'User')}
+                    {t('components.profilepanel.user')}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">
-                    {user?.email || tr('No disponible', 'Unavailable')}
+                    {user?.email || t('components.profilepanel.unavailable')}
                   </p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {tr('Última revisión', 'Last review')}
+                    {t('components.profilepanel.last_review')}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">
-                    {new Date().toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}
+                    {formatPortalDate(new Date(), locale)}
                   </p>
                 </div>
               </div>
@@ -193,8 +179,8 @@ export const ProfilePanel: React.FC = () => {
               >
                 <Check className="h-4 w-4" />
                 {updateProfile.isPending
-                  ? tr('Guardando...', 'Saving...')
-                  : tr('Guardar cambios', 'Save changes')}
+                  ? t('components.profilepanel.saving')
+                  : t('components.profilepanel.save_changes')}
               </button>
             </div>
           </form>
@@ -206,36 +192,24 @@ export const ProfilePanel: React.FC = () => {
               <div className="flex items-center gap-2">
                 <HeartHandshake className="h-5 w-5 text-primary" />
                 <h3 className="text-base font-bold text-foreground">
-                  {tr('Privacidad y confianza', 'Privacy and trust')}
+                  {t('components.profilepanel.privacy_and_trust')}
                 </h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {tr(
-                  'El portal no debe sugerir más visibilidad de la que realmente existe.',
-                  'The portal should never imply more visibility than what really exists.',
-                )}
+                {t('components.profilepanel.the_portal_should_never_imply_more_visibility_than_what_really_exists')}
               </p>
             </div>
             <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
               <span className="h-2 w-2 rounded-full bg-primary" />
-              {tr('Activo', 'Active')}
+              {t('components.profilepanel.active')}
             </span>
           </div>
 
           <div className="mt-5 space-y-3">
             {[
-              tr(
-                'Los snapshots aggregate son la base por defecto de cualquier relación activa.',
-                'Aggregate snapshots are the default baseline for every active relationship.',
-              ),
-              tr(
-                'El diario detailed solo aparece con consentimiento explícito del cliente.',
-                'Detailed diary rows only appear with explicit client consent.',
-              ),
-              tr(
-                'El cliente puede revocar la relación profesional en cualquier momento.',
-                'The client can revoke the professional relationship at any moment.',
-              ),
+              t('components.profilepanel.aggregate_snapshots_are_the_default_baseline_for_every_active_relationsh'),
+              t('components.profilepanel.detailed_diary_rows_only_appear_with_explicit_client_consent'),
+              t('components.profilepanel.the_client_can_revoke_the_professional_relationship_at_any_moment'),
             ].map((item) => (
               <div key={item} className="portal-soft-panel flex items-start gap-3 rounded-2xl p-4">
                 <div className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12 text-primary">
@@ -250,14 +224,11 @@ export const ProfilePanel: React.FC = () => {
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-primary" />
               <p className="text-sm font-semibold text-foreground">
-                {tr('Contexto operativo', 'Operational context')}
+                {t('components.profilepanel.operational_context')}
               </p>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'Esta superficie está pensada para operación interna: roster, notas, planes y seguimiento. No es una página pública ni un escaparate comercial.',
-                'This surface is intended for internal operations: roster, notes, plans, and follow-up. It is not a public page or a marketing surface.',
-              )}
+              {t('components.profilepanel.this_surface_is_intended_for_internal_operations_roster_notes_plans_and_')}
             </p>
           </div>
         </section>

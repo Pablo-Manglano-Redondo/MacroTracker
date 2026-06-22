@@ -14,6 +14,7 @@ import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/push_notification_service.dart';
 import 'package:macrotracker/core/styles/color_schemes.dart';
 import 'package:macrotracker/core/styles/fonts.dart';
+import 'package:macrotracker/core/i18n/generated_supported_locales.dart';
 import 'package:macrotracker/core/utils/env.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/logger_config.dart';
@@ -61,7 +62,7 @@ Future<void> main() async {
     await locator<ConversionAnalyticsService>().initializeFromConsent();
     final savedAppTheme = await configRepo.getConfigAppTheme();
     final savedLocale = await configRepo.getConfigLocale();
-    final locale = savedLocale != null ? Locale(savedLocale) : null;
+    final locale = buildSupportedLocale(savedLocale);
 
     // If the user has accepted anonymous data collection, run the app with
     // sentry enabled, else run without it

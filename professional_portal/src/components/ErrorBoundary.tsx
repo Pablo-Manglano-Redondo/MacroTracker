@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 }
 
 function PortalErrorFallback({ onRetry }: { onRetry: () => void }) {
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
 
   return (
     <div className="min-h-[400px] flex flex-col items-center justify-center p-8 text-center">
@@ -55,21 +55,18 @@ function PortalErrorFallback({ onRetry }: { onRetry: () => void }) {
         <AlertTriangle className="w-8 h-8 text-destructive" />
       </div>
       <h2 className="text-xl font-bold text-foreground mb-2">
-        {tr('Algo no ha ido bien', 'Something went wrong')}
+        {t('components.errorboundary.something_went_wrong')}
       </h2>
       <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
-        {tr(
-          'Se ha producido un error inesperado. Inténtalo de nuevo o contacta con soporte si el problema continúa.',
-          'An unexpected error occurred. Please try again or contact support if the problem persists.',
-        )}
+        {t('components.errorboundary.an_unexpected_error_occurred_please_try_again_or_contact_support_if_the_')}
       </p>
       <div className="flex gap-3">
         <Button onClick={onRetry} variant="default">
           <RefreshCw className="w-4 h-4 mr-2" />
-          {tr('Intentar de nuevo', 'Try again')}
+          {t('components.errorboundary.try_again')}
         </Button>
         <Button onClick={() => window.location.reload()} variant="outline">
-          {tr('Recargar página', 'Reload page')}
+          {t('components.errorboundary.reload_page')}
         </Button>
       </div>
     </div>

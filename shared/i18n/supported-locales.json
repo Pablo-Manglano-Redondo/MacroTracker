@@ -1,0 +1,23 @@
+{
+  "defaultLocale": "en",
+  "locales": [
+    {
+      "code": "en",
+      "nativeName": "English",
+      "languageCode": "en",
+      "countryCode": null
+    },
+    {
+      "code": "en-GB",
+      "nativeName": "English (United Kingdom)",
+      "languageCode": "en",
+      "countryCode": "GB"
+    },
+    {
+      "code": "es",
+      "nativeName": "Español",
+      "languageCode": "es",
+      "countryCode": null
+    }
+  ]
+}

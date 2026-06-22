@@ -180,7 +180,7 @@ class DashboardWidget extends StatelessWidget {
                   ? _kcalRemainingLabel(context)
                   : _overGoalLabel(context),
               value: totalKcalLeft.abs().toInt(),
-              suffix: 'kcal',
+              suffix: S.of(context).kcalLabel,
               textColor: bodyColor,
               accentColor:
                   totalKcalLeft >= 0 ? colorScheme.tertiary : colorScheme.error,

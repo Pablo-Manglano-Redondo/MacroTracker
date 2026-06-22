@@ -19,6 +19,7 @@ import {
 } from '../hooks/queries/useAnalytics';
 import { useInvites } from '../hooks/queries/useInvites';
 import { downloadCsv } from '../lib/csv';
+import { formatPortalDate } from '../lib/date';
 import { openInviteModal } from '../lib/portal-events';
 import { Skeleton } from './ui/skeleton';
 import { getBillingSummary } from '../view-models/professional';
@@ -26,7 +27,7 @@ import { usePortalI18n } from '../lib/portal-i18n';
 
 export const DashboardPanel: React.FC = () => {
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
   const { data: roster, isLoading: rosterLoading } = useRosterStats(professional?.id);
   const { data: trends = [], isLoading: trendsLoading } = useAdherenceTrends(professional?.id);
@@ -39,13 +40,10 @@ export const DashboardPanel: React.FC = () => {
     return (
       <section className="portal-panel rounded-[1.6rem] p-6">
         <h2 className="portal-title text-2xl text-foreground">
-          {tr('Resumen operativo', 'Operational overview')}
+          {t('components.dashboardpanel.operational_overview')}
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-          {tr(
-            'Primero crea el perfil profesional. Este panel depende del registro profesional y de las relaciones conectadas.',
-            'Create the professional profile first. This panel depends on the professional record and connected relationships.',
-          )}
+          {t('components.dashboardpanel.create_the_professional_profile_first_this_panel_depends_on_the_professi')}
         </p>
       </section>
     );
@@ -83,19 +81,13 @@ export const DashboardPanel: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-primary">
               <LayoutDashboard className="h-5 w-5" />
-              <p className="portal-kicker">{tr('Resumen de práctica', 'Practice overview')}</p>
+              <p className="portal-kicker">{t('components.dashboardpanel.practice_overview')}</p>
             </div>
             <h2 className="portal-title text-3xl text-foreground">
-              {tr(
-                'Lo que sí está pasando hoy en tu consulta.',
-                'What is actually happening in your practice today.',
-              )}
+              {t('components.dashboardpanel.what_is_actually_happening_in_your_practice_today')}
             </h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'Este panel solo usa relaciones reales, historial de invitaciones, planes y snapshots sincronizados. Si aún no existe dato, el portal lo dice de forma explícita.',
-                'This panel only uses real relationships, invite history, plans, and synced snapshots. If data does not exist yet, the portal says so explicitly.',
-              )}
+              {t('components.dashboardpanel.this_panel_only_uses_real_relationships_invite_history_plans_and_synced_')}
             </p>
           </div>
 
@@ -106,7 +98,7 @@ export const DashboardPanel: React.FC = () => {
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               <UserPlus className="h-4 w-4" />
-              {tr('Invitar cliente', 'Invite client')}
+              {t('components.dashboardpanel.invite_client')}
             </button>
             <button
               onClick={exportAdherenceCsv}
@@ -114,7 +106,7 @@ export const DashboardPanel: React.FC = () => {
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Download className="h-4 w-4" />
-              {tr('Exportar adherencia', 'Export adherence')}
+              {t('components.dashboardpanel.export_adherence')}
             </button>
           </div>
         </div>
@@ -124,10 +116,7 @@ export const DashboardPanel: React.FC = () => {
             <div className="flex items-start gap-3">
               <CreditCard className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
               <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
-                {tr(
-                  `La facturación está en estado "${billingSummary.proStatus}". Los registros históricos pueden seguir visibles, pero nuevas invitaciones y nuevos planes deben permanecer bloqueados hasta volver a estado activo o trialing.`,
-                  `Billing is currently "${billingSummary.proStatus}". Historical records may remain visible, but new invites and new plans should stay blocked until access returns to active or trialing.`,
-                )}
+                {t('components.dashboardpanel.billing_is_currently_historical_records_may_remain_visible_but_new_invit', { billingsummary_prostatus: billingSummary.proStatus })}
               </p>
             </div>
           </div>
@@ -136,44 +125,35 @@ export const DashboardPanel: React.FC = () => {
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label={tr('Clientes conectados', 'Connected clients')}
+          label={t('components.dashboardpanel.connected_clients')}
           icon={<Users className="h-4 w-4 text-primary" />}
           value={rosterLoading ? null : roster?.activeClients ?? 0}
-          note={tr(
-            `${roster?.clientLimit ?? billingSummary.clientLimit} plazas en el plan actual`,
-            `${roster?.clientLimit ?? billingSummary.clientLimit} slots in the current plan`,
-          )}
+          note={t('components.dashboardpanel.slots_in_the_current_plan', { roster: roster?.clientLimit ?? billingSummary.clientLimit })}
         />
         <MetricCard
-          label={tr('Planes activos', 'Active plans')}
+          label={t('components.dashboardpanel.active_plans')}
           icon={<FileText className="h-4 w-4 text-primary" />}
           value={rosterLoading ? null : roster?.activePlans ?? 0}
-          note={tr(
-            `${roster?.totalPlans ?? 0} planes creados en total`,
-            `${roster?.totalPlans ?? 0} plans created in total`,
-          )}
+          note={t('components.dashboardpanel.plans_created_in_total', { roster: roster?.totalPlans ?? 0 })}
         />
         <MetricCard
-          label={tr('Adherencia media', 'Average adherence')}
+          label={t('components.dashboardpanel.average_adherence')}
           icon={<TrendingUp className="h-4 w-4 text-primary" />}
           value={trendsLoading ? null : avgAdherence ?? '--'}
           note={
             avgAdherence === null
-              ? tr('Todavía no hay snapshots compartidos', 'No shared snapshots received yet')
-              : tr('Calculado desde snapshots diarios compartidos', 'Based on shared daily snapshots')
+              ? t('components.dashboardpanel.no_shared_snapshots_received_yet')
+              : t('components.dashboardpanel.based_on_shared_daily_snapshots')
           }
         />
         <MetricCard
-          label={tr('Invitaciones pendientes', 'Pending invites')}
+          label={t('components.dashboardpanel.pending_invites')}
           icon={<MessageSquare className="h-4 w-4 text-primary" />}
           value={pendingInvites}
           note={
             latestInvite
-              ? tr(
-                  `Última invitación ${new Date(latestInvite).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`,
-                  `Latest invite ${new Date(latestInvite).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}`,
-                )
-              : tr('Todavía no hay historial de invitaciones', 'No invite history yet')
+              ? t('components.dashboardpanel.latest_invite', { locale_es: formatPortalDate(latestInvite, locale) })
+              : t('components.dashboardpanel.no_invite_history_yet')
           }
         />
       </section>
@@ -183,13 +163,10 @@ export const DashboardPanel: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-                {tr('Tendencia de adherencia', 'Adherence trend')}
+                {t('components.dashboardpanel.adherence_trend')}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {tr(
-                  'Promedios diarios calculados desde `client_shared_snapshots`',
-                  'Daily averages calculated from `client_shared_snapshots`',
-                )}
+                {t('components.dashboardpanel.daily_averages_calculated_from_client_shared_snapshots')}
               </p>
             </div>
             <Activity className="h-5 w-5 text-primary" />
@@ -202,11 +179,8 @@ export const DashboardPanel: React.FC = () => {
             </div>
           ) : trends.length === 0 ? (
             <EmptyPanel
-              title={tr('Todavía no hay tendencia', 'No trend yet')}
-              body={tr(
-                'El gráfico se llenará cuando clientes conectados sincronicen snapshots agregados desde la app móvil.',
-                'The chart will populate after connected clients sync aggregate snapshots from the mobile app.',
-              )}
+              title={t('components.dashboardpanel.no_trend_yet')}
+              body={t('components.dashboardpanel.the_chart_will_populate_after_connected_clients_sync_aggregate_snapshots')}
             />
           ) : (
             <div className="mt-6">
@@ -241,10 +215,10 @@ export const DashboardPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-                  {tr('Siguientes acciones', 'Next actions')}
+                  {t('components.dashboardpanel.next_actions')}
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {tr('Según el estado real del workspace', 'Based on the real workspace state')}
+                  {t('components.dashboardpanel.based_on_the_real_workspace_state')}
                 </p>
               </div>
               <AlertCircle className="h-5 w-5 text-primary" />
@@ -253,38 +227,26 @@ export const DashboardPanel: React.FC = () => {
             <div className="mt-4 space-y-3">
               {!billingSummary.hasProfessionalAccess && (
                 <ActionHint
-                  title={tr('Reactivar facturación', 'Reactivate billing')}
-                  body={tr(
-                    'Recupera estado activo o trialing antes de enviar más invitaciones.',
-                    'Restore an active or trialing status before sending more invites.',
-                  )}
+                  title={t('components.dashboardpanel.reactivate_billing')}
+                  body={t('components.dashboardpanel.restore_an_active_or_trialing_status_before_sending_more_invites')}
                 />
               )}
               {!hasRosterData && (
                 <ActionHint
-                  title={tr('Conectar el primer cliente', 'Connect the first client')}
-                  body={tr(
-                    'La app móvil sigue siendo el origen de verdad para aceptar códigos de invitación y establecer la relación.',
-                    'The mobile app remains the source of truth for accepting invite codes and establishing the relationship.',
-                  )}
+                  title={t('components.dashboardpanel.connect_the_first_client')}
+                  body={t('components.dashboardpanel.the_mobile_app_remains_the_source_of_truth_for_accepting_invite_codes_an')}
                 />
               )}
               {(roster?.totalPlans ?? 0) === 0 && (
                 <ActionHint
-                  title={tr('Publicar el primer plan', 'Publish the first plan')}
-                  body={tr(
-                    'El workflow de cliente soporta planes, pero todavía no existe ninguno para este profesional.',
-                    'The client workflow supports plans, but none has been created yet for this professional.',
-                  )}
+                  title={t('components.dashboardpanel.publish_the_first_plan')}
+                  body={t('components.dashboardpanel.the_client_workflow_supports_plans_but_none_has_been_created_yet_for_thi')}
                 />
               )}
               {trends.length === 0 && (
                 <ActionHint
-                  title={tr('Esperar el primer sync', 'Wait for the first sync')}
-                  body={tr(
-                    'Las tarjetas de adherencia y progreso seguirán vacías hasta recibir datos compartidos.',
-                    'Adherence and progress cards will remain empty until shared data arrives.',
-                  )}
+                  title={t('components.dashboardpanel.wait_for_the_first_sync')}
+                  body={t('components.dashboardpanel.adherence_and_progress_cards_will_remain_empty_until_shared_data_arrives')}
                 />
               )}
               {billingSummary.hasProfessionalAccess &&
@@ -292,11 +254,8 @@ export const DashboardPanel: React.FC = () => {
                 (roster?.totalPlans ?? 0) > 0 &&
                 trends.length > 0 && (
                   <ActionHint
-                    title={tr('Revisar casos con diario detallado', 'Review detailed diary cases')}
-                    body={tr(
-                      'Usa el roster para ver qué clientes otorgaron acceso detailed frente a aggregate.',
-                      'Use the roster to see which clients granted detailed access versus aggregate-only sharing.',
-                    )}
+                    title={t('components.dashboardpanel.review_detailed_diary_cases')}
+                    body={t('components.dashboardpanel.use_the_roster_to_see_which_clients_granted_detailed_access_versus_aggre')}
                   />
                 )}
             </div>
@@ -306,13 +265,10 @@ export const DashboardPanel: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-                  {tr('Adherencia por cliente', 'Client adherence')}
+                  {t('components.dashboardpanel.client_adherence')}
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {tr(
-                    'Últimos promedios de clientes conectados',
-                    'Latest averages for connected clients',
-                  )}
+                  {t('components.dashboardpanel.latest_averages_for_connected_clients')}
                 </p>
               </div>
               <Users className="h-5 w-5 text-primary" />
@@ -326,11 +282,8 @@ export const DashboardPanel: React.FC = () => {
               </div>
             ) : clientAdherence.length === 0 ? (
               <EmptyPanel
-                title={tr('Sin filas todavía', 'No rows yet')}
-                body={tr(
-                  'Cuando lleguen snapshots, esta tabla ordenará a los clientes conectados por adherencia media de kcal.',
-                  'Once snapshots arrive, this panel will rank connected clients by average kcal adherence.',
-                )}
+                title={t('components.dashboardpanel.no_rows_yet')}
+                body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
               />
             ) : (
               <div className="mt-4 space-y-2">
@@ -342,10 +295,7 @@ export const DashboardPanel: React.FC = () => {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-foreground">{client.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {tr(
-                          `${client.snapshotCount} snapshots`,
-                          `${client.snapshotCount} snapshots`,
-                        )}
+                        {t('components.dashboardpanel.snapshots', { client_snapshotcount: client.snapshotCount })}
                       </p>
                     </div>
                     <span className="portal-metric text-lg font-bold text-primary">

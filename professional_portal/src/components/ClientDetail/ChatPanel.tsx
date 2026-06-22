@@ -7,6 +7,7 @@ import { useMessages } from '../../hooks/queries/useMessages';
 import { useSendMessage } from '../../hooks/mutations/useSendMessage';
 import { useMarkMessagesRead } from '../../hooks/mutations/useMarkMessagesRead';
 import type { ProfessionalClient } from '../../types/database.types';
+import { formatPortalTime } from '../../lib/date';
 import { Button } from '../ui/button';
 import { messageSchema, type MessageFormData } from '../../lib/validation/schemas';
 import { toast } from '../../lib/toast';
@@ -19,7 +20,7 @@ interface ChatPanelProps {
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) => {
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const { data: messages = [], isLoading, error } = useMessages(client.id);
   const sendMutation = useSendMessage(client.id);
   const markReadMutation = useMarkMessagesRead();
@@ -75,8 +76,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
       {
         onSuccess: () => reset(),
         onError: (err: any) => {
-          toast.error(tr('No se pudo enviar el mensaje', 'Failed to send message'), {
-            description: err?.message || tr('Error desconocido', 'Unknown error'),
+          toast.error(t('components.clientdetail.chatpanel.failed_to_send_message'), {
+            description: err?.message || t('components.clientdetail.chatpanel.unknown_error'),
           });
         },
       },
@@ -86,7 +87,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
   const getInitials = (id: string) => id.slice(0, 2).toUpperCase();
 
   const formatTime = (dateStr: string) =>
-    new Date(dateStr).toLocaleTimeString(locale === 'es' ? 'es-ES' : 'en-US', {
+    formatPortalTime(dateStr, locale, {
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -99,12 +100,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
             <MessageSquare className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{tr('Mensajes', 'Messages')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.chatpanel.messages')}</h3>
             <p className="text-sm text-muted-foreground">
-              {tr(
-                `Hilo real con ${client.display_name || client.client_id.slice(0, 8)}`,
-                `Real thread with ${client.display_name || client.client_id.slice(0, 8)}`,
-              )}
+              {t('components.clientdetail.chatpanel.real_thread_with', { value_0_8: client.display_name || client.client_id.slice(0, 8) })}
             </p>
           </div>
         </div>
@@ -116,24 +114,18 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
       >
         {error ? (
           <EmptyChatState
-            title={tr('Mensajes no disponibles', 'Messages unavailable')}
-            body={tr(
-              'La relación tiene mensajería habilitada, pero el portal no ha podido cargar el hilo actual.',
-              'Messaging is enabled for this relationship, but the portal could not load the current thread.',
-            )}
+            title={t('components.clientdetail.chatpanel.messages_unavailable')}
+            body={t('components.clientdetail.chatpanel.messaging_is_enabled_for_this_relationship_but_the_portal_could_not_load')}
           />
         ) : isLoading ? (
           <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span>{tr('Cargando mensajes...', 'Loading messages...')}</span>
+            <span>{t('components.clientdetail.chatpanel.loading_messages')}</span>
           </div>
         ) : messages.length === 0 ? (
           <EmptyChatState
-            title={tr('Todavía no hay mensajes', 'No messages yet')}
-            body={tr(
-              'La conversación permanece vacía hasta que exista el primer mensaje real entre profesional y cliente.',
-              'The conversation remains empty until the first real message exists between professional and client.',
-            )}
+            title={t('components.clientdetail.chatpanel.no_messages_yet')}
+            body={t('components.clientdetail.chatpanel.the_conversation_remains_empty_until_the_first_real_message_exists_betwe')}
           />
         ) : (
           <div className="space-y-4">
@@ -182,7 +174,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
         <form onSubmit={handleSubmit(handleSendMessage)} className="relative flex items-center gap-2">
           <input
             type="text"
-            placeholder={tr('Escribe un mensaje...', 'Write a message...')}
+            placeholder={t('components.clientdetail.chatpanel.write_a_message')}
             className="portal-input h-11 flex-1 rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
             disabled={sendMutation.isPending}
             {...register('body')}

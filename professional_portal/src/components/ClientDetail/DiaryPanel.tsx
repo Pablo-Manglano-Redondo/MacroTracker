@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useDiaryEntries } from '../../hooks/queries/useDiaryEntries';
 import type { ProfessionalClient } from '../../types/database.types';
+import { formatPortalDate } from '../../lib/date';
 import { usePortalI18n } from '../../lib/portal-i18n';
 
 interface DiaryPanelProps {
@@ -31,15 +32,15 @@ function mealTypeIcon(type: string) {
 }
 
 export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const { data: entries, isLoading, error } = useDiaryEntries(client.id);
 
   const mealTypeLabel = (type: string) =>
     ({
-      breakfast: tr('Desayuno', 'Breakfast'),
-      lunch: tr('Comida', 'Lunch'),
-      dinner: tr('Cena', 'Dinner'),
-      snack: tr('Snack', 'Snack'),
+      breakfast: t('components.clientdetail.diarypanel.breakfast'),
+      lunch: t('components.clientdetail.diarypanel.lunch'),
+      dinner: t('components.clientdetail.diarypanel.dinner'),
+      snack: t('components.clientdetail.diarypanel.snack'),
     })[type] ?? type;
 
   const formatKcal = (value: number | null) =>
@@ -53,9 +54,9 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{tr('Diario del cliente', 'Client diary')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
             <p className="text-sm text-muted-foreground">
-              {tr('Lectura detallada condicionada por consentimiento', 'Detailed reading gated by consent')}
+              {t('components.clientdetail.diarypanel.detailed_reading_gated_by_consent')}
             </p>
           </div>
         </div>
@@ -65,13 +66,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-6 w-6" />
           </div>
           <p className="mt-4 text-base font-bold text-foreground">
-            {tr('El diario detallado no está compartido', 'Detailed diary is not shared')}
+            {t('components.clientdetail.diarypanel.detailed_diary_is_not_shared')}
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {tr(
-              'Esta relación está en modo aggregate, así que el portal puede ver snapshots y resúmenes, pero no filas crudas del diario.',
-              'This relationship is in aggregate mode, so the portal can read snapshots and summaries, but not raw diary rows.',
-            )}
+            {t('components.clientdetail.diarypanel.this_relationship_is_in_aggregate_mode_so_the_portal_can_read_snapshots_')}
           </p>
         </div>
       </section>
@@ -89,10 +87,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
   if (error) {
     return (
       <div className="portal-panel rounded-[1.6rem] p-6 text-center text-sm text-muted-foreground">
-        {tr(
-          'No se pudieron cargar las entradas del diario.',
-          'The diary entries could not be loaded.',
-        )}
+        {t('components.clientdetail.diarypanel.the_diary_entries_could_not_be_loaded')}
       </div>
     );
   }
@@ -105,9 +100,9 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{tr('Diario del cliente', 'Client diary')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
             <p className="text-sm text-muted-foreground">
-              {tr('Detalle compartido desde la app móvil', 'Detailed rows shared from the mobile app')}
+              {t('components.clientdetail.diarypanel.detailed_rows_shared_from_the_mobile_app')}
             </p>
           </div>
         </div>
@@ -117,13 +112,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-6 w-6" />
           </div>
           <p className="mt-4 text-base font-bold text-foreground">
-            {tr('Todavía no hay entradas', 'No diary entries yet')}
+            {t('components.clientdetail.diarypanel.no_diary_entries_yet')}
           </p>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-            {tr(
-              'Cuando el cliente comparta el diario en modo detailed, las comidas aparecerán aquí.',
-              'When the client shares the diary in detailed mode, meals will appear here.',
-            )}
+            {t('components.clientdetail.diarypanel.when_the_client_shares_the_diary_in_detailed_mode_meals_will_appear_here')}
           </p>
         </div>
       </section>
@@ -145,12 +137,9 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{tr('Diario del cliente', 'Client diary')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
             <p className="text-sm text-muted-foreground">
-              {tr(
-                `${entries.length} registros compartidos`,
-                `${entries.length} shared entries`,
-              )}
+              {t('components.clientdetail.diarypanel.shared_entries', { entries_length: entries.length })}
             </p>
           </div>
         </div>
@@ -173,7 +162,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-background px-4 py-3 text-sm font-bold text-foreground">
                 <div className="flex items-center gap-2">
                   <span>
-                    {new Date(date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+                    {formatPortalDate(date, locale, {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
@@ -184,7 +173,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
                   </span>
                 </div>
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                  {dayEntries.length} {tr('comidas', 'meals')}
+                  {dayEntries.length} {t('components.clientdetail.diarypanel.meals')}
                 </span>
               </summary>
 
@@ -218,7 +207,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-bold text-foreground">
-                                  {entry.meal_name || tr('Comida registrada', 'Logged meal')}
+                                  {entry.meal_name || t('components.clientdetail.diarypanel.logged_meal')}
                                 </p>
                                 {entry.meal_brands && (
                                   <p className="mt-1 truncate text-xs text-muted-foreground">
@@ -255,7 +244,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
                 <div className="rounded-xl border border-border bg-card px-4 py-3">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                      {tr('Resumen del día', 'Day summary')}
+                      {t('components.clientdetail.diarypanel.day_summary')}
                     </span>
                     <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
                       <span className="text-foreground">{formatKcal(dayTotalKcal)}</span>

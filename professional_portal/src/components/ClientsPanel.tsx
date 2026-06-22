@@ -38,7 +38,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   onAddClient,
 }) => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
   const { data: clients = [], isLoading, refetch, isRefetching } = useClients(professional?.id);
   const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
@@ -81,10 +81,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   if (!professional) {
     return (
       <div className="portal-panel rounded-[1.6rem] p-6 text-sm leading-relaxed text-muted-foreground">
-        {tr(
-          'Primero crea el perfil profesional. Las relaciones cliente-profesional cuelgan del registro profesional, no del usuario auth en bruto.',
-          'Create the professional profile first. Client relationships attach to the professional record, not to the raw auth user.',
-        )}
+        {t('components.clientspanel.create_the_professional_profile_first_client_relationships_attach_to_the')}
       </div>
     );
   }
@@ -94,15 +91,12 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
       <section className="portal-hero rounded-[1.8rem] p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-2">
-            <p className="portal-kicker">{tr('Roster clínico', 'Clinical roster')}</p>
+            <p className="portal-kicker">{t('components.clientspanel.clinical_roster')}</p>
             <h2 className="portal-title text-3xl text-foreground">
-              {tr('Clientes y estado real de la relación.', 'Clients and real relationship state.')}
+              {t('components.clientspanel.clients_and_real_relationship_state')}
             </h2>
             <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'Este roster solo refleja relaciones `professional_clients`, su modo de sharing y el último snapshot sincronizado.',
-                'This roster only reflects `professional_clients` relationships, their sharing mode, and the latest synced snapshot.',
-              )}
+              {t('components.clientspanel.this_roster_only_reflects_professional_clients_relationships_their_shari')}
             </p>
           </div>
 
@@ -111,7 +105,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               onClick={() => refetch()}
               className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-accent"
             >
-              {isRefetching ? tr('Actualizando...', 'Refreshing...') : tr('Actualizar', 'Refresh')}
+              {isRefetching ? t('components.clientspanel.refreshing') : t('components.clientspanel.refresh')}
             </button>
             {onAddClient && (
               <button
@@ -120,7 +114,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground transition-colors hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <UserPlus className="h-4 w-4" />
-                {tr('Invitar cliente', 'Invite client')}
+                {t('components.clientspanel.invite_client')}
               </button>
             )}
           </div>
@@ -132,10 +126,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
           <div className="flex items-start gap-3">
             <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
             <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
-              {tr(
-                'La facturación no está activa, así que las nuevas invitaciones deben seguir bloqueadas. Las relaciones ya conectadas aún pueden aparecer aquí en modo lectura.',
-                'Billing is not active, so new invites should remain blocked. Existing connected relationships may still appear here in read-only mode.',
-              )}
+              {t('components.clientspanel.billing_is_not_active_so_new_invites_should_remain_blocked_existing_conn')}
             </p>
           </div>
         </section>
@@ -143,24 +134,24 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label={tr('Conectados', 'Connected')}
+          label={t('components.clientspanel.connected')}
           value={stats.connected}
-          note={tr('Relaciones activas', 'Active relationships')}
+          note={t('components.clientspanel.active_relationships')}
         />
         <StatCard
-          label={tr('Sharing detailed', 'Detailed sharing')}
+          label={t('components.clientspanel.detailed_sharing')}
           value={stats.detailed}
-          note={tr('Diario detallado habilitado', 'Detailed diary enabled')}
+          note={t('components.clientspanel.detailed_diary_enabled')}
         />
         <StatCard
-          label={tr('Con snapshots', 'With snapshots')}
+          label={t('components.clientspanel.with_snapshots')}
           value={stats.withRecentSnapshots}
-          note={tr('Al menos un sync recibido', 'At least one sync received')}
+          note={t('components.clientspanel.at_least_one_sync_received')}
         />
         <StatCard
-          label={tr('Hilos sin leer', 'Unread threads')}
+          label={t('components.clientspanel.unread_threads')}
           value={stats.unreadThreads}
-          note={tr('Mensajes pendientes de revisar', 'Client messages awaiting review')}
+          note={t('components.clientspanel.client_messages_awaiting_review')}
         />
       </section>
 
@@ -172,7 +163,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder={tr('Buscar clientes', 'Search clients')}
+                placeholder={t('components.clientspanel.search_clients')}
                 className="portal-input w-full rounded-xl py-2 pl-10 pr-3 text-sm font-medium outline-none transition-colors focus:border-primary"
               />
             </div>
@@ -183,19 +174,19 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                 onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
                 className="portal-input rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] outline-none"
               >
-                <option value="all">{tr('Todos los estados', 'All statuses')}</option>
-                <option value="connected">{tr('Conectado', 'Connected')}</option>
-                <option value="revoked">{tr('Revocado', 'Revoked')}</option>
-                <option value="archived">{tr('Archivado', 'Archived')}</option>
+                <option value="all">{t('components.clientspanel.all_statuses')}</option>
+                <option value="connected">{t('components.clientspanel.connected')}</option>
+                <option value="revoked">{t('components.clientspanel.revoked')}</option>
+                <option value="archived">{t('components.clientspanel.archived')}</option>
               </select>
               <select
                 value={sharingFilter}
                 onChange={(event) => setSharingFilter(event.target.value as SharingFilter)}
                 className="portal-input rounded-xl px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] outline-none"
               >
-                <option value="all">{tr('Todo el sharing', 'All sharing')}</option>
-                <option value="aggregate">{tr('Agregado', 'Aggregate')}</option>
-                <option value="detailed">{tr('Detallado', 'Detailed')}</option>
+                <option value="all">{t('components.clientspanel.all_sharing')}</option>
+                <option value="aggregate">{t('components.clientspanel.aggregate')}</option>
+                <option value="detailed">{t('components.clientspanel.detailed')}</option>
               </select>
             </div>
           </div>
@@ -243,7 +234,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                             {getClientDisplayName(client)}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            {getRelationshipStatusLabel(client.status)} · {getSharingModeLabel(client.sharing_mode)}
+                            {getRelationshipStatusLabel(client.status, t)} · {getSharingModeLabel(client.sharing_mode, t)}
                           </p>
                         </div>
                       </div>
@@ -259,14 +250,11 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     <div className="mt-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                       <span>
                         {latestSnapshot
-                          ? tr(
-                              `Snapshot ${latestSnapshot.snapshot_date}`,
-                              `Snapshot ${latestSnapshot.snapshot_date}`,
-                            )
-                          : tr('Todavía no hay snapshots', 'No snapshots synced yet')}
+                          ? t('components.clientspanel.snapshot', { latestsnapshot_snapshot_date: latestSnapshot.snapshot_date })
+                          : t('components.clientspanel.no_snapshots_synced_yet')}
                       </span>
                       <span className="font-semibold text-foreground">
-                        {adherence === null ? tr('Sin adherencia', 'No adherence') : `${adherence}% kcal`}
+                        {adherence === null ? t('components.clientspanel.no_adherence') : `${adherence}% kcal`}
                       </span>
                     </div>
                   </button>
@@ -290,13 +278,10 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                 <Users className="h-6 w-6" />
               </div>
               <h3 className="portal-title mt-4 text-2xl text-foreground">
-                {tr('Selecciona un cliente', 'Select a client')}
+                {t('components.clientspanel.select_a_client')}
               </h3>
               <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                {tr(
-                  'Usa el roster para abrir el workflow real de planes, notas, snapshots, check-ins, diario detallado y chat. Si una superficie aún no tiene backend suficiente, debe decirlo.',
-                  'Use the roster to open the real workflow for plans, notes, snapshots, check-ins, detailed diary, and chat. If a surface does not yet have enough backend support, it should say so explicitly.',
-                )}
+                {t('components.clientspanel.use_the_roster_to_open_the_real_workflow_for_plans_notes_snapshots_check')}
               </p>
             </section>
           )}
@@ -325,25 +310,19 @@ const EmptyRosterState: React.FC<{
   canInvite: boolean;
   onAddClient?: () => void;
 }> = ({ hasClients, canInvite, onAddClient }) => {
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
 
   return (
     <div className="portal-soft-panel rounded-2xl p-6 text-center">
       <p className="text-sm font-bold text-foreground">
         {hasClients
-          ? tr('Ningún cliente coincide con los filtros', 'No clients match the current filters')
-          : tr('Todavía no hay relaciones cliente-profesional', 'No client relationships yet')}
+          ? t('components.clientspanel.no_clients_match_the_current_filters')
+          : t('components.clientspanel.no_client_relationships_yet')}
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
         {hasClients
-          ? tr(
-              'Limpia los filtros o la búsqueda para volver a ver el roster completo.',
-              'Clear the filters or search query to see the full roster again.',
-            )
-          : tr(
-              'Las relaciones conectadas aparecerán aquí después de que el cliente acepte la invitación desde la app móvil.',
-              'Connected relationships will appear here after the client accepts an invite from the mobile app.',
-            )}
+          ? t('components.clientspanel.clear_the_filters_or_search_query_to_see_the_full_roster_again')
+          : t('components.clientspanel.connected_relationships_will_appear_here_after_the_client_accepts_an_inv')}
       </p>
       {onAddClient && !hasClients && (
         <button
@@ -352,12 +331,12 @@ const EmptyRosterState: React.FC<{
           className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           <UserPlus className="h-4 w-4" />
-          {tr('Invitar primer cliente', 'Invite first client')}
+          {t('components.clientspanel.invite_first_client')}
         </button>
       )}
       {hasClients && (
         <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
-          {tr('Revisar filtros', 'Review filters')}
+          {t('components.clientspanel.review_filters')}
           <ArrowRight className="h-4 w-4" />
         </div>
       )}

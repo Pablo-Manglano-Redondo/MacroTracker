@@ -1,4 +1,5 @@
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
+import { resolveRequestLocale, t } from "../_shared/i18n.ts";
 
 const recipeScraperSchema = {
   type: "object",
@@ -118,10 +119,14 @@ const blockedHostnames = new Set([
   "169.254.169.254",
   "100.100.100.200",
 ]);
+const INVALID_URL_ERROR_KEY = "recipeScraper.invalidUrl" as const;
+const CREDENTIALED_URL_ERROR_KEY = "recipeScraper.credentialedUrlNotAllowed" as const;
+const PRIVATE_NETWORK_URL_ERROR_KEY = "recipeScraper.privateNetworkUrlNotAllowed" as const;
+const MISSING_GEMINI_API_KEY_ERROR_KEY = "recipeScraper.missingGeminiApiKey" as const;
 const invalidRecipeUrlErrors = new Set([
-  "Invalid URL",
-  "Credentialed URLs are not allowed",
-  "Private or local network URLs are not allowed",
+  INVALID_URL_ERROR_KEY,
+  CREDENTIALED_URL_ERROR_KEY,
+  PRIVATE_NETWORK_URL_ERROR_KEY,
 ]);
 
 function isIpv4Address(value: string): boolean {
@@ -169,15 +174,15 @@ async function assertPublicRecipeUrl(rawUrl: string): Promise<URL> {
   try {
     parsedUrl = new URL(rawUrl);
   } catch {
-    throw new Error("Invalid URL");
+    throw new Error(INVALID_URL_ERROR_KEY);
   }
 
   if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
-    throw new Error("Invalid URL");
+    throw new Error(INVALID_URL_ERROR_KEY);
   }
 
   if (parsedUrl.username || parsedUrl.password) {
-    throw new Error("Credentialed URLs are not allowed");
+    throw new Error(CREDENTIALED_URL_ERROR_KEY);
   }
 
   const hostname = parsedUrl.hostname.toLowerCase();
@@ -186,15 +191,15 @@ async function assertPublicRecipeUrl(rawUrl: string): Promise<URL> {
     hostname.endsWith(".local") ||
     hostname.endsWith(".internal")
   ) {
-    throw new Error("Private or local network URLs are not allowed");
+    throw new Error(PRIVATE_NETWORK_URL_ERROR_KEY);
   }
 
   if (isIpv4Address(hostname) && isBlockedIpv4(hostname)) {
-    throw new Error("Private or local network URLs are not allowed");
+    throw new Error(PRIVATE_NETWORK_URL_ERROR_KEY);
   }
 
   if (hostname.includes(":") && isBlockedIpv6(hostname)) {
-    throw new Error("Private or local network URLs are not allowed");
+    throw new Error(PRIVATE_NETWORK_URL_ERROR_KEY);
   }
 
   const recordTypes: Deno.RecordType[] = ["A", "AAAA"];
@@ -206,12 +211,12 @@ async function assertPublicRecipeUrl(rawUrl: string): Promise<URL> {
           isBlockedIpv4(record) ||
           isBlockedIpv6(record)
         ) {
-          throw new Error("Private or local network URLs are not allowed");
+          throw new Error(PRIVATE_NETWORK_URL_ERROR_KEY);
         }
       }
     } catch (error) {
       if (error instanceof Error &&
-          error.message === "Private or local network URLs are not allowed") {
+          error.message === PRIVATE_NETWORK_URL_ERROR_KEY) {
         throw error;
       }
     }
@@ -221,18 +226,20 @@ async function assertPublicRecipeUrl(rawUrl: string): Promise<URL> {
 }
 
 Deno.serve(async (request) => {
+  let locale = resolveRequestLocale(request);
   if (request.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   if (request.method !== "POST") {
-    return jsonResponse({ error: "Method not allowed" }, 405);
+    return jsonResponse({ error: t(locale, "common.methodNotAllowed") }, 405);
   }
 
   try {
     const body = await request.json();
     const url = typeof body?.url === "string" ? body.url.trim() : "";
-    const locale = typeof body?.locale === "string" ? body.locale : "en-US";
+    locale = resolveRequestLocale(request, body);
+    const recipeLocale = typeof body?.locale === "string" ? body.locale : "en-US";
 
     const parsedUrl = await assertPublicRecipeUrl(url);
 
@@ -246,7 +253,11 @@ Deno.serve(async (request) => {
 
     if (!fetchResponse.ok) {
       return jsonResponse(
-        { error: `Failed to fetch the webpage: status ${fetchResponse.status}` },
+        {
+          error: t(locale, "recipeScraper.fetchFailed", {
+            status: fetchResponse.status,
+          }),
+        },
         400,
       );
     }
@@ -255,14 +266,16 @@ Deno.serve(async (request) => {
     const cleanText = cleanHtmlToText(html);
 
     if (cleanText.length < 50) {
-      return jsonResponse({ error: "Webpage has insufficient text content" }, 400);
+      return jsonResponse({
+        error: t(locale, "recipeScraper.insufficientTextContent"),
+      }, 400);
     }
 
     // Call Gemini API
     const model = Deno.env.get("GEMINI_RECIPE_MODEL") ?? "gemini-2.5-flash-lite";
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
-      throw new Error("Missing GEMINI_API_KEY in environment");
+      throw new Error(MISSING_GEMINI_API_KEY_ERROR_KEY);
     }
 
     const endpoint =
@@ -279,7 +292,7 @@ Deno.serve(async (request) => {
           parts: [
             {
               text:
-                `You are an expert recipe extractor. Extract the recipe details (title, servings, prep/cook time, ingredients list, step-by-step instructions, and estimated macros) from the provided webpage text content. Always respond with text fields (title, ingredients names, instructions) translated to language: ${locale}. Estimate calories and macronutrients if not clearly stated on the webpage. For each ingredient, estimate kcal100, carbs100, fat100, protein100 per 100g (for g/ml) or per 100 units (for servings/pieces, e.g., if 1 egg has 78 kcal, its kcal100 is 7800).`,
+                `You are an expert recipe extractor. Extract the recipe details (title, servings, prep/cook time, ingredients list, step-by-step instructions, and estimated macros) from the provided webpage text content. Always respond with text fields (title, ingredients names, instructions) translated to language: ${recipeLocale}. Estimate calories and macronutrients if not clearly stated on the webpage. For each ingredient, estimate kcal100, carbs100, fat100, protein100 per 100g (for g/ml) or per 100 units (for servings/pieces, e.g., if 1 egg has 78 kcal, its kcal100 is 7800).`,
             },
           ],
         },
@@ -299,18 +312,30 @@ Deno.serve(async (request) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return jsonResponse({ error: `Gemini error: ${errorText}` }, 500);
+      console.error("[recipe-scraper] gemini failed", {
+        status: response.status,
+        errorText,
+      });
+      return jsonResponse({
+        error: t(locale, "recipeScraper.geminiError", {
+          details: errorText,
+        }),
+      }, 500);
     }
 
     const payload = await response.json();
     const candidates = payload?.candidates;
     if (!candidates || candidates.length === 0) {
-      return jsonResponse({ error: "No recipe suggestions found" }, 500);
+      return jsonResponse({
+        error: t(locale, "recipeScraper.noSuggestionsFound"),
+      }, 500);
     }
 
     const textResult = candidates[0]?.content?.parts[0]?.text;
     if (!textResult) {
-      return jsonResponse({ error: "Invalid text result from Gemini" }, 500);
+      return jsonResponse({
+        error: t(locale, "recipeScraper.invalidTextResult"),
+      }, 500);
     }
 
     const result = JSON.parse(textResult);
@@ -323,14 +348,22 @@ Deno.serve(async (request) => {
     if (error instanceof Error && invalidRecipeUrlErrors.has(error.message)) {
       return jsonResponse(
         {
-          error: error.message,
+          error: error.message === INVALID_URL_ERROR_KEY
+            ? t(locale, INVALID_URL_ERROR_KEY)
+            : error.message === CREDENTIALED_URL_ERROR_KEY
+            ? t(locale, CREDENTIALED_URL_ERROR_KEY)
+            : t(locale, PRIVATE_NETWORK_URL_ERROR_KEY),
         },
         400,
       );
     }
+    console.error("[recipe-scraper] failed", error);
     return jsonResponse(
       {
-        error: error instanceof Error ? error.message : "Unexpected error",
+        error: error instanceof Error &&
+            error.message === MISSING_GEMINI_API_KEY_ERROR_KEY
+          ? t(locale, MISSING_GEMINI_API_KEY_ERROR_KEY)
+          : t(locale, "recipeScraper.scrapeFailed"),
       },
       500,
     );

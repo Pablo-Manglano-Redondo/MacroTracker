@@ -96,7 +96,7 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: widget.usesImperialUnits
-                  ? '${S.of(context).bodyProgressWaist} (in)'
+                  ? '${S.of(context).bodyProgressWaist} (${S.of(context).inchUnitLabel})'
                   : '${S.of(context).bodyProgressWaist} (${S.of(context).cmLabel})',
               border: const OutlineInputBorder(),
             ),
@@ -105,9 +105,9 @@ class _BodyMeasurementDialogState extends State<BodyMeasurementDialog> {
           TextField(
             controller: _bodyFatController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              labelText: 'Body fat (%)',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: S.of(context).bodyProgressBodyFatLabel,
+              border: const OutlineInputBorder(),
             ),
           ),
         ],

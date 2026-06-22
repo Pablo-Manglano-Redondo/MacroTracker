@@ -17,7 +17,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
   onClose,
 }) => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const { data: recipes, isLoading } = useRecipes(professional?.id);
   const [search, setSearch] = useState('');
 
@@ -44,7 +44,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ChefHat className="h-4.5 w-4.5 text-primary" />
-            <h3 className="text-base font-bold text-foreground">{tr('Asignar receta', 'Assign recipe')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.recipepickermodal.assign_recipe')}</h3>
           </div>
           <button onClick={onClose} className="rounded-xl p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-4 w-4" />
@@ -56,7 +56,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder={tr('Buscar recetas', 'Search recipes')}
+            placeholder={t('components.clientdetail.recipepickermodal.search_recipes')}
             className="portal-input h-10 w-full rounded-xl pl-9 pr-3 text-sm font-medium outline-none focus:border-primary"
           />
         </div>
@@ -70,7 +70,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
             </div>
           ) : filtered.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              {tr('No hay recetas que coincidan.', 'No matching recipes.')}
+              {t('components.clientdetail.recipepickermodal.no_matching_recipes')}
             </p>
           ) : (
             filtered.map((recipe) => (

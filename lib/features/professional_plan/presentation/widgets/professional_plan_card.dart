@@ -114,7 +114,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                     child: _HeroMetric(
                       label: remainingLabel,
                       value: remainingValue,
-                      suffix: 'kcal',
+                      suffix: S.of(context).kcalLabel,
                       color:
                           isOverPlan ? colorScheme.error : colorScheme.primary,
                     ),
@@ -148,7 +148,7 @@ class ProfessionalPlanCard extends StatelessWidget {
                 runSpacing: 8,
                 children: [
                   _MetricPill(
-                    label: 'Kcal',
+                    label: S.of(context).macroKcalLabel,
                     value:
                         '${summary.kcalActual.round()} / ${summary.kcalTarget.round()}',
                   ),

@@ -1,21 +1,32 @@
 import { useMutation } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
-import { checkinRepository } from '../../repositories/checkin.repository';
 import { toast } from '../../lib/toast';
 import { usePortalI18n } from '../../lib/portal-i18n';
+import { checkinRepository } from '../../repositories/checkin.repository';
 
 export function useRequestCheckin() {
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
 
   return useMutation({
-    mutationFn: (params: { professionalId: string; clientId: string; professionalClientId: string }) =>
-      checkinRepository.requestCheckin(supabase, params.professionalId, params.clientId, params.professionalClientId),
+    mutationFn: (params: {
+      professionalId: string;
+      clientId: string;
+      professionalClientId: string;
+    }) =>
+      checkinRepository.requestCheckin(
+        supabase,
+        params.professionalId,
+        params.clientId,
+        params.professionalClientId,
+      ),
     onSuccess: () => {
-      toast.success(tr('Check-in solicitado. Se ha enviado una notificación al cliente.', 'Check-in requested. Push notification sent to client.'));
+      toast.success(
+        t('hooks.mutations.userequestcheckin.check_in_requested_push_notification_sent_to_client'),
+      );
     },
     onError: (err: any) => {
-      toast.error(tr('No se pudo solicitar el check-in', 'Failed to request check-in'), {
-        description: err?.message || tr('Error desconocido', 'Unknown error'),
+      toast.error(t('hooks.mutations.userequestcheckin.failed_to_request_check_in'), {
+        description: err?.message || t('hooks.mutations.userequestcheckin.unknown_error'),
       });
     },
   });

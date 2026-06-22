@@ -204,7 +204,7 @@ class _RecipeScraperDialogState extends State<RecipeScraperDialog> {
               textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 labelText: S.of(context).recipeScraperUrlLabel,
-                hintText: 'https://...',
+                hintText: S.of(context).recipeScraperUrlHint,
                 border: const OutlineInputBorder(),
                 errorText: _errorMessage,
               ),

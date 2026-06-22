@@ -8,13 +8,14 @@ import {
   useDeleteNote,
   useUpdateNote,
 } from '../../hooks/mutations/useClientNotes';
+import { formatPortalDate } from '../../lib/date';
 import { ConfirmDialog } from '../ui/confirm-dialog';
 import { usePortalI18n } from '../../lib/portal-i18n';
 
 const CATEGORIES = ['general', 'assessment', 'medical', 'progress', 'billing', 'other'] as const;
 
 export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }) => {
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const { data: notes, isLoading, error } = useClientNotes(client.id);
   const createNote = useCreateNote(client.id);
   const deleteNote = useDeleteNote(client.id);
@@ -44,14 +45,14 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
 
   const handleCreate = async () => {
     if (!body.trim()) {
-      toast.error(tr('El cuerpo de la nota es obligatorio', 'Note body required'));
+      toast.error(t('components.clientdetail.clientnotes.note_body_required'));
       return;
     }
     try {
       await createNote.mutateAsync({
         professional_client_id: client.id,
         professional_id: client.professional_id,
-        title: title.trim() || tr('Nota', 'Note'),
+        title: title.trim() || t('components.clientdetail.clientnotes.note'),
         body: body.trim(),
         category: category as any,
         pinned: false,
@@ -60,20 +61,20 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
       setTitle('');
       setBody('');
       setCategory('general');
-      toast.success(tr('Nota creada', 'Note created'));
+      toast.success(t('components.clientdetail.clientnotes.note_created'));
     } catch {
-      toast.error(tr('No se pudo crear la nota', 'Failed to create note'));
+      toast.error(t('components.clientdetail.clientnotes.failed_to_create_note'));
     }
   };
 
   const categoryLabel = (value: string) =>
     ({
-      general: tr('General', 'General'),
-      assessment: tr('Evaluación', 'Assessment'),
-      medical: tr('Médico', 'Medical'),
-      progress: tr('Progreso', 'Progress'),
-      billing: tr('Facturación', 'Billing'),
-      other: tr('Otro', 'Other'),
+      general: t('components.clientdetail.clientnotes.general'),
+      assessment: t('components.clientdetail.clientnotes.assessment'),
+      medical: t('components.clientdetail.clientnotes.medical'),
+      progress: t('components.clientdetail.clientnotes.progress'),
+      billing: t('components.clientdetail.clientnotes.billing'),
+      other: t('components.clientdetail.clientnotes.other'),
     })[value] ?? value;
 
   return (
@@ -81,14 +82,14 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <FileText className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">{tr('Notas del cliente', 'Client notes')}</h3>
+          <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientnotes.client_notes')}</h3>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
         >
           <Plus className="h-3.5 w-3.5" />
-          {tr('Nueva nota', 'New note')}
+          {t('components.clientdetail.clientnotes.new_note')}
         </button>
       </div>
 
@@ -98,13 +99,13 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder={tr('Título de la nota', 'Note title')}
+              placeholder={t('components.clientdetail.clientnotes.note_title')}
               className="portal-input h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
             />
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              placeholder={tr('Escribe la nota...', 'Write the note...')}
+              placeholder={t('components.clientdetail.clientnotes.write_the_note')}
               rows={4}
               className="portal-input w-full rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-primary"
             />
@@ -125,14 +126,14 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                   onClick={() => setShowForm(false)}
                   className="rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent"
                 >
-                  {tr('Cancelar', 'Cancel')}
+                  {t('components.clientdetail.clientnotes.cancel')}
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={createNote.isPending}
                   className="rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
                 >
-                  {tr('Guardar', 'Save')}
+                  {t('components.clientdetail.clientnotes.save')}
                 </button>
               </div>
             </div>
@@ -142,10 +143,7 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
 
       {error ? (
         <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
-          {tr(
-            'Las notas no se han podido cargar todavía. Este tab debe seguir siendo explícito hasta que exista dato real.',
-            'Notes could not be loaded yet. This tab should remain explicit until real data exists.',
-          )}
+          {t('components.clientdetail.clientnotes.notes_could_not_be_loaded_yet_this_tab_should_remain_explicit_until_real')}
         </div>
       ) : isLoading ? (
         <div className="space-y-3">
@@ -155,7 +153,7 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
         </div>
       ) : !sortedNotes.length ? (
         <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
-          {tr('Todavía no hay notas para este cliente.', 'No notes exist for this client yet.')}
+          {t('components.clientdetail.clientnotes.no_notes_exist_for_this_client_yet')}
         </div>
       ) : (
         <div className="space-y-3">
@@ -211,10 +209,10 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                                   category: editCategory as ClientNote['category'],
                                 },
                               });
-                              toast.success(tr('Nota actualizada', 'Note updated'));
+                              toast.success(t('components.clientdetail.clientnotes.note_updated'));
                               setEditingId(null);
                             } catch {
-                              toast.error(tr('No se pudo actualizar', 'Failed to update'));
+                              toast.error(t('components.clientdetail.clientnotes.failed_to_update'));
                             }
                           }}
                           disabled={updateNote.isPending}
@@ -246,8 +244,8 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                           {note.body}
                         </p>
                         <p className="mt-3 text-[11px] font-semibold text-muted-foreground">
-                          {tr('Creada', 'Created')}{' '}
-                          {new Date(note.created_at).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US', {
+                          {t('components.clientdetail.clientnotes.created')}{' '}
+                          {formatPortalDate(note.created_at, locale, {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric',
@@ -279,11 +277,8 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
 
       <ConfirmDialog
         open={deleteConfirm !== null}
-        title={tr('Eliminar nota', 'Delete note')}
-        message={tr(
-          'Esta acción no se puede deshacer. La nota se eliminará permanentemente.',
-          'This action cannot be undone. The note will be permanently removed.',
-        )}
+        title={t('components.clientdetail.clientnotes.delete_note')}
+        message={t('components.clientdetail.clientnotes.this_action_cannot_be_undone_the_note_will_be_permanently_removed')}
         onConfirm={() => {
           if (deleteConfirm) {
             deleteNote.mutate(deleteConfirm);

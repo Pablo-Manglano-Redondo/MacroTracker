@@ -8,6 +8,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { SignJWT, importPKCS8 } from 'https://deno.land/x/jose@v5.9.6/index.ts';
+import { resolveRequestLocale, t, type RequestLocale } from '../_shared/i18n.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
@@ -19,7 +20,7 @@ const FCM_SCOPE = 'https://www.googleapis.com/auth/firebase.messaging';
 
 let _cachedToken: { token: string; expiresAt: number } | null = null;
 
-async function getOAuthToken(): Promise<string> {
+async function getOAuthToken(locale: RequestLocale): Promise<string> {
   if (_cachedToken && Date.now() < _cachedToken.expiresAt) {
     return _cachedToken.token;
   }
@@ -28,7 +29,7 @@ async function getOAuthToken(): Promise<string> {
   try {
     sa = JSON.parse(FCM_SERVICE_ACCOUNT_JSON);
   } catch {
-    throw new Error('Invalid FCM_SERVICE_ACCOUNT_JSON');
+    throw new Error(t(locale, 'sendPushNotification.invalidServiceAccountJson'));
   }
 
   const now = Math.floor(Date.now() / 1000);
@@ -52,7 +53,11 @@ async function getOAuthToken(): Promise<string> {
   });
 
   const data = await res.json();
-  if (!res.ok) throw new Error(`OAuth error: ${data.error_description ?? data.error}`);
+  if (!res.ok) {
+    throw new Error(t(locale, 'sendPushNotification.oauthFailed', {
+      details: data.error_description ?? data.error ?? 'unknown',
+    }));
+  }
 
   _cachedToken = { token: data.access_token, expiresAt: now + data.expires_in - 300 };
   return data.access_token;
@@ -77,8 +82,8 @@ function buildV1Payload(token: string, title: string, body: string | null, data:
   return { message: msg };
 }
 
-async function sendV1(token: string, title: string, body: string | null, data: Record<string, string> | undefined, platform: string, projectId: string) {
-  const accessToken = await getOAuthToken();
+async function sendV1(locale: RequestLocale, token: string, title: string, body: string | null, data: Record<string, string> | undefined, platform: string, projectId: string) {
+  const accessToken = await getOAuthToken(locale);
   const payload = buildV1Payload(token, title, body, data, platform);
 
   const res = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
@@ -91,10 +96,16 @@ async function sendV1(token: string, title: string, body: string | null, data: R
   });
 
   const result = await res.json();
-  return { success: res.ok, error: res.ok ? undefined : (result.error?.message ?? JSON.stringify(result)) };
+  if (!res.ok) {
+    console.error('[send-push-notification] FCM v1 rejected notification', result);
+  }
+  return {
+    success: res.ok,
+    error: res.ok ? undefined : t(locale, 'sendPushNotification.providerRejected'),
+  };
 }
 
-async function sendLegacy(token: string, title: string, body: string | null, data: Record<string, string> | undefined) {
+async function sendLegacy(locale: RequestLocale, token: string, title: string, body: string | null, data: Record<string, string> | undefined) {
   const payload = {
     to: token,
     notification: { title, body: body ?? '', sound: 'default' },
@@ -112,15 +123,25 @@ async function sendLegacy(token: string, title: string, body: string | null, dat
   });
 
   const result = await res.json();
-  return { success: res.ok, error: res.ok ? undefined : result.error };
+  if (!res.ok) {
+    console.error('[send-push-notification] FCM legacy rejected notification', result);
+  }
+  return {
+    success: res.ok,
+    error: res.ok ? undefined : t(locale, 'sendPushNotification.providerRejected'),
+  };
 }
 
 serve(async (req) => {
+  const locale = resolveRequestLocale(req);
   try {
     const { user_id, title, body, data } = await req.json();
 
     if (!user_id || !title) {
-      return new Response(JSON.stringify({ error: 'Missing user_id or title' }), { status: 400 });
+      return new Response(
+        JSON.stringify({ error: t(locale, 'sendPushNotification.missingUserIdOrTitle') }),
+        { status: 400 },
+      );
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -129,9 +150,15 @@ serve(async (req) => {
       .select('token, platform')
       .eq('user_id', user_id);
 
-    if (error) throw error;
+    if (error) {
+      console.error('[send-push-notification] token lookup failed', error);
+      throw error;
+    }
     if (!tokens || tokens.length === 0) {
-      return new Response(JSON.stringify({ sent: 0, reason: 'no tokens' }), { status: 200 });
+      return new Response(
+        JSON.stringify({ sent: 0, reason: t(locale, 'sendPushNotification.noTokens') }),
+        { status: 200 },
+      );
     }
 
     const useV1 = !!FCM_SERVICE_ACCOUNT_JSON;
@@ -145,11 +172,16 @@ serve(async (req) => {
     for (const t of tokens) {
       try {
         const result = useV1
-          ? await sendV1(t.token, title, body, data, t.platform, projectId)
-          : await sendLegacy(t.token, title, body, data);
+          ? await sendV1(locale, t.token, title, body, data, t.platform, projectId)
+          : await sendLegacy(locale, t.token, title, body, data);
         results.push({ token: t.token, ...result });
       } catch (err) {
-        results.push({ token: t.token, success: false, error: String(err) });
+        console.error('[send-push-notification] per-token delivery failed', err);
+        results.push({
+          token: t.token,
+          success: false,
+          error: t(locale, 'sendPushNotification.deliveryFailed'),
+        });
       }
     }
 
@@ -159,6 +191,10 @@ serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    console.error('[send-push-notification] request failed', err);
+    return new Response(
+      JSON.stringify({ error: t(locale, 'sendPushNotification.requestFailed') }),
+      { status: 500 },
+    );
   }
 });

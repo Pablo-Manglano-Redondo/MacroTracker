@@ -309,7 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 keyboardType: TextInputType.number,
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'e.g. 10000',
+                  hintText: S.of(context).profileStepsExampleHint,
                   labelText: S.of(context).profileStepsTargetLabel,
                   prefixIcon: const Icon(Icons.directions_walk_outlined),
                 ),
@@ -391,7 +391,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: 'e.g. 8.0',
+                  hintText: S.of(context).profileSleepHoursExampleHint,
                   labelText: S.of(context).profileSleepHoursTargetLabel,
                   prefixIcon: const Icon(Icons.hotel_outlined),
                 ),
@@ -590,9 +590,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _formatWater(double liters, bool usesImperialUnits) {
     if (usesImperialUnits) {
       final flOz = UnitCalc.mlToFlOz(liters * 1000);
-      return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} fl oz';
+      return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} ${S.of(context).fluidOunceUnitLabel}';
     }
-    return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} L';
+    return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} ${S.of(context).literUnitLabel}';
   }
 
   Future<void> _showSetTargetWaterDialog(
@@ -609,7 +609,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     final controller = TextEditingController(text: initialText);
-    final unitLabel = usesImperialUnits ? 'fl oz' : 'L';
+    final unitLabel = usesImperialUnits
+        ? S.of(context).fluidOunceUnitLabel
+        : S.of(context).literUnitLabel;
     final selectedWater = await showDialog<double>(
       context: context,
       builder: (context) {
@@ -638,7 +640,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 autofocus: true,
                 decoration: InputDecoration(
-                  hintText: usesImperialUnits ? 'e.g. 100' : 'e.g. 3.0',
+                  hintText: usesImperialUnits
+                      ? S.of(context).profileWaterExampleHintImperial
+                      : S.of(context).profileWaterExampleHintMetric,
                   labelText: S.of(context).profileWaterTargetLabel(unitLabel),
                   prefixIcon: const Icon(Icons.water_drop_outlined),
                 ),
@@ -1041,7 +1045,7 @@ class _CurrentTargetsCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _MacroMetricTile(
-                    label: 'Kcal',
+                    label: S.of(context).macroKcalLabel,
                     value: '${targets.kcalGoal.round()}',
                     accent: colorScheme.primary,
                   ),

@@ -87,8 +87,8 @@ void main() {
       dataSource = MealInterpretationRemoteDataSource();
     });
 
-    test('maps a structured text response into an editable draft', () {
-      final draft = dataSource.mapDraftResponse({
+    test('maps a structured text response into an editable draft', () async {
+      final draft = await dataSource.mapDraftResponse({
         'draftId': 'draft-1',
         'sourceType': 'text',
         'inputText': '2 eggs and toast',
@@ -142,7 +142,7 @@ void main() {
       expect(draft.items.single.removed, isFalse);
     });
 
-    test('accepts a JSON string response', () {
+    test('accepts a JSON string response', () async {
       final response = jsonEncode({
         'sourceType': 'photo',
         'title': 'Pasta bowl',
@@ -169,7 +169,7 @@ void main() {
       });
 
       final draft =
-          dataSource.mapDraftResponse(response, fallbackTitle: 'Photo meal');
+          await dataSource.mapDraftResponse(response, fallbackTitle: 'Photo meal');
 
       expect(draft.sourceType, DraftSourceEntity.photo);
       expect(draft.title, 'Pasta bowl');
@@ -178,8 +178,8 @@ void main() {
       expect(draft.items.single.editable, isTrue);
     });
 
-    test('uses safe defaults for missing optional fields and bad numbers', () {
-      final draft = dataSource.mapDraftResponse({
+    test('uses safe defaults for missing optional fields and bad numbers', () async {
+      final draft = await dataSource.mapDraftResponse({
         'sourceType': 'unknown',
         'totals': {
           'kcal': 'not a number',
@@ -214,8 +214,8 @@ void main() {
       expect(draft.items.single.removed, isTrue);
     });
 
-    test('uses Spanish fallback copy when locale is Spanish', () {
-      final draft = dataSource.mapDraftResponse({
+    test('uses Spanish fallback copy when locale is Spanish', () async {
+      final draft = await dataSource.mapDraftResponse({
         'sourceType': 'photo',
         'totals': {
           'kcal': 0,
@@ -236,14 +236,16 @@ void main() {
       }, fallbackTitle: 'Comida por foto', locale: 'es-ES');
 
       expect(draft.title, 'Comida por foto');
-      expect(draft.summary, 'Estimacion de comida generada por IA.');
+      expect(draft.summary, 'Estimación de comida generada por IA.');
       expect(draft.items.single.label, 'Ingrediente detectado');
     });
 
-    test('throws FormatException for non-object responses', () {
-      expect(
-        () => dataSource.mapDraftResponse(['not', 'an', 'object'],
-            fallbackTitle: 'fallback'),
+    test('throws FormatException for non-object responses', () async {
+      await expectLater(
+        dataSource.mapDraftResponse(
+          ['not', 'an', 'object'],
+          fallbackTitle: 'fallback',
+        ),
         throwsFormatException,
       );
     });

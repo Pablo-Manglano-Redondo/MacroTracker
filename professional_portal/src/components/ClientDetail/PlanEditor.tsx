@@ -34,10 +34,17 @@ interface PlanEditorProps {
 
 export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }) => {
   const { professional } = useAuth();
-  const { tr } = usePortalI18n();
+  const { t } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const { data: plan, isLoading, error } = usePlan(planId);
   const updatePlan = useUpdatePlan();
+  const mealSlotLabel = (slot: string) =>
+    ({
+      breakfast: t('components.clientdetail.planeditor.breakfast'),
+      lunch: t('components.clientdetail.planeditor.lunch'),
+      dinner: t('components.clientdetail.planeditor.dinner'),
+      snack: t('components.clientdetail.planeditor.snack'),
+    })[slot] ?? slot;
 
   const [planName, setPlanName] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
@@ -46,10 +53,10 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
   const [carbs, setCarbs] = useState(0);
   const [fat, setFat] = useState(0);
   const [meals, setMeals] = useState<MealInput[]>([
-    { slot: 'breakfast', title: 'Breakfast', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'lunch', title: 'Lunch', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'dinner', title: 'Dinner', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
-    { slot: 'snack', title: 'Snack', kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'breakfast', title: mealSlotLabel('breakfast'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'lunch', title: mealSlotLabel('lunch'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'dinner', title: mealSlotLabel('dinner'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
+    { slot: 'snack', title: mealSlotLabel('snack'), kcal: 0, protein: 0, carbs: 0, fat: 0, recipe_id: null },
   ]);
   const [showMeals, setShowMeals] = useState(false);
   const [recipePickerSlot, setRecipePickerSlot] = useState<string | null>(null);
@@ -101,21 +108,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
   const calculatedKcal = protein * 4 + carbs * 4 + fat * 9;
   const hasDiscrepancy = Math.abs(calculatedKcal - kcal) > 5;
 
-  const mealSlotLabel = (slot: string) =>
-    ({
-      breakfast: tr('Desayuno', 'Breakfast'),
-      lunch: tr('Comida', 'Lunch'),
-      dinner: tr('Cena', 'Dinner'),
-      snack: tr('Snack', 'Snack'),
-    })[slot] ?? slot;
-
   const handleSave = async () => {
     if (!plan || !canEditPlan) return;
 
     const result = planSchema.safeParse({ name: planName, kcal, protein, carbs, fat });
     if (!result.success) {
       const firstIssue = result.error.issues[0];
-      toast.error(firstIssue?.message || tr('Valores del plan no válidos', 'Invalid plan values'));
+      toast.error(firstIssue?.message || t('components.clientdetail.planeditor.invalid_plan_values'));
       return;
     }
 
@@ -138,11 +137,11 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
           meals: activeMeals,
         },
       });
-      toast.success(tr('Plan actualizado', 'Plan updated'));
+      toast.success(t('components.clientdetail.planeditor.plan_updated'));
       setHasChanges(false);
     } catch (err: any) {
-      toast.error(tr('No se pudo actualizar el plan', 'Failed to update plan'), {
-        description: err?.message || tr('Error desconocido', 'Unknown error'),
+      toast.error(t('components.clientdetail.planeditor.failed_to_update_plan'), {
+        description: err?.message || t('components.clientdetail.planeditor.unknown_error'),
       });
     }
   };
@@ -154,9 +153,9 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
         planId: plan.id,
         payload: { status: 'active' },
       });
-      toast.success(tr('Plan activado', 'Plan activated'));
+      toast.success(t('components.clientdetail.planeditor.plan_activated'));
     } catch {
-      toast.error(tr('No se pudo activar el plan', 'Failed to activate plan'));
+      toast.error(t('components.clientdetail.planeditor.failed_to_activate_plan'));
     }
   };
 
@@ -172,13 +171,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
     return (
       <div className="portal-panel rounded-[1.6rem] p-6 text-center">
         <p className="text-sm text-muted-foreground">
-          {tr('No se pudo cargar el plan. Puede que se haya eliminado.', 'Failed to load plan. It may have been deleted.')}
+          {t('components.clientdetail.planeditor.failed_to_load_plan_it_may_have_been_deleted')}
         </p>
         <button
           onClick={onBack}
           className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
         >
-          {tr('Volver a la lista', 'Back to plan list')}
+          {t('components.clientdetail.planeditor.back_to_plan_list')}
         </button>
       </div>
     );
@@ -195,7 +194,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             <ArrowLeft className="h-4 w-4" />
           </button>
           <div>
-            <p className="portal-kicker">{tr('Plan editor', 'Plan editor')}</p>
+            <p className="portal-kicker">{t('components.clientdetail.planeditor.plan_editor')}</p>
             <h3 className="portal-title mt-2 text-2xl text-foreground">{plan.name}</h3>
           </div>
         </div>
@@ -205,11 +204,11 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
               onClick={handleActivate}
               className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary"
             >
-              {tr('Marcar activo', 'Mark active')}
+              {t('components.clientdetail.planeditor.mark_active')}
             </button>
           ) : null}
           <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-            {plan.status === 'active' ? tr('Activo', 'Active') : plan.status === 'draft' ? tr('Borrador', 'Draft') : plan.status}
+            {plan.status === 'active' ? t('components.clientdetail.planeditor.active') : plan.status === 'draft' ? t('components.clientdetail.planeditor.draft') : plan.status}
           </span>
         </div>
       </div>
@@ -218,24 +217,18 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
         <Notice>
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div>
-            <p className="font-bold">{tr('Edición no disponible', 'Editing unavailable')}</p>
+            <p className="font-bold">{t('components.clientdetail.planeditor.editing_unavailable')}</p>
             <p className="mt-1 text-sm leading-relaxed">
               {client.status !== 'connected'
-                ? tr(
-                    `Esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}, así que el plan permanece en modo lectura.`,
-                    `This relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}, so the plan stays read-only.`,
-                  )
-                : tr(
-                    'El acceso profesional debe estar activo o en trial para editar o activar planes.',
-                    'Professional access must be active or trialing to edit or activate plans.',
-                  )}
+                ? t('components.clientdetail.planeditor.this_relationship_is_so_the_plan_stays_read_only', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
+                : t('components.clientdetail.planeditor.professional_access_must_be_active_or_trialing_to_edit_or_activate_plans')}
             </p>
           </div>
         </Notice>
       ) : null}
 
       <div className="space-y-6">
-        <Field label={tr('Nombre del plan', 'Plan name')}>
+        <Field label={t('components.clientdetail.planeditor.plan_name')}>
           <input
             value={planName}
             onChange={(event) => {
@@ -243,16 +236,16 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
               setHasChanges(true);
             }}
             disabled={!canEditPlan}
-            placeholder={tr('Ej. Plan nutricional semanal', 'E.g. Weekly nutrition plan')}
+            placeholder={t('components.clientdetail.planeditor.e_g_weekly_nutrition_plan')}
             className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
           />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MacroStepper label="Protein" unit="g" value={protein} setValue={setProtein} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
-          <MacroStepper label="Carbs" unit="g" value={carbs} setValue={setCarbs} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
-          <MacroStepper label="Fat" unit="g" value={fat} setValue={setFat} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
-          <MacroStepper label="Kcal" value={kcal} setValue={setKcal} step={50} disabled={!canEditPlan} onChange={() => setHasChanges(true)} />
+          <MacroStepper label={t('common.protein')} unit={t('common.grams_unit')} value={protein} setValue={setProtein} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} caloriesPerUnit={4} kcalUnitLabel={t('common.kcal_unit')} />
+          <MacroStepper label={t('common.carbs')} unit={t('common.grams_unit')} value={carbs} setValue={setCarbs} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} caloriesPerUnit={4} kcalUnitLabel={t('common.kcal_unit')} />
+          <MacroStepper label={t('common.fat')} unit={t('common.grams_unit')} value={fat} setValue={setFat} step={5} disabled={!canEditPlan} onChange={() => setHasChanges(true)} caloriesPerUnit={9} kcalUnitLabel={t('common.kcal_unit')} />
+          <MacroStepper label={t('common.kcal')} value={kcal} setValue={setKcal} step={50} disabled={!canEditPlan} onChange={() => setHasChanges(true)} kcalUnitLabel={t('common.kcal_unit')} />
         </div>
 
         {hasDiscrepancy ? (
@@ -260,12 +253,9 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-bold">{tr('Discrepancia de macros', 'Macro discrepancy')}</p>
+                <p className="font-bold">{t('components.clientdetail.planeditor.macro_discrepancy')}</p>
                 <p className="mt-1 text-sm leading-relaxed">
-                  {tr(
-                    `La suma de macros da ${calculatedKcal} kcal y el objetivo declarado es ${kcal} kcal.`,
-                    `The macro sum yields ${calculatedKcal} kcal and the declared target is ${kcal} kcal.`,
-                  )}
+                  {t('components.clientdetail.planeditor.the_macro_sum_yields_kcal_and_the_declared_target_is_kcal', { calculatedkcal: calculatedKcal, kcal: kcal })}
                 </p>
               </div>
               <button
@@ -276,7 +266,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                 disabled={!canEditPlan}
                 className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
               >
-                {tr('Autocorregir kcal', 'Autocorrect kcal')}
+                {t('components.clientdetail.planeditor.autocorrect_kcal')}
               </button>
             </div>
           </Notice>
@@ -293,10 +283,10 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">
-                  {tr('Configuración de comidas', 'Meal configuration')}
+                  {t('components.clientdetail.planeditor.meal_configuration')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {mealTotals.kcal} kcal · {mealTotals.protein}p · {mealTotals.carbs}c · {mealTotals.fat}f
+                  {mealTotals.kcal} {t('common.kcal_unit')} · {mealTotals.protein}{t('common.protein_short')} · {mealTotals.carbs}{t('common.carbs_short')} · {mealTotals.fat}{t('common.fat_short')}
                 </p>
               </div>
             </div>
@@ -307,13 +297,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             <div className="space-y-4 border-t border-border px-5 py-4">
               <div className="rounded-xl border border-border bg-background/60 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-sm font-bold text-foreground">{tr('Distribución diaria', 'Daily distribution')}</span>
-                  <span className="text-sm font-bold text-foreground">{mealTotals.kcal} / {kcal} kcal</span>
+                  <span className="text-sm font-bold text-foreground">{t('components.clientdetail.planeditor.daily_distribution')}</span>
+                  <span className="text-sm font-bold text-foreground">{mealTotals.kcal} / {kcal} {t('common.kcal_unit')}</span>
                 </div>
                 <div className="mt-2 flex gap-4 text-xs font-bold text-muted-foreground">
-                  <span className="text-primary">P: {mealTotals.protein}/{protein}g</span>
-                  <span className="text-sky-500 dark:text-sky-300">C: {mealTotals.carbs}/{carbs}g</span>
-                  <span className="text-amber-500 dark:text-amber-300">F: {mealTotals.fat}/{fat}g</span>
+                  <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
+                  <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
+                  <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
                   <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }} />
@@ -333,7 +323,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                         className="inline-flex items-center gap-1 text-[10px] font-bold text-primary"
                       >
                         <BookOpen className="h-3.5 w-3.5" />
-                        {meal.recipe_id ? tr('Cambiar receta', 'Change recipe') : tr('Asignar receta', 'Assign recipe')}
+                        {meal.recipe_id ? t('components.clientdetail.planeditor.change_recipe') : t('components.clientdetail.planeditor.assign_recipe')}
                       </button>
                     </div>
                     <input
@@ -345,14 +335,14 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                         setHasChanges(true);
                       }}
                       disabled={!canEditPlan}
-                      placeholder={tr(`${mealSlotLabel(meal.slot)}: nombre`, `${mealSlotLabel(meal.slot)} title`)}
+                      placeholder={t('components.clientdetail.planeditor.title', { meal_slot: mealSlotLabel(meal.slot) })}
                       className="portal-input mt-3 h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
                     />
                     <div className="mt-3 grid grid-cols-4 gap-2">
                       {(['kcal', 'protein', 'carbs', 'fat'] as const).map((field) => (
                         <div key={field} className="space-y-1">
                           <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                            {field === 'protein' ? 'P' : field === 'carbs' ? 'C' : field === 'fat' ? 'F' : 'Kcal'}
+                            {field === 'protein' ? t('common.protein_short') : field === 'carbs' ? t('common.carbs_short') : field === 'fat' ? t('common.fat_short') : t('common.kcal')}
                           </label>
                           <input
                             type="number"
@@ -408,7 +398,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
 
         <div className="flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            {tr('Creado el', 'Created on')} {formatDateOnly(plan.created_at.slice(0, 10))}
+            {t('components.clientdetail.planeditor.created_on')} {formatDateOnly(plan.created_at.slice(0, 10))}
           </p>
           <button
             onClick={handleSave}
@@ -416,7 +406,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
           >
             {updatePlan.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            {tr('Guardar cambios', 'Save changes')}
+            {t('components.clientdetail.planeditor.save_changes')}
           </button>
         </div>
       </div>
@@ -445,7 +435,9 @@ const MacroStepper: React.FC<{
   step: number;
   disabled: boolean;
   onChange: () => void;
-}> = ({ label, unit = '', value, setValue, step, disabled, onChange }) => (
+  caloriesPerUnit?: number;
+  kcalUnitLabel: string;
+}> = ({ label, unit = '', value, setValue, step, disabled, onChange, caloriesPerUnit, kcalUnitLabel }) => (
   <div className="rounded-2xl border border-border bg-background/60 p-4">
     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
       {label}
@@ -484,7 +476,7 @@ const MacroStepper: React.FC<{
       </button>
     </div>
     <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
-      {label === 'Kcal' ? '' : `${label === 'Fat' ? value * 9 : value * 4} kcal`}
+      {caloriesPerUnit == null ? '' : `${value * caloriesPerUnit} ${kcalUnitLabel}`}
     </p>
   </div>
 );

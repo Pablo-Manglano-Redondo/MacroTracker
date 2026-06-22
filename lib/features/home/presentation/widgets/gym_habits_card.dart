@@ -140,7 +140,7 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
                                 _HabitStatusPill(
-                                  label: readinessTone.label,
+                                  label: readinessTone.localizedLabel(context),
                                   icon: readinessTone.icon,
                                   foreground: readinessTone.foreground(context),
                                   background: readinessTone.background(context),
@@ -165,21 +165,21 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                               alignment: WrapAlignment.start,
                               children: [
                                 _HabitChip(
-                                  label: 'Creat.',
+                                  label: S.of(context).gymHabitsCreatineShort,
                                   icon: Icons.bolt_outlined,
                                   selected: log.creatineTaken,
                                   onSelected: (value) =>
                                       _setHabit(creatineTaken: value),
                                 ),
                                 _HabitChip(
-                                  label: 'Prot.',
+                                  label: S.of(context).gymHabitsProteinShort,
                                   icon: Icons.link,
                                   selected: log.wheyTaken,
                                   onSelected: (value) =>
                                       _setHabit(wheyTaken: value),
                                 ),
                                 _HabitChip(
-                                  label: 'Caf.',
+                                  label: S.of(context).gymHabitsCaffeineShort,
                                   icon: Icons.local_cafe_outlined,
                                   selected: log.caffeineTaken,
                                   onSelected: (value) =>
@@ -566,9 +566,9 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
   String _formatWater(double liters) {
     if (widget.usesImperialUnits) {
       final flOz = UnitCalc.mlToFlOz(liters * 1000);
-      return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} fl oz';
+      return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} ${S.of(context).fluidOunceUnitLabel}';
     }
-    return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} L';
+    return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} ${S.of(context).literUnitLabel}';
   }
 
   _ReadinessTone _readinessTone({
@@ -830,12 +830,12 @@ class _ReadinessTone {
 
   const _ReadinessTone.good()
       : this._(
-            'En objetivo', Icons.check_circle_outline, _ReadinessToneKind.good);
+            'gymHabitsReadinessOnTarget', Icons.check_circle_outline, _ReadinessToneKind.good);
   const _ReadinessTone.caution()
-      : this._('Mejorable', Icons.adjust, _ReadinessToneKind.caution);
+      : this._('gymHabitsReadinessImproving', Icons.adjust, _ReadinessToneKind.caution);
   const _ReadinessTone.bad()
       : this._(
-            'Fuera de objetivo', Icons.error_outline, _ReadinessToneKind.bad);
+            'gymHabitsReadinessOffTarget', Icons.error_outline, _ReadinessToneKind.bad);
 
   Color foreground(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -851,6 +851,19 @@ class _ReadinessTone {
 
   Color background(BuildContext context) {
     return foreground(context).withValues(alpha: 0.12);
+  }
+
+  String localizedLabel(BuildContext context) {
+    switch (label) {
+      case 'gymHabitsReadinessOnTarget':
+        return S.of(context).gymHabitsReadinessOnTarget;
+      case 'gymHabitsReadinessImproving':
+        return S.of(context).gymHabitsReadinessImproving;
+      case 'gymHabitsReadinessOffTarget':
+        return S.of(context).gymHabitsReadinessOffTarget;
+      default:
+        return label;
+    }
   }
 }
 

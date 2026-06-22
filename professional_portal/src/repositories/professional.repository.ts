@@ -27,11 +27,11 @@ export const professionalRepository = {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      throw new Error('Auth session is missing. Sign in again before saving the profile.');
+      throw new Error('auth_session_missing');
     }
 
     if (user.id !== payload.user_id) {
-      throw new Error('Auth session is out of sync with the profile form. Sign in again and retry.');
+      throw new Error('auth_session_out_of_sync');
     }
 
     const { error } = await supabase

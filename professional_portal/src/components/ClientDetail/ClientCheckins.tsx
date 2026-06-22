@@ -4,12 +4,13 @@ import type { ProfessionalClient } from '../../types/database.types';
 import { useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useRequestCheckin } from '../../hooks/mutations/useRequestCheckin';
 import { useAuth } from '../../lib/auth-context';
+import { formatPortalDate, formatPortalTime } from '../../lib/date';
 import { usePortalI18n } from '../../lib/portal-i18n';
 
 export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ client }) => {
   const { data: checkins, isLoading, error } = useClientCheckins(client.id);
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const requestCheckin = useRequestCheckin();
 
   const handleRequest = () => {
@@ -28,16 +29,13 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-primary">
               <ClipboardCheck className="h-4.5 w-4.5" />
-              <p className="portal-kicker">{tr('Seguimiento', 'Check-ins')}</p>
+              <p className="portal-kicker">{t('components.clientdetail.clientcheckins.check_ins')}</p>
             </div>
             <h4 className="text-lg font-bold text-foreground">
-              {tr('Respuestas del cliente', 'Client submissions')}
+              {t('components.clientdetail.clientcheckins.client_submissions')}
             </h4>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              {tr(
-                'Solicita un check-in y revisa aquí energía, sueño, estado de ánimo y respuestas abiertas.',
-                'Request a check-in and review energy, sleep, mood, and open-ended responses here.',
-              )}
+              {t('components.clientdetail.clientcheckins.request_a_check_in_and_review_energy_sleep_mood_and_open_ended_responses')}
             </p>
           </div>
           <button
@@ -47,18 +45,15 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
           >
             <Send className="h-4 w-4" />
             {requestCheckin.isPending
-              ? tr('Solicitando...', 'Requesting...')
-              : tr('Solicitar check-in', 'Request check-in')}
+              ? t('components.clientdetail.clientcheckins.requesting')
+              : t('components.clientdetail.clientcheckins.request_check_in')}
           </button>
         </div>
       </section>
 
       {error ? (
         <div className="portal-panel rounded-[1.6rem] p-8 text-center text-sm text-muted-foreground">
-          {tr(
-            'Los check-ins no están disponibles ahora mismo. Mantén esta superficie explícita hasta que el backend devuelva envíos reales para la relación.',
-            'Check-ins are not available right now. Keep this surface explicit until the backend returns real submissions for the relationship.',
-          )}
+          {t('components.clientdetail.clientcheckins.check_ins_are_not_available_right_now_keep_this_surface_explicit_until_t')}
         </div>
       ) : isLoading ? (
         <div className="space-y-3">
@@ -71,10 +66,7 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
         </div>
       ) : !checkins?.length ? (
         <div className="portal-panel rounded-[1.6rem] p-8 text-center text-sm text-muted-foreground">
-          {tr(
-            'Todavía no hay respuestas enviadas por este cliente.',
-            'This client has not submitted any check-ins yet.',
-          )}
+          {t('components.clientdetail.clientcheckins.this_client_has_not_submitted_any_check_ins_yet')}
         </div>
       ) : (
         <div className="space-y-4">
@@ -83,39 +75,37 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
               <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {tr('Enviado', 'Submitted')}
+                    {t('components.clientdetail.clientcheckins.submitted')}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-foreground">
-                    {new Date(checkin.submitted_at).toLocaleDateString(
-                      locale === 'es' ? 'es-ES' : 'en-US',
-                      { weekday: 'short', month: 'short', day: 'numeric' },
-                    )}
+                    {formatPortalDate(checkin.submitted_at, locale, {
+                      weekday: 'short', month: 'short', day: 'numeric',
+                    })}
                     {' · '}
-                    {new Date(checkin.submitted_at).toLocaleTimeString(
-                      locale === 'es' ? 'es-ES' : 'en-US',
-                      { hour: '2-digit', minute: '2-digit' },
-                    )}
+                    {formatPortalTime(checkin.submitted_at, locale, {
+                      hour: '2-digit', minute: '2-digit',
+                    })}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {checkin.energy_level != null && (
                     <MetricChip
                       icon={<Activity className="h-3.5 w-3.5 text-primary" />}
-                      label={tr('Energía', 'Energy')}
+                      label={t('components.clientdetail.clientcheckins.energy')}
                       value={`${checkin.energy_level}/10`}
                     />
                   )}
                   {checkin.sleep_avg != null && (
                     <MetricChip
                       icon={<Moon className="h-3.5 w-3.5 text-indigo-500" />}
-                      label={tr('Sueño', 'Sleep')}
+                      label={t('components.clientdetail.clientcheckins.sleep')}
                       value={`${checkin.sleep_avg}h`}
                     />
                   )}
                   {checkin.mood && (
                     <MetricChip
                       icon={<Smile className="h-3.5 w-3.5 text-amber-500" />}
-                      label={tr('Ánimo', 'Mood')}
+                      label={t('components.clientdetail.clientcheckins.mood')}
                       value={checkin.mood}
                     />
                   )}
@@ -138,7 +128,7 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
               {checkin.notes && (
                 <div className="mt-4 rounded-xl border border-border bg-background/70 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {tr('Notas del cliente', 'Client notes')}
+                    {t('components.clientdetail.clientcheckins.client_notes')}
                   </p>
                   <p className="mt-2 text-sm leading-relaxed text-foreground">{checkin.notes}</p>
                 </div>

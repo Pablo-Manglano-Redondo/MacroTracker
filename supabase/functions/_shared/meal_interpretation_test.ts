@@ -192,7 +192,7 @@ Deno.test("normalizeDraftResponse localizes Spanish photo fallbacks", () => {
   if (draft.title !== "Comida por foto") {
     throw new Error(`Unexpected Spanish fallback title: ${draft.title}`);
   }
-  if (draft.summary !== "Estimacion de comida generada por IA.") {
+  if (draft.summary !== "Estimación de comida generada por IA.") {
     throw new Error(`Unexpected Spanish fallback summary: ${draft.summary}`);
   }
   if (draft.items[0].label !== "Ingrediente detectado 1") {

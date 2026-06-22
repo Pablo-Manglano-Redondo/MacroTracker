@@ -51,6 +51,10 @@ $env:Path += ";" + (Split-Path -Parent $flutterCmd)
 
 Push-Location $repoRoot
 try {
+    Invoke-Checked -Name "Shared i18n build" -Command {
+        node (Join-Path $repoRoot "scripts\i18n\sync-i18n.mjs") build
+    }
+
     if (-not $SkipPubGet) {
         Invoke-Checked -Name "flutter pub get" -Command {
             & $flutterCmd pub get

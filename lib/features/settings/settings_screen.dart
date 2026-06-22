@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:macrotracker/core/domain/entity/app_theme_entity.dart';
+import 'package:macrotracker/core/i18n/generated_supported_locales.dart';
 import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 
@@ -25,6 +26,7 @@ import 'package:macrotracker/features/settings/presentation/widgets/drive_backup
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
+import 'package:macrotracker/core/services/cloud_account_deletion_service.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
@@ -302,7 +304,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildPrivacyAndDataSection(context, state),
                 const SizedBox(height: 18),
                 _SettingsSection(
-                  title: 'App',
+                  title: S.of(context).settingsAppSection,
                   child: Column(
                     children: [
                       ListTile(
@@ -612,6 +614,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showLanguageDialog(BuildContext context, String? currentLocale) {
     var selectedLocale = currentLocale ?? 'system';
+    final supportedLocales = getSupportedLocalesMetadata();
     showDialog(
         context: context,
         builder: (context) {
@@ -636,13 +639,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             S.of(context).settingsLanguageSystemDefaultLabel),
                         value: 'system',
                       ),
-                      RadioListTile<String>(
-                        title: Text(S.of(context).settingsLanguageEnglish),
-                        value: 'en',
-                      ),
-                      RadioListTile<String>(
-                        title: Text(S.of(context).settingsLanguageSpanish),
-                        value: 'es',
+                      ...supportedLocales.map(
+                        (supportedLocale) => RadioListTile<String>(
+                          title: Text(_localeDisplayName(context, supportedLocale)),
+                          value: supportedLocale.code,
+                        ),
                       ),
                     ],
                   ),
@@ -663,9 +664,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.add(LoadSettingsEvent());
                     if (context.mounted) {
                       Provider.of<ThemeModeProvider>(context, listen: false)
-                          .updateLocale(localeToSave != null
-                              ? Locale(localeToSave)
-                              : null);
+                          .updateLocale(buildSupportedLocale(localeToSave));
                     }
                     Navigator.of(context).pop();
                   },
@@ -673,6 +672,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           );
         });
+  }
+
+  String _localeDisplayName(
+    BuildContext context,
+    AppSupportedLocale supportedLocale,
+  ) {
+    switch (supportedLocale.code) {
+      case 'en':
+        return S.of(context).settingsLanguageEnglish;
+      case 'es':
+        return S.of(context).settingsLanguageSpanish;
+      default:
+        return supportedLocale.nativeName;
+    }
   }
 
   void _showAboutDialog(BuildContext context) async {
@@ -998,9 +1011,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   String _healthIntegrationName(BuildContext context) {
     if (Platform.isIOS) {
-      return 'Apple Health';
+      return S.of(context).appleHealthLabel;
     }
-    return 'Health Connect';
+    return S.of(context).habitSourceHealthConnect;
   }
 
   String _healthAutoSyncTitle(BuildContext context) {
@@ -1217,7 +1230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _isPremium ? 'MacroTracker Premium' : copy.settingsFreePlan,
+                        _isPremium ? copy.paywallPremiumTitle : copy.settingsFreePlan,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
@@ -1722,13 +1735,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 }
 String _localizedDeletionError(BuildContext context, String message) {
   final copy = S.of(context);
-  if (message.contains('cloud session is no longer valid')) {
+  if (message.contains(CloudAccountDeletionService.sessionInvalidErrorCode)) {
     return copy.settingsDeleteErrorSessionInvalid;
   }
-  if (message.contains('Could not reach the cloud service')) {
+  if (message.contains(CloudAccountDeletionService.cloudUnreachableErrorCode)) {
     return copy.settingsDeleteErrorCloudUnreachable;
   }
-  if (message.contains('local data was kept')) {
+  if (message.contains(CloudAccountDeletionService.noActiveSessionErrorCode) ||
+      message.contains(CloudAccountDeletionService.localDataKeptErrorCode)) {
     return copy.settingsDeleteErrorLocalKept;
   }
   return copy.settingsDeleteErrorGeneric;

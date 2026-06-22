@@ -2,12 +2,13 @@ import React, { useMemo, useState } from 'react';
 import { Plus, Scale, TrendingDown, Weight } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ProfessionalClient } from '../../types/database.types';
+import type { PortalTranslationKey } from '../../lib/generated/i18n';
 import { useClientProgress } from '../../hooks/queries/useClientProgress';
 import {
   useCreateProgress,
   useDeleteProgress,
 } from '../../hooks/mutations/useClientProgress';
-import { toDateOnlyString } from '../../lib/date';
+import { formatPortalDate, toDateOnlyString } from '../../lib/date';
 import { usePortalI18n } from '../../lib/portal-i18n';
 
 function WeightChart({
@@ -73,7 +74,7 @@ function WeightChart({
 }
 
 export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ client }) => {
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const { data: records, isLoading, error } = useClientProgress(client.id);
   const createRecord = useCreateProgress(client.id);
   const deleteRecord = useDeleteProgress(client.id);
@@ -115,7 +116,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
 
   const handleCreate = async () => {
     if (!form.weight_kg && !form.body_fat_pct && !form.waist_cm) {
-      toast.error(tr('Introduce al menos una medición', 'At least one measurement is required'));
+      toast.error(t('components.clientdetail.clientprogresspanel.at_least_one_measurement_is_required'));
       return;
     }
     try {
@@ -134,7 +135,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
         notes: form.notes || null,
         source: 'professional',
       });
-      toast.success(tr('Progreso guardado', 'Progress saved'));
+      toast.success(t('components.clientdetail.clientprogresspanel.progress_saved'));
       setShowForm(false);
       setForm({
         weight_kg: '',
@@ -147,7 +148,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
         notes: '',
       });
     } catch {
-      toast.error(tr('No se pudo guardar', 'Failed to save'));
+      toast.error(t('components.clientdetail.clientprogresspanel.failed_to_save'));
     }
   };
 
@@ -157,7 +158,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
         <div className="flex items-center gap-2">
           <Scale className="h-4.5 w-4.5 text-primary" />
           <h3 className="text-base font-bold text-foreground">
-            {tr('Progreso y mediciones', 'Progress and measurements')}
+            {t('components.clientdetail.clientprogresspanel.progress_and_measurements')}
           </h3>
         </div>
         <button
@@ -165,7 +166,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
           className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
         >
           <Plus className="h-3.5 w-3.5" />
-          {tr('Registrar', 'Record entry')}
+          {t('components.clientdetail.clientprogresspanel.record_entry')}
         </button>
       </div>
 
@@ -173,33 +174,33 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {latest.weight_kg != null ? (
             <MetricCard
-              label={tr('Peso', 'Weight')}
+              label={t('components.clientdetail.clientprogresspanel.weight')}
               value={`${latest.weight_kg} kg`}
               icon={<Weight className="h-3.5 w-3.5 text-primary" />}
             />
           ) : null}
           {latest.body_fat_pct != null ? (
             <MetricCard
-              label={tr('Grasa corporal', 'Body fat')}
+              label={t('components.clientdetail.clientprogresspanel.body_fat')}
               value={`${latest.body_fat_pct}%`}
               icon={<TrendingDown className="h-3.5 w-3.5 text-sky-500 dark:text-sky-300" />}
             />
           ) : null}
           {(latest?.waist_cm ?? latestWaistFromSnapshot) != null ? (
             <MetricCard
-              label={tr('Cintura', 'Waist')}
+              label={t('components.clientdetail.clientprogresspanel.waist')}
               value={`${latest?.waist_cm ?? latestWaistFromSnapshot} cm`}
-              note={latest?.waist_cm == null ? tr('Dato del cliente', 'Client-shared') : undefined}
+              note={latest?.waist_cm == null ? t('components.clientdetail.clientprogresspanel.client_shared') : undefined}
             />
           ) : null}
           {latest.hip_cm != null ? (
-            <MetricCard label={tr('Cadera', 'Hip')} value={`${latest.hip_cm} cm`} />
+            <MetricCard label={t('components.clientdetail.clientprogresspanel.hip')} value={`${latest.hip_cm} cm`} />
           ) : null}
         </div>
       ) : null}
 
       {weightRecords.length >= 2 ? (
-        <WeightChart records={weightRecords} title={tr('Tendencia de peso (kg)', 'Weight trend (kg)')} />
+        <WeightChart records={weightRecords} title={t('components.clientdetail.clientprogresspanel.weight_trend_kg')} />
       ) : null}
 
       {showForm ? (
@@ -218,7 +219,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
             ).map((field) => (
               <div key={field} className="space-y-1">
                 <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground capitalize">
-                  {progressFieldLabel(field, tr)}
+                  {progressFieldLabel(field, t)}
                 </label>
                 <input
                   type="number"
@@ -233,7 +234,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
           <textarea
             value={form.notes}
             onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
-            placeholder={tr('Notas sobre la medición (opcional)...', 'Measurement notes (optional)...')}
+            placeholder={t('components.clientdetail.clientprogresspanel.measurement_notes_optional')}
             rows={2}
             className="portal-input mt-4 w-full rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-primary"
           />
@@ -242,14 +243,14 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
               onClick={() => setShowForm(false)}
               className="rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent"
             >
-              {tr('Cancelar', 'Cancel')}
+              {t('components.clientdetail.clientprogresspanel.cancel')}
             </button>
             <button
               onClick={handleCreate}
               disabled={createRecord.isPending}
               className="rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
             >
-              {tr('Guardar registro', 'Save record')}
+              {t('components.clientdetail.clientprogresspanel.save_record')}
             </button>
           </div>
         </div>
@@ -257,10 +258,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
 
       {error ? (
         <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
-          {tr(
-            'Los registros de progreso no están disponibles ahora mismo. Las métricas derivadas de snapshots pueden seguir apareciendo.',
-            'Progress records are not available right now. Snapshot-based metrics may still appear.',
-          )}
+          {t('components.clientdetail.clientprogresspanel.progress_records_are_not_available_right_now_snapshot_based_metrics_may_')}
         </div>
       ) : isLoading ? (
         <div className="space-y-3">
@@ -270,7 +268,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
         </div>
       ) : sorted.length === 0 ? (
         <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
-          {tr('Todavía no hay registros de progreso.', 'No progress records have been saved yet.')}
+          {t('components.clientdetail.clientprogresspanel.no_progress_records_have_been_saved_yet')}
         </div>
       ) : (
         <div className="portal-panel overflow-hidden rounded-[1.4rem]">
@@ -278,14 +276,14 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-border bg-background text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                  <th className="px-4 py-3 text-left">{tr('Fecha', 'Date')}</th>
-                  <th className="px-3 py-3 text-right">{tr('Peso', 'Weight')}</th>
-                  <th className="px-3 py-3 text-right">BF%</th>
-                  <th className="px-3 py-3 text-right">{tr('Cintura', 'Waist')}</th>
-                  <th className="px-3 py-3 text-right">{tr('Cadera', 'Hip')}</th>
-                  <th className="px-3 py-3 text-right">{tr('Pecho', 'Chest')}</th>
-                  <th className="px-3 py-3 text-right">{tr('Brazo', 'Arm')}</th>
-                  <th className="px-3 py-3 text-right">{tr('Muslo', 'Thigh')}</th>
+                  <th className="px-4 py-3 text-left">{t('components.clientdetail.clientprogresspanel.date')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.weight')}</th>
+                  <th className="px-3 py-3 text-right">{t('common.body_fat_short')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.waist')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.hip')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.chest')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.arm')}</th>
+                  <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.thigh')}</th>
                   <th className="w-12 px-4 py-3" />
                 </tr>
               </thead>
@@ -293,7 +291,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
                 {sorted.map((record) => (
                   <tr key={record.id} className="hover:bg-accent/50">
                     <td className="px-4 py-3 font-semibold text-foreground">
-                      {new Date(record.record_date).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}
+                      {formatPortalDate(record.record_date, locale)}
                     </td>
                     <td className="px-3 py-3 text-right text-muted-foreground">{record.weight_kg ?? '--'}</td>
                     <td className="px-3 py-3 text-right text-muted-foreground">{record.body_fat_pct ?? '--'}</td>
@@ -307,14 +305,14 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
                         onClick={async () => {
                           try {
                             await deleteRecord.mutateAsync(record.id);
-                            toast.success(tr('Registro eliminado', 'Record deleted'));
+                            toast.success(t('components.clientdetail.clientprogresspanel.record_deleted'));
                           } catch {
-                            toast.error(tr('No se pudo eliminar', 'Failed to delete'));
+                            toast.error(t('components.clientdetail.clientprogresspanel.failed_to_delete'));
                           }
                         }}
                         className="rounded-xl px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
                       >
-                        {tr('Borrar', 'Delete')}
+                        {t('components.clientdetail.clientprogresspanel.delete')}
                       </button>
                     </td>
                   </tr>
@@ -346,22 +344,22 @@ const MetricCard: React.FC<{
 
 function progressFieldLabel(
   field: 'weight_kg' | 'body_fat_pct' | 'waist_cm' | 'hip_cm' | 'chest_cm' | 'arm_cm' | 'thigh_cm',
-  tr: (es: string, en: string) => string,
+  t: (key: PortalTranslationKey) => string,
 ) {
   switch (field) {
     case 'weight_kg':
-      return tr('Peso', 'Weight');
+      return t('components.clientdetail.clientprogresspanel.weight');
     case 'body_fat_pct':
-      return tr('Grasa corporal', 'Body fat');
+      return t('components.clientdetail.clientprogresspanel.body_fat');
     case 'waist_cm':
-      return tr('Cintura', 'Waist');
+      return t('components.clientdetail.clientprogresspanel.waist');
     case 'hip_cm':
-      return tr('Cadera', 'Hip');
+      return t('components.clientdetail.clientprogresspanel.hip');
     case 'chest_cm':
-      return tr('Pecho', 'Chest');
+      return t('components.clientdetail.clientprogresspanel.chest');
     case 'arm_cm':
-      return tr('Brazo', 'Arm');
+      return t('components.clientdetail.clientprogresspanel.arm');
     case 'thigh_cm':
-      return tr('Muslo', 'Thigh');
+      return t('components.clientdetail.clientprogresspanel.thigh');
   }
 }

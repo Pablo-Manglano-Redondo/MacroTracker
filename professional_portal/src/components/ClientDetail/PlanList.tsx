@@ -19,6 +19,7 @@ import {
   useDuplicatePlan,
 } from '../../hooks/mutations/useDeletePlan';
 import type { ProfessionalClient } from '../../types/database.types';
+import { formatPortalDate } from '../../lib/date';
 import { Button } from '../ui/button';
 import { toast } from '../../lib/toast';
 import { getBillingSummary } from '../../view-models/professional';
@@ -33,7 +34,7 @@ interface PlanListProps {
 
 export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPlan }) => {
   const { professional } = useAuth();
-  const { tr, locale } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const { data: plans, isLoading, error } = usePlans(client.client_id, client.professional_id);
   const archivePlan = useArchivePlan();
@@ -69,15 +70,12 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
     try {
       await batchArchivePlans.mutateAsync(Array.from(selectedPlans));
       toast.success(
-        tr(
-          `Archivados ${selectedPlans.size} planes`,
-          `Archived ${selectedPlans.size} plans`,
-        ),
+        t('components.clientdetail.planlist.archived_plans', { selectedplans_size: selectedPlans.size }),
       );
       setSelectedPlans(new Set());
       setSelectMode(false);
     } catch {
-      toast.error(tr('No se pudieron archivar los planes', 'Failed to archive plans'));
+      toast.error(t('components.clientdetail.planlist.failed_to_archive_plans'));
     }
   };
 
@@ -89,9 +87,9 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
         clientId: client.client_id,
         planId,
       });
-      toast.success(tr('Plan duplicado', 'Plan duplicated'));
+      toast.success(t('components.clientdetail.planlist.plan_duplicated'));
     } catch {
-      toast.error(tr('No se pudo duplicar el plan', 'Failed to duplicate plan'));
+      toast.error(t('components.clientdetail.planlist.failed_to_duplicate_plan'));
     }
   };
 
@@ -99,9 +97,9 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
     if (!canManagePlans) return;
     try {
       await archivePlan.mutateAsync(planId);
-      toast.success(tr('Plan archivado', 'Plan archived'));
+      toast.success(t('components.clientdetail.planlist.plan_archived'));
     } catch {
-      toast.error(tr('No se pudo archivar el plan', 'Failed to archive plan'));
+      toast.error(t('components.clientdetail.planlist.failed_to_archive_plan'));
     }
   };
 
@@ -109,18 +107,18 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
     if (!canManagePlans) return;
     try {
       await deletePlan.mutateAsync(planId);
-      toast.success(tr('Plan eliminado', 'Plan deleted'));
+      toast.success(t('components.clientdetail.planlist.plan_deleted'));
       setConfirmDelete(null);
     } catch {
-      toast.error(tr('No se pudo eliminar el plan', 'Failed to delete plan'));
+      toast.error(t('components.clientdetail.planlist.failed_to_delete_plan'));
     }
   };
 
   const statusLabel = (status: string) =>
     ({
-      active: tr('Activo', 'Active'),
-      draft: tr('Borrador', 'Draft'),
-      archived: tr('Archivado', 'Archived'),
+      active: t('components.clientdetail.planlist.active'),
+      draft: t('components.clientdetail.planlist.draft'),
+      archived: t('components.clientdetail.planlist.archived'),
     })[status] ?? status;
 
   if (isLoading) {
@@ -134,7 +132,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
   if (error) {
     return (
       <div className="portal-panel rounded-[1.6rem] p-5 text-center text-sm text-muted-foreground">
-        {tr('No se pudieron cargar los planes.', 'Failed to load plans.')}
+        {t('components.clientdetail.planlist.failed_to_load_plans')}
       </div>
     );
   }
@@ -147,12 +145,9 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
             <LayoutList className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{tr('Planes', 'Plans')}</h3>
+            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.planlist.plans')}</h3>
             <p className="text-sm text-muted-foreground">
-              {tr(
-                `${activePlans.length} no archivados`,
-                `${activePlans.length} non-archived`,
-              )}
+              {t('components.clientdetail.planlist.non_archived', { activeplans_length: activePlans.length })}
             </p>
           </div>
         </div>
@@ -169,7 +164,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                   setSelectedPlans(new Set());
                 }}
               >
-                {tr('Cancelar', 'Cancel')}
+                {t('components.clientdetail.planlist.cancel')}
               </Button>
               <Button
                 size="sm"
@@ -183,7 +178,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 ) : (
                   <Archive className="mr-1.5 h-3.5 w-3.5" />
                 )}
-                {tr('Archivar', 'Archive')} ({selectedPlans.size})
+                {t('components.clientdetail.planlist.archive')} ({selectedPlans.size})
               </Button>
             </>
           ) : (
@@ -192,7 +187,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                 onClick={() => setSelectMode(true)}
                 disabled={!canManagePlans}
-                title={tr('Seleccionar planes', 'Select plans')}
+                title={t('components.clientdetail.planlist.select_plans')}
               >
                 <CheckSquare className="h-4 w-4" />
               </button>
@@ -203,7 +198,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 className="h-9 rounded-xl bg-primary text-sm font-bold text-primary-foreground"
               >
                 <Plus className="mr-1.5 h-3.5 w-3.5" />
-                {tr('Nuevo', 'New')}
+                {t('components.clientdetail.planlist.new')}
               </Button>
             </>
           )}
@@ -213,14 +208,8 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
       {!canManagePlans && (
         <div className="mx-5 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
           {client.status !== 'connected'
-            ? tr(
-                `Las acciones de plan están bloqueadas porque esta relación está ${getRelationshipStatusLabel(client.status).toLowerCase()}.`,
-                `Plan actions are disabled because this relationship is ${getRelationshipStatusLabel(client.status).toLowerCase()}.`,
-              )
-            : tr(
-                'Las acciones de plan están bloqueadas hasta que el acceso profesional vuelva a activo o trialing.',
-                'Plan actions are disabled until professional access returns to active or trialing.',
-              )}
+            ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
+            : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
         </div>
       )}
 
@@ -229,12 +218,9 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-background text-muted-foreground">
             <FileText className="h-5 w-5" />
           </div>
-          <p className="mt-3 text-sm font-bold text-foreground">{tr('Todavía no hay planes', 'No plans yet')}</p>
+          <p className="mt-3 text-sm font-bold text-foreground">{t('components.clientdetail.planlist.no_plans_yet')}</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tr(
-              'Crea un plan para definir objetivos semanales de nutrición.',
-              'Create a plan to define weekly nutrition targets.',
-            )}
+            {t('components.clientdetail.planlist.create_a_plan_to_define_weekly_nutrition_targets')}
           </p>
         </div>
       ) : (
@@ -253,11 +239,8 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
               </button>
               <span className="text-xs font-semibold text-muted-foreground">
                 {selectedPlans.size === 0
-                  ? tr('Selecciona planes para archivar en bloque', 'Select plans to batch archive')
-                  : tr(
-                      `${selectedPlans.size} de ${activePlans.length} seleccionados`,
-                      `${selectedPlans.size} of ${activePlans.length} selected`,
-                    )}
+                  ? t('components.clientdetail.planlist.select_plans_to_batch_archive')
+                  : t('components.clientdetail.planlist.of_selected', { selectedplans_size: selectedPlans.size, activeplans_length: activePlans.length })}
               </span>
             </div>
           )}
@@ -299,7 +282,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                     </span>
                   </div>
                   <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-                    {new Date(plan.created_at).toLocaleDateString(locale === 'es' ? 'es-ES' : 'en-US')}
+                    {formatPortalDate(plan.created_at, locale)}
                   </p>
                 </div>
 
@@ -308,26 +291,26 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                     className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <IconAction title={tr('Duplicar', 'Duplicate')} onClick={() => handleDuplicate(plan.id)}>
+                    <IconAction title={t('components.clientdetail.planlist.duplicate')} onClick={() => handleDuplicate(plan.id)}>
                       <Copy className="h-3.5 w-3.5" />
                     </IconAction>
-                    <IconAction title={tr('Archivar', 'Archive')} onClick={() => handleArchive(plan.id)}>
+                    <IconAction title={t('components.clientdetail.planlist.archive')} onClick={() => handleArchive(plan.id)}>
                       <Archive className="h-3.5 w-3.5" />
                     </IconAction>
                     {confirmDelete === plan.id ? (
                       <div className="ml-1 flex items-center gap-1">
-                        <IconAction title={tr('Confirmar', 'Confirm')} onClick={() => handleDelete(plan.id)} danger>
+                        <IconAction title={t('components.clientdetail.planlist.confirm')} onClick={() => handleDelete(plan.id)} danger>
                           <Trash2 className="h-3.5 w-3.5" />
                         </IconAction>
                         <button
                           className="rounded-lg px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent"
                           onClick={() => setConfirmDelete(null)}
                         >
-                          {tr('Cancelar', 'Cancel')}
+                          {t('components.clientdetail.planlist.cancel')}
                         </button>
                       </div>
                     ) : (
-                      <IconAction title={tr('Eliminar', 'Delete')} onClick={() => setConfirmDelete(plan.id)} danger>
+                      <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => setConfirmDelete(plan.id)} danger>
                         <Trash2 className="h-3.5 w-3.5" />
                       </IconAction>
                     )}
@@ -339,7 +322,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
             {archivedPlans.length > 0 && (
               <details className="group mt-2">
                 <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground">
-                  {tr(`Archivados (${archivedPlans.length})`, `Archived (${archivedPlans.length})`)}
+                  {t('components.clientdetail.planlist.archived_2', { archivedplans_length: archivedPlans.length })}
                 </summary>
                 <div className="mt-1 space-y-1">
                   {archivedPlans.map((plan) => (
@@ -352,7 +335,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                       <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                         {statusLabel(plan.status)}
                       </span>
-                      <IconAction title={tr('Eliminar', 'Delete')} onClick={() => handleDelete(plan.id)} danger>
+                      <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => handleDelete(plan.id)} danger>
                         <Trash2 className="h-3.5 w-3.5" />
                       </IconAction>
                     </div>
