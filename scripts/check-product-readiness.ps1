@@ -1,7 +1,8 @@
 param(
     [switch]$SkipDiffCheck,
     [switch]$SkipFocusedTests,
-    [switch]$SkipAndroidBuild
+    [switch]$SkipAndroidBuild,
+    [switch]$SkipI18nReadiness
 )
 
 $ErrorActionPreference = "Stop"
@@ -51,6 +52,12 @@ function Invoke-CheckedCommand {
 $flutterCmd = Resolve-FlutterCommand
 $flutterBin = Split-Path -Parent $flutterCmd
 $env:Path += ";$flutterBin"
+
+if (-not $SkipI18nReadiness) {
+    Invoke-CheckedCommand -Name "i18n readiness" -Command {
+        & (Join-Path $PSScriptRoot "check-i18n-readiness.ps1") -SkipPubGet
+    }
+}
 
 if (-not $SkipDiffCheck) {
     Invoke-CheckedCommand -Name "git diff --check" -Command {

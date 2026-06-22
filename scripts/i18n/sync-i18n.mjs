@@ -1,11 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import ts from "../../professional_portal/node_modules/typescript/lib/typescript.js";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "../..");
+const typeScriptModulePath = path.join(
+  repoRoot,
+  "professional_portal",
+  "node_modules",
+  "typescript",
+  "lib",
+  "typescript.js",
+);
 
 const sharedI18nDir = path.join(repoRoot, "shared", "i18n");
 const localesDir = path.join(sharedI18nDir, "locales");
@@ -70,6 +77,23 @@ const defaultSupportedLocales = {
     },
   ],
 };
+
+let cachedTypeScript = null;
+
+async function getTypeScript() {
+  if (cachedTypeScript) {
+    return cachedTypeScript;
+  }
+  if (!fs.existsSync(typeScriptModulePath)) {
+    throw new Error(
+      "TypeScript is required for bootstrap migration. Run `npm --prefix professional_portal ci --legacy-peer-deps` first.",
+    );
+  }
+
+  const loaded = await import(pathToFileURL(typeScriptModulePath).href);
+  cachedTypeScript = loaded.default ?? loaded;
+  return cachedTypeScript;
+}
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -272,7 +296,7 @@ function buildPortalKey(filePath, englishText, usedKeys, usedPairs) {
   return candidate;
 }
 
-function parseLocalizedArgument(node, sourceFile, forcedParamNames = null) {
+function parseLocalizedArgument(ts, node, sourceFile, forcedParamNames = null) {
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
     if (forcedParamNames && forcedParamNames.length > 0) {
       throw new Error(`Expected template literal near ${sourceFile.fileName}:${sourceFile.getLineAndCharacterOfPosition(node.pos).line + 1}`);
@@ -298,7 +322,8 @@ function parseLocalizedArgument(node, sourceFile, forcedParamNames = null) {
   return { text, params };
 }
 
-function migratePortalTrCalls(enMap, esMap) {
+async function migratePortalTrCalls(enMap, esMap) {
+  const ts = await getTypeScript();
   const portalFiles = walkFiles(
     portalSrcDir,
     (filePath) =>
@@ -355,8 +380,9 @@ function migratePortalTrCalls(enMap, esMap) {
             node.expression.name.text === "tr")) &&
         node.arguments.length === 2
       ) {
-        const esArg = parseLocalizedArgument(node.arguments[0], sourceFile);
+        const esArg = parseLocalizedArgument(ts, node.arguments[0], sourceFile);
         const enArg = parseLocalizedArgument(
+          ts,
           node.arguments[1],
           sourceFile,
           esArg.params.map((param) => param.name),
@@ -401,7 +427,7 @@ function migratePortalTrCalls(enMap, esMap) {
   }
 }
 
-function bootstrap() {
+async function bootstrap() {
   ensureDir(localesDir);
 
   if (!fs.existsSync(supportedLocalesPath)) {
@@ -436,7 +462,7 @@ function bootstrap() {
     }
   }
 
-  migratePortalTrCalls(enMap, esMap);
+  await migratePortalTrCalls(enMap, esMap);
 
   const enGbMap = Object.fromEntries(
     Object.entries(enMap).map(([key, value]) => [key, value]),
@@ -641,10 +667,10 @@ function build() {
   generateFlutterLocaleRegistry(supportedLocales, supportedLocales.defaultLocale);
 }
 
-function main() {
+async function main() {
   const command = process.argv[2] ?? "build";
   if (command === "bootstrap") {
-    bootstrap();
+    await bootstrap();
     build();
     return;
   }
@@ -660,4 +686,4 @@ function main() {
   throw new Error(`Unknown command: ${command}`);
 }
 
-main();
+await main();

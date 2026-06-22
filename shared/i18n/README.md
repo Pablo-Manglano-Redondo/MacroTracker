@@ -14,3 +14,4 @@ Bootstrap and migration:
 Validation and generation:
 - `node scripts/i18n/sync-i18n.mjs validate`
 - `node scripts/i18n/sync-i18n.mjs build`
+- `pwsh ./scripts/check-i18n-readiness.ps1`

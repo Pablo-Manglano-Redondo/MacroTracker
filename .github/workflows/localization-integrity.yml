@@ -1,0 +1,88 @@
+name: Localization Integrity
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'shared/i18n/**'
+      - 'scripts/i18n/**'
+      - 'scripts/audit-localization.ps1'
+      - 'scripts/check-i18n-readiness.ps1'
+      - 'scripts/generate-localization.ps1'
+      - 'scripts/check-product-readiness.ps1'
+      - 'lib/**'
+      - 'professional_portal/src/**'
+      - 'professional_portal/package-lock.json'
+      - 'professional_portal/package.json'
+      - 'supabase/functions/**'
+      - 'supabase/test.functions.ps1'
+      - '.github/workflows/localization-integrity.yml'
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'shared/i18n/**'
+      - 'scripts/i18n/**'
+      - 'scripts/audit-localization.ps1'
+      - 'scripts/check-i18n-readiness.ps1'
+      - 'scripts/generate-localization.ps1'
+      - 'scripts/check-product-readiness.ps1'
+      - 'lib/**'
+      - 'professional_portal/src/**'
+      - 'professional_portal/package-lock.json'
+      - 'professional_portal/package.json'
+      - 'supabase/functions/**'
+      - 'supabase/test.functions.ps1'
+      - '.github/workflows/localization-integrity.yml'
+  workflow_dispatch:
+
+jobs:
+  i18n-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: professional_portal/package-lock.json
+
+      - name: Install portal dependencies
+        run: npm --prefix professional_portal ci --legacy-peer-deps
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: .fvmrc
+          channel: 'stable'
+          cache: true
+
+      - name: Cache Flutter packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run localization readiness
+        shell: pwsh
+        run: ./scripts/check-i18n-readiness.ps1

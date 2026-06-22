@@ -7,6 +7,10 @@ on:
       - develop
     paths:
       - 'professional_portal/**'
+      - 'shared/i18n/**'
+      - 'scripts/i18n/**'
+      - 'scripts/audit-localization.ps1'
+      - 'scripts/check-i18n-readiness.ps1'
       - '.github/workflows/professional-portal.yml'
   pull_request:
     branches:
@@ -14,6 +18,10 @@ on:
       - develop
     paths:
       - 'professional_portal/**'
+      - 'shared/i18n/**'
+      - 'scripts/i18n/**'
+      - 'scripts/audit-localization.ps1'
+      - 'scripts/check-i18n-readiness.ps1'
       - '.github/workflows/professional-portal.yml'
   workflow_dispatch:
 
