@@ -57,5 +57,11 @@ describe('date utilities', () => {
       const formatted = formatDateOnly('2026-06-15', options, 'en-US');
       expect(formatted).toBe('6/15/2026');
     });
+
+    it('falls back through supported portal locales', () => {
+      const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
+      const formatted = formatDateOnly('2026-06-15', options, 'es-MX');
+      expect(formatted).toBe('15/06/2026');
+    });
   });
 });

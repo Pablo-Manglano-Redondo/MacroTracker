@@ -209,7 +209,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
             })}
           </div>
           <p className="mt-3 text-right text-[11px] font-semibold text-muted-foreground">
-            {t('components.clientdetail.clientprofile.measured')}: {formatDateOnly(lastSnapshot.snapshot_date, { year: 'numeric', month: 'short', day: 'numeric' })}
+            {t('components.clientdetail.clientprofile.measured')}: {formatDateOnly(lastSnapshot.snapshot_date, { year: 'numeric', month: 'short', day: 'numeric' }, locale)}
           </p>
         </section>
       ) : null}

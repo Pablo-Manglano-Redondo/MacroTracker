@@ -30,9 +30,9 @@ export function parseDateOnly(value: string): Date {
 export function formatDateOnly(
   value: string,
   options?: Intl.DateTimeFormatOptions,
-  locale?: string,
+  locale?: PortalLocale | string,
 ): string {
-  return parseDateOnly(value).toLocaleDateString(locale, options);
+  return parseDateOnly(value).toLocaleDateString(resolvePortalIntlLocale(locale), options);
 }
 
 export function resolvePortalIntlLocale(locale?: PortalLocale | string): string {

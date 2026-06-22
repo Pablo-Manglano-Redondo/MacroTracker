@@ -29,9 +29,7 @@ class CloudAccountDeletionService {
       if (payload is! Map ||
           payload['success'] != true ||
           payload['userId'] != expectedUserId) {
-        throw const CloudAccountDeletionException(
-          'Account deletion did not complete on the server.',
-        );
+        throw const CloudAccountDeletionException(localDataKeptErrorCode);
       }
 
       await _localResetter.clearAll();

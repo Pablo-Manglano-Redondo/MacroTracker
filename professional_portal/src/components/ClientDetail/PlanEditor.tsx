@@ -34,7 +34,7 @@ interface PlanEditorProps {
 
 export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }) => {
   const { professional } = useAuth();
-  const { t } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const { data: plan, isLoading, error } = usePlan(planId);
   const updatePlan = useUpdatePlan();
@@ -398,7 +398,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
 
         <div className="flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            {t('components.clientdetail.planeditor.created_on')} {formatDateOnly(plan.created_at.slice(0, 10))}
+            {t('components.clientdetail.planeditor.created_on')} {formatDateOnly(plan.created_at.slice(0, 10), undefined, locale)}
           </p>
           <button
             onClick={handleSave}
