@@ -141,7 +141,9 @@ describe('messageRepository', () => {
         callback
       );
 
-      expect(mockSupabase.channel).toHaveBeenCalledWith('messages-relationship:rel-123');
+      expect(mockSupabase.channel).toHaveBeenCalledWith(
+        expect.stringContaining('messages-relationship:rel-123')
+      );
       expect(mockOn).toHaveBeenCalledWith(
         'postgres_changes',
         {

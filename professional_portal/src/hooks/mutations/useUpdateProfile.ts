@@ -10,6 +10,7 @@ export const useUpdateProfile = () => {
       user_id: string;
       display_name: string;
       business_name?: string;
+      avatar_url?: string | null;
     }) => professionalRepository.upsert(supabase, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['professional', variables.user_id] });

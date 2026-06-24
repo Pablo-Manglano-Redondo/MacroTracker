@@ -45,7 +45,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
   const [selectMode, setSelectMode] = useState(false);
   const [selectedPlans, setSelectedPlans] = useState<Set<string>>(new Set());
 
-  const canManagePlans = billingSummary.hasProfessionalAccess && client.status === 'connected';
+  const canManagePlans = billingSummary.canPublishPlans && client.status === 'connected';
 
   const toggleSelect = (planId: string) => {
     setSelectedPlans((prev) => {

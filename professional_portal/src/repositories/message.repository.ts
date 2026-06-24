@@ -56,8 +56,9 @@ export const messageRepository = {
     professionalClientId: string,
     onMessage: (message: ProfessionalClientMessage) => void
   ) => {
+    const uniqueId = Math.random().toString(36).substring(2, 9);
     const channel = supabase
-      .channel(`messages-relationship:${professionalClientId}`)
+      .channel(`messages-relationship:${professionalClientId}:${uniqueId}`)
       .on(
         'postgres_changes',
         {

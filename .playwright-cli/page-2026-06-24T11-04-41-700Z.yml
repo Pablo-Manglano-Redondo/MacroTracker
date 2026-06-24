@@ -1,0 +1,19 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: Portal profesional
+      - heading "Una superficie operativa sobria para nutricionistas." [level=1] [ref=e7]
+      - paragraph [ref=e8]: Gestiona relaciones reales, planes, check-ins y snapshots compartidos sin marketing, sin métricas inventadas y sin mezclar privacidad con facturación.
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Relaciones reales
+          - paragraph [ref=e12]: Solo clientes conectados desde la app móvil.
+        - generic [ref=e13]:
+          - paragraph [ref=e14]: Privacidad explícita
+          - paragraph [ref=e15]: Agregado por defecto. Detallado solo con consentimiento.
+        - generic [ref=e16]:
+          - paragraph [ref=e17]: Trabajo del día
+          - paragraph [ref=e18]: Planes, notas, mensajes y seguimiento operativo.
+    - main [ref=e19]:
+      - img [ref=e21]
+  - region "Notifications alt+T"

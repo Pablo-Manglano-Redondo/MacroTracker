@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import {
   ClipboardCheck,
   FileText,
+  LayoutGrid,
   LayoutList,
   MessageSquare,
   PanelLeftClose,
@@ -24,7 +25,15 @@ import { ClientProgressPanel } from './ClientProgressPanel';
 import { ClientCheckins } from './ClientCheckins';
 import { ClientProfile } from './ClientProfile';
 import { DiaryPanel } from './DiaryPanel';
+import { SummaryPanel } from './SummaryPanel';
+import { useAuth } from '../../lib/auth-context';
 import { usePortalI18n } from '../../lib/portal-i18n';
+import { formatPortalDate, formatPortalTime } from '../../lib/date';
+import { getLatestSnapshot, getSnapshotAdherence } from '../../view-models/clients';
+import { usePlans } from '../../hooks/queries/usePlans';
+import { useClientCheckins } from '../../hooks/queries/useCheckins';
+import { useClientProgress } from '../../hooks/queries/useClientProgress';
+import { useMessages } from '../../hooks/queries/useMessages';
 
 interface ClientDetailProps {
   client: ProfessionalClient;
@@ -36,7 +45,15 @@ interface ClientDetailProps {
 }
 
 type PlanView = 'list' | 'new' | 'edit';
-type DetailTab = 'plans' | 'notes' | 'progress' | 'checkins' | 'profile' | 'diary' | 'chat';
+type DetailTab =
+  | 'summary'
+  | 'plans'
+  | 'checkins'
+  | 'progress'
+  | 'chat'
+  | 'diary'
+  | 'notes'
+  | 'profile';
 
 export const ClientDetail: React.FC<ClientDetailProps> = ({
   client,
@@ -46,10 +63,17 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   onToggleRoster,
   unreadCount = 0,
 }) => {
-  const { t } = usePortalI18n();
+  const { professional } = useAuth();
+  const { t, locale } = usePortalI18n();
+
   const [planView, setPlanView] = useState<PlanView>('list');
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState<DetailTab>('plans');
+  const [detailTab, setDetailTab] = useState<DetailTab>('summary');
+
+  const { data: plans = [] } = usePlans(client.client_id, professional?.id);
+  const { data: checkins = [] } = useClientCheckins(client.id);
+  const { data: progressRecords = [] } = useClientProgress(client.id);
+  const { data: messages = [] } = useMessages(client.id);
 
   const clientName = client.display_name || client.client_id.slice(0, 8);
   const initials = clientName
@@ -60,15 +84,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
     .toUpperCase();
 
   const relationshipLabel = useMemo(() => {
-    if (client.status === 'connected') {
-      return t('components.clientdetail.index.connected');
-    }
-    if (client.status === 'revoked') {
-      return t('components.clientdetail.index.revoked');
-    }
-    if (client.status === 'archived') {
-      return t('components.clientdetail.index.archived');
-    }
+    if (client.status === 'connected') return t('components.clientdetail.index.connected');
+    if (client.status === 'revoked') return t('components.clientdetail.index.revoked');
+    if (client.status === 'archived') return t('components.clientdetail.index.archived');
     return client.status;
   }, [client.status, t]);
 
@@ -79,49 +97,116 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   const messagesLabel = client.messages_enabled
     ? t('components.clientdetail.index.chat_active')
     : t('components.clientdetail.index.chat_inactive');
+  const latestSnapshot = getLatestSnapshot(client);
 
-  const handleNewPlan = () => {
-    setEditingPlanId(null);
-    setPlanView('new');
-  };
+  const weeklyAdherence = useMemo(() => {
+    const snapshots = client.client_shared_snapshots || [];
+    if (snapshots.length === 0) return { val: null, pts: [] as number[] };
+    const valid = snapshots
+      .map((s) => getSnapshotAdherence(s))
+      .filter((a): a is number => a !== null);
+    if (valid.length === 0) return { val: null, pts: [] as number[] };
+    const avg = Math.round(valid.reduce((sum, val) => sum + val, 0) / valid.length);
+    return { val: avg, pts: valid.slice(-5) };
+  }, [client.client_shared_snapshots]);
 
-  const handleEditPlan = (planId: string) => {
-    setEditingPlanId(planId);
-    setPlanView('edit');
-  };
+  const pendingCheckinCount = checkins.length;
+  const latestCheckinDateStr =
+    checkins.length > 0 && checkins[0]?.submitted_at
+      ? formatPortalDate(checkins[0].submitted_at, locale, {
+          month: 'numeric',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : null;
 
-  const handleBackToList = () => {
-    setEditingPlanId(null);
-    setPlanView('list');
-  };
+  const latestMessageTimeStr =
+    messages.length > 0 && messages[messages.length - 1]?.created_at
+      ? formatPortalTime(messages[messages.length - 1]!.created_at, locale, {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : null;
+
+  const weightMetrics = useMemo(() => {
+    const snapshots = client.client_shared_snapshots || [];
+    const fromProgress = progressRecords
+      .filter((r) => r.weight_kg != null && r.weight_kg > 0)
+      .map((r) => ({ date: r.record_date, val: r.weight_kg! }));
+    const fromSnapshots = snapshots
+      .filter((s) => s.weight_kg != null && s.weight_kg > 0)
+      .map((s) => ({ date: s.snapshot_date, val: s.weight_kg! }));
+
+    const merged = [...fromProgress, ...fromSnapshots];
+    merged.sort((a, b) => a.date.localeCompare(b.date));
+
+    const result: { date: string; val: number }[] = [];
+    merged.forEach((item) => {
+      if (result.length === 0 || result[result.length - 1]?.date !== item.date) {
+        result.push(item);
+      }
+    });
+
+    const current = result.length > 0 ? (result[result.length - 1]?.val ?? null) : null;
+    let change = 0;
+    if (result.length >= 2 && current !== null) {
+      const first = result[0]?.val ?? 0;
+      change = current - first;
+    }
+    return { current, change };
+  }, [progressRecords, client.client_shared_snapshots]);
+
+  const activePlan = plans.find((p) => p.status === 'active') || null;
+  const activePlanStartStr =
+    activePlan && activePlan.starts_on
+      ? formatPortalDate(activePlan.starts_on, locale, {
+          month: 'numeric',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      : null;
 
   const tabs: Array<{ id: DetailTab; label: string; icon: React.ReactNode; badge?: number }> = [
-    { id: 'plans', label: t('components.clientdetail.index.plans'), icon: <LayoutList className="h-3.5 w-3.5" /> },
-    { id: 'notes', label: t('components.clientdetail.index.notes'), icon: <FileText className="h-3.5 w-3.5" /> },
-    { id: 'progress', label: t('components.clientdetail.index.progress'), icon: <Scale className="h-3.5 w-3.5" /> },
-    { id: 'checkins', label: t('components.clientdetail.index.check_ins'), icon: <ClipboardCheck className="h-3.5 w-3.5" /> },
-    { id: 'diary', label: t('components.clientdetail.index.diary'), icon: <UtensilsCrossed className="h-3.5 w-3.5" /> },
+    { id: 'summary', label: t('components.clientdetail.index.summary'), icon: <LayoutGrid className="h-4 w-4" /> },
+    { id: 'plans', label: t('components.clientdetail.index.plans'), icon: <LayoutList className="h-4 w-4" /> },
+    { id: 'checkins', label: t('components.clientdetail.index.check_ins'), icon: <ClipboardCheck className="h-4 w-4" /> },
+    { id: 'progress', label: t('components.clientdetail.index.progress'), icon: <Scale className="h-4 w-4" /> },
     {
       id: 'chat',
       label: t('components.clientdetail.index.chat'),
-      icon: <MessageSquare className="h-3.5 w-3.5" />,
+      icon: <MessageSquare className="h-4 w-4" />,
       badge: unreadCount > 0 ? unreadCount : undefined,
     },
-    { id: 'profile', label: t('components.clientdetail.index.profile'), icon: <User className="h-3.5 w-3.5" /> },
+    { id: 'diary', label: t('components.clientdetail.index.diary'), icon: <UtensilsCrossed className="h-4 w-4" /> },
+    { id: 'notes', label: t('components.clientdetail.index.notes'), icon: <FileText className="h-4 w-4" /> },
+    { id: 'profile', label: t('components.clientdetail.index.profile'), icon: <User className="h-4 w-4" /> },
   ];
 
   return (
     <section className="space-y-6 animate-fade-in-up" id="client-detail-section">
-      <div className="portal-hero rounded-[1.8rem] p-5">
+      <div className="portal-hero rounded-[1.8rem] p-8">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[1.1rem] bg-primary text-base font-extrabold text-primary-foreground shadow-sm">
+          <div className="flex min-w-0 items-start gap-5">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-sm">
               {initials}
             </div>
-            <div className="min-w-0 space-y-2">
-              <p className="portal-kicker">{t('components.clientdetail.index.selected_client')}</p>
-              <h2 className="portal-title truncate text-2xl text-foreground">{clientName}</h2>
-              <div className="flex flex-wrap items-center gap-2">
+            <div className="min-w-0 space-y-2.5">
+              <p className="portal-kicker text-xs font-extrabold tracking-[0.2em]">
+                {t('components.clientdetail.index.selected_client')}
+              </p>
+              <div className="flex items-center gap-2.5">
+                <h2 className="portal-title truncate text-4xl font-extrabold text-foreground">
+                  {clientName}
+                </h2>
+                <button
+                  onClick={() => setDetailTab('profile')}
+                  className="text-muted-foreground transition-colors hover:text-foreground"
+                  title={t('components.clientdetail.index.edit_profile')}
+                >
+                  <FileText className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5">
                 <Badge tone={client.status === 'connected' ? 'good' : 'neutral'}>
                   {relationshipLabel}
                 </Badge>
@@ -135,7 +220,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             {onToggleRoster && (
               <button
                 onClick={onToggleRoster}
-                className="rounded-xl border border-border bg-card p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:flex"
+                className="rounded-xl border border-border bg-card p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground xl:flex"
                 title={
                   isRosterCollapsed
                     ? t('components.clientdetail.index.expand_roster')
@@ -143,43 +228,162 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 }
               >
                 {isRosterCollapsed ? (
-                  <PanelLeftOpen className="h-4 w-4 text-primary" />
+                  <PanelLeftOpen className="h-4.5 w-4.5 text-primary" />
                 ) : (
-                  <PanelLeftClose className="h-4 w-4" />
+                  <PanelLeftClose className="h-4.5 w-4.5" />
                 )}
               </button>
             )}
             <button
               onClick={onClose}
-              className="rounded-xl border border-border bg-card p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              className="rounded-xl border border-border bg-card p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               aria-label={t('components.clientdetail.index.close_details')}
             >
-              <X className="h-4 w-4" />
+              <X className="h-4.5 w-4.5" />
             </button>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.weekly_adherence')}
+            </p>
+            <div className="mt-2.5 flex items-baseline gap-2">
+              <p className="text-3xl font-black text-foreground">
+                {weeklyAdherence.val !== null ? `${weeklyAdherence.val}%` : '--'}
+              </p>
+              {weeklyAdherence.pts.length >= 2 && (
+                <svg width="42" height="16" className="ml-1 shrink-0 overflow-visible">
+                  <path
+                    d={weeklyAdherence.pts
+                      .map((val, idx) => {
+                        const x = (idx / (weeklyAdherence.pts.length - 1)) * 38;
+                        const y = 14 - (val / 100) * 12;
+                        return `${idx === 0 ? 'M' : 'L'}${x},${y}`;
+                      })
+                      .join(' ')}
+                    fill="none"
+                    stroke="#4ade80"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              )}
+            </div>
+            <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+              {t('components.clientdetail.index.goal_over_75')}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.pending_checkin')}
+            </p>
+            <p className="mt-2.5 text-3xl font-black text-foreground">{pendingCheckinCount}</p>
+            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+              {latestCheckinDateStr
+                ? t('components.clientdetail.index.latest_prefix', { value: latestCheckinDateStr })
+                : t('components.clientdetail.index.none_pending')}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.unread_messages')}
+            </p>
+            <p className="mt-2.5 text-3xl font-black text-foreground">{unreadCount}</p>
+            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+              {latestMessageTimeStr
+                ? t('components.clientdetail.index.latest_prefix', {
+                    value: `${t('components.clientdetail.index.today')}, ${latestMessageTimeStr}`,
+                  })
+                : t('components.clientdetail.index.no_new_messages')}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.current_weight')}
+            </p>
+            <p className="mt-2.5 text-3xl font-black text-foreground">
+              {weightMetrics.current ? `${weightMetrics.current.toFixed(1)} kg` : '--'}
+            </p>
+            {weightMetrics.change !== 0 ? (
+              <p
+                className={`mt-2.5 flex items-center gap-0.5 text-sm font-bold leading-none ${
+                  weightMetrics.change < 0 ? 'text-green-500' : 'text-rose-500'
+                }`}
+              >
+                {t('components.clientdetail.index.change_7_days', {
+                  value: `${weightMetrics.change > 0 ? '+' : ''}${weightMetrics.change.toFixed(1)} kg`,
+                })}
+              </p>
+            ) : (
+              <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+                {t('components.clientdetail.index.no_changes')}
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.latest_update')}
+            </p>
+            <p className="mt-2.5 truncate text-3xl font-black leading-6 text-foreground">
+              {latestSnapshot
+                ? formatPortalDate(latestSnapshot.snapshot_date, locale, {
+                    month: 'short',
+                    day: 'numeric',
+                  })
+                : t('components.clientdetail.index.today')}
+            </p>
+            <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+              {latestSnapshot
+                ? t('components.clientdetail.index.synced')
+                : t('components.clientdetail.index.not_synced')}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+              {t('components.clientdetail.index.active_plan')}
+            </p>
+            <p className="mt-2.5 truncate text-xl font-black leading-6 text-foreground">
+              {activePlan ? activePlan.name : t('components.clientdetail.index.none')}
+            </p>
+            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+              {activePlanStartStr
+                ? t('components.clientdetail.index.started_prefix', {
+                    date: activePlanStartStr,
+                  })
+                : t('components.clientdetail.index.inactive')}
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => {
               setDetailTab(tab.id);
               if (tab.id === 'plans') {
-                handleBackToList();
+                setEditingPlanId(null);
+                setPlanView('list');
               }
             }}
-            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-colors ${
+            className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-extrabold transition-all ${
               detailTab === tab.id
-                ? 'bg-primary text-primary-foreground'
-                : 'portal-chip hover:bg-accent'
+                ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                : 'portal-chip hover:bg-[#181d20]/80 hover:text-foreground'
             }`}
           >
             {tab.icon}
-            <span>{tab.label}</span>
+            <span className="truncate">{tab.label}</span>
             {tab.badge ? (
-              <span className="rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-extrabold text-white">
+              <span className="shrink-0 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-black text-white">
                 {tab.badge}
               </span>
             ) : null}
@@ -190,10 +394,13 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       {detailTab === 'plans' && (
         <div className="flex flex-wrap gap-2">
           <button
-            onClick={handleBackToList}
+            onClick={() => {
+              setEditingPlanId(null);
+              setPlanView('list');
+            }}
             className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
               planView === 'list'
-                ? 'bg-card text-foreground shadow-sm border border-border'
+                ? 'border border-border bg-card text-foreground shadow-sm'
                 : 'portal-chip hover:bg-accent'
             }`}
           >
@@ -201,10 +408,13 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             {t('components.clientdetail.index.plans')}
           </button>
           <button
-            onClick={handleNewPlan}
+            onClick={() => {
+              setEditingPlanId(null);
+              setPlanView('new');
+            }}
             className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
               planView === 'new'
-                ? 'bg-card text-foreground shadow-sm border border-border'
+                ? 'border border-border bg-card text-foreground shadow-sm'
                 : 'portal-chip hover:bg-accent'
             }`}
           >
@@ -215,15 +425,52 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       )}
 
       <div className="space-y-6">
+        {detailTab === 'summary' && (
+          <SummaryPanel
+            client={client}
+            unreadCount={unreadCount}
+            messages={messages}
+            onSetActiveTab={(tab) => {
+              setDetailTab(tab);
+              if (tab === 'plans') {
+                setEditingPlanId(null);
+                setPlanView('list');
+              }
+            }}
+            onEditPlan={(planId) => {
+              setEditingPlanId(planId);
+              setPlanView('edit');
+              setDetailTab('plans');
+            }}
+          />
+        )}
+
         {detailTab === 'plans' && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
             <div className="lg:col-span-7">
               {planView === 'list' && (
-                <PlanList client={client} onNewPlan={handleNewPlan} onEditPlan={handleEditPlan} />
+                <PlanList
+                  client={client}
+                  onNewPlan={() => {
+                    setEditingPlanId(null);
+                    setPlanView('new');
+                  }}
+                  onEditPlan={(planId) => {
+                    setEditingPlanId(planId);
+                    setPlanView('edit');
+                  }}
+                />
               )}
               {planView === 'new' && <PlanBuilder client={client} />}
               {planView === 'edit' && editingPlanId && (
-                <PlanEditor client={client} planId={editingPlanId} onBack={handleBackToList} />
+                <PlanEditor
+                  client={client}
+                  planId={editingPlanId}
+                  onBack={() => {
+                    setEditingPlanId(null);
+                    setPlanView('list');
+                  }}
+                />
               )}
             </div>
             <div className="lg:col-span-5">
@@ -237,8 +484,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         {detailTab === 'checkins' && <ClientCheckins client={client} />}
         {detailTab === 'diary' && <DiaryPanel client={client} />}
         {detailTab === 'profile' && <ClientProfile client={client} />}
+
         {detailTab === 'chat' && (
-          <div className="mx-auto w-full max-w-4xl animate-fade-in-up">
+          <div className="w-full animate-fade-in-up">
             {client.messages_enabled ? (
               <ChatPanel client={client} onMessagesRead={onMessagesRead} />
             ) : (
@@ -249,7 +497,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {t('components.clientdetail.index.chat_disabled')}
                   </p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    {t('components.clientdetail.index.this_client_has_disabled_messages_from_the_privacy_settings_in_the_mobil')}
+                    {t(
+                      'components.clientdetail.index.this_client_has_disabled_messages_from_the_privacy_settings_in_the_mobil',
+                    )}
                   </p>
                 </div>
               </div>
@@ -266,14 +516,16 @@ const Badge: React.FC<{
   children: React.ReactNode;
 }> = ({ tone, children }) => {
   const className = {
-    good: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-    primary: 'bg-primary/10 text-primary',
-    info: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
-    neutral: 'bg-background text-muted-foreground border border-border',
+    good: 'bg-emerald-500/10 text-emerald-600 dark:text-[#72de98]',
+    primary: 'bg-primary/10 text-[#72de98]',
+    info: 'bg-sky-500/10 text-sky-500',
+    neutral: 'border border-[#1e2326] bg-[#181d20] text-muted-foreground',
   }[tone];
 
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-xl px-3.5 py-1 text-xs font-bold uppercase tracking-[0.12em] ${className}`}
+    >
       {children}
     </span>
   );

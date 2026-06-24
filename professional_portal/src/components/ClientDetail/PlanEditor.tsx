@@ -61,7 +61,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
   const [showMeals, setShowMeals] = useState(false);
   const [recipePickerSlot, setRecipePickerSlot] = useState<string | null>(null);
 
-  const canEditPlan = billingSummary.hasProfessionalAccess && client.status === 'connected';
+  const canEditPlan = billingSummary.canPublishPlans && client.status === 'connected';
 
   const mealTotals = useMemo(
     () => ({

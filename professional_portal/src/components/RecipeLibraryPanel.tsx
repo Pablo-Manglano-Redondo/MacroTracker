@@ -228,27 +228,6 @@ export const RecipeLibraryPanel: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <section className="portal-hero rounded-[1.8rem] p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="portal-kicker">{t('components.recipelibrarypanel.recipe_library')}</p>
-            <h2 className="portal-title text-3xl text-foreground">
-              {t('components.recipelibrarypanel.operational_recipes_to_recommend_or_reuse')}
-            </h2>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {t('components.recipelibrarypanel.maintain_a_professional_library_with_macros_ingredients_and_clear_instru')}
-            </p>
-          </div>
-          <button
-            onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            {t('components.recipelibrarypanel.new_recipe')}
-          </button>
-        </div>
-      </section>
-
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard
           label={t('components.recipelibrarypanel.visible_recipes')}
@@ -268,31 +247,41 @@ export const RecipeLibraryPanel: React.FC = () => {
       </section>
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full max-w-sm">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('components.recipelibrarypanel.search_recipes')}
-            className="portal-input h-11 w-full rounded-xl pl-10 pr-4 text-sm font-medium outline-none focus:border-primary"
-          />
+        <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="relative w-full max-w-sm">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={t('components.recipelibrarypanel.search_recipes')}
+              className="portal-input h-12 w-full rounded-xl pl-10 pr-4 text-base font-semibold outline-none focus:border-primary"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {MEAL_TYPES.map((meal) => (
+              <button
+                key={meal}
+                onClick={() => setMealFilter(meal)}
+                className={`rounded-full px-5 py-2.5 text-sm font-extrabold transition-colors ${
+                  mealFilter === meal
+                    ? 'bg-primary text-primary-foreground'
+                    : 'portal-chip hover:bg-accent'
+                }`}
+              >
+                {mealLabel(meal)}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {MEAL_TYPES.map((meal) => (
-            <button
-              key={meal}
-              onClick={() => setMealFilter(meal)}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                mealFilter === meal
-                  ? 'bg-primary text-primary-foreground'
-                  : 'portal-chip hover:bg-accent'
-              }`}
-            >
-              {mealLabel(meal)}
-            </button>
-          ))}
-        </div>
+        <button
+          onClick={openCreate}
+          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
+        >
+          <Plus className="h-4.5 w-4.5" />
+          <span>{t('components.recipelibrarypanel.new_recipe')}</span>
+        </button>
       </div>
 
       {isLoading ? (
@@ -314,17 +303,17 @@ export const RecipeLibraryPanel: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((recipe) => (
-            <article key={recipe.id} className="portal-panel rounded-[1.6rem] p-5">
-              <div className="flex items-start justify-between gap-3">
+            <article key={recipe.id} className="portal-panel rounded-[1.6rem] p-8">
+              <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <ChefHat className="h-4 w-4 text-primary" />
-                    <h3 className="truncate text-base font-bold text-foreground">{recipe.title}</h3>
+                  <div className="flex items-center gap-2.5">
+                    <ChefHat className="h-5 w-5 text-primary" />
+                    <h3 className="truncate text-lg font-black text-foreground">{recipe.title}</h3>
                   </div>
                   {recipe.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                       {recipe.description}
                     </p>
                   )}
@@ -349,27 +338,27 @@ export const RecipeLibraryPanel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <div className="mt-5 flex flex-wrap items-center gap-4 text-base font-semibold text-muted-foreground">
                 {recipe.meal_type && (
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                  <span className="rounded-full bg-primary/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                     {mealLabel(recipe.meal_type)}
                   </span>
                 )}
                 {recipe.prep_time_min ? (
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="h-4 w-4 text-primary" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-5 w-5 text-primary" />
                     {t('components.recipelibrarypanel.prep_min', { recipe_prep_time_min: recipe.prep_time_min })}
                   </span>
                 ) : null}
                 {recipe.servings ? (
-                  <span className="inline-flex items-center gap-1">
-                    <Users className="h-4 w-4 text-primary" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="h-5 w-5 text-primary" />
                     {t('components.recipelibrarypanel.serves', { recipe_servings: recipe.servings })}
                   </span>
                 ) : null}
               </div>
 
-              <div className="mt-4 grid grid-cols-4 gap-2">
+              <div className="mt-5 grid grid-cols-4 gap-3">
                 <MacroMini label={t('common.kcal')} value={recipe.kcal} tone="rose" />
                 <MacroMini label={t('common.protein_short')} value={recipe.protein} tone="emerald" suffix={t('common.grams_unit')} />
                 <MacroMini label={t('common.carbs_short')} value={recipe.carbs} tone="blue" suffix={t('common.grams_unit')} />
@@ -413,7 +402,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                 <input
                   value={form.title}
                   onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                 />
               </Field>
               <Field label={t('components.recipelibrarypanel.description')} className="md:col-span-2">
@@ -423,14 +412,14 @@ export const RecipeLibraryPanel: React.FC = () => {
                     setForm((prev) => ({ ...prev, description: e.target.value }))
                   }
                   rows={2}
-                  className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  className="portal-input w-full rounded-xl px-5 py-4 text-base font-semibold outline-none focus:border-primary"
                 />
               </Field>
               <Field label={t('components.recipelibrarypanel.meal_type')}>
                 <select
                   value={form.meal_type}
                   onChange={(e) => setForm((prev) => ({ ...prev, meal_type: e.target.value }))}
-                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
                 >
                   {MEAL_TYPES.filter((meal) => meal !== 'all').map((meal) => (
                     <option key={meal} value={meal}>
@@ -445,7 +434,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                   min={1}
                   value={form.servings}
                   onChange={(e) => setForm((prev) => ({ ...prev, servings: +e.target.value }))}
-                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                 />
               </Field>
               <Field label={t('components.recipelibrarypanel.prep_min_2')}>
@@ -455,7 +444,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, prep_time_min: +e.target.value }))
                   }
-                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                 />
               </Field>
               <Field label={t('components.recipelibrarypanel.cook_min')}>
@@ -465,7 +454,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, cook_time_min: +e.target.value }))
                   }
-                  className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                 />
               </Field>
 
@@ -689,10 +678,10 @@ const StatCard: React.FC<{ label: string; value: number; note: string }> = ({
   value,
   note,
 }) => (
-  <div className="portal-panel rounded-[1.4rem] p-4">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-    <p className="portal-metric mt-2 text-3xl font-extrabold text-foreground">{value}</p>
-    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+  <div className="portal-panel rounded-[1.4rem] p-6">
+    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+    <p className="portal-metric mt-2 text-3xl font-black text-foreground">{value}</p>
+    <p className="mt-1 text-sm font-semibold text-muted-foreground">{note}</p>
   </div>
 );
 
@@ -729,9 +718,9 @@ const MacroMini: React.FC<{
   }[tone];
 
   return (
-    <div className={`rounded-xl px-3 py-3 text-center ${toneClass}`}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{label}</p>
-      <p className="mt-1 text-sm font-extrabold">
+    <div className={`rounded-xl px-4 py-3.5 text-center ${toneClass}`}>
+      <p className="text-xs font-black uppercase tracking-[0.2em]">{label}</p>
+      <p className="mt-1 text-base font-extrabold">
         {value ?? '--'}
         {suffix}
       </p>
@@ -745,8 +734,8 @@ const Field: React.FC<{
   className?: string;
   children: React.ReactNode;
 }> = ({ label, required = false, className = '', children }) => (
-  <div className={`space-y-2 ${className}`}>
-    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+  <div className={`space-y-2.5 ${className}`}>
+    <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
       {label}
       {required ? ' *' : ''}
     </label>

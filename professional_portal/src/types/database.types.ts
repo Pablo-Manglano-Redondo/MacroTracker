@@ -7,6 +7,8 @@ export interface Professional {
   commercial_tier: 'starter' | 'growth' | 'studio';
   billing_interval: 'monthly' | 'annual';
   client_limit: number | null;
+  avatar_url?: string | null;
+  verification_status?: 'basic' | 'verified' | 'rejected';
 }
 
 export interface ClientInvite {

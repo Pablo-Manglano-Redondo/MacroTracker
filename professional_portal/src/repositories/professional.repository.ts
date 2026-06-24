@@ -19,6 +19,7 @@ export const professionalRepository = {
       user_id: string;
       display_name: string;
       business_name?: string;
+      avatar_url?: string | null;
     }
   ) => {
     const {

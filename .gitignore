@@ -72,3 +72,8 @@ result
 
 # Sentry Config File
 sentry.properties
+
+# Playwright
+.playwright-cli/
+playwright-report/
+playwright-videos/

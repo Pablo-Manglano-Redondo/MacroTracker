@@ -94,8 +94,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
 
   const calculatedKcal = protein * 4 + carbs * 4 + fat * 9;
   const hasDiscrepancy = Math.abs(calculatedKcal - kcal) > 5;
-  const hasActivePro = billingSummary.hasProfessionalAccess;
-  const canPublishPlan = hasActivePro && client.status === 'connected';
+  const canPublishPlan = billingSummary.canPublishPlans && client.status === 'connected';
 
   const filteredRecipes = useMemo(
     () =>
@@ -115,7 +114,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
       toast.error(t('components.clientdetail.planbuilder.save_your_profile_first'));
       return false;
     }
-    if (!billingSummary.hasProfessionalAccess) {
+    if (!billingSummary.canPublishPlans) {
       toast.error(
         t('components.clientdetail.planbuilder.professional_access_must_be_active_or_trialing_to_publish_plans'),
       );

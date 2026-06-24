@@ -1,0 +1,19 @@
+- generic [ref=e2]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: Professional portal
+      - heading "A restrained operational surface for nutritionists." [level=1] [ref=e7]
+      - paragraph [ref=e8]: Manage real relationships, plans, check-ins, and shared snapshots without marketing noise, invented metrics, or privacy/billing confusion.
+      - generic [ref=e9]:
+        - generic [ref=e10]:
+          - paragraph [ref=e11]: Real relationships
+          - paragraph [ref=e12]: Only clients connected from the mobile app.
+        - generic [ref=e13]:
+          - paragraph [ref=e14]: Explicit privacy
+          - paragraph [ref=e15]: Aggregate by default. Detailed only by consent.
+        - generic [ref=e16]:
+          - paragraph [ref=e17]: Daily work
+          - paragraph [ref=e18]: Plans, notes, messages, and operational follow-up.
+    - main [ref=e19]:
+      - img [ref=e21]
+  - region "Notifications alt+T"

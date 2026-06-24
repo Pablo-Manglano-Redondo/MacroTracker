@@ -10,6 +10,7 @@ import {
 export type { PortalLocale, PortalTranslationKey } from './generated/i18n';
 
 type TranslationParams = Record<string, string | number | boolean | null | undefined>;
+type PortalDictionary = Partial<Record<PortalTranslationKey, string>>;
 
 type PortalI18nContextValue = {
   locale: PortalLocale;
@@ -88,13 +89,24 @@ export const PortalI18nProvider: React.FC<{ children: React.ReactNode }> = ({
       locale,
       setLocale,
       t: (key, params) => {
+        const localeDictionary = portalI18nData[locale] as PortalDictionary;
+        const fallbackDictionary = portalI18nData[defaultPortalLocale] as Record<
+          PortalTranslationKey,
+          string
+        >;
         const template =
-          portalI18nData[locale]?.[key] ??
-          portalI18nData[defaultPortalLocale][key];
+          localeDictionary[key] ??
+          fallbackDictionary[key];
         return formatTemplate(template, params);
       },
-      has: (key, targetLocale = locale) =>
-        key in (portalI18nData[targetLocale] ?? portalI18nData[defaultPortalLocale]),
+      has: (key, targetLocale = locale) => {
+        const targetDictionary = portalI18nData[targetLocale] as PortalDictionary | undefined;
+        const fallbackDictionary = portalI18nData[defaultPortalLocale] as Record<
+          PortalTranslationKey,
+          string
+        >;
+        return key in (targetDictionary ?? fallbackDictionary);
+      },
       locales: portalLocaleMetadata,
     }),
     [locale],

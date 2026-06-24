@@ -136,26 +136,18 @@ export const PlanTemplatesPanel: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <section className="portal-hero rounded-[1.8rem] p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-2">
-            <p className="portal-kicker">{t('components.plantemplatespanel.plan_templates')}</p>
-            <h2 className="portal-title text-3xl text-foreground">
-              {t('components.plantemplatespanel.reusable_structures_to_operate_faster')}
-            </h2>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {t('components.plantemplatespanel.save_durations_objectives_and_baseline_macros_that_you_can_later_apply_t')}
-            </p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
-          >
-            <Plus className="h-4 w-4" />
-            {t('components.plantemplatespanel.new_template')}
-          </button>
-        </div>
-      </section>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+          {t('components.plantemplatespanel.plan_templates')}
+        </h2>
+        <button
+          onClick={() => setShowForm(true)}
+          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
+        >
+          <Plus className="h-4.5 w-4.5" />
+          <span>{t('components.plantemplatespanel.new_template')}</span>
+        </button>
+      </div>
 
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard
@@ -186,22 +178,22 @@ export const PlanTemplatesPanel: React.FC = () => {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <ClipboardCopy className="h-8 w-8" />
           </div>
-          <h3 className="portal-title mt-5 text-2xl text-foreground">
+          <h3 className="portal-title mt-5 text-2xl font-black text-foreground">
             {t('components.plantemplatespanel.no_templates_yet')}
           </h3>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 max-w-sm text-base font-semibold text-muted-foreground">
             {t('components.plantemplatespanel.create_a_first_reusable_structure_to_speed_up_plan_publishing_for_connec')}
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
+            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-extrabold uppercase tracking-[0.16em] text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
             {t('components.plantemplatespanel.create_first_template')}
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {templates.map((template) => {
             const macroTarget =
               Array.isArray(template.meals) && template.meals.length > 0
@@ -209,15 +201,15 @@ export const PlanTemplatesPanel: React.FC = () => {
                 : null;
 
             return (
-              <article key={template.id} className="portal-panel rounded-[1.6rem] p-5">
-                <div className="flex items-start justify-between gap-3">
+              <article key={template.id} className="portal-panel rounded-[1.6rem] p-8">
+                <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Layers className="h-4 w-4 text-primary" />
-                      <h3 className="truncate text-base font-bold text-foreground">{template.name}</h3>
+                    <div className="flex items-center gap-2.5">
+                      <Layers className="h-5 w-5 text-primary" />
+                      <h3 className="truncate text-lg font-black text-foreground">{template.name}</h3>
                     </div>
                     {template.description && (
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                         {template.description}
                       </p>
                     )}
@@ -227,24 +219,24 @@ export const PlanTemplatesPanel: React.FC = () => {
                     className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
                     title={t('components.plantemplatespanel.delete_template')}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="portal-chip rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em]">
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <span className="portal-chip rounded-full px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em]">
                     {template.duration_days} {t('components.plantemplatespanel.days')}
                   </span>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                  <span className="rounded-full bg-primary/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
                     {objectiveLabel(template.objective || 'general_fitness')}
                   </span>
-                  <span className="rounded-full bg-background px-3 py-1 text-[10px] font-semibold text-muted-foreground">
+                  <span className="rounded-full bg-background px-3.5 py-1.5 text-[10px] font-semibold text-muted-foreground">
                     {t('components.plantemplatespanel.used_times', { template_use_count: template.use_count })}
                   </span>
                 </div>
 
                 {macroTarget && (
-                  <div className="mt-4 grid grid-cols-4 gap-2">
+                  <div className="mt-5 grid grid-cols-4 gap-3">
                     <MacroCard label={t('common.kcal')} value={macroTarget.kcal} tone="rose" />
                     <MacroCard label={t('common.protein_short')} value={macroTarget.protein} tone="emerald" suffix={t('common.grams_unit')} />
                     <MacroCard label={t('common.carbs_short')} value={macroTarget.carbs} tone="blue" suffix={t('common.grams_unit')} />
@@ -256,9 +248,9 @@ export const PlanTemplatesPanel: React.FC = () => {
                   onClick={() =>
                     setApplyTarget({ templateId: template.id, templateName: template.name })
                   }
-                  className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-primary/20 bg-primary/10 px-5 py-3.5 text-xs font-extrabold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
                 >
-                  <Target className="h-4 w-4" />
+                  <Target className="h-4.5 w-4.5" />
                   {t('components.plantemplatespanel.apply_to_client')}
                 </button>
               </article>
@@ -300,7 +292,7 @@ export const PlanTemplatesPanel: React.FC = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder={t('components.plantemplatespanel.e_g_8_week_cut')}
-                    className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                   />
                 </Field>
 
@@ -310,7 +302,7 @@ export const PlanTemplatesPanel: React.FC = () => {
                     onChange={(e) => setDescription(e.target.value)}
                     rows={2}
                     placeholder={t('components.plantemplatespanel.usage_notes_or_context')}
-                    className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                    className="portal-input w-full rounded-xl px-5 py-4 text-base font-semibold outline-none focus:border-primary"
                   />
                 </Field>
 
@@ -321,14 +313,14 @@ export const PlanTemplatesPanel: React.FC = () => {
                       min={1}
                       value={durationDays}
                       onChange={(e) => setDurationDays(+e.target.value)}
-                      className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none focus:border-primary"
+                      className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
                     />
                   </Field>
                   <Field label={t('components.plantemplatespanel.objective')}>
                     <select
                       value={objective}
                       onChange={(e) => setObjective(e.target.value)}
-                      className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+                      className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
                     >
                       <option value="general_fitness">{t('components.plantemplatespanel.general_fitness')}</option>
                       <option value="weight_loss">{t('components.plantemplatespanel.weight_loss')}</option>
@@ -426,7 +418,7 @@ export const PlanTemplatesPanel: React.FC = () => {
                   <select
                     value={applyClientId}
                     onChange={(e) => setApplyClientId(e.target.value)}
-                    className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
                   >
                     <option value="">{t('components.plantemplatespanel.select_a_client_2')}</option>
                     {connectedClients.map((client) => (
@@ -481,10 +473,10 @@ const StatCard: React.FC<{ label: string; value: number; note: string }> = ({
   value,
   note,
 }) => (
-  <div className="portal-panel rounded-[1.4rem] p-4">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-    <p className="portal-metric mt-2 text-3xl font-extrabold text-foreground">{value}</p>
-    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+  <div className="portal-panel rounded-[1.4rem] p-6">
+    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
+    <p className="portal-metric mt-2 text-3xl font-black text-foreground">{value}</p>
+    <p className="mt-1 text-sm font-semibold text-muted-foreground">{note}</p>
   </div>
 );
 
@@ -502,9 +494,9 @@ const MacroCard: React.FC<{
   }[tone];
 
   return (
-    <div className={`rounded-xl px-3 py-3 text-center ${toneClass}`}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{label}</p>
-      <p className="mt-1 text-sm font-extrabold">
+    <div className={`rounded-xl px-4 py-3.5 text-center ${toneClass}`}>
+      <p className="text-xs font-black uppercase tracking-[0.2em]">{label}</p>
+      <p className="mt-1 text-base font-extrabold">
         {value ?? '--'}
         {suffix}
       </p>
@@ -517,8 +509,8 @@ const Field: React.FC<{
   required?: boolean;
   children: React.ReactNode;
 }> = ({ label, required = false, children }) => (
-  <div className="space-y-2">
-    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+  <div className="space-y-2.5">
+    <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
       {label}
       {required ? ' *' : ''}
     </label>

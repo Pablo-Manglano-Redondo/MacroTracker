@@ -138,15 +138,25 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
                   className={`flex gap-3 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[10px] font-extrabold ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[10px] font-extrabold overflow-hidden ${
                       isSelf
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-background text-foreground border border-border'
                     }`}
                   >
-                    {isSelf
-                      ? professional?.display_name?.slice(0, 2).toUpperCase() || 'MT'
-                      : getInitials(client.client_id)}
+                    {isSelf ? (
+                      professional?.avatar_url ? (
+                        <img
+                          src={professional.avatar_url}
+                          alt={professional.display_name || ''}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        professional?.display_name?.slice(0, 2).toUpperCase() || 'MT'
+                      )
+                    ) : (
+                      getInitials(client.client_id)
+                    )}
                   </div>
 
                   <div className={`max-w-[78%] ${isSelf ? 'text-right' : ''}`}>

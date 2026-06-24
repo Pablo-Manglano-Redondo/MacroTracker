@@ -5,30 +5,38 @@ import {
   CreditCard,
   Download,
   FileText,
-  LayoutDashboard,
   MessageSquare,
   TrendingUp,
-  UserPlus,
   Users,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
+import { usePortalI18n } from '../lib/portal-i18n';
 import {
   useAdherenceTrends,
   usePerClientAdherence,
   useRosterStats,
 } from '../hooks/queries/useAnalytics';
+import { useClients, useUnreadCounts } from '../hooks/queries/useClients';
 import { useInvites } from '../hooks/queries/useInvites';
 import { downloadCsv } from '../lib/csv';
 import { formatPortalDate } from '../lib/date';
-import { openInviteModal } from '../lib/portal-events';
 import { Skeleton } from './ui/skeleton';
+import { getLatestSnapshot } from '../view-models/clients';
 import { getBillingSummary } from '../view-models/professional';
-import { usePortalI18n } from '../lib/portal-i18n';
 
 export const DashboardPanel: React.FC = () => {
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
-  const billingSummary = useMemo(() => getBillingSummary(professional), [professional]);
+  const { data: clients = [] } = useClients(professional?.id);
+  const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
+  const connectedClients = useMemo(
+    () => clients.filter((client) => client.status === 'connected'),
+    [clients],
+  );
+  const billingSummary = useMemo(
+    () => getBillingSummary(professional, connectedClients.length),
+    [connectedClients.length, professional],
+  );
   const { data: roster, isLoading: rosterLoading } = useRosterStats(professional?.id);
   const { data: trends = [], isLoading: trendsLoading } = useAdherenceTrends(professional?.id);
   const { data: clientAdherence = [], isLoading: clientsLoading } = usePerClientAdherence(
@@ -54,9 +62,81 @@ export const DashboardPanel: React.FC = () => {
       ? Math.round(trends.reduce((sum, day) => sum + day.kcalAdherence, 0) / trends.length)
       : null;
 
-  const pendingInvites = invites.filter((invite) => invite.status === 'pending').length;
+  const validPendingInvites = invites.filter(
+    (invite) => invite.status === 'pending' && new Date(invite.expires_at) >= new Date(),
+  );
   const latestInvite = invites[0]?.created_at ?? null;
-  const hasRosterData = (roster?.totalClients ?? 0) > 0;
+  const clientsWithoutSnapshots = connectedClients.filter((client) => !getLatestSnapshot(client));
+  const clientsNeedingPlan = connectedClients.length - (roster?.activePlans ?? 0);
+  const lowAdherenceClients = clientAdherence.filter((client) => client.avgKcalAdherence < 75);
+  const unreadThreads = Object.values(unreadCounts).filter((count) => count > 0).length;
+
+  const actionFeed = [
+    !billingSummary.canOperatePractice
+      ? {
+          title: t('components.dashboardpanel.practice_not_operational_title'),
+          body: t('components.dashboardpanel.practice_not_operational_body'),
+        }
+      : null,
+    connectedClients.length === 0
+      ? {
+          title: t('components.dashboardpanel.no_connected_clients_yet_title'),
+          body: t('components.dashboardpanel.no_connected_clients_yet_body'),
+        }
+      : null,
+    clientsNeedingPlan > 0
+      ? {
+          title:
+            clientsNeedingPlan === 1
+              ? t('components.dashboardpanel.clients_without_active_plan_title_one', {
+                  count: clientsNeedingPlan,
+                })
+              : t('components.dashboardpanel.clients_without_active_plan_title', {
+                  count: clientsNeedingPlan,
+                }),
+          body: t('components.dashboardpanel.clients_without_active_plan_body'),
+        }
+      : null,
+    clientsWithoutSnapshots.length > 0
+      ? {
+          title:
+            clientsWithoutSnapshots.length === 1
+              ? t('components.dashboardpanel.clients_without_snapshots_title_one', {
+                  count: clientsWithoutSnapshots.length,
+                })
+              : t('components.dashboardpanel.clients_without_snapshots_title', {
+                  count: clientsWithoutSnapshots.length,
+                }),
+          body: t('components.dashboardpanel.clients_without_snapshots_body'),
+        }
+      : null,
+    lowAdherenceClients.length > 0
+      ? {
+          title:
+            lowAdherenceClients.length === 1
+              ? t('components.dashboardpanel.clients_with_low_adherence_title_one', {
+                  count: lowAdherenceClients.length,
+                })
+              : t('components.dashboardpanel.clients_with_low_adherence_title', {
+                  count: lowAdherenceClients.length,
+                }),
+          body: t('components.dashboardpanel.clients_with_low_adherence_body'),
+        }
+      : null,
+    unreadThreads > 0
+      ? {
+          title:
+            unreadThreads === 1
+              ? t('components.dashboardpanel.conversations_waiting_title_one', {
+                  count: unreadThreads,
+                })
+              : t('components.dashboardpanel.conversations_waiting_title', {
+                  count: unreadThreads,
+                }),
+          body: t('components.dashboardpanel.conversations_waiting_body'),
+        }
+      : null,
+  ].filter(Boolean) as Array<{ title: string; body: string }>;
 
   const exportAdherenceCsv = () => {
     const rows = trends.map((day) => [
@@ -76,65 +156,51 @@ export const DashboardPanel: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <section className="portal-hero rounded-[1.8rem] p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-primary">
-              <LayoutDashboard className="h-5 w-5" />
-              <p className="portal-kicker">{t('components.dashboardpanel.practice_overview')}</p>
-            </div>
-            <h2 className="portal-title text-3xl text-foreground">
-              {t('components.dashboardpanel.what_is_actually_happening_in_your_practice_today')}
-            </h2>
-            <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              {t('components.dashboardpanel.this_panel_only_uses_real_relationships_invite_history_plans_and_synced_')}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+          {t('components.dashboardpanel.daily_practice_triage')}
+        </h2>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={exportAdherenceCsv}
+            disabled={trends.length === 0}
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+          >
+            <Download className="h-4 w-4" />
+            <span>{t('components.dashboardpanel.export_adherence')}</span>
+          </button>
+        </div>
+      </div>
+
+      {!billingSummary.canOperatePractice && (
+        <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
+          <div className="flex items-start gap-3">
+            <CreditCard className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
+            <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
+              {t('components.dashboardpanel.billing_status_read_only_body', {
+                status: billingSummary.proStatus,
+              })}
             </p>
           </div>
-
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => openInviteModal()}
-              disabled={!billingSummary.hasProfessionalAccess}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <UserPlus className="h-4 w-4" />
-              {t('components.dashboardpanel.invite_client')}
-            </button>
-            <button
-              onClick={exportAdherenceCsv}
-              disabled={trends.length === 0}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <Download className="h-4 w-4" />
-              {t('components.dashboardpanel.export_adherence')}
-            </button>
-          </div>
-        </div>
-
-        {!billingSummary.hasProfessionalAccess && (
-          <div className="mt-5 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
-            <div className="flex items-start gap-3">
-              <CreditCard className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
-              <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
-                {t('components.dashboardpanel.billing_is_currently_historical_records_may_remain_visible_but_new_invit', { billingsummary_prostatus: billingSummary.proStatus })}
-              </p>
-            </div>
-          </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label={t('components.dashboardpanel.connected_clients')}
           icon={<Users className="h-4 w-4 text-primary" />}
           value={rosterLoading ? null : roster?.activeClients ?? 0}
-          note={t('components.dashboardpanel.slots_in_the_current_plan', { roster: roster?.clientLimit ?? billingSummary.clientLimit })}
+          note={t('components.dashboardpanel.slots_still_available', {
+            count: billingSummary.remainingClientSlots,
+          })}
         />
         <MetricCard
           label={t('components.dashboardpanel.active_plans')}
           icon={<FileText className="h-4 w-4 text-primary" />}
           value={rosterLoading ? null : roster?.activePlans ?? 0}
-          note={t('components.dashboardpanel.plans_created_in_total', { roster: roster?.totalPlans ?? 0 })}
+          note={t('components.dashboardpanel.connected_clients_need_plan', {
+            count: Math.max(0, clientsNeedingPlan),
+          })}
         />
         <MetricCard
           label={t('components.dashboardpanel.average_adherence')}
@@ -149,24 +215,103 @@ export const DashboardPanel: React.FC = () => {
         <MetricCard
           label={t('components.dashboardpanel.pending_invites')}
           icon={<MessageSquare className="h-4 w-4 text-primary" />}
-          value={pendingInvites}
+          value={validPendingInvites.length}
           note={
             latestInvite
-              ? t('components.dashboardpanel.latest_invite', { locale_es: formatPortalDate(latestInvite, locale) })
+              ? t('components.dashboardpanel.latest_invite_short', {
+                  date: formatPortalDate(latestInvite, locale),
+                })
               : t('components.dashboardpanel.no_invite_history_yet')
           }
         />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-12">
-        <div className="portal-panel rounded-[1.6rem] p-5 xl:col-span-7">
+        <div className="space-y-6 xl:col-span-5">
+          <div className="portal-panel rounded-[1.6rem] p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
+                  {t('components.dashboardpanel.requires_action_today')}
+                </h3>
+                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
+                  {t('components.dashboardpanel.prioritized_from_real_signals')}
+                </p>
+              </div>
+              <AlertCircle className="h-5 w-5 text-primary" />
+            </div>
+
+            <div className="mt-5 space-y-3.5">
+              {actionFeed.length === 0 ? (
+                <ActionHint
+                  title={t('components.dashboardpanel.practice_looks_clear')}
+                  body={t('components.dashboardpanel.practice_looks_clear_body')}
+                />
+              ) : (
+                actionFeed.map((item) => (
+                  <ActionHint key={item.title} title={item.title} body={item.body} />
+                ))
+              )}
+            </div>
+          </div>
+
+          <div className="portal-panel rounded-[1.6rem] p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
+                  {t('components.dashboardpanel.client_adherence')}
+                </h3>
+                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
+                  {t('components.dashboardpanel.client_adherence_quick_prioritization')}
+                </p>
+              </div>
+              <Users className="h-5 w-5 text-primary" />
+            </div>
+
+            {clientsLoading ? (
+              <div className="mt-4 space-y-2">
+                {[1, 2, 3].map((index) => (
+                  <Skeleton key={index} className="h-12 w-full bg-black/5 dark:bg-white/5" />
+                ))}
+              </div>
+            ) : clientAdherence.length === 0 ? (
+              <EmptyPanel
+                title={t('components.dashboardpanel.no_rows_yet')}
+                body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
+              />
+            ) : (
+              <div className="mt-4 space-y-2">
+                {clientAdherence.slice(0, 6).map((client) => (
+                  <div
+                    key={client.clientId}
+                    className="portal-soft-panel flex items-center justify-between rounded-2xl px-5 py-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-extrabold text-foreground">{client.name}</p>
+                      <p className="text-sm font-semibold text-muted-foreground">
+                        {t('components.dashboardpanel.snapshots', {
+                          client_snapshotcount: client.snapshotCount,
+                        })}
+                      </p>
+                    </div>
+                    <span className="portal-metric text-xl font-black text-primary">
+                      {client.avgKcalAdherence}%
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="portal-panel rounded-[1.6rem] p-8 xl:col-span-7">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
+              <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
                 {t('components.dashboardpanel.adherence_trend')}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t('components.dashboardpanel.daily_averages_calculated_from_client_shared_snapshots')}
+              <p className="mt-1.5 text-base font-semibold text-muted-foreground">
+                {t('components.dashboardpanel.shared_snapshot_trend_for_latest_roster')}
               </p>
             </div>
             <Activity className="h-5 w-5 text-primary" />
@@ -209,104 +354,6 @@ export const DashboardPanel: React.FC = () => {
             </div>
           )}
         </div>
-
-        <div className="space-y-6 xl:col-span-5">
-          <div className="portal-panel rounded-[1.6rem] p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-                  {t('components.dashboardpanel.next_actions')}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('components.dashboardpanel.based_on_the_real_workspace_state')}
-                </p>
-              </div>
-              <AlertCircle className="h-5 w-5 text-primary" />
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {!billingSummary.hasProfessionalAccess && (
-                <ActionHint
-                  title={t('components.dashboardpanel.reactivate_billing')}
-                  body={t('components.dashboardpanel.restore_an_active_or_trialing_status_before_sending_more_invites')}
-                />
-              )}
-              {!hasRosterData && (
-                <ActionHint
-                  title={t('components.dashboardpanel.connect_the_first_client')}
-                  body={t('components.dashboardpanel.the_mobile_app_remains_the_source_of_truth_for_accepting_invite_codes_an')}
-                />
-              )}
-              {(roster?.totalPlans ?? 0) === 0 && (
-                <ActionHint
-                  title={t('components.dashboardpanel.publish_the_first_plan')}
-                  body={t('components.dashboardpanel.the_client_workflow_supports_plans_but_none_has_been_created_yet_for_thi')}
-                />
-              )}
-              {trends.length === 0 && (
-                <ActionHint
-                  title={t('components.dashboardpanel.wait_for_the_first_sync')}
-                  body={t('components.dashboardpanel.adherence_and_progress_cards_will_remain_empty_until_shared_data_arrives')}
-                />
-              )}
-              {billingSummary.hasProfessionalAccess &&
-                hasRosterData &&
-                (roster?.totalPlans ?? 0) > 0 &&
-                trends.length > 0 && (
-                  <ActionHint
-                    title={t('components.dashboardpanel.review_detailed_diary_cases')}
-                    body={t('components.dashboardpanel.use_the_roster_to_see_which_clients_granted_detailed_access_versus_aggre')}
-                  />
-                )}
-            </div>
-          </div>
-
-          <div className="portal-panel rounded-[1.6rem] p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-foreground">
-                  {t('components.dashboardpanel.client_adherence')}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('components.dashboardpanel.latest_averages_for_connected_clients')}
-                </p>
-              </div>
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-
-            {clientsLoading ? (
-              <div className="mt-4 space-y-2">
-                {[1, 2, 3].map((index) => (
-                  <Skeleton key={index} className="h-12 w-full bg-black/5 dark:bg-white/5" />
-                ))}
-              </div>
-            ) : clientAdherence.length === 0 ? (
-              <EmptyPanel
-                title={t('components.dashboardpanel.no_rows_yet')}
-                body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
-              />
-            ) : (
-              <div className="mt-4 space-y-2">
-                {clientAdherence.slice(0, 6).map((client) => (
-                  <div
-                    key={client.clientId}
-                    className="portal-soft-panel flex items-center justify-between rounded-2xl px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-foreground">{client.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {t('components.dashboardpanel.snapshots', { client_snapshotcount: client.snapshotCount })}
-                      </p>
-                    </div>
-                    <span className="portal-metric text-lg font-bold text-primary">
-                      {client.avgKcalAdherence}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </section>
     </div>
   );
@@ -318,9 +365,9 @@ const MetricCard: React.FC<{
   value: number | string | null;
   note: string;
 }> = ({ label, icon, value, note }) => (
-  <div className="portal-panel rounded-[1.4rem] p-4">
+  <div className="portal-panel rounded-[1.4rem] p-6">
     <div className="flex items-center justify-between">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
         {label}
       </p>
       {icon}
@@ -332,23 +379,23 @@ const MetricCard: React.FC<{
       </div>
     ) : (
       <>
-        <p className="portal-metric mt-3 text-3xl font-extrabold text-foreground">{value}</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
+        <p className="portal-metric mt-3 text-3xl font-black text-foreground">{value}</p>
+        <p className="mt-1 text-sm font-semibold text-muted-foreground">{note}</p>
       </>
     )}
   </div>
 );
 
 const EmptyPanel: React.FC<{ title: string; body: string }> = ({ title, body }) => (
-  <div className="portal-soft-panel mt-4 rounded-2xl p-5">
-    <p className="text-sm font-bold text-foreground">{title}</p>
-    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+  <div className="portal-soft-panel mt-4 rounded-2xl p-6">
+    <p className="text-base font-extrabold text-foreground">{title}</p>
+    <p className="mt-2 text-base font-semibold text-muted-foreground">{body}</p>
   </div>
 );
 
 const ActionHint: React.FC<{ title: string; body: string }> = ({ title, body }) => (
-  <div className="portal-soft-panel rounded-2xl p-4">
-    <p className="text-sm font-bold text-foreground">{title}</p>
-    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
+  <div className="portal-soft-panel rounded-2xl p-5">
+    <p className="text-lg font-extrabold text-foreground">{title}</p>
+    <p className="mt-1 text-base font-semibold text-muted-foreground">{body}</p>
   </div>
 );
