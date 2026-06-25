@@ -148,6 +148,31 @@ export const NotificationBell: React.FC = () => {
                     key={n.id}
                     onClick={() => {
                       if (!n.read) markRead(n.id);
+
+                      const clientId = n.metadata?.client_id || n.metadata?.professional_client_id;
+                      if (clientId) {
+                        let tab = 'summary';
+                        if (n.type === 'snapshot_received' || n.title === 'Daily snapshot received') {
+                          tab = 'diary';
+                        } else if (n.type === 'checkin_submitted' || n.title === 'Check-in submitted' || n.title === 'Check-in requested') {
+                          tab = 'checkins';
+                        } else if (n.type === 'message_received' || n.title === 'New message received') {
+                          tab = 'chat';
+                        } else if (n.type === 'plan_activated' || n.title === 'Plan activated') {
+                          tab = 'plans';
+                        }
+
+                        // Store pending tab for when ClientDetail mounts
+                        (window as any).__pendingClientTab = { clientId, tab };
+
+                        // Update hash and dispatch select client
+                        window.location.hash = 'clients-panel';
+                        window.dispatchEvent(new CustomEvent('select-client', { detail: clientId }));
+                        window.dispatchEvent(new CustomEvent('select-client-tab', { detail: { clientId, tab } }));
+
+                        // Close the notification bell dropdown
+                        setOpen(false);
+                      }
                     }}
                     className={`w-full flex items-start gap-4 px-5 py-4.5 text-left transition-colors cursor-pointer border-l-2 ${
                       !n.read

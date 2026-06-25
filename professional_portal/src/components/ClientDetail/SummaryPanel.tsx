@@ -460,7 +460,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2.5">
                       <h4 className="truncate text-lg font-black text-foreground">
-                        {activePlan.name}
+                        {activePlan.name.replace(/semanals/gi, 'semanal')}
                       </h4>
                       <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-black uppercase tracking-wider text-primary">
                         {t('components.clientdetail.summarypanel.active')}

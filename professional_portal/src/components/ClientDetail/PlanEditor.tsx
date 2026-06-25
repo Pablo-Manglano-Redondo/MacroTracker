@@ -75,7 +75,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
 
   useEffect(() => {
     if (plan) {
-      setPlanName(plan.name);
+      setPlanName(plan.name.replace(/semanals/gi, 'semanal'));
       if (plan.days && plan.days.length > 0) {
         const firstDay = plan.days[0]!;
         setKcal(Number(firstDay.kcal_goal));
@@ -126,7 +126,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
       await updatePlan.mutateAsync({
         planId: plan.id,
         payload: {
-          name: planName.trim() || plan.name,
+          name: (planName.trim() || plan.name).replace(/semanals/gi, 'semanal'),
           days: [1, 2, 3, 4, 5, 6, 7].map((weekday) => ({
             weekday,
             kcal_goal: kcal,
@@ -195,7 +195,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
           </button>
           <div>
             <p className="portal-kicker">{t('components.clientdetail.planeditor.plan_editor')}</p>
-            <h3 className="portal-title mt-2 text-2xl text-foreground">{plan.name}</h3>
+            <h3 className="portal-title mt-2 text-2xl text-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</h3>
           </div>
         </div>
         <div className="flex items-center gap-3">

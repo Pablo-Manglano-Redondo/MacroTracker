@@ -6,7 +6,6 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
-  SlidersHorizontal,
   UserPlus,
   Users,
 } from 'lucide-react';
@@ -168,6 +167,21 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+          {t('components.appshell.clients')}
+        </h2>
+        {onAddClient && (
+          <button
+            onClick={onAddClient}
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
+          >
+            <UserPlus className="h-4.5 w-4.5" />
+            <span>{t('components.clientspanel.invite_client')}</span>
+          </button>
+        )}
+      </div>
+
       {!billingSummary.canOperatePractice && (
         <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
           <div className="flex items-start gap-3">
@@ -200,48 +214,52 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               >
                 <RefreshCw className={`h-4.5 w-4.5 text-muted-foreground ${isRefetching ? 'animate-spin' : ''}`} />
               </button>
-              <button
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground transition-colors hover:bg-accent"
-                title={t('components.clientspanel.filter_settings')}
-              >
-                <SlidersHorizontal className="h-4.5 w-4.5 text-muted-foreground hover:text-foreground" />
-              </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-2">
-              <div className="relative">
-                <select
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-                  className="portal-input w-full appearance-none rounded-xl px-3 py-2.5 pr-8 text-xs font-extrabold uppercase tracking-[0.14em] outline-none"
-                >
-                  <option value="all">{t('components.clientspanel.all_statuses')}</option>
-                  <option value="attention">{t('components.clientspanel.require_attention')}</option>
-                  <option value="connected">{t('components.clientspanel.connected')}</option>
-                  <option value="revoked">{t('components.clientspanel.revoked')}</option>
-                  <option value="archived">{t('components.clientspanel.archived')}</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 pl-1">
+                  {t('components.clientspanel.status_filter_label')}
+                </label>
+                <div className="relative">
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 text-sm font-semibold outline-none focus:border-primary transition-colors cursor-pointer"
+                  >
+                    <option value="all">{t('components.clientspanel.all_statuses')}</option>
+                    <option value="attention">{t('components.clientspanel.require_attention')}</option>
+                    <option value="connected">{t('components.clientspanel.connected')}</option>
+                    <option value="revoked">{t('components.clientspanel.revoked')}</option>
+                    <option value="archived">{t('components.clientspanel.archived')}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
+                </div>
               </div>
 
-              <div className="relative">
-                <select
-                  value={sharingFilter}
-                  onChange={(event) => setSharingFilter(event.target.value as SharingFilter)}
-                  className="portal-input w-full appearance-none rounded-xl px-3 py-2.5 pr-8 text-xs font-extrabold uppercase tracking-[0.14em] outline-none"
-                >
-                  <option value="all">{t('components.clientspanel.all_modes')}</option>
-                  <option value="stale_sync">{t('components.clientspanel.no_sync_recent')}</option>
-                  <option value="unread">{t('components.clientspanel.unread_messages')}</option>
-                  <option value="aggregate">{t('components.clientspanel.aggregate')}</option>
-                  <option value="detailed">{t('components.clientspanel.detailed')}</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 pl-1">
+                  {t('components.clientspanel.sharing_filter_label')}
+                </label>
+                <div className="relative">
+                  <select
+                    value={sharingFilter}
+                    onChange={(event) => setSharingFilter(event.target.value as SharingFilter)}
+                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 text-sm font-semibold outline-none focus:border-primary transition-colors cursor-pointer"
+                  >
+                    <option value="all">{t('components.clientspanel.all_modes')}</option>
+                    <option value="stale_sync">{t('components.clientspanel.no_sync_recent')}</option>
+                    <option value="unread">{t('components.clientspanel.unread_messages')}</option>
+                    <option value="aggregate">{t('components.clientspanel.aggregate')}</option>
+                    <option value="detailed">{t('components.clientspanel.detailed')}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/60" />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 space-y-2 xl:max-h-[calc(100vh-22rem)] xl:overflow-y-auto xl:pr-1">
+          <div className="mt-4 space-y-2 xl:max-h-[calc(100vh-22rem)] xl:overflow-y-auto px-1.5 py-1 xl:pr-1">
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((index) => (
@@ -263,64 +281,61 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                 const { client, adherence, unreadCount } = entry;
                 const isSelected = selectedClient?.id === client.id;
 
-                const dotColorClass =
-                  client.status !== 'connected'
-                    ? 'bg-muted/80'
-                    : (adherence !== null && adherence < 75) || unreadCount > 0
-                      ? 'bg-amber-500'
-                      : 'bg-emerald-500';
-
                 const activeLabel = getClientActiveLabel(client);
                 const isActiveLabelGreen =
                   activeLabel === t('components.clientspanel.plan_active_short');
+                const isLowAdherence = client.status === 'connected' && adherence !== null && adherence < 75;
 
                 return (
                   <button
                     key={client.id}
                     onClick={() => onSelectClient(isSelected ? null : client)}
-                    className={`w-full rounded-2xl border p-5 text-left transition-all ${
-                      isSelected
-                        ? 'border-primary bg-primary/8 shadow-sm shadow-primary/5'
-                        : 'border-border bg-card hover:bg-accent/40'
+                    className={`group relative w-full rounded-2xl border p-5 text-left transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
+                      isLowAdherence
+                        ? isSelected
+                          ? 'border-amber-500 bg-amber-500/10 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]'
+                          : 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/8 hover:border-amber-500 hover:shadow-[0_4px_16px_rgba(245,158,11,0.05)]'
+                        : isSelected
+                          ? 'border-primary bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] shadow-[0_4px_20px_-4px_rgba(114,222,152,0.15)]'
+                          : 'border-border/80 bg-card hover:bg-accent/30 hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-sm font-extrabold text-primary">
-                          {getClientInitials(client)}
+                      <div className="flex min-w-0 gap-3.5">
+                        <div className="relative shrink-0">
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-base font-black border shadow-inner group-hover:scale-105 transition-transform duration-300 ${
+                            isLowAdherence
+                              ? 'bg-gradient-to-tr from-amber-500/20 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                              : 'bg-gradient-to-tr from-primary/20 to-primary/5 text-primary border-primary/20'
+                          }`}>
+                            {getClientInitials(client)}
+                          </div>
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-base font-extrabold text-foreground">
+                          <p className="truncate text-base font-black text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
                             {getClientDisplayName(client)}
                           </p>
-                          <p className="mt-1 truncate text-xs font-medium text-muted-foreground">
+                          <p className="mt-1 truncate text-xs font-semibold text-muted-foreground/80 tracking-wide">
                             {getRelationshipStatusLabel(client.status, t)} ·{' '}
                             {getSharingModeLabel(client.sharing_mode, t)}
                           </p>
-                          <p
-                            className={`mt-1.5 text-xs font-semibold leading-none ${
-                              isActiveLabelGreen ? 'text-primary' : 'text-muted-foreground'
-                            }`}
-                          >
-                            {activeLabel}
-                          </p>
-                          {client.status === 'connected' &&
-                            adherence !== null &&
-                            adherence < 75 && (
-                              <div className="mt-2 flex flex-wrap">
-                                <span className="inline-flex items-center rounded-lg border border-[#f59e0b]/20 bg-[#f59e0b]/10 px-2 py-0.5 text-[10px] font-bold text-[#f59e0b]">
-                                  {t('components.clientspanel.low_adherence_badge')}
-                                </span>
-                              </div>
+                          <div className="mt-2.5 flex items-center gap-1.5">
+                            {isActiveLabelGreen ? (
+                              <span className="text-[11px] font-black uppercase tracking-wider text-primary">
+                                {activeLabel}
+                              </span>
+                            ) : (
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/75">
+                                {activeLabel}
+                              </span>
                             )}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 flex-col items-end justify-between gap-2.5">
-                        <span className={`h-2.5 w-2.5 rounded-full ${dotColorClass}`} />
-
+                      <div className="flex shrink-0 flex-col items-end justify-center">
                         {unreadCount > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]">
                             <MessageSquare className="h-2.5 w-2.5" />
                             {unreadCount}
                           </span>

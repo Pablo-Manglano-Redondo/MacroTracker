@@ -4,8 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Briefcase,
   Check,
-  HeartHandshake,
-  ShieldCheck,
   User,
   Camera,
   Trash2,
@@ -20,6 +18,7 @@ import { usePortalI18n } from '../lib/portal-i18n';
 import { supabase } from '../lib/supabase';
 import { useClients } from '../hooks/queries/useClients';
 import { getBillingSummary } from '../view-models/professional';
+import { ImageCropperModal } from './ImageCropperModal';
 
 export const ProfilePanel: React.FC = () => {
   const { user, professional, refreshProfile } = useAuth();
@@ -37,7 +36,20 @@ export const ProfilePanel: React.FC = () => {
     [professional, connectedClients]
   );
 
+  const currentPriceLabel = useMemo(() => {
+    if (!professional) return '';
+    const tier = billingSummary.tier;
+    const interval = billingSummary.billingInterval;
+    const priceKey = `components.billingpanel.price_${tier}_${interval}`;
+    const suffixKey = interval === 'annual'
+      ? 'components.billingpanel.price_yr_suffix'
+      : 'components.billingpanel.price_mo_suffix';
+    return ` (${t(priceKey as any)}${t(suffixKey as any)})`;
+  }, [professional, billingSummary.tier, billingSummary.billingInterval, t]);
+
   const [isUploading, setIsUploading] = useState(false);
+  const [cropperSrc, setCropperSrc] = useState<string | null>(null);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -65,7 +77,7 @@ export const ProfilePanel: React.FC = () => {
     }
   };
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user || !professional) return;
 
@@ -80,14 +92,29 @@ export const ProfilePanel: React.FC = () => {
       return;
     }
 
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperSrc(reader.result as string);
+      setIsCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCroppedApply = async (croppedBlob: Blob) => {
+    if (!user || !professional) return;
+
+    setIsCropperOpen(false);
     setIsUploading(true);
     try {
-      const fileExt = file.type.split('/')[1] || 'png';
-      const filePath = `${user.id}/avatar_${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/avatar_${Date.now()}.jpg`;
 
       const { error: uploadError } = await supabase.storage
         .from('professional-avatars')
-        .upload(filePath, file, { cacheControl: '3600', upsert: true });
+        .upload(filePath, croppedBlob, {
+          contentType: 'image/jpeg',
+          cacheControl: '3600',
+          upsert: true,
+        });
 
       if (uploadError) throw uploadError;
 
@@ -110,6 +137,7 @@ export const ProfilePanel: React.FC = () => {
       });
     } finally {
       setIsUploading(false);
+      setCropperSrc(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -174,23 +202,17 @@ export const ProfilePanel: React.FC = () => {
     }
   };
 
-  const verification = professional?.verification_status || 'basic';
-  const verificationLabel =
-    verification === 'verified'
-      ? t('components.profilepanel.verified_practitioner')
-      : verification === 'rejected'
-        ? t('components.profilepanel.rejected_practitioner')
-        : t('components.profilepanel.basic_practitioner');
-  const verificationDesc =
-    verification === 'verified'
-      ? t('components.profilepanel.verified_practitioner_desc')
-      : verification === 'rejected'
-        ? t('components.profilepanel.rejected_practitioner_desc')
-        : t('components.profilepanel.basic_practitioner_desc');
+
 
   return (
     <div className="space-y-6 select-none animate-fade-in-up">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.8fr)]">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+          {t('components.appshell.professional_profile')}
+        </h2>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
         <section className="portal-panel rounded-[1.6rem] overflow-hidden">
           <div className="border-b border-border px-8 py-6">
             <div className="flex items-center gap-3">
@@ -309,38 +331,6 @@ export const ProfilePanel: React.FC = () => {
                 </div>
               </div>
 
-              {/* Practitioner Credentials section */}
-              <div className="portal-soft-panel rounded-2xl p-5 flex items-start gap-4 border border-border">
-                <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background/50 border ${
-                  verification === 'verified'
-                    ? 'border-primary/20 text-primary'
-                    : verification === 'rejected'
-                      ? 'border-red-500/20 text-red-500'
-                      : 'border-border text-muted-foreground'
-                }`}>
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
-                      {t('components.profilepanel.verification_status')}
-                    </span>
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider ${
-                      verification === 'verified'
-                        ? 'bg-primary/10 text-primary'
-                        : verification === 'rejected'
-                          ? 'bg-red-500/10 text-red-500'
-                          : 'bg-muted/40 text-muted-foreground border border-border'
-                    }`}>
-                      {verificationLabel}
-                    </span>
-                  </div>
-                  <p className="text-sm font-semibold text-muted-foreground leading-relaxed">
-                    {verificationDesc}
-                  </p>
-                </div>
-              </div>
-
               <div className="grid gap-3 rounded-2xl border border-border bg-background/60 p-6 md:grid-cols-2">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
@@ -375,9 +365,9 @@ export const ProfilePanel: React.FC = () => {
         </section>
 
         {/* Right column: Subscription & Trust */}
-        <section className="space-y-6">
+        <section className="flex flex-col h-full">
           {/* Subscription Details Card */}
-          <div className="portal-panel rounded-[1.6rem] p-8">
+          <div className="portal-panel rounded-[1.6rem] p-8 flex-1 flex flex-col">
             <div className="flex items-start justify-between gap-4 border-b border-border pb-5 mb-5">
               <div className="space-y-1">
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">
@@ -399,42 +389,44 @@ export const ProfilePanel: React.FC = () => {
               </span>
             </div>
 
-            <div className="space-y-5">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm font-semibold">
-                  <span className="text-muted-foreground">{t('components.profilepanel.connected_clients')}</span>
-                  <span className="text-foreground font-extrabold">{connectedClients} / {billingSummary.clientLimit}</span>
+            <div className="flex-1 flex flex-col justify-between">
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm font-semibold">
+                    <span className="text-muted-foreground">{t('components.profilepanel.connected_clients')}</span>
+                    <span className="text-foreground font-extrabold">{connectedClients} / {billingSummary.clientLimit}</span>
+                  </div>
+                  <div className="h-2.5 w-full rounded-full bg-border/40 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        billingSummary.atCapacity
+                          ? 'bg-red-500'
+                          : (connectedClients / (billingSummary.clientLimit || 1)) > 0.8
+                            ? 'bg-amber-500'
+                            : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min(100, (connectedClients / (billingSummary.clientLimit || 1)) * 100)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2.5 w-full rounded-full bg-border/40 overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      billingSummary.atCapacity
-                        ? 'bg-red-500'
-                        : (connectedClients / (billingSummary.clientLimit || 1)) > 0.8
-                          ? 'bg-amber-500'
-                          : 'bg-primary'
-                    }`}
-                    style={{ width: `${Math.min(100, (connectedClients / (billingSummary.clientLimit || 1)) * 100)}%` }}
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    {t('components.profilepanel.remaining_slots')}
-                  </p>
-                  <p className="mt-1 text-2xl font-black text-foreground">
-                    {billingSummary.remainingClientSlots}
-                  </p>
-                </div>
-                <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                    {t('components.billingpanel.billing_interval')}
-                  </p>
-                  <p className="mt-2 text-sm font-black uppercase tracking-wider text-foreground">
-                    {billingSummary.billingIntervalLabel}
-                  </p>
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                      {t('components.profilepanel.remaining_slots')}
+                    </p>
+                    <p className="mt-1 text-2xl font-black text-foreground">
+                      {billingSummary.remainingClientSlots}
+                    </p>
+                  </div>
+                  <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
+                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                      {t('components.billingpanel.billing_interval')}
+                    </p>
+                    <p className="mt-2 text-sm font-black uppercase tracking-wider text-foreground">
+                      {billingSummary.billingIntervalLabel}{currentPriceLabel}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -443,62 +435,25 @@ export const ProfilePanel: React.FC = () => {
                 onClick={() => {
                   window.location.hash = 'billing-panel';
                 }}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 text-xs font-extrabold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/20 cursor-pointer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 text-xs font-extrabold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/20 cursor-pointer"
               >
                 {t('components.profilepanel.manage_subscription')}
               </button>
             </div>
           </div>
-
-          {/* Privacy and Trust Card */}
-          <div className="portal-panel rounded-[1.6rem] p-8">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <HeartHandshake className="h-5 w-5 text-primary" />
-                  <h3 className="text-xl font-black text-foreground">
-                    {t('components.profilepanel.privacy_and_trust')}
-                  </h3>
-                </div>
-                <p className="text-sm font-semibold leading-relaxed text-muted-foreground">
-                  {t('components.profilepanel.the_portal_should_never_imply_more_visibility_than_what_really_exists')}
-                </p>
-              </div>
-              <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                <span className="h-2 w-2 rounded-full bg-primary" />
-                {t('components.profilepanel.active')}
-              </span>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {[
-                t('components.profilepanel.aggregate_snapshots_are_the_default_baseline_for_every_active_relationsh'),
-                t('components.profilepanel.detailed_diary_rows_only_appear_with_explicit_client_consent'),
-                t('components.profilepanel.the_client_can_revoke_the_professional_relationship_at_any_moment'),
-              ].map((item) => (
-                <div key={item} className="portal-soft-panel flex items-start gap-3 rounded-2xl p-5">
-                  <div className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-lg bg-primary/12 text-primary shrink-0">
-                    <Check className="h-3.5 w-3.5" />
-                  </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground font-semibold">{item}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-border bg-background/60 p-5">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4.5 w-4.5 text-primary" />
-                <p className="text-sm font-black text-foreground uppercase tracking-wider">
-                  {t('components.profilepanel.operational_context')}
-                </p>
-              </div>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground font-semibold">
-                {t('components.profilepanel.this_surface_is_intended_for_internal_operations_roster_notes_plans_and_')}
-              </p>
-            </div>
-          </div>
         </section>
       </div>
+
+      <ImageCropperModal
+        src={cropperSrc || ''}
+        isOpen={isCropperOpen}
+        onClose={() => {
+          setIsCropperOpen(false);
+          setCropperSrc(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }}
+        onApply={handleCroppedApply}
+      />
     </div>
   );
 };

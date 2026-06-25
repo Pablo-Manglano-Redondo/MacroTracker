@@ -75,5 +75,4 @@ sentry.properties
 
 # Playwright
 .playwright-cli/
-playwright-report/
-playwright-videos/
+.playwright-cli

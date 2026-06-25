@@ -70,6 +70,34 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<DetailTab>('summary');
 
+  React.useEffect(() => {
+    const handleSelectTab = (e: Event) => {
+      const { clientId, tab } = (e as CustomEvent).detail || {};
+      if (clientId === client.client_id || clientId === client.id) {
+        if (tab) {
+          setDetailTab(tab as DetailTab);
+          if (tab === 'plans') {
+            setEditingPlanId(null);
+            setPlanView('list');
+          }
+        }
+      }
+    };
+
+    const pending = (window as any).__pendingClientTab;
+    if (pending && (pending.clientId === client.client_id || pending.clientId === client.id)) {
+      setDetailTab(pending.tab as DetailTab);
+      if (pending.tab === 'plans') {
+        setEditingPlanId(null);
+        setPlanView('list');
+      }
+      delete (window as any).__pendingClientTab;
+    }
+
+    window.addEventListener('select-client-tab', handleSelectTab);
+    return () => window.removeEventListener('select-client-tab', handleSelectTab);
+  }, [client.id, client.client_id]);
+
   const { data: plans = [] } = usePlans(client.client_id, professional?.id);
   const { data: checkins = [] } = useClientCheckins(client.id);
   const { data: progressRecords = [] } = useClientProgress(client.id);
@@ -83,20 +111,6 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
     .slice(0, 2)
     .toUpperCase();
 
-  const relationshipLabel = useMemo(() => {
-    if (client.status === 'connected') return t('components.clientdetail.index.connected');
-    if (client.status === 'revoked') return t('components.clientdetail.index.revoked');
-    if (client.status === 'archived') return t('components.clientdetail.index.archived');
-    return client.status;
-  }, [client.status, t]);
-
-  const sharingLabel =
-    client.sharing_mode === 'detailed'
-      ? t('components.clientdetail.index.detailed')
-      : t('components.clientdetail.index.aggregate');
-  const messagesLabel = client.messages_enabled
-    ? t('components.clientdetail.index.chat_active')
-    : t('components.clientdetail.index.chat_inactive');
   const latestSnapshot = getLatestSnapshot(client);
 
   const weeklyAdherence = useMemo(() => {
@@ -206,13 +220,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                   <FileText className="h-5 w-5" />
                 </button>
               </div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <Badge tone={client.status === 'connected' ? 'good' : 'neutral'}>
-                  {relationshipLabel}
-                </Badge>
-                <Badge tone="primary">{sharingLabel}</Badge>
-                <Badge tone={client.messages_enabled ? 'info' : 'neutral'}>{messagesLabel}</Badge>
-              </div>
+
             </div>
           </div>
 
@@ -245,7 +253,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.weekly_adherence')}
             </p>
@@ -276,7 +284,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.pending_checkin')}
             </p>
@@ -288,7 +296,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.unread_messages')}
             </p>
@@ -302,7 +310,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.current_weight')}
             </p>
@@ -326,11 +334,11 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             )}
           </div>
 
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.latest_update')}
             </p>
-            <p className="mt-2.5 truncate text-3xl font-black leading-6 text-foreground">
+            <p className="mt-2.5 text-3xl font-black text-foreground">
               {latestSnapshot
                 ? formatPortalDate(latestSnapshot.snapshot_date, locale, {
                     month: 'short',
@@ -345,12 +353,12 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
 
-          <div className="rounded-2xl border border-[#1e2326] bg-[#131719]/90 p-6 shadow-sm">
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.active_plan')}
             </p>
-            <p className="mt-2.5 truncate text-xl font-black leading-6 text-foreground">
-              {activePlan ? activePlan.name : t('components.clientdetail.index.none')}
+            <p className="mt-2.5 text-lg font-black leading-tight text-foreground line-clamp-2" title={activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : undefined}>
+              {activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : t('components.clientdetail.index.none')}
             </p>
             <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
               {activePlanStartStr
@@ -377,7 +385,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-extrabold transition-all ${
               detailTab === tab.id
                 ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
-                : 'portal-chip hover:bg-[#181d20]/80 hover:text-foreground'
+                : 'portal-chip hover:bg-accent hover:text-foreground'
             }`}
           >
             {tab.icon}
@@ -511,22 +519,4 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   );
 };
 
-const Badge: React.FC<{
-  tone: 'good' | 'primary' | 'info' | 'neutral';
-  children: React.ReactNode;
-}> = ({ tone, children }) => {
-  const className = {
-    good: 'bg-emerald-500/10 text-emerald-600 dark:text-[#72de98]',
-    primary: 'bg-primary/10 text-[#72de98]',
-    info: 'bg-sky-500/10 text-sky-500',
-    neutral: 'border border-[#1e2326] bg-[#181d20] text-muted-foreground',
-  }[tone];
 
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-xl px-3.5 py-1 text-xs font-bold uppercase tracking-[0.12em] ${className}`}
-    >
-      {children}
-    </span>
-  );
-};

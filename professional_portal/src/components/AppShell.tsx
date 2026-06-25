@@ -49,12 +49,13 @@ const PANEL_IDS = [
 
 export const AppShell: React.FC = () => {
   const { session, loading, professional, user, signOut } = useAuth();
-  const { t, locale, setLocale } = usePortalI18n();
+  const { t, locale, setLocale, locales } = usePortalI18n();
   const [activePanel, setActivePanel] = useState('dashboard-panel');
   const [selectedClient, setSelectedClient] = useState<ProfessionalClient | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -350,15 +351,47 @@ export const AppShell: React.FC = () => {
                   <span className="hidden sm:inline">{t('components.appshell.invite_client')}</span>
                 </button>
 
-                {/* Language Toggle Button */}
-                <button
-                  onClick={() => setLocale(locale === 'es' ? 'en' : 'es')}
-                  className="flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground hover:bg-accent transition-colors shadow-sm"
-                  title={t('components.sidebar.language')}
-                >
-                  <Globe className="h-4.5 w-4.5 text-muted-foreground" />
-                  <span>{locale}</span>
-                </button>
+                {/* Language Dropdown Select */}
+                <div className="relative">
+                  <button
+                    onClick={() => setLanguageMenuOpen((prev) => !prev)}
+                    className="flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground hover:bg-accent transition-colors shadow-sm"
+                    title={t('components.sidebar.language')}
+                  >
+                    <Globe className="h-4.5 w-4.5 text-muted-foreground" />
+                    <span>{locale}</span>
+                  </button>
+
+                  {languageMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-35"
+                        onClick={() => setLanguageMenuOpen(false)}
+                      />
+                      <div className="absolute right-0 mt-2.5 z-40 w-64 rounded-2xl border border-border bg-card p-2 shadow-2xl backdrop-blur">
+                        <div className="space-y-1">
+                          {locales.map((loc) => (
+                            <button
+                              key={loc.code}
+                              onClick={() => {
+                                setLocale(loc.code as any);
+                                setLanguageMenuOpen(false);
+                              }}
+                              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-xs font-bold uppercase tracking-wider transition-colors ${
+                                locale === loc.code
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                              }`}
+                            >
+                              <span>{loc.nativeName}</span>
+                              <span className="text-[10px] opacity-60 font-semibold">{loc.code}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
 
                 {/* Theme Toggle Button */}
                 <button

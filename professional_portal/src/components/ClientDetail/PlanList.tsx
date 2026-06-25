@@ -11,7 +11,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
-import { usePlans } from '../../hooks/queries/usePlans';
+import { usePlans, usePlan } from '../../hooks/queries/usePlans';
 import {
   useArchivePlan,
   useBatchArchivePlans,
@@ -37,6 +37,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
   const { t, locale } = usePortalI18n();
   const billingSummary = getBillingSummary(professional);
   const { data: plans, isLoading, error } = usePlans(client.client_id, client.professional_id);
+
   const archivePlan = useArchivePlan();
   const deletePlan = useDeletePlan();
   const duplicatePlan = useDuplicatePlan();
@@ -59,9 +60,15 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
   const activePlans = plans?.filter((plan) => plan.status !== 'archived') ?? [];
   const archivedPlans = plans?.filter((plan) => plan.status === 'archived') ?? [];
 
+  const activePlan = plans?.find((plan) => plan.status === 'active') || null;
+  const { data: activePlanDetails, isLoading: activePlanDetailsLoading } = usePlan(activePlan?.id);
+  const activeDay = activePlanDetails?.days?.[0];
+
+  const otherActivePlans = activePlans.filter((plan) => plan.id !== activePlan?.id);
+
   const toggleSelectAll = () => {
     setSelectedPlans((prev) =>
-      prev.size === activePlans.length ? new Set() : new Set(activePlans.map((plan) => plan.id)),
+      prev.size === otherActivePlans.length ? new Set() : new Set(otherActivePlans.map((plan) => plan.id)),
     );
   };
 
@@ -123,229 +130,331 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
 
   if (isLoading) {
     return (
-      <div className="portal-panel flex min-h-[220px] items-center justify-center rounded-[1.6rem]">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+      <div className="portal-panel flex min-h-[220px] items-center justify-center rounded-[1.8rem] p-8">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="portal-panel rounded-[1.6rem] p-5 text-center text-sm text-muted-foreground">
+      <div className="portal-panel rounded-[1.8rem] p-8 text-center text-sm text-muted-foreground">
         {t('components.clientdetail.planlist.failed_to_load_plans')}
       </div>
     );
   }
 
   return (
-    <div className="portal-panel rounded-[1.6rem]">
-      <div className="flex items-center justify-between border-b border-border px-5 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary">
-            <LayoutList className="h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.planlist.plans')}</h3>
-            <p className="text-sm text-muted-foreground">
-              {t('components.clientdetail.planlist.non_archived', { activeplans_length: activePlans.length })}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {selectMode ? (
-            <>
+    <div className="space-y-6">
+      {/* Prominent Active Plan Section */}
+      {activePlan ? (
+        <div className="portal-panel rounded-[1.8rem] p-6 bg-primary/[0.01]">
+          <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <LayoutList className="h-6 w-6" />
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="text-xl font-black text-foreground">{activePlan.name.replace(/semanals/gi, 'semanal')}</h4>
+                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-[#72de98]">
+                    {t('components.clientdetail.planlist.active')}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                  {activePlan.starts_on ? formatPortalDate(activePlan.starts_on, locale) : ''}
+                  {activePlan.ends_on ? ` - ${formatPortalDate(activePlan.ends_on, locale)}` : ''}
+                </p>
+              </div>
+            </div>
+            {canManagePlans && (
               <Button
-                size="sm"
-                variant="ghost"
-                className="h-9 rounded-xl text-sm font-semibold"
-                onClick={() => {
-                  setSelectMode(false);
-                  setSelectedPlans(new Set());
-                }}
-              >
-                {t('components.clientdetail.planlist.cancel')}
-              </Button>
-              <Button
+                onClick={() => onEditPlan(activePlan.id)}
                 size="sm"
                 variant="secondary"
-                className="h-9 rounded-xl text-sm font-semibold"
-                disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
-                onClick={handleBatchArchive}
+                className="h-10 rounded-xl px-5 text-sm font-bold"
               >
-                {batchArchivePlans.isPending ? (
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Archive className="mr-1.5 h-3.5 w-3.5" />
-                )}
-                {t('components.clientdetail.planlist.archive')} ({selectedPlans.size})
+                {t('components.clientdetail.summarypanel.edit_plan')}
               </Button>
-            </>
-          ) : (
-            <>
-              <button
-                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                onClick={() => setSelectMode(true)}
-                disabled={!canManagePlans}
-                title={t('components.clientdetail.planlist.select_plans')}
-              >
-                <CheckSquare className="h-4 w-4" />
-              </button>
-              <Button
-                onClick={onNewPlan}
-                size="sm"
-                disabled={!canManagePlans}
-                className="h-9 rounded-xl bg-primary text-sm font-bold text-primary-foreground"
-              >
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
-                {t('components.clientdetail.planlist.new')}
-              </Button>
-            </>
+            )}
+          </div>
+
+          {activePlanDetailsLoading ? (
+            <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="portal-panel h-24 rounded-2xl animate-pulse bg-black/5 dark:bg-white/5" />
+              ))}
+            </div>
+          ) : activeDay ? (
+            <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">{t('common.kcal')}</span>
+                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="text-xs font-bold text-muted-foreground">{t('common.kcal_unit')}</span></p>
+              </div>
+              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-primary">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">{t('components.clientdetail.snapshotspanel.protein')}</span>
+                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.protein_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+              </div>
+              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-sky-500">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
+                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+              </div>
+              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-amber-500">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
+                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.fat_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Meals List */}
+          {activePlanDetails?.meals && activePlanDetails.meals.length > 0 && (
+            <div className="mt-6 border-t border-border pt-6">
+              <span className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Comidas Planificadas</span>
+              <div className="grid gap-3.5 mt-3.5 sm:grid-cols-2">
+                {activePlanDetails.meals.map((meal) => (
+                  <div key={meal.id} className="portal-panel rounded-2xl p-4.5 bg-background/30 flex items-start justify-between gap-3 border border-border/40">
+                    <div className="min-w-0">
+                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground/80">{meal.slot}</span>
+                      <p className="text-sm font-extrabold text-foreground truncate mt-1">{meal.title}</p>
+                      {meal.notes && <p className="text-xs text-muted-foreground truncate mt-0.5">{meal.notes}</p>}
+                    </div>
+                    {meal.kcal && (
+                      <span className="text-xs font-bold text-muted-foreground bg-secondary/80 px-2.5 py-1 rounded-xl shrink-0">
+                        {Math.round(meal.kcal)} kcal
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
-      </div>
-
-      {!canManagePlans && (
-        <div className="mx-5 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
-          {client.status !== 'connected'
-            ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
-            : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
+      ) : (
+        <div className="portal-panel px-6 py-12 text-center rounded-[1.8rem] border border-border bg-card/20">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <LayoutList className="h-6 w-6" />
+          </div>
+          <h4 className="mt-4 text-lg font-black text-foreground">Sin Plan Activo</h4>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+            No hay ningún plan nutricional activo para este cliente. Crea uno nuevo para establecer sus calorías y macros diarios.
+          </p>
+          {canManagePlans && (
+            <Button
+              onClick={onNewPlan}
+              className="mt-5 bg-primary rounded-xl px-5 py-2.5 font-bold text-sm text-primary-foreground"
+            >
+              <Plus className="mr-1.5 h-4 w-4" />
+              Crear Plan
+            </Button>
+          )}
         </div>
       )}
 
-      {plans && plans.length === 0 ? (
-        <div className="px-5 py-10 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-background text-muted-foreground">
-            <FileText className="h-5 w-5" />
+      {/* History and Other Plans (Drafts & Inactive Plans) */}
+      <div className="portal-panel rounded-[1.8rem]">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
+          <div>
+            <h3 className="text-base font-black uppercase tracking-[0.1em] text-foreground">
+              Historial y Borradores
+            </h3>
+            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
+              {t('components.clientdetail.planlist.non_archived', { activeplans_length: otherActivePlans.length })}
+            </p>
           </div>
-          <p className="mt-3 text-sm font-bold text-foreground">{t('components.clientdetail.planlist.no_plans_yet')}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('components.clientdetail.planlist.create_a_plan_to_define_weekly_nutrition_targets')}
-          </p>
-        </div>
-      ) : (
-        <div className="p-2">
-          {selectMode && activePlans.length > 0 && (
-            <div className="mb-1 flex items-center gap-2 px-3 py-2">
-              <button
-                className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
-                onClick={toggleSelectAll}
-              >
-                {selectedPlans.size === activePlans.length ? (
-                  <CheckSquare className="h-4 w-4 text-primary" />
-                ) : (
-                  <Square className="h-4 w-4" />
-                )}
-              </button>
-              <span className="text-xs font-semibold text-muted-foreground">
-                {selectedPlans.size === 0
-                  ? t('components.clientdetail.planlist.select_plans_to_batch_archive')
-                  : t('components.clientdetail.planlist.of_selected', { selectedplans_size: selectedPlans.size, activeplans_length: activePlans.length })}
-              </span>
-            </div>
-          )}
 
-          <div className="space-y-1">
-            {activePlans.map((plan) => (
-              <div
-                key={plan.id}
-                className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${
-                  selectMode ? '' : 'cursor-pointer hover:bg-accent'
-                }`}
-                onClick={selectMode ? () => toggleSelect(plan.id) : () => onEditPlan(plan.id)}
-              >
-                {selectMode ? (
+          <div className="flex items-center gap-2">
+            {selectMode ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-9 rounded-xl text-sm font-semibold"
+                  onClick={() => {
+                    setSelectMode(false);
+                    setSelectedPlans(new Set());
+                  }}
+                >
+                  {t('components.clientdetail.planlist.cancel')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-9 rounded-xl text-sm font-semibold"
+                  disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
+                  onClick={handleBatchArchive}
+                >
+                  {batchArchivePlans.isPending ? (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Archive className="mr-1.5 h-3.5 w-3.5" />
+                  )}
+                  {t('components.clientdetail.planlist.archive')} ({selectedPlans.size})
+                </Button>
+              </>
+            ) : (
+              <>
+                {otherActivePlans.length > 0 && (
                   <button
-                    className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleSelect(plan.id);
-                    }}
+                    className="rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    onClick={() => setSelectMode(true)}
+                    disabled={!canManagePlans}
+                    title={t('components.clientdetail.planlist.select_plans')}
                   >
-                    {selectedPlans.has(plan.id) ? (
-                      <CheckSquare className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
+                    <CheckSquare className="h-4 w-4" />
                   </button>
-                ) : (
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background text-muted-foreground">
-                    <FileText className="h-4 w-4" />
-                  </div>
                 )}
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-bold text-foreground">{plan.name}</span>
-                    <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                      {statusLabel(plan.status)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[11px] font-semibold text-muted-foreground">
-                    {formatPortalDate(plan.created_at, locale)}
-                  </p>
-                </div>
-
-                {!selectMode ? (
-                  <div
-                    className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={(e) => e.stopPropagation()}
+                {(!activePlan || otherActivePlans.length > 0) && (
+                  <Button
+                    onClick={onNewPlan}
+                    size="sm"
+                    disabled={!canManagePlans}
+                    className="h-9 rounded-xl bg-primary text-sm font-bold text-primary-foreground"
                   >
-                    <IconAction title={t('components.clientdetail.planlist.duplicate')} onClick={() => handleDuplicate(plan.id)}>
-                      <Copy className="h-3.5 w-3.5" />
-                    </IconAction>
-                    <IconAction title={t('components.clientdetail.planlist.archive')} onClick={() => handleArchive(plan.id)}>
-                      <Archive className="h-3.5 w-3.5" />
-                    </IconAction>
-                    {confirmDelete === plan.id ? (
-                      <div className="ml-1 flex items-center gap-1">
-                        <IconAction title={t('components.clientdetail.planlist.confirm')} onClick={() => handleDelete(plan.id)} danger>
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </IconAction>
-                        <button
-                          className="rounded-lg px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent"
-                          onClick={() => setConfirmDelete(null)}
-                        >
-                          {t('components.clientdetail.planlist.cancel')}
-                        </button>
-                      </div>
-                    ) : (
-                      <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => setConfirmDelete(plan.id)} danger>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </IconAction>
-                    )}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-
-            {archivedPlans.length > 0 && (
-              <details className="group mt-2">
-                <summary className="cursor-pointer px-3 py-2 text-xs font-bold text-muted-foreground transition-colors hover:text-foreground">
-                  {t('components.clientdetail.planlist.archived_2', { archivedplans_length: archivedPlans.length })}
-                </summary>
-                <div className="mt-1 space-y-1">
-                  {archivedPlans.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
-                    >
-                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="flex-1 truncate text-sm font-semibold text-muted-foreground">{plan.name}</span>
-                      <span className="rounded-full bg-background px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                        {statusLabel(plan.status)}
-                      </span>
-                      <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => handleDelete(plan.id)} danger>
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </IconAction>
-                    </div>
-                  ))}
-                </div>
-              </details>
+                    <Plus className="mr-1.5 h-3.5 w-3.5" />
+                    {t('components.clientdetail.planlist.new')}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>
-      )}
+
+        {!canManagePlans && !activePlan && (
+          <div className="mx-6 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+            {client.status !== 'connected'
+              ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
+              : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
+          </div>
+        )}
+
+        {otherActivePlans.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-muted-foreground font-semibold">
+            No hay borradores ni planes antiguos registrados.
+          </div>
+        ) : (
+          <div className="p-3">
+            {selectMode && otherActivePlans.length > 0 && (
+              <div className="mb-1 flex items-center gap-2 px-3 py-2">
+                <button
+                  className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={toggleSelectAll}
+                >
+                  {selectedPlans.size === otherActivePlans.length ? (
+                    <CheckSquare className="h-4 w-4 text-primary" />
+                  ) : (
+                    <Square className="h-4 w-4" />
+                  )}
+                </button>
+                <span className="text-xs font-semibold text-muted-foreground">
+                  {selectedPlans.size === 0
+                    ? t('components.clientdetail.planlist.select_plans_to_batch_archive')
+                    : t('components.clientdetail.planlist.of_selected', { selectedplans_size: selectedPlans.size, activeplans_length: otherActivePlans.length })}
+                </span>
+              </div>
+            )}
+
+            <div className="space-y-1">
+              {otherActivePlans.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors ${
+                    selectMode ? '' : 'cursor-pointer hover:bg-accent'
+                  }`}
+                  onClick={selectMode ? () => toggleSelect(plan.id) : () => onEditPlan(plan.id)}
+                >
+                  {selectMode ? (
+                    <button
+                      className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(plan.id);
+                      }}
+                    >
+                      {selectedPlans.has(plan.id) ? (
+                        <CheckSquare className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
+                  ) : (
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-background text-muted-foreground">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                  )}
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-base font-black text-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</span>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                        {statusLabel(plan.status)}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                      {formatPortalDate(plan.created_at, locale)}
+                    </p>
+                  </div>
+
+                  {!selectMode ? (
+                    <div
+                      className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconAction title={t('components.clientdetail.planlist.duplicate')} onClick={() => handleDuplicate(plan.id)}>
+                        <Copy className="h-3.5 w-3.5" />
+                      </IconAction>
+                      <IconAction title={t('components.clientdetail.planlist.archive')} onClick={() => handleArchive(plan.id)}>
+                        <Archive className="h-3.5 w-3.5" />
+                      </IconAction>
+                      {confirmDelete === plan.id ? (
+                        <div className="ml-1 flex items-center gap-1">
+                          <IconAction title={t('components.clientdetail.planlist.confirm')} onClick={() => handleDelete(plan.id)} danger>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </IconAction>
+                          <button
+                            className="rounded-lg px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent"
+                            onClick={() => setConfirmDelete(null)}
+                          >
+                            {t('components.clientdetail.planlist.cancel')}
+                          </button>
+                        </div>
+                      ) : (
+                        <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => setConfirmDelete(plan.id)} danger>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </IconAction>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+
+              {archivedPlans.length > 0 && (
+                <details className="group mt-2 border-t border-border/40 pt-2">
+                  <summary className="cursor-pointer px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground">
+                    {t('components.clientdetail.planlist.archived_2', { archivedplans_length: archivedPlans.length })}
+                  </summary>
+                  <div className="mt-1 space-y-1">
+                    {archivedPlans.map((plan) => (
+                      <div
+                        key={plan.id}
+                        className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
+                      >
+                        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="flex-1 truncate text-sm font-semibold text-muted-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</span>
+                        <span className="rounded-full bg-background px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                          {statusLabel(plan.status)}
+                        </span>
+                        <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => handleDelete(plan.id)} danger>
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </IconAction>
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

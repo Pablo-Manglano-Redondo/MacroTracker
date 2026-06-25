@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChefHat,
   Clock,
@@ -228,6 +229,19 @@ export const RecipeLibraryPanel: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+          {t('components.recipelibrarypanel.recipe_library')}
+        </h2>
+        <button
+          onClick={openCreate}
+          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
+        >
+          <Plus className="h-4.5 w-4.5" />
+          <span>{t('components.recipelibrarypanel.new_recipe')}</span>
+        </button>
+      </div>
+
       <section className="grid gap-4 md:grid-cols-3">
         <StatCard
           label={t('components.recipelibrarypanel.visible_recipes')}
@@ -274,14 +288,6 @@ export const RecipeLibraryPanel: React.FC = () => {
             ))}
           </div>
         </div>
-
-        <button
-          onClick={openCreate}
-          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
-        >
-          <Plus className="h-4.5 w-4.5" />
-          <span>{t('components.recipelibrarypanel.new_recipe')}</span>
-        </button>
       </div>
 
       {isLoading ? (
@@ -369,216 +375,220 @@ export const RecipeLibraryPanel: React.FC = () => {
         </div>
       )}
 
-      {showForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
-          onClick={() => setShowForm(false)}
-        >
+      {showForm &&
+        createPortal(
           <div
-            className="glass-card max-h-[88vh] w-full max-w-3xl overflow-y-auto rounded-[1.8rem] p-6"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            onClick={() => setShowForm(false)}
           >
-            <div className="mb-5 flex items-center justify-between border-b border-border pb-4">
-              <div>
-                <h3 className="text-lg font-bold text-foreground">
-                  {editingId
-                    ? t('components.recipelibrarypanel.edit_recipe')
-                    : t('components.recipelibrarypanel.create_recipe')}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  {t('components.recipelibrarypanel.macros_ingredients_and_instructions_for_the_professional_library')}
-                </p>
-              </div>
-              <button
-                onClick={() => setShowForm(false)}
-                className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label={t('components.recipelibrarypanel.title')} required className="md:col-span-2">
-                <input
-                  value={form.title}
-                  onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
-                />
-              </Field>
-              <Field label={t('components.recipelibrarypanel.description')} className="md:col-span-2">
-                <textarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, description: e.target.value }))
-                  }
-                  rows={2}
-                  className="portal-input w-full rounded-xl px-5 py-4 text-base font-semibold outline-none focus:border-primary"
-                />
-              </Field>
-              <Field label={t('components.recipelibrarypanel.meal_type')}>
-                <select
-                  value={form.meal_type}
-                  onChange={(e) => setForm((prev) => ({ ...prev, meal_type: e.target.value }))}
-                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
-                >
-                  {MEAL_TYPES.filter((meal) => meal !== 'all').map((meal) => (
-                    <option key={meal} value={meal}>
-                      {mealLabel(meal)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label={t('components.recipelibrarypanel.servings')}>
-                <input
-                  type="number"
-                  min={1}
-                  value={form.servings}
-                  onChange={(e) => setForm((prev) => ({ ...prev, servings: +e.target.value }))}
-                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
-                />
-              </Field>
-              <Field label={t('components.recipelibrarypanel.prep_min_2')}>
-                <input
-                  type="number"
-                  value={form.prep_time_min}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, prep_time_min: +e.target.value }))
-                  }
-                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
-                />
-              </Field>
-              <Field label={t('components.recipelibrarypanel.cook_min')}>
-                <input
-                  type="number"
-                  value={form.cook_time_min}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, cook_time_min: +e.target.value }))
-                  }
-                  className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
-                />
-              </Field>
-
-              <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                  {t('components.recipelibrarypanel.macros')}
-                </p>
-                <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  {[
-                    { label: t('common.kcal'), value: form.kcal, key: 'kcal' as const },
-                    { label: t('common.protein'), value: form.protein, key: 'protein' as const },
-                    { label: t('common.carbs'), value: form.carbs, key: 'carbs' as const },
-                    { label: t('common.fat'), value: form.fat, key: 'fat' as const },
-                  ].map((macro) => (
-                    <Field key={macro.key} label={macro.label}>
-                      <input
-                        type="number"
-                        value={macro.value}
-                        onChange={(e) =>
-                          setForm((prev) => ({ ...prev, [macro.key]: +e.target.value }))
-                        }
-                        className="portal-input h-10 w-full rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
-                      />
-                    </Field>
-                  ))}
-                </div>
-              </div>
-
-              <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
-                    {t('components.recipelibrarypanel.ingredients')}
+            <div
+              className="glass-card flex max-h-[85vh] w-full max-w-3xl flex-col rounded-[1.8rem] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-border p-6 pb-4 shrink-0">
+                <div>
+                  <h3 className="text-lg font-bold text-foreground">
+                    {editingId
+                      ? t('components.recipelibrarypanel.edit_recipe')
+                      : t('components.recipelibrarypanel.create_recipe')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('components.recipelibrarypanel.macros_ingredients_and_instructions_for_the_professional_library')}
                   </p>
-                  <button
-                    onClick={addIngredient}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-primary"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    {t('components.recipelibrarypanel.add_ingredient')}
-                  </button>
                 </div>
-
-                <div className="space-y-2">
-                  {form.ingredients.map((ingredient, index) => (
-                    <div key={index} className="grid grid-cols-[18px_minmax(0,1fr)_88px_92px_36px] gap-2">
-                      <div className="flex items-center justify-center text-muted-foreground">
-                        <GripVertical className="h-4 w-4" />
-                      </div>
-                      <input
-                        value={ingredient.name}
-                        onChange={(e) => updateIngredient(index, 'name', e.target.value)}
-                        placeholder={t('components.recipelibrarypanel.ingredient')}
-                        className="portal-input h-10 rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
-                      />
-                      <input
-                        type="number"
-                        value={ingredient.amount || ''}
-                        onChange={(e) => updateIngredient(index, 'amount', +e.target.value)}
-                        className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
-                      />
-                      <select
-                        value={ingredient.unit}
-                        onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                        className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none"
-                      >
-                        {['g', 'ml', 'tsp', 'tbsp', 'cup', 'oz', 'lb', 'unit', 'slice', 'piece'].map(
-                          (unit) => (
-                            <option key={unit} value={unit}>
-                              {unit}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                      <button
-                        onClick={() => removeIngredient(index)}
-                        className="rounded-xl text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
-                      >
-                        <X className="mx-auto h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  {form.ingredients.length === 0 && (
-                    <p className="text-sm text-muted-foreground">
-                      {t('components.recipelibrarypanel.no_ingredients_yet')}
-                    </p>
-                  )}
-                </div>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
-              <Field label={t('components.recipelibrarypanel.instructions')} className="md:col-span-2">
-                <textarea
-                  value={form.instructions}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, instructions: e.target.value }))
-                  }
-                  rows={4}
-                  placeholder={t('components.recipelibrarypanel.describe_the_preparation_step_by_step')}
-                  className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
-                />
-              </Field>
-            </div>
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                <div className="grid gap-4 md:grid-cols-2">
+                <Field label={t('components.recipelibrarypanel.title')} required className="md:col-span-2">
+                  <input
+                    value={form.title}
+                    onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                  />
+                </Field>
+                <Field label={t('components.recipelibrarypanel.description')} className="md:col-span-2">
+                  <textarea
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, description: e.target.value }))
+                    }
+                    rows={2}
+                    className="portal-input w-full rounded-xl px-5 py-4 text-base font-semibold outline-none focus:border-primary"
+                  />
+                </Field>
+                <Field label={t('components.recipelibrarypanel.meal_type')}>
+                  <select
+                    value={form.meal_type}
+                    onChange={(e) => setForm((prev) => ({ ...prev, meal_type: e.target.value }))}
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
+                  >
+                    {MEAL_TYPES.filter((meal) => meal !== 'all').map((meal) => (
+                      <option key={meal} value={meal}>
+                        {mealLabel(meal)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label={t('components.recipelibrarypanel.servings')}>
+                  <input
+                    type="number"
+                    min={1}
+                    value={form.servings}
+                    onChange={(e) => setForm((prev) => ({ ...prev, servings: +e.target.value }))}
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                  />
+                </Field>
+                <Field label={t('components.recipelibrarypanel.prep_min_2')}>
+                  <input
+                    type="number"
+                    value={form.prep_time_min}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, prep_time_min: +e.target.value }))
+                    }
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                  />
+                </Field>
+                <Field label={t('components.recipelibrarypanel.cook_min')}>
+                  <input
+                    type="number"
+                    value={form.cook_time_min}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, cook_time_min: +e.target.value }))
+                    }
+                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                  />
+                </Field>
 
-            <div className="mt-5 flex justify-end gap-3 border-t border-border pt-4">
-              <button
-                onClick={() => setShowForm(false)}
-                className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
-              >
-                {t('components.recipelibrarypanel.cancel')}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={createRecipe.isPending || updateRecipe.isPending}
-                className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
-              >
-                {createRecipe.isPending || updateRecipe.isPending
-                  ? t('components.recipelibrarypanel.saving')
-                  : editingId
-                    ? t('components.recipelibrarypanel.update_recipe')
-                    : t('components.recipelibrarypanel.create_recipe')}
-              </button>
+                <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    {t('components.recipelibrarypanel.macros')}
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                    {[
+                      { label: t('common.kcal'), value: form.kcal, key: 'kcal' as const },
+                      { label: t('common.protein'), value: form.protein, key: 'protein' as const },
+                      { label: t('common.carbs'), value: form.carbs, key: 'carbs' as const },
+                      { label: t('common.fat'), value: form.fat, key: 'fat' as const },
+                    ].map((macro) => (
+                      <Field key={macro.key} label={macro.label}>
+                        <input
+                          type="number"
+                          value={macro.value}
+                          onChange={(e) =>
+                            setForm((prev) => ({ ...prev, [macro.key]: +e.target.value }))
+                          }
+                          className="portal-input h-10 w-full rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                      {t('components.recipelibrarypanel.ingredients')}
+                    </p>
+                    <button
+                      onClick={addIngredient}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      {t('components.recipelibrarypanel.add_ingredient')}
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {form.ingredients.map((ingredient, index) => (
+                      <div key={index} className="grid grid-cols-[18px_minmax(0,1fr)_88px_92px_36px] gap-2">
+                        <div className="flex items-center justify-center text-muted-foreground">
+                          <GripVertical className="h-4 w-4" />
+                        </div>
+                        <input
+                          value={ingredient.name}
+                          onChange={(e) => updateIngredient(index, 'name', e.target.value)}
+                          placeholder={t('components.recipelibrarypanel.ingredient')}
+                          className="portal-input h-10 rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                        />
+                        <input
+                          type="number"
+                          value={ingredient.amount || ''}
+                          onChange={(e) => updateIngredient(index, 'amount', +e.target.value)}
+                          className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                        />
+                        <select
+                          value={ingredient.unit}
+                          onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                          className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none"
+                        >
+                          {['g', 'ml', 'tsp', 'tbsp', 'cup', 'oz', 'lb', 'unit', 'slice', 'piece'].map(
+                            (unit) => (
+                              <option key={unit} value={unit}>
+                                {unit}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <button
+                          onClick={() => removeIngredient(index)}
+                          className="rounded-xl text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                        >
+                          <X className="mx-auto h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                    {form.ingredients.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        {t('components.recipelibrarypanel.no_ingredients_yet')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <Field label={t('components.recipelibrarypanel.instructions')} className="md:col-span-2">
+                  <textarea
+                    value={form.instructions}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, instructions: e.target.value }))
+                    }
+                    rows={4}
+                    placeholder={t('components.recipelibrarypanel.describe_the_preparation_step_by_step')}
+                    className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                  />
+                </Field>
+              </div>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-border p-6 pt-4 shrink-0">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+                >
+                  {t('components.recipelibrarypanel.cancel')}
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={createRecipe.isPending || updateRecipe.isPending}
+                  className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+                >
+                  {createRecipe.isPending || updateRecipe.isPending
+                    ? t('components.recipelibrarypanel.saving')
+                    : editingId
+                      ? t('components.recipelibrarypanel.update_recipe')
+                      : t('components.recipelibrarypanel.create_recipe')}
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
 
       <ConfirmDialog
         open={deleteConfirm !== null}
@@ -614,7 +624,7 @@ function ProposeModal({
   const [clientId, setClientId] = useState('');
   const [note, setNote] = useState('');
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="glass-card w-full max-w-sm rounded-[1.8rem] p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
@@ -669,7 +679,8 @@ function ProposeModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BadgeCheck, Loader2, ShieldAlert, Users } from 'lucide-react';
+import { BadgeCheck, Loader2, ShieldAlert, Users, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import type { PortalTranslationKey } from '../lib/generated/i18n';
 import { usePortalI18n } from '../lib/portal-i18n';
@@ -75,6 +75,8 @@ export const BillingPanel: React.FC = () => {
   const [selectedInterval, setSelectedInterval] = useState<BillingInterval>('monthly');
   const [loadingTier, setLoadingTier] = useState<string | null>(null);
   const [checkoutStatus, setCheckoutStatus] = useState<'success' | 'canceled' | null>(null);
+  const [isFaqExpanded, setIsFaqExpanded] = useState(false);
+  const [isRemindersExpanded, setIsRemindersExpanded] = useState(false);
 
   const billingSummary = useMemo(
     () => getBillingSummary(professional, connectedClients),
@@ -226,12 +228,6 @@ export const BillingPanel: React.FC = () => {
             <h3 className="text-2xl font-black text-foreground">{statusTitle}</h3>
             <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{statusBody}</p>
           </div>
-          <div className="rounded-2xl border border-border bg-background px-5 py-4 text-base font-semibold">
-            <p className="font-bold text-foreground">{billingStatusLabel}</p>
-            <p className="mt-1 text-muted-foreground font-medium">
-              {billingSummary.tierLabel} / {billingIntervalLabel}
-            </p>
-          </div>
         </div>
       </div>
 
@@ -315,10 +311,13 @@ export const BillingPanel: React.FC = () => {
             billingSummary.billingInterval === selectedInterval &&
             billingSummary.hasProfessionalAccess;
           const isLoading = loadingTier === tier.id;
-          const price =
-            selectedInterval === 'monthly'
-              ? `${tier.monthlyPrice}/mo`
-              : `${tier.annualPrice}/yr`;
+          const priceKey = selectedInterval === 'monthly'
+            ? `components.billingpanel.price_${tier.id}_monthly`
+            : `components.billingpanel.price_${tier.id}_annual`;
+          const suffixKey = selectedInterval === 'monthly'
+            ? 'components.billingpanel.price_mo_suffix'
+            : 'components.billingpanel.price_yr_suffix';
+          const price = `${t(priceKey as any)}${t(suffixKey as any)}`;
 
           return (
             <article
@@ -388,51 +387,71 @@ export const BillingPanel: React.FC = () => {
       </section>
 
       <section className="portal-panel rounded-[1.6rem] p-8">
-        <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground">
-          {t('components.billingpanel.operating_faq')}
-        </h3>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <InfoCard
-            title={t('components.billingpanel.what_unlocks_after_payment')}
-            body={t('components.billingpanel.what_unlocks_after_payment_body')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.what_happens_if_i_cancel')}
-            body={t('components.billingpanel.what_happens_if_i_cancel_body')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.how_does_the_1_client_trial_work')}
-            body={t('components.billingpanel.how_does_the_1_client_trial_work_body')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.what_if_checkout_succeeds_but_portal_looks_stale')}
-            body={t('components.billingpanel.what_if_checkout_succeeds_but_portal_looks_stale_body')}
-          />
-        </div>
+        <button
+          onClick={() => setIsFaqExpanded(!isFaqExpanded)}
+          className="flex w-full items-center justify-between text-left focus:outline-none cursor-pointer group"
+        >
+          <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground select-none">
+            {t('components.billingpanel.operating_faq')}
+          </h3>
+          <div className="p-1 rounded-lg text-muted-foreground group-hover:text-foreground group-hover:bg-accent transition-colors">
+            {isFaqExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          </div>
+        </button>
+        {isFaqExpanded && (
+          <div className="mt-5 grid gap-4 md:grid-cols-2 animate-fade-in">
+            <InfoCard
+              title={t('components.billingpanel.what_unlocks_after_payment')}
+              body={t('components.billingpanel.what_unlocks_after_payment_body')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.what_happens_if_i_cancel')}
+              body={t('components.billingpanel.what_happens_if_i_cancel_body')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.how_does_the_1_client_trial_work')}
+              body={t('components.billingpanel.how_does_the_1_client_trial_work_body')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.what_if_checkout_succeeds_but_portal_looks_stale')}
+              body={t('components.billingpanel.what_if_checkout_succeeds_but_portal_looks_stale_body')}
+            />
+          </div>
+        )}
       </section>
 
       <section className="portal-panel rounded-[1.6rem] p-8">
-        <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground">
-          {t('components.billingpanel.data_contract_reminders')}
-        </h3>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <InfoCard
-            title={t('components.billingpanel.aggregate_sharing_is_the_baseline')}
-            body={t('components.billingpanel.snapshots_macro_adherence_and_summary_progress_can_be_visible_with_an_ac')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.detailed_requires_consent')}
-            body={t('components.billingpanel.raw_diary_rows_only_appear_when_the_client_keeps_the_relationship_active')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.billing_does_not_override_privacy')}
-            body={t('components.billingpanel.a_higher_tier_increases_capacity_not_the_amount_of_private_data_the_prof')}
-          />
-          <InfoCard
-            title={t('components.billingpanel.read_only_fallback_stays_honest')}
-            body={t('components.billingpanel.when_billing_lapses_historical_records_can_remain_readable_while_new_inv')}
-          />
-        </div>
+        <button
+          onClick={() => setIsRemindersExpanded(!isRemindersExpanded)}
+          className="flex w-full items-center justify-between text-left focus:outline-none cursor-pointer group"
+        >
+          <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground select-none">
+            {t('components.billingpanel.data_contract_reminders')}
+          </h3>
+          <div className="p-1 rounded-lg text-muted-foreground group-hover:text-foreground group-hover:bg-accent transition-colors">
+            {isRemindersExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          </div>
+        </button>
+        {isRemindersExpanded && (
+          <div className="mt-5 grid gap-4 md:grid-cols-2 animate-fade-in">
+            <InfoCard
+              title={t('components.billingpanel.aggregate_sharing_is_the_baseline')}
+              body={t('components.billingpanel.snapshots_macro_adherence_and_summary_progress_can_be_visible_with_an_ac')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.detailed_requires_consent')}
+              body={t('components.billingpanel.raw_diary_rows_only_appear_when_the_client_keeps_the_relationship_active')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.billing_does_not_override_privacy')}
+              body={t('components.billingpanel.a_higher_tier_increases_capacity_not_the_amount_of_private_data_the_prof')}
+            />
+            <InfoCard
+              title={t('components.billingpanel.read_only_fallback_stays_honest')}
+              body={t('components.billingpanel.when_billing_lapses_historical_records_can_remain_readable_while_new_inv')}
+            />
+          </div>
+        )}
       </section>
     </div>
   );

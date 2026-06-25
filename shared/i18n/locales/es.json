@@ -1703,6 +1703,14 @@
         "professional_email_placeholder": "nombre@ejemplo.com"
       },
       "billingpanel": {
+        "price_starter_monthly": "25 €",
+        "price_starter_annual": "240 €",
+        "price_growth_monthly": "69 €",
+        "price_growth_annual": "660 €",
+        "price_studio_monthly": "179 €",
+        "price_studio_annual": "1720 €",
+        "price_mo_suffix": "/mes",
+        "price_yr_suffix": "/año",
         "annual": "Anual",
         "monthly": "Mensual",
         "inactive": "Inactivo",
@@ -2180,6 +2188,8 @@
         "unread_threads": "Hilos sin leer",
         "client_messages_awaiting_review": "Mensajes pendientes de revisar",
         "search_clients": "Buscar clientes",
+        "status_filter_label": "Estado de relación",
+        "sharing_filter_label": "Datos / Sincronización",
         "all_statuses": "Todos los estados",
         "revoked": "Revocado",
         "archived": "Archivado",
@@ -2203,7 +2213,7 @@
         "unread_messages": "Mensajes sin leer",
         "plan_active_short": "Plan activo",
         "low_adherence_badge": "Baja adherencia",
-        "showing_clients_count": "Mostrando {count} clientes",
+        "showing_clients_count": "Mostrando {visible} de {total} clientes",
         "open_real_client_workspace": "Abrir espacio de trabajo",
         "roster_empty_billing_blocked": "El roster está vacío. Se requiere una suscripción activa para invitar y conectar clientes."
       },
@@ -2273,7 +2283,20 @@
         "no_connected_clients_yet_body": "Conecta tu primer cliente usando códigos de conexión para empezar a publicar planes y ver sus registros de seguimiento.",
         "clients_without_active_plan_title_one": "{count} cliente sin plan activo",
         "clients_without_active_plan_title": "{count} clientes sin plan activo",
-        "clients_without_active_plan_body": "Estos clientes no tienen planes activos publicados. Prepara un plan para mantener actualizados sus objetivos diarios."
+        "clients_without_active_plan_body": "Estos clientes no tienen planes activos publicados. Prepara un plan para mantener actualizados sus objetivos diarios.",
+        "pending_checkins": "Check-ins pendientes",
+        "no_pending_checkins": "Todo revisado",
+        "checkins_need_review": "{count} check-ins por revisar",
+        "recent_activity": "Actividad reciente",
+        "latest_events_roster": "Últimos eventos del roster de clientes",
+        "quick_actions": "Acciones rápidas",
+        "invite_client_desc": "Invitar a un nuevo cliente",
+        "create_recipe_desc": "Diseñar receta en biblioteca",
+        "create_template_desc": "Crear plantilla de plan",
+        "pending_checkins_feed_title": "{count} check-ins pendientes de revisión",
+        "pending_checkins_feed_body": "Tus clientes han enviado sus cuestionarios semanales. Revísalos para darles feedback.",
+        "view_all_checkins": "Ver todos los check-ins",
+        "select_macro": "Macronutriente a mostrar:"
       },
       "errorboundary": {
         "something_went_wrong": "Algo no ha ido bien",
@@ -2440,6 +2463,11 @@
         "this_action_cannot_be_undone_the_template_will_be_permanently_removed_fr": "Esta acción no se puede deshacer. La plantilla se eliminará definitivamente de la biblioteca profesional."
       },
       "profilepanel": {
+        "cancel": "Cancelar",
+        "edit_photo": "Editar foto",
+        "zoom": "Zoom",
+        "rotate": "Rotar",
+        "apply_crop": "Aplicar recorte",
         "profile_saved": "Perfil guardado",
         "the_current_session_does_not_match_a_valid_supabase_auth_user_sign_out_c": "La sesión actual no corresponde a un usuario válido de Supabase Auth. Cierra sesión, crea la cuenta desde \"Crear cuenta\" o vuelve a iniciar sesión, y luego guarda el perfil.",
         "the_local_session_is_no_longer_valid_sign_in_again_before_saving_the_pro": "La sesión local ya no es válida. Vuelve a iniciar sesión antes de guardar el perfil.",

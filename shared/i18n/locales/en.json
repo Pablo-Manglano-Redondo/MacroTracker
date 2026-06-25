@@ -1704,6 +1704,14 @@
         "professional_email_placeholder": "name@example.com"
       },
       "billingpanel": {
+        "price_starter_monthly": "$29",
+        "price_starter_annual": "$276",
+        "price_growth_monthly": "$79",
+        "price_growth_annual": "$756",
+        "price_studio_monthly": "$199",
+        "price_studio_annual": "$1908",
+        "price_mo_suffix": "/mo",
+        "price_yr_suffix": "/yr",
         "annual": "Annual",
         "monthly": "Monthly",
         "inactive": "Inactive",
@@ -2181,6 +2189,8 @@
         "unread_threads": "Unread threads",
         "client_messages_awaiting_review": "Client messages awaiting review",
         "search_clients": "Search clients",
+        "status_filter_label": "Relationship Status",
+        "sharing_filter_label": "Data / Sync Status",
         "all_statuses": "All statuses",
         "revoked": "Revoked",
         "archived": "Archived",
@@ -2204,7 +2214,7 @@
         "unread_messages": "Unread messages",
         "plan_active_short": "Active plan",
         "low_adherence_badge": "Low adherence",
-        "showing_clients_count": "Showing {count} clients",
+        "showing_clients_count": "Showing {visible} of {total} clients",
         "open_real_client_workspace": "Open client workspace",
         "roster_empty_billing_blocked": "Roster is empty. Active subscription is required to invite and connect clients."
       },
@@ -2274,7 +2284,20 @@
         "no_connected_clients_yet_body": "Connect your first client using connection codes to start publishing plans and viewing their tracking logs.",
         "clients_without_active_plan_title_one": "{count} client without active plan",
         "clients_without_active_plan_title": "{count} clients without active plan",
-        "clients_without_active_plan_body": "These clients have no active plans published. Prepare a plan to keep their daily targets updated."
+        "clients_without_active_plan_body": "These clients have no active plans published. Prepare a plan to keep their daily targets updated.",
+        "pending_checkins": "Pending check-ins",
+        "no_pending_checkins": "All reviewed",
+        "checkins_need_review": "{count} check-ins to review",
+        "recent_activity": "Recent activity",
+        "latest_events_roster": "Latest events from client roster",
+        "quick_actions": "Quick actions",
+        "invite_client_desc": "Invite a new client",
+        "create_recipe_desc": "Design a recipe in library",
+        "create_template_desc": "Create plan template",
+        "pending_checkins_feed_title": "{count} check-ins pending review",
+        "pending_checkins_feed_body": "Your clients have submitted their weekly check-ins. Review them to provide feedback.",
+        "view_all_checkins": "View all check-ins",
+        "select_macro": "Macronutrient to display:"
       },
       "errorboundary": {
         "something_went_wrong": "Something went wrong",
@@ -2441,6 +2464,11 @@
         "this_action_cannot_be_undone_the_template_will_be_permanently_removed_fr": "This action cannot be undone. The template will be permanently removed from the professional library."
       },
       "profilepanel": {
+        "cancel": "Cancel",
+        "edit_photo": "Edit photo",
+        "zoom": "Zoom",
+        "rotate": "Rotate",
+        "apply_crop": "Apply crop",
         "profile_saved": "Profile saved",
         "the_current_session_does_not_match_a_valid_supabase_auth_user_sign_out_c": "The current session does not match a valid Supabase Auth user. Sign out, create the account from \"Create account\" or sign in again, and then save the profile.",
         "the_local_session_is_no_longer_valid_sign_in_again_before_saving_the_pro": "The local session is no longer valid. Sign in again before saving the profile.",
