@@ -34,6 +34,7 @@ import { usePlans } from '../../hooks/queries/usePlans';
 import { useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useClientProgress } from '../../hooks/queries/useClientProgress';
 import { useMessages } from '../../hooks/queries/useMessages';
+import { isDemoClient } from '../../lib/demo-client';
 
 interface ClientDetailProps {
   client: ProfessionalClient;
@@ -208,17 +209,24 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <p className="portal-kicker text-xs font-extrabold tracking-[0.2em]">
                 {t('components.clientdetail.index.selected_client')}
               </p>
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <h2 className="portal-title truncate text-4xl font-extrabold text-foreground">
                   {clientName}
                 </h2>
-                <button
-                  onClick={() => setDetailTab('profile')}
-                  className="text-muted-foreground transition-colors hover:text-foreground"
-                  title={t('components.clientdetail.index.edit_profile')}
-                >
-                  <FileText className="h-5 w-5" />
-                </button>
+                {isDemoClient(client) && (
+                  <span className="inline-flex items-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-black uppercase tracking-[0.14em] text-amber-600 dark:text-amber-300">
+                    {t('components.tour.demo_client_badge')}
+                  </span>
+                )}
+                {!isDemoClient(client) && (
+                  <button
+                    onClick={() => setDetailTab('profile')}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                    title={t('components.clientdetail.index.edit_profile')}
+                  >
+                    <FileText className="h-5 w-5" />
+                  </button>
+                )}
               </div>
 
             </div>
@@ -253,8 +261,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Adherencia semanal */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.weekly_adherence')}
             </p>
             <div className="mt-2.5 flex items-baseline gap-2">
@@ -279,29 +288,31 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 </svg>
               )}
             </div>
-            <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
               {t('components.clientdetail.index.goal_over_75')}
             </p>
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Check-ins pendientes */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.pending_checkin')}
             </p>
             <p className="mt-2.5 text-3xl font-black text-foreground">{pendingCheckinCount}</p>
-            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
               {latestCheckinDateStr
                 ? t('components.clientdetail.index.latest_prefix', { value: latestCheckinDateStr })
                 : t('components.clientdetail.index.none_pending')}
             </p>
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Mensajes sin leer */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.unread_messages')}
             </p>
             <p className="mt-2.5 text-3xl font-black text-foreground">{unreadCount}</p>
-            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
               {latestMessageTimeStr
                 ? t('components.clientdetail.index.latest_prefix', {
                     value: `${t('components.clientdetail.index.today')}, ${latestMessageTimeStr}`,
@@ -310,8 +321,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Peso actual */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.current_weight')}
             </p>
             <p className="mt-2.5 text-3xl font-black text-foreground">
@@ -319,7 +331,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
             {weightMetrics.change !== 0 ? (
               <p
-                className={`mt-2.5 flex items-center gap-0.5 text-sm font-bold leading-none ${
+                className={`mt-auto pt-2.5 flex items-center gap-0.5 text-sm font-bold leading-none ${
                   weightMetrics.change < 0 ? 'text-green-500' : 'text-rose-500'
                 }`}
               >
@@ -328,14 +340,15 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 })}
               </p>
             ) : (
-              <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+              <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
                 {t('components.clientdetail.index.no_changes')}
               </p>
             )}
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Última actualización */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.latest_update')}
             </p>
             <p className="mt-2.5 text-3xl font-black text-foreground">
@@ -346,21 +359,22 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                   })
                 : t('components.clientdetail.index.today')}
             </p>
-            <p className="mt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
               {latestSnapshot
                 ? t('components.clientdetail.index.synced')
                 : t('components.clientdetail.index.not_synced')}
             </p>
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+          {/* Plan activo */}
+          <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
               {t('components.clientdetail.index.active_plan')}
             </p>
             <p className="mt-2.5 text-lg font-black leading-tight text-foreground line-clamp-2" title={activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : undefined}>
               {activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : t('components.clientdetail.index.none')}
             </p>
-            <p className="mt-2.5 truncate text-sm font-semibold leading-none text-muted-foreground">
+            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
               {activePlanStartStr
                 ? t('components.clientdetail.index.started_prefix', {
                     date: activePlanStartStr,
@@ -369,12 +383,14 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </p>
           </div>
         </div>
+
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            id={`tour-client-${tab.id}-tab`}
             onClick={() => {
               setDetailTab(tab.id);
               if (tab.id === 'plans') {

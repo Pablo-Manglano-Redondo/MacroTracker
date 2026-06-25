@@ -76,3 +76,4 @@ sentry.properties
 # Playwright
 .playwright-cli/
 .playwright-cli
+sentry.properties

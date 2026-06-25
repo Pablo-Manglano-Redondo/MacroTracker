@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "driver.js/dist/driver.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -285,4 +286,109 @@
 
 .animate-fade-in-up {
   animation: fadeInUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─────────────────────────────────────────────
+   Driver.js tour — custom portal theme
+   ───────────────────────────────────────────── */
+
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.65) !important;
+}
+
+.macro-tour-popover.driver-popover {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 1.2rem !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18), 0 0 0 1px hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+  padding: 1.5rem !important;
+  max-width: 360px !important;
+  font-family: inherit !important;
+}
+
+.macro-tour-popover .driver-popover-title {
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+  color: hsl(var(--foreground)) !important;
+  margin-bottom: 0.5rem !important;
+  line-height: 1.3 !important;
+}
+
+.macro-tour-popover .driver-popover-description {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: hsl(var(--muted-foreground)) !important;
+  line-height: 1.6 !important;
+}
+
+.macro-tour-popover .driver-popover-footer {
+  margin-top: 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 0.5rem !important;
+}
+
+.macro-tour-popover .driver-popover-btn-disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+.macro-tour-popover .driver-popover-prev-btn,
+.macro-tour-popover .driver-popover-next-btn,
+.macro-tour-popover .driver-popover-done-btn {
+  background: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border: none !important;
+  border-radius: 0.6rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.75rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  cursor: pointer !important;
+  transition: opacity 0.15s !important;
+  line-height: 1 !important;
+}
+
+.macro-tour-popover .driver-popover-prev-btn {
+  background: hsl(var(--accent)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.macro-tour-popover .driver-popover-prev-btn:hover,
+.macro-tour-popover .driver-popover-next-btn:hover,
+.macro-tour-popover .driver-popover-done-btn:hover {
+  opacity: 0.88 !important;
+}
+
+.macro-tour-popover .driver-popover-close-btn {
+  background: transparent !important;
+  border: none !important;
+  color: hsl(var(--muted-foreground)) !important;
+  font-size: 1.1rem !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  padding: 0.25rem !important;
+  transition: color 0.15s !important;
+}
+
+.macro-tour-popover .driver-popover-close-btn:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+.macro-tour-popover .driver-popover-progress-text {
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  color: hsl(var(--muted-foreground)) !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Highlight ring around the focused element */
+.driver-active-element {
+  outline: 3px solid hsl(var(--primary)) !important;
+  outline-offset: 3px !important;
+  border-radius: 0.75rem !important;
 }

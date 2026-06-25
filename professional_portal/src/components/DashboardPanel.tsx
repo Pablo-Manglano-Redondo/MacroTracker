@@ -276,37 +276,39 @@ export const DashboardPanel: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+    <div className="space-y-5 animate-fade-in-up">
+      {/* ── Page header ─────────────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-black uppercase tracking-[0.14em] text-foreground">
           {t('components.dashboardpanel.daily_practice_triage')}
         </h2>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={exportAdherenceCsv}
-            disabled={trends.length === 0}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 shadow-sm animate-fade-in"
-          >
-            <Download className="h-4 w-4" />
-            <span>{t('components.dashboardpanel.export_adherence')}</span>
-          </button>
-        </div>
+        <button
+          onClick={exportAdherenceCsv}
+          disabled={trends.length === 0}
+          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+        >
+          <Download className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">{t('components.dashboardpanel.export_adherence')}</span>
+        </button>
       </div>
 
+      {/* ── Billing warning ──────────────────────────────────────────────────── */}
       {!billingSummary.canOperatePractice && (
-        <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
-          <div className="flex items-start gap-3">
-            <CreditCard className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
-            <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
-              {t('components.dashboardpanel.billing_status_read_only_body', {
-                status: billingSummary.proStatus,
-              })}
-            </p>
-          </div>
+        <section className="flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/8 px-5 py-3.5">
+          <CreditCard className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
+          <p className="text-sm font-semibold leading-relaxed text-amber-900 dark:text-amber-100">
+            {t('components.dashboardpanel.billing_status_read_only_body', {
+              status: billingSummary.proStatus,
+            })}
+          </p>
         </section>
       )}
 
-      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-scale-in">
+      {/* ── Metric row: 5 equal cards ─────────────────────────────────────── */}
+      <section
+        id="tour-dashboard-metrics"
+        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 animate-scale-in"
+      >
         <MetricCard
           label={t('components.dashboardpanel.connected_clients')}
           icon={<Users className="h-4 w-4 text-primary" />}
@@ -336,7 +338,7 @@ export const DashboardPanel: React.FC = () => {
         <MetricCard
           label={t('components.dashboardpanel.average_adherence')}
           icon={<TrendingUp className="h-4 w-4 text-primary" />}
-          value={trendsLoading ? null : avgAdherence ?? '--'}
+          value={trendsLoading ? null : avgAdherence !== null ? `${avgAdherence}%` : '--'}
           note={
             avgAdherence === null
               ? t('components.dashboardpanel.no_shared_snapshots_received_yet')
@@ -357,24 +359,18 @@ export const DashboardPanel: React.FC = () => {
         />
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-12">
-        {/* Left Column: Requires Action, Quick Actions, Client Adherence */}
-        <div className="space-y-6 xl:col-span-5">
+      {/* ── Main 2-column grid ───────────────────────────────────────────────── */}
+      <section id="tour-dashboard-feed" className="grid gap-4 xl:grid-cols-2">
+        {/* Left column */}
+        <div className="flex flex-col gap-4">
           {/* Requires Action */}
-          <div className="portal-panel rounded-[1.6rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
-                  {t('components.dashboardpanel.requires_action_today')}
-                </h3>
-                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
-                  {t('components.dashboardpanel.prioritized_from_real_signals')}
-                </p>
-              </div>
-              <AlertCircle className="h-5 w-5 text-primary" />
-            </div>
-
-            <div className="mt-5 space-y-3.5">
+          <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
+            <SectionHeader
+              title={t('components.dashboardpanel.requires_action_today')}
+              subtitle={t('components.dashboardpanel.prioritized_from_real_signals')}
+              icon={<AlertCircle className="h-4 w-4 text-primary" />}
+            />
+            <div className="mt-4 space-y-2.5">
               {actionFeed.length === 0 ? (
                 <ActionHint
                   title={t('components.dashboardpanel.practice_looks_clear')}
@@ -389,70 +385,59 @@ export const DashboardPanel: React.FC = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="portal-panel rounded-[1.6rem] p-8 shadow-sm">
-            <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
-              {t('components.dashboardpanel.quick_actions')}
-            </h3>
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              <button
-                onClick={openInviteModal}
-                disabled={!billingSummary.canOperatePractice}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl border border-border bg-background/50 hover:bg-accent hover:text-foreground transition-all cursor-pointer group text-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary group-hover:scale-105 transition-transform">
-                  <UserPlus className="h-5 w-5" />
-                </div>
-                <span className="mt-2.5 text-xs font-black uppercase tracking-wider text-foreground leading-tight">
-                  {t('components.dashboardpanel.invite_client')}
-                </span>
-              </button>
-
-              <button
-                onClick={() => { window.location.hash = 'templates-panel'; }}
-                disabled={!billingSummary.canOperatePractice}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl border border-border bg-background/50 hover:bg-accent hover:text-foreground transition-all cursor-pointer group text-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary group-hover:scale-105 transition-transform">
-                  <PlusCircle className="h-5 w-5" />
-                </div>
-                <span className="mt-2.5 text-xs font-black uppercase tracking-wider text-foreground leading-tight">
-                  {t('components.dashboardpanel.create_template_desc')}
-                </span>
-              </button>
-
-              <button
-                onClick={() => { window.location.hash = 'recipes-panel'; }}
-                disabled={!billingSummary.canOperatePractice}
-                className="flex flex-col items-center justify-center p-4 rounded-2xl border border-border bg-background/50 hover:bg-accent hover:text-foreground transition-all cursor-pointer group text-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/12 text-primary group-hover:scale-105 transition-transform">
-                  <ChefHat className="h-5 w-5" />
-                </div>
-                <span className="mt-2.5 text-xs font-black uppercase tracking-wider text-foreground leading-tight">
-                  {t('components.dashboardpanel.create_recipe_desc')}
-                </span>
-              </button>
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
+            <SectionHeader
+              title={t('components.dashboardpanel.quick_actions')}
+            />
+            <div className="mt-4 grid grid-cols-3 gap-2.5">
+              {[
+                {
+                  icon: <UserPlus className="h-4 w-4" />,
+                  label: t('components.dashboardpanel.invite_client'),
+                  onClick: openInviteModal,
+                  disabled: !billingSummary.canOperatePractice,
+                },
+                {
+                  icon: <PlusCircle className="h-4 w-4" />,
+                  label: t('components.dashboardpanel.create_template_desc'),
+                  onClick: () => { window.location.hash = 'templates-panel'; },
+                  disabled: !billingSummary.canOperatePractice,
+                },
+                {
+                  icon: <ChefHat className="h-4 w-4" />,
+                  label: t('components.dashboardpanel.create_recipe_desc'),
+                  onClick: () => { window.location.hash = 'recipes-panel'; },
+                  disabled: !billingSummary.canOperatePractice,
+                },
+              ].map(({ icon, label, onClick, disabled }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  disabled={disabled}
+                  className="flex flex-col items-center gap-2.5 rounded-xl border border-border bg-background/50 p-3.5 text-center transition-all hover:bg-accent hover:border-border/80 group disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
+                    {icon}
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-wider text-foreground leading-tight">
+                    {label}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Client Adherence List */}
-          <div className="portal-panel rounded-[1.6rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
-                  {t('components.dashboardpanel.client_adherence')}
-                </h3>
-                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
-                  {t('components.dashboardpanel.client_adherence_quick_prioritization')}
-                </p>
-              </div>
-              <Users className="h-5 w-5 text-primary" />
-            </div>
-
+          {/* Client Adherence */}
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
+            <SectionHeader
+              title={t('components.dashboardpanel.client_adherence')}
+              subtitle={t('components.dashboardpanel.client_adherence_quick_prioritization')}
+              icon={<Users className="h-4 w-4 text-primary" />}
+            />
             {clientsLoading ? (
               <div className="mt-4 space-y-2">
-                {[1, 2, 3].map((index) => (
-                  <Skeleton key={index} className="h-12 w-full bg-black/5 dark:bg-white/5" />
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-11 w-full bg-black/5 dark:bg-white/5" />
                 ))}
               </div>
             ) : clientAdherence.length === 0 ? (
@@ -461,7 +446,7 @@ export const DashboardPanel: React.FC = () => {
                 body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
               />
             ) : (
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-1.5">
                 {clientAdherence.slice(0, 6).map((client) => (
                   <button
                     key={client.clientId}
@@ -470,17 +455,17 @@ export const DashboardPanel: React.FC = () => {
                       window.location.hash = 'clients-panel';
                       window.dispatchEvent(new CustomEvent('select-client', { detail: client.clientId }));
                     }}
-                    className="w-full text-left flex items-center justify-between rounded-2xl px-5 py-4 border border-transparent bg-accent/20 hover:bg-accent/40 hover:border-border transition-all active:scale-[0.99] cursor-pointer"
+                    className="w-full flex items-center justify-between rounded-xl px-4 py-3 border border-transparent bg-accent/20 hover:bg-accent/40 hover:border-border transition-all active:scale-[0.99] cursor-pointer"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-base font-extrabold text-foreground">{client.name}</p>
-                      <p className="text-sm font-semibold text-muted-foreground">
+                      <p className="truncate text-sm font-bold text-foreground">{client.name}</p>
+                      <p className="text-xs font-semibold text-muted-foreground">
                         {t('components.dashboardpanel.snapshots', {
                           client_snapshotcount: client.snapshotCount,
                         })}
                       </p>
                     </div>
-                    <span className="portal-metric text-xl font-black text-primary">
+                    <span className="portal-metric text-lg font-black text-primary ml-3 shrink-0">
                       {client.avgKcalAdherence}%
                     </span>
                   </button>
@@ -490,34 +475,32 @@ export const DashboardPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Adherence Trend Chart, Recent Activity Feed */}
-        <div className="space-y-6 xl:col-span-7">
+        {/* Right column */}
+        <div className="flex flex-col gap-4">
           {/* Adherence Trend Chart */}
-          <div className="portal-panel rounded-[1.6rem] p-8 shadow-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
-                  {t('components.dashboardpanel.adherence_trend')}
-                </h3>
-                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
-                  {t('components.dashboardpanel.shared_snapshot_trend_for_latest_roster')}
-                </p>
-              </div>
-              <Activity className="h-5 w-5 text-primary hidden sm:block" />
+          <div className="portal-panel rounded-2xl p-6 shadow-sm">
+            <div className="flex items-start justify-between">
+              <SectionHeader
+                title={t('components.dashboardpanel.adherence_trend')}
+                subtitle={t('components.dashboardpanel.shared_snapshot_trend_for_latest_roster')}
+              />
+              <Activity className="h-4 w-4 shrink-0 text-primary mt-0.5" />
             </div>
 
-            {/* Macro Selector Tabs */}
-            <div className="mt-6 flex flex-wrap gap-2">
-              {[
-                { id: 'kcal', label: t('common.kcal') },
-                { id: 'protein', label: t('common.protein') },
-                { id: 'carbs', label: t('common.carbs') },
-                { id: 'fat', label: t('common.fat') },
-              ].map((macro) => (
+            {/* Macro tabs */}
+            <div className="mt-4 flex gap-1.5 flex-wrap">
+              {(
+                [
+                  { id: 'kcal', label: t('common.kcal') },
+                  { id: 'protein', label: t('common.protein') },
+                  { id: 'carbs', label: t('common.carbs') },
+                  { id: 'fat', label: t('common.fat') },
+                ] as const
+              ).map((macro) => (
                 <button
                   key={macro.id}
-                  onClick={() => setSelectedMacro(macro.id as any)}
-                  className={`rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-all border cursor-pointer ${
+                  onClick={() => setSelectedMacro(macro.id)}
+                  className={`rounded-lg px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider transition-all border cursor-pointer ${
                     selectedMacro === macro.id
                       ? 'bg-primary text-primary-foreground border-transparent shadow-sm'
                       : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -529,9 +512,9 @@ export const DashboardPanel: React.FC = () => {
             </div>
 
             {trendsLoading ? (
-              <div className="mt-6 space-y-2">
-                <Skeleton className="h-4 w-40 bg-black/5 dark:bg-white/5" />
-                <Skeleton className="h-48 w-full bg-black/5 dark:bg-white/5" />
+              <div className="mt-5 space-y-2">
+                <Skeleton className="h-3 w-32 bg-black/5 dark:bg-white/5" />
+                <Skeleton className="h-44 w-full bg-black/5 dark:bg-white/5" />
               </div>
             ) : trends.length === 0 ? (
               <EmptyPanel
@@ -539,60 +522,54 @@ export const DashboardPanel: React.FC = () => {
                 body={t('components.dashboardpanel.the_chart_will_populate_after_connected_clients_sync_aggregate_snapshots')}
               />
             ) : (
-              <div className="mt-6">
-                <div className="portal-soft-panel flex h-56 items-end gap-2 rounded-2xl p-4">
-                  {trends.slice(-14).map((day) => {
-                    const adherenceValue = {
-                      kcal: day.kcalAdherence,
-                      protein: day.proteinAdherence,
-                      carbs: day.carbsAdherence,
-                      fat: day.fatAdherence,
-                    }[selectedMacro];
+              <div className="mt-5 portal-soft-panel flex h-52 items-end gap-1.5 rounded-xl p-3">
+                {trends.slice(-14).map((day) => {
+                  const adherenceValue = {
+                    kcal: day.kcalAdherence,
+                    protein: day.proteinAdherence,
+                    carbs: day.carbsAdherence,
+                    fat: day.fatAdherence,
+                  }[selectedMacro];
 
-                    return (
-                      <div key={day.date} className="flex flex-1 flex-col items-center gap-2">
-                        <div className="flex h-40 w-full items-end">
-                          <div
-                            className={`w-full rounded-t transition-all duration-300 ${
-                              adherenceValue >= 85
-                                ? 'bg-emerald-500'
-                                : adherenceValue >= 70
-                                  ? 'bg-amber-500'
-                                  : 'bg-rose-500'
-                            }`}
-                            style={{ height: `${Math.max(adherenceValue, 8)}%` }}
-                            title={`${day.date}: ${adherenceValue}%`}
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold text-muted-foreground">
-                          {day.date.slice(5)}
-                        </span>
+                  return (
+                    <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
+                      <div className="flex h-36 w-full items-end">
+                        <div
+                          className={`w-full rounded-t-md transition-all duration-300 ${
+                            adherenceValue >= 85
+                              ? 'bg-emerald-500'
+                              : adherenceValue >= 70
+                                ? 'bg-amber-500'
+                                : 'bg-rose-500'
+                          }`}
+                          style={{ height: `${Math.max(adherenceValue, 6)}%` }}
+                          title={`${day.date}: ${adherenceValue}%`}
+                        />
                       </div>
-                    );
-                  })}
-                </div>
+                      <span className="text-[9px] font-bold text-muted-foreground">
+                        {day.date.slice(5)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* Recent Activity Feed */}
-          <div className="portal-panel rounded-[1.6rem] p-8 shadow-sm">
-            <div className="flex items-center justify-between border-b border-border pb-5 mb-5">
-              <div>
-                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-foreground">
-                  {t('components.dashboardpanel.recent_activity')}
-                </h3>
-                <p className="mt-1.5 text-base font-semibold text-muted-foreground">
-                  {t('components.dashboardpanel.latest_events_roster')}
-                </p>
-              </div>
-              <ClipboardCheck className="h-5 w-5 text-primary" />
+          {/* Recent Activity */}
+          <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-start justify-between border-b border-border/60 pb-4 mb-4">
+              <SectionHeader
+                title={t('components.dashboardpanel.recent_activity')}
+                subtitle={t('components.dashboardpanel.latest_events_roster')}
+              />
+              <ClipboardCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
             </div>
 
             {notificationsLoading ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {[1, 2, 3].map((idx) => (
-                  <Skeleton key={idx} className="h-16 w-full bg-black/5 dark:bg-white/5" />
+                  <Skeleton key={idx} className="h-14 w-full bg-black/5 dark:bg-white/5" />
                 ))}
               </div>
             ) : notifications.length === 0 ? (
@@ -601,8 +578,8 @@ export const DashboardPanel: React.FC = () => {
                 body={t('components.dashboardpanel.no_connected_clients_yet_body')}
               />
             ) : (
-              <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-                {notifications.slice(0, 5).map((n) => {
+              <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
+                {notifications.slice(0, 8).map((n) => {
                   const styles = getTypeStyles(n.type);
                   const Icon = styles.icon;
                   const { title: displayTitle, body: displayBody } = translateNotification(n.title, n.body);
@@ -611,30 +588,30 @@ export const DashboardPanel: React.FC = () => {
                     <button
                       key={n.id}
                       onClick={() => handleNotificationClick(n)}
-                      className={`w-full flex items-start gap-4 p-4 text-left transition-all border rounded-2xl cursor-pointer ${
+                      className={`w-full flex items-center gap-3 p-3.5 text-left transition-all border rounded-xl cursor-pointer ${
                         !n.read
-                          ? 'bg-primary/[0.03] border-primary hover:bg-primary/[0.06] active:scale-[0.99]'
-                          : 'border-border bg-accent/10 hover:bg-accent/20 active:scale-[0.99]'
+                          ? 'bg-primary/[0.03] border-primary/30 hover:bg-primary/[0.06] active:scale-[0.99]'
+                          : 'border-border/50 bg-accent/10 hover:bg-accent/20 active:scale-[0.99]'
                       }`}
                     >
-                      <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border ${styles.bg}`}>
-                        <Icon className="w-5 h-5" />
+                      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border ${styles.bg}`}>
+                        <Icon className="w-3.5 h-3.5" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-base truncate ${!n.read ? 'font-black text-foreground' : 'font-semibold text-muted-foreground'}`}>
+                          <p className={`text-sm truncate ${!n.read ? 'font-bold text-foreground' : 'font-semibold text-muted-foreground'}`}>
                             {displayTitle}
                           </p>
                           {!n.read && (
-                            <span className="shrink-0 w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                            <span className="shrink-0 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
                           )}
                         </div>
                         {displayBody && (
-                          <p className="text-sm text-muted-foreground/80 mt-1 line-clamp-2 leading-relaxed font-semibold">
+                          <p className="text-xs text-muted-foreground/80 mt-0.5 line-clamp-1 font-medium">
                             {displayBody}
                           </p>
                         )}
-                        <p className="text-[10px] font-black text-muted-foreground/60 mt-2.5 uppercase tracking-wider">
+                        <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 uppercase tracking-wider">
                           {formatPortalDate(n.created_at, locale, {
                             month: 'short',
                             day: 'numeric',
@@ -643,7 +620,7 @@ export const DashboardPanel: React.FC = () => {
                           })}
                         </p>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-muted-foreground self-center shrink-0 ml-2" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
                     </button>
                   );
                 })}
@@ -656,37 +633,55 @@ export const DashboardPanel: React.FC = () => {
   );
 };
 
+/* ── Sub-components ──────────────────────────────────────────────────────── */
+
+const SectionHeader: React.FC<{
+  title: string;
+  subtitle?: string;
+  icon?: React.ReactNode;
+}> = ({ title, subtitle, icon }) => (
+  <div className="flex items-start justify-between gap-3">
+    <div className="min-w-0">
+      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-foreground">{title}</h3>
+      {subtitle && (
+        <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{subtitle}</p>
+      )}
+    </div>
+    {icon && <div className="shrink-0 mt-0.5">{icon}</div>}
+  </div>
+);
+
 const MetricCard: React.FC<{
   label: string;
   icon: React.ReactNode;
   value: number | string | null;
   note: string;
 }> = ({ label, icon, value, note }) => (
-  <div className="portal-panel rounded-[1.4rem] p-6 shadow-sm">
+  <div className="portal-panel rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[108px]">
     <div className="flex items-center justify-between">
-      <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground leading-tight">
         {label}
       </p>
       {icon}
     </div>
     {value === null ? (
-      <div className="mt-3 space-y-2">
-        <Skeleton className="h-8 w-16 bg-black/5 dark:bg-white/5" />
-        <Skeleton className="h-3 w-28 bg-black/5 dark:bg-white/5" />
+      <div className="mt-2 space-y-1.5">
+        <Skeleton className="h-7 w-14 bg-black/5 dark:bg-white/5" />
+        <Skeleton className="h-3 w-24 bg-black/5 dark:bg-white/5" />
       </div>
     ) : (
-      <>
-        <p className="portal-metric mt-3 text-3xl font-black text-foreground">{value}</p>
-        <p className="mt-1 text-sm font-semibold text-muted-foreground">{note}</p>
-      </>
+      <div className="mt-2">
+        <p className="portal-metric text-2xl font-black text-foreground leading-none">{value}</p>
+        <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground leading-tight">{note}</p>
+      </div>
     )}
   </div>
 );
 
 const EmptyPanel: React.FC<{ title: string; body: string }> = ({ title, body }) => (
-  <div className="portal-soft-panel mt-4 rounded-2xl p-6 border border-border">
-    <p className="text-base font-extrabold text-foreground">{title}</p>
-    <p className="mt-2 text-base font-semibold text-muted-foreground">{body}</p>
+  <div className="portal-soft-panel mt-4 rounded-xl p-4 border border-border/50">
+    <p className="text-sm font-bold text-foreground">{title}</p>
+    <p className="mt-1 text-xs font-semibold text-muted-foreground leading-relaxed">{body}</p>
   </div>
 );
 
@@ -697,11 +692,11 @@ const ActionHint: React.FC<{ title: string; body: string; onClick?: () => void }
 }) => (
   <div
     onClick={onClick}
-    className={`portal-soft-panel rounded-2xl p-5 border border-border transition-all ${
-      onClick ? 'cursor-pointer hover:bg-accent/40 active:scale-[0.99]' : ''
+    className={`portal-soft-panel rounded-xl px-4 py-3 border border-border/50 transition-all ${
+      onClick ? 'cursor-pointer hover:bg-accent/40 hover:border-border active:scale-[0.99]' : ''
     }`}
   >
-    <p className="text-lg font-extrabold text-foreground">{title}</p>
-    <p className="mt-1 text-base font-semibold text-muted-foreground">{body}</p>
+    <p className="text-sm font-bold text-foreground">{title}</p>
+    <p className="mt-0.5 text-xs font-semibold text-muted-foreground leading-relaxed">{body}</p>
   </div>
 );

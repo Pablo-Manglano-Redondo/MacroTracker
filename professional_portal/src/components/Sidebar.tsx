@@ -62,17 +62,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
 
   const getNavItemClass = (panel: string) => {
     const isActive = activePanel === panel;
-    return `relative flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold transition-all duration-200 border ${
+    return `relative flex w-full items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-left text-sm transition-all duration-150 border ${
       isActive
-        ? 'bg-emerald-500/10 border-emerald-500/20 dark:bg-[#121c19] dark:border-[#1f372d] text-emerald-600 dark:text-[#72de98] shadow-[0_4px_12px_rgba(16,185,129,0.04)] dark:shadow-[0_4px_12px_rgba(114,222,152,0.04)]'
-        : 'border-transparent text-gray-500 dark:text-[#8a9499] hover:bg-gray-100 dark:hover:bg-[#131719]/60 hover:text-gray-900 hover:border-gray-200 dark:hover:text-white dark:hover:border-[#1e2326] group'
+        ? 'border-transparent bg-gray-100 dark:bg-white/[0.05] text-gray-900 dark:text-white font-bold'
+        : 'border-transparent font-semibold text-gray-500 dark:text-[#8a9499] hover:bg-gray-50 dark:hover:bg-white/[0.03] hover:text-gray-800 dark:hover:text-[#c8cdd0] group'
     }`;
   };
 
   return (
     <aside className="flex h-screen w-[292px] shrink-0 flex-col overflow-hidden border-r border-gray-200 dark:border-[#191e21] bg-gradient-to-b from-[#f8f9fa] to-[#f1f3f5] dark:from-[#0b0f11] dark:to-[#080b0c] text-foreground shadow-2xl transition-colors duration-200">
       <div className="flex h-20 shrink-0 items-center border-b border-gray-200 dark:border-[#181d20] bg-white/60 dark:bg-[#0b0f11]/60 backdrop-blur-md px-5 transition-colors duration-200">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5" id="tour-sidebar-logo">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#72de98] to-[#51b87a] text-[#0b0f11] font-black shadow-[0_4px_12px_rgba(114,222,152,0.25)] transition-transform duration-300 hover:scale-105 cursor-pointer">
             M
           </div>
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <LayoutGrid className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.overview')}</span>
               {activePanel === 'dashboard-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
 
@@ -113,7 +113,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <Users className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.clients')}</span>
               {activePanel === 'clients-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
 
@@ -127,7 +127,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <ClipboardCheck className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.check_ins')}</span>
               {activePanel === 'checkins-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
           </nav>
@@ -151,7 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <ChefHat className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.recipes')}</span>
               {activePanel === 'recipes-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
 
@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <ClipboardCheck className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.templates')}</span>
               {activePanel === 'templates-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
           </nav>
@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <User className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.profile')}</span>
               {activePanel === 'profile-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
 
@@ -203,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
               <CreditCard className="h-[18px] w-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110" />
               <span>{t('components.sidebar.billing')}</span>
               {activePanel === 'billing-panel' && (
-                <span className="absolute bottom-2.5 left-0 top-2.5 w-[3px] rounded-r bg-emerald-500 dark:bg-[#72de98] shadow-[0_0_8px_rgba(16,185,129,0.5)] dark:shadow-[0_0_8px_#72de98]" />
+                <span className="absolute bottom-2 left-0 top-2 w-[2px] rounded-r bg-gray-400 dark:bg-white/30" />
               )}
             </button>
           </nav>

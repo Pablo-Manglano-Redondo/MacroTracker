@@ -228,7 +228,7 @@ export const RecipeLibraryPanel: React.FC = () => {
     })[meal] ?? meal;
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div id="tour-recipes-panel" className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
           {t('components.recipelibrarypanel.recipe_library')}
@@ -309,22 +309,16 @@ export const RecipeLibraryPanel: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((recipe) => (
-            <article key={recipe.id} className="portal-panel rounded-[1.6rem] p-8">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2.5">
-                    <ChefHat className="h-5 w-5 text-primary" />
-                    <h3 className="truncate text-lg font-black text-foreground">{recipe.title}</h3>
-                  </div>
-                  {recipe.description && (
-                    <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                      {recipe.description}
-                    </p>
-                  )}
+            <article key={recipe.id} className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <ChefHat className="h-5 w-5 shrink-0 text-primary" />
+                  <h3 className="truncate text-lg font-extrabold text-foreground">{recipe.title}</h3>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex shrink-0 gap-0.5">
                   <IconAction
                     title={t('components.recipelibrarypanel.edit_recipe')}
                     onClick={() => openEdit(recipe)}
@@ -344,31 +338,40 @@ export const RecipeLibraryPanel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="mt-5 flex flex-wrap items-center gap-4 text-base font-semibold text-muted-foreground">
+              {/* Description */}
+              {recipe.description && (
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                  {recipe.description}
+                </p>
+              )}
+
+              {/* Chips */}
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 {recipe.meal_type && (
-                  <span className="rounded-full bg-primary/10 px-3.5 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                  <span className="inline-flex items-center rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-foreground">
                     {mealLabel(recipe.meal_type)}
                   </span>
                 )}
                 {recipe.prep_time_min ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock className="h-5 w-5 text-primary" />
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
                     {t('components.recipelibrarypanel.prep_min', { recipe_prep_time_min: recipe.prep_time_min })}
                   </span>
                 ) : null}
                 {recipe.servings ? (
-                  <span className="inline-flex items-center gap-1.5">
-                    <Users className="h-5 w-5 text-primary" />
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                    <Users className="h-3.5 w-3.5" />
                     {t('components.recipelibrarypanel.serves', { recipe_servings: recipe.servings })}
                   </span>
                 ) : null}
               </div>
 
-              <div className="mt-5 grid grid-cols-4 gap-3">
-                <MacroMini label={t('common.kcal')} value={recipe.kcal} tone="rose" />
-                <MacroMini label={t('common.protein_short')} value={recipe.protein} tone="emerald" suffix={t('common.grams_unit')} />
-                <MacroMini label={t('common.carbs_short')} value={recipe.carbs} tone="blue" suffix={t('common.grams_unit')} />
-                <MacroMini label={t('common.fat_short')} value={recipe.fat} tone="amber" suffix={t('common.grams_unit')} />
+              {/* Macros */}
+              <div className="mt-4 grid grid-cols-4 gap-px rounded-xl border border-border/60 bg-border/40 overflow-hidden">
+                <MacroCell label={t('common.kcal')} value={recipe.kcal} accent="text-rose-500" />
+                <MacroCell label={t('common.protein_short')} value={recipe.protein} suffix={t('common.grams_unit')} accent="text-emerald-500" />
+                <MacroCell label={t('common.carbs_short')} value={recipe.carbs} suffix={t('common.grams_unit')} accent="text-sky-500" />
+                <MacroCell label={t('common.fat_short')} value={recipe.fat} suffix={t('common.grams_unit')} accent="text-amber-500" />
               </div>
             </article>
           ))}
@@ -715,29 +718,19 @@ const IconAction: React.FC<{
   </button>
 );
 
-const MacroMini: React.FC<{
+const MacroCell: React.FC<{
   label: string;
   value: number | null | undefined;
-  tone: 'rose' | 'emerald' | 'blue' | 'amber';
   suffix?: string;
-}> = ({ label, value, tone, suffix = '' }) => {
-  const toneClass = {
-    rose: 'text-rose-500 bg-rose-500/8',
-    emerald: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/8',
-    blue: 'text-sky-600 dark:text-sky-400 bg-sky-500/8',
-    amber: 'text-amber-600 dark:text-amber-400 bg-amber-500/8',
-  }[tone];
-
-  return (
-    <div className={`rounded-xl px-4 py-3.5 text-center ${toneClass}`}>
-      <p className="text-xs font-black uppercase tracking-[0.2em]">{label}</p>
-      <p className="mt-1 text-base font-extrabold">
-        {value ?? '--'}
-        {suffix}
-      </p>
-    </div>
-  );
-};
+  accent?: string;
+}> = ({ label, value, suffix = '', accent = 'text-muted-foreground' }) => (
+  <div className="flex flex-col items-center gap-1 bg-card px-3 py-4 text-center">
+    <p className={`text-[11px] font-black uppercase tracking-[0.16em] ${accent}`}>{label}</p>
+    <p className="text-2xl font-black text-foreground leading-none">
+      {value ?? '--'}<span className="text-sm font-bold text-muted-foreground">{suffix}</span>
+    </p>
+  </div>
+);
 
 const Field: React.FC<{
   label: string;

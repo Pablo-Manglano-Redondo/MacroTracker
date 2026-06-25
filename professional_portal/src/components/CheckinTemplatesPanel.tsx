@@ -100,7 +100,7 @@ export const CheckinTemplatesPanel: React.FC = () => {
     })[type];
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div id="tour-checkins-panel" className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
           {t('components.checkintemplatespanel.check_in_templates')}

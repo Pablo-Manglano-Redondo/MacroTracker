@@ -1,7 +1,7 @@
-import React, { useEffect, lazy, Suspense, useMemo, useState } from 'react';
+import React, { useEffect, lazy, Suspense, useMemo, useState, useRef } from 'react';
 import {
-  Briefcase,
   ChevronRight,
+  Home,
   Loader2,
   Menu,
   UserPlus,
@@ -18,9 +18,12 @@ import { supabase } from '../lib/supabase';
 import { ProfessionalClient } from '../types/database.types';
 import { NotificationBell } from './NotificationBell';
 import { InviteModal } from './InviteModal';
+import { TourButton } from './TourButton';
 import { getBillingSummary, resolveWorkspaceState } from '../view-models/professional';
 import { onOpenInviteModal } from '../lib/portal-events';
 import { usePortalI18n } from '../lib/portal-i18n';
+import { startTour, shouldAutoLaunchTour } from '../lib/tour';
+import { buildDemoClient, isDemoClient, DEMO_CLIENT_ID } from '../lib/demo-client';
 
 const AuthPanel = lazy(() => import('./AuthPanel').then((m) => ({ default: m.AuthPanel })));
 const ProfilePanel = lazy(() => import('./ProfilePanel').then((m) => ({ default: m.ProfilePanel })));
@@ -56,6 +59,7 @@ export const AppShell: React.FC = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
+  const tourLaunchedRef = useRef(false);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -144,6 +148,19 @@ export const AppShell: React.FC = () => {
     };
   }, [professional]);
 
+  // Auto-launch tour on first login
+  useEffect(() => {
+    if (loading || !professional || tourLaunchedRef.current) return;
+    if (shouldAutoLaunchTour()) {
+      tourLaunchedRef.current = true;
+      // Small delay to let the portal fully render first
+      const timer = setTimeout(() => handleLaunchTour(), 800);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, professional]);
+
   useEffect(() => {
     if (!practiceBlocked) return;
 
@@ -158,6 +175,61 @@ export const AppShell: React.FC = () => {
     setActivePanel(panel);
     window.location.hash = panel;
     setSidebarOpen(false);
+  };
+
+  const handleLaunchTour = () => {
+    if (!professional) return;
+    // If no real clients, inject demo client
+    const hasNoClients = !selectedClient;
+    const demoClient = buildDemoClient(professional.id, t('components.tour.demo_client_name'));
+
+    startTour(
+      {
+        nextBtn: t('components.tour.next_btn'),
+        prevBtn: t('components.tour.prev_btn'),
+        doneBtn: t('components.tour.done_btn'),
+        skipBtn: t('components.tour.skip_btn'),
+        steps: [
+          { title: t('components.tour.step1_title'), desc: t('components.tour.step1_desc') },
+          { title: t('components.tour.step2_title'), desc: t('components.tour.step2_desc') },
+          { title: t('components.tour.step3_title'), desc: t('components.tour.step3_desc') },
+          { title: t('components.tour.step4_title'), desc: t('components.tour.step4_desc') },
+          { title: t('components.tour.step5_title'), desc: t('components.tour.step5_desc') },
+          { title: t('components.tour.step6_title'), desc: t('components.tour.step6_desc') },
+          { title: t('components.tour.step7_title'), desc: t('components.tour.step7_desc') },
+          { title: t('components.tour.step8_title'), desc: t('components.tour.step8_desc') },
+          { title: t('components.tour.step9_title'), desc: t('components.tour.step9_desc') },
+          { title: t('components.tour.step10_title'), desc: t('components.tour.step10_desc') },
+          { title: t('components.tour.step11_title'), desc: t('components.tour.step11_desc') },
+          { title: t('components.tour.step12_title'), desc: t('components.tour.step12_desc') },
+          { title: t('components.tour.step13_title'), desc: t('components.tour.step13_desc') },
+          { title: t('components.tour.step14_title'), desc: t('components.tour.step14_desc') },
+        ],
+      },
+      {
+        navigateTo: (panel) => handleSetActivePanel(panel),
+        selectDemoClient: () => {
+          if (hasNoClients) {
+            setSelectedClient(demoClient);
+          } else if (selectedClient && !isDemoClient(selectedClient)) {
+            // keep first real client selected
+          }
+          handleSetActivePanel('clients-panel');
+        },
+        selectClientTab: (tab) => {
+          window.dispatchEvent(
+            new CustomEvent('select-client-tab', {
+              detail: { clientId: isDemoClient(selectedClient) ? DEMO_CLIENT_ID : selectedClient?.client_id, tab },
+            }),
+          );
+        },
+        deselectClient: () => {
+          if (isDemoClient(selectedClient)) {
+            setSelectedClient(null);
+          }
+        },
+      },
+    );
   };
 
   if (loading) {
@@ -317,32 +389,53 @@ export const AppShell: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 overflow-hidden border-l border-border/60 pl-3 xl:border-l-0 xl:pl-0">
-                    <span className="portal-kicker hidden sm:inline">{t('components.appshell.practice')}</span>
-                    <ChevronRight className="hidden h-3.5 w-3.5 text-muted-foreground sm:inline" />
-                    <span className="truncate text-sm font-bold text-foreground">
-                      {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
-                    </span>
-                    {professional?.business_name && (
-                      <>
-                        <ChevronRight className="hidden h-3.5 w-3.5 text-muted-foreground md:inline" />
-                        <button
-                          onClick={() => handleSetActivePanel('profile-panel')}
-                          className="hidden items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground md:flex"
-                          title={t('components.appshell.open_professional_profile')}
-                        >
-                          <Briefcase className="h-3.5 w-3.5" />
-                          <span className="truncate">{professional.business_name}</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                </div>
+                {/* Google-style breadcrumb */}
+                <nav
+                  aria-label="breadcrumb"
+                  className="hidden items-center gap-0.5 rounded-full border border-border/60 bg-card/60 px-3 py-1.5 backdrop-blur-sm xl:flex"
+                >
+                  {/* Home */}
+                  <button
+                    onClick={() => handleSetActivePanel('dashboard-panel')}
+                    className="flex items-center justify-center rounded-full p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                    title={panelLabels['dashboard-panel']}
+                    aria-label={panelLabels['dashboard-panel']}
+                  >
+                    <Home className="h-3.5 w-3.5" />
+                  </button>
+
+                  {/* Separator */}
+                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+
+                  {/* Business name — middle crumb if exists */}
+                  {professional?.business_name && (
+                    <>
+                      <button
+                        onClick={() => handleSetActivePanel('profile-panel')}
+                        className="rounded-full px-2 py-0.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground max-w-[140px] truncate"
+                        title={t('components.appshell.open_professional_profile')}
+                      >
+                        {professional.business_name}
+                      </button>
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/40" />
+                    </>
+                  )}
+
+                  {/* Active panel — last crumb, highlighted */}
+                  <span className="rounded-full px-2 py-0.5 text-[13px] font-semibold text-primary">
+                    {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
+                  </span>
+                </nav>
+
+                {/* Mobile fallback: just the panel name */}
+                <span className="truncate text-sm font-bold text-foreground border-l border-border/60 pl-4 xl:hidden">
+                  {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
+                </span>
               </div>
 
               <div className="flex items-center gap-2.5">
                 <button
+                  id="tour-topbar-invite"
                   onClick={() => setShowInviteModal(true)}
                   disabled={!billingSummary.canOperatePractice}
                   className="inline-flex h-12 items-center gap-2.5 rounded-xl border border-border bg-card px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-foreground shadow-sm transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
@@ -407,6 +500,8 @@ export const AppShell: React.FC = () => {
                 </button>
 
                 <NotificationBell />
+
+                <TourButton onClick={handleLaunchTour} />
 
                 {/* Profile dropdown */}
                 <div className="relative">

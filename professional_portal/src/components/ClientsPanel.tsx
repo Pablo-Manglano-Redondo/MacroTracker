@@ -259,7 +259,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 space-y-2 xl:max-h-[calc(100vh-22rem)] xl:overflow-y-auto px-1.5 py-1 xl:pr-1">
+          <div id="tour-clients-list" className="mt-4 space-y-2 xl:max-h-[calc(100vh-22rem)] xl:overflow-y-auto px-1.5 py-1 xl:pr-1">
             {isLoading ? (
               <div className="space-y-2">
                 {[1, 2, 3].map((index) => (

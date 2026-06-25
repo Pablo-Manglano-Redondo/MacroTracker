@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Check, Copy, History, Link, QrCode, ShieldAlert, UserPlus, X } from 'lucide-react';
+import { Check, Copy, History, QrCode, ShieldAlert, UserPlus, X } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { usePortalI18n } from '../lib/portal-i18n';
 import { useCreateInvite } from '../hooks/mutations/useCreateInvite';
@@ -29,23 +29,6 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
     () => getBillingSummary(professional, connectedClients),
     [connectedClients, professional],
   );
-  const pendingInvites = useMemo(
-    () =>
-      (invites ?? []).filter(
-        (invite) => invite.status === 'pending' && new Date(invite.expires_at) >= new Date(),
-      ).length,
-    [invites],
-  );
-  const billingStatusLabel =
-    billingSummary.proStatus === 'trialing'
-      ? t('components.billingpanel.trial_active')
-      : billingSummary.proStatus === 'active'
-        ? t('components.billingpanel.active')
-        : billingSummary.proStatus === 'past_due'
-          ? t('components.billingpanel.past_due')
-          : billingSummary.proStatus === 'canceled'
-            ? t('components.billingpanel.canceled')
-            : t('components.billingpanel.inactive');
 
   const blockReason = !billingSummary.canOperatePractice
     ? t('components.invitemodal.billing_not_active')
@@ -96,113 +79,74 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
       onClick={onClose}
     >
       <div
-        className="portal-panel my-auto relative flex w-full max-w-3xl flex-col rounded-[1.8rem] p-6 shadow-2xl select-none"
+        className="portal-panel my-auto relative flex w-full max-w-3xl flex-col rounded-[1.8rem] p-8 shadow-2xl select-none"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-3xl" />
 
-        <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <UserPlus className="h-4.5 w-4.5 stroke-[3]" />
+        {/* Header */}
+        <div className="mb-8 flex items-center justify-between border-b border-border pb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <UserPlus className="h-6 w-6 stroke-[2]" />
             </div>
             <div>
-              <h3 className="text-base font-bold tracking-tight text-foreground">
+              <h3 className="text-2xl font-black uppercase tracking-[0.12em] text-foreground">
                 {t('components.invitemodal.invite_client')}
               </h3>
-              <p className="mt-0.5 text-[10px] font-semibold text-muted-foreground">
+              <p className="mt-1 text-sm font-semibold text-muted-foreground">
                 {t('components.invitemodal.link_accounts_using_connection_codes')}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             title={t('components.invitemodal.close_modal')}
           >
-            <X className="h-4 w-4" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-          <div className="space-y-5">
+        <div className="grid gap-8 md:grid-cols-[1fr_1px_1fr]">
+          {/* Left — Generate code */}
+          <div className="flex flex-col gap-5">
+            {/* Capacity pill */}
+            <div className="flex items-center gap-2.5 text-sm font-semibold text-muted-foreground">
+              <span className="inline-flex h-7 items-center rounded-full border border-border bg-accent px-3 font-mono text-sm font-bold text-foreground">
+                {connectedClients}/{billingSummary.clientLimit}
+              </span>
+              <span>
+                {t('components.invitemodal.slots_remaining', {
+                  count: billingSummary.remainingClientSlots,
+                })}
+              </span>
+            </div>
+
+            {/* Block warning */}
             {blockReason && (
-              <div className="flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-xs font-semibold leading-relaxed text-amber-800 dark:text-amber-100">
-                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-foreground">
-                    {t('components.invitemodal.you_cannot_invite_right_now')}
-                  </p>
-                  <p>
-                    {t('components.invitemodal.new_invites_blocked_until_billing_and_slot', {
-                      reason: blockReason,
-                    })}
-                  </p>
-                </div>
+              <div className="flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-semibold leading-relaxed text-amber-800 dark:text-amber-100">
+                <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <p>{blockReason}</p>
               </div>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <CapacityCard
-                label={t('components.invitemodal.current_capacity')}
-                value={`${connectedClients}/${billingSummary.clientLimit}`}
-                note={t('components.invitemodal.slots_remaining', {
-                  count: billingSummary.remainingClientSlots,
-                })}
-              />
-              <CapacityCard
-                label={t('components.invitemodal.pending_invites_summary')}
-                value={String(pendingInvites)}
-                note={t('components.invitemodal.pending_does_not_guarantee_acceptance')}
-              />
-              <CapacityCard
-                label={t('components.invitemodal.access_status_summary')}
-                value={billingStatusLabel}
-                note={
-                  billingSummary.canOperatePractice
-                    ? t('components.invitemodal.invite_creation_enabled')
-                    : t('components.invitemodal.billing_reactivation_required_first')
-                }
-              />
-              <CapacityCard
-                label={t('components.invitemodal.operational_mode')}
-                value={
-                  billingSummary.canOperatePractice
-                    ? t('components.invitemodal.can_invite')
-                    : t('components.invitemodal.blocked')
-                }
-                note={
-                  billingSummary.atCapacity
-                    ? t('components.invitemodal.capacity_is_current_bottleneck')
-                    : t('components.invitemodal.invites_are_controlled_by_roster')
-                }
-              />
-            </div>
-
-            <div className="portal-soft-panel rounded-2xl p-5 text-center">
+            {/* Code area */}
+            <div className="portal-soft-panel flex flex-1 flex-col items-center justify-center gap-5 rounded-2xl p-8 text-center">
               {!newCode ? (
                 <>
-                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground">
-                    <Link className="h-4.5 w-4.5" />
-                  </div>
-                  <p className="mx-auto mb-2 max-w-md text-sm font-semibold text-foreground">
+                  <p className="text-lg font-extrabold text-foreground">
                     {t('components.invitemodal.create_one_invite_when_ready')}
                   </p>
-                  <p className="mx-auto mb-4 max-w-md text-sm font-medium leading-relaxed text-muted-foreground">
+                  <p className="text-base font-semibold leading-relaxed text-muted-foreground">
                     {t('components.invitemodal.client_enters_code_in_app')}
-                  </p>
-                  <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                    {t('components.invitemodal.active_clients_and_open_slots', {
-                      connected: connectedClients,
-                      remaining: billingSummary.remainingClientSlots,
-                    })}
                   </p>
                   <button
                     onClick={handleCreateInvite}
                     disabled={createInviteMutation.isPending || !billingSummary.canInviteClients}
-                    className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3 text-sm font-extrabold uppercase tracking-[0.12em] text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <UserPlus className="h-4 w-4 stroke-[3]" />
+                    <UserPlus className="h-5 w-5 stroke-[2]" />
                     <span>
                       {createInviteMutation.isPending
                         ? t('components.invitemodal.generating')
@@ -211,88 +155,85 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   </button>
                 </>
               ) : (
-                <div className="flex w-full flex-col items-center">
-                  <p className="mb-3 text-[9px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                <div className="flex w-full flex-col items-center gap-4">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
                     {t('components.invitemodal.invite_issued_and_pending_acceptance')}
                   </p>
-                  <div className="inline-flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-4 py-3">
-                    <span className="select-all pl-2 font-mono text-xl font-black tracking-[0.2em] text-foreground">
+
+                  {/* Code row */}
+                  <div className="inline-flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-5 py-4">
+                    <span className="select-all font-mono text-3xl font-black tracking-[0.25em] text-foreground">
                       {newCode}
                     </span>
                     <div className="flex gap-1">
                       <button
                         onClick={() => copyToClipboard(newCode)}
-                        className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        className="rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         title={t('components.invitemodal.copy_code')}
                       >
-                        {copied ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                        {copied ? <Check className="h-5 w-5 text-primary" /> : <Copy className="h-5 w-5" />}
                       </button>
                       <button
                         onClick={() => setShowQr((prev) => !prev)}
-                        className={`rounded-lg p-2 transition-colors ${
+                        className={`rounded-lg p-2.5 transition-colors ${
                           showQr
                             ? 'bg-primary/10 text-primary'
                             : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                         }`}
                         title={t('components.invitemodal.toggle_qr_code')}
                       >
-                        <QrCode className="h-4 w-4" />
+                        <QrCode className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
 
                   {showQr && (
-                    <div className="mt-4 flex flex-col items-center rounded-2xl border border-border bg-white p-4 shadow-inner animate-fade-in-up">
-                      <QRCode value={newCode} size={150} />
-                      <p className="mt-2.5 select-none text-[9px] font-bold uppercase tracking-[0.16em] text-[#08080a]">
+                    <div className="flex flex-col items-center rounded-2xl border border-border bg-white p-5 shadow-inner animate-fade-in-up">
+                      <QRCode value={newCode} size={180} />
+                      <p className="mt-3 select-none text-xs font-black uppercase tracking-[0.16em] text-[#08080a]">
                         {t('components.invitemodal.scan_in_mobile_app')}
                       </p>
                     </div>
                   )}
 
-                  <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                  <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
                     {t('components.invitemodal.expires_in_14_days')}
                   </p>
-                  <p className="mt-2 max-w-md text-xs leading-relaxed text-muted-foreground">
-                    {t('components.invitemodal.copy_code_or_show_qr')}
-                  </p>
 
-                  <div className="mt-4 w-full border-t border-border pt-4">
-                    <button
-                      onClick={handleCreateInvite}
-                      disabled={createInviteMutation.isPending || !billingSummary.canInviteClients}
-                      className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {t('components.invitemodal.generate_another_invite')}
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleCreateInvite}
+                    disabled={createInviteMutation.isPending || !billingSummary.canInviteClients}
+                    className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {t('components.invitemodal.generate_another_invite')}
+                  </button>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="portal-soft-panel space-y-4 rounded-2xl p-5">
-            <h4 className="flex items-center gap-2 text-xs font-bold text-foreground">
-              <History className="h-4 w-4 text-primary" />
+          {/* Divider */}
+          <div className="hidden md:block w-px bg-border" />
+
+          {/* Right — History */}
+          <div className="flex flex-col gap-4">
+            <h4 className="flex items-center gap-2.5 text-base font-extrabold text-foreground">
+              <History className="h-5 w-5 text-primary" />
               <span>{t('components.invitemodal.invite_history')}</span>
             </h4>
 
-            <div className="rounded-xl border border-border bg-background p-4 text-xs leading-relaxed text-muted-foreground">
-              {t('components.invitemodal.private_beta_loop_explained')}
-            </div>
-
             {isLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 animate-pulse rounded-xl border border-border bg-background" />
+                  <div key={i} className="h-20 animate-pulse rounded-xl border border-border bg-background" />
                 ))}
               </div>
             ) : !invites?.length ? (
-              <p className="py-6 text-center text-sm font-medium text-muted-foreground">
+              <p className="py-10 text-center text-base font-semibold text-muted-foreground">
                 {t('components.invitemodal.no_connection_codes_generated_yet')}
               </p>
             ) : (
-              <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+              <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
                 {invites.map((inv) => {
                   const expired = new Date(inv.expires_at) < new Date();
                   const visualStatus = expired && inv.status === 'pending' ? 'expired' : inv.status;
@@ -300,24 +241,24 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   return (
                     <div
                       key={inv.id}
-                      className="rounded-xl border border-border bg-background p-3 transition-colors hover:bg-accent"
+                      className="rounded-xl border border-border bg-background p-4 transition-colors hover:bg-accent"
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <span className="select-all font-mono text-xs font-bold tracking-wider text-foreground">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="select-all font-mono text-base font-bold tracking-wider text-foreground">
                             {inv.invite_code}
                           </span>
                           <StatusBadge status={visualStatus} />
                         </div>
                         <button
                           onClick={() => copyToClipboard(inv.invite_code)}
-                          className="rounded-lg p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                           title={t('components.invitemodal.copy_code')}
                         >
-                          <Copy className="h-3.5 w-3.5" />
+                          <Copy className="h-4.5 w-4.5" />
                         </button>
                       </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-semibold text-muted-foreground">
+                      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-muted-foreground">
                         <span>
                           {t('components.invitemodal.created_label')}{' '}
                           {formatPortalDate(inv.created_at, locale, {
@@ -325,13 +266,15 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                             day: 'numeric',
                           })}
                         </span>
-                        <span>
-                          {t('components.invitemodal.expires_label')}{' '}
-                          {formatPortalDate(inv.expires_at, locale, {
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
+                        {inv.status !== 'accepted' && (
+                          <span>
+                            {t('components.invitemodal.expires_label')}{' '}
+                            {formatPortalDate(inv.expires_at, locale, {
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
+                        )}
                       </div>
                     </div>
                   );
@@ -345,20 +288,6 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
     document.body,
   );
 };
-
-const CapacityCard: React.FC<{ label: string; value: string; note: string }> = ({
-  label,
-  value,
-  note,
-}) => (
-  <div className="portal-soft-panel rounded-2xl p-4">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-      {label}
-    </p>
-    <p className="mt-2 text-lg font-extrabold text-foreground">{value}</p>
-    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{note}</p>
-  </div>
-);
 
 const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
   const { t } = usePortalI18n();
@@ -380,7 +309,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
           : t('components.invitemodal.active');
 
   return (
-    <span className={`rounded-md px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.16em] ${className}`}>
+    <span className={`rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-[0.12em] ${className}`}>
       {label}
     </span>
   );
