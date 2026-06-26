@@ -6,23 +6,22 @@ import { usePortalI18n } from '../lib/portal-i18n';
 import { toast } from '../lib/toast';
 import { useStripeCheckout } from '../hooks/mutations/useStripeCheckout';
 import { useClients } from '../hooks/queries/useClients';
-import { getBillingSummary } from '../view-models/professional';
+import { getBillingSummary, getBillingTierLabelKey } from '../view-models/professional';
 
 type BillingInterval = 'monthly' | 'annual';
 type BillingTierId = 'starter' | 'growth' | 'studio';
 
 type TierCard = {
   id: BillingTierId;
-  name: string;
   monthlyPrice: string;
   annualPrice: string;
   clientLimit: number;
 };
 
 const TIERS: TierCard[] = [
-  { id: 'starter', name: 'Starter', monthlyPrice: '$29', annualPrice: '$276', clientLimit: 10 },
-  { id: 'growth', name: 'Growth', monthlyPrice: '$79', annualPrice: '$756', clientLimit: 50 },
-  { id: 'studio', name: 'Studio', monthlyPrice: '$199', annualPrice: '$1908', clientLimit: 500 },
+  { id: 'starter', monthlyPrice: '$29', annualPrice: '$276', clientLimit: 10 },
+  { id: 'growth', monthlyPrice: '$79', annualPrice: '$756', clientLimit: 50 },
+  { id: 'studio', monthlyPrice: '$199', annualPrice: '$1908', clientLimit: 500 },
 ];
 
 const tierSummaryKey: Record<BillingTierId, PortalTranslationKey> = {
@@ -52,17 +51,6 @@ const tierFeatureKeys: Record<BillingTierId, PortalTranslationKey[]> = {
   ],
 };
 
-const billingStatusKeyByStatus = {
-  inactive: 'components.billingpanel.inactive',
-  trialing: 'components.billingpanel.trial_active',
-  active: 'components.billingpanel.active',
-  past_due: 'components.billingpanel.past_due',
-  canceled: 'components.billingpanel.canceled',
-} as const satisfies Record<
-  ReturnType<typeof getBillingSummary>['proStatus'],
-  PortalTranslationKey
->;
-
 export const BillingPanel: React.FC = () => {
   const { professional } = useAuth();
   const { t } = usePortalI18n();
@@ -82,11 +70,8 @@ export const BillingPanel: React.FC = () => {
     () => getBillingSummary(professional, connectedClients),
     [connectedClients, professional],
   );
-  const billingIntervalLabel =
-    billingSummary.billingInterval === 'annual'
-      ? t('components.billingpanel.annual')
-      : t('components.billingpanel.monthly');
-  const billingStatusLabel = t(billingStatusKeyByStatus[billingSummary.proStatus]);
+  const billingIntervalLabel = t(billingSummary.billingIntervalLabelKey);
+  const billingStatusLabel = t(billingSummary.proStatusLabelKey);
 
   const statusTitle =
     billingSummary.primaryAction === 'resolve_payment'
@@ -169,7 +154,7 @@ export const BillingPanel: React.FC = () => {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+        <h2 className="portal-section-heading uppercase tracking-[0.12em]">
           {t('components.billingpanel.billing')}
         </h2>
 
@@ -179,7 +164,7 @@ export const BillingPanel: React.FC = () => {
               <button
                 key={interval}
                 onClick={() => setSelectedInterval(interval)}
-                className={`rounded-lg px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] transition-colors ${
+                className={`rounded-lg px-4 py-2 portal-action transition-colors ${
                   selectedInterval === interval
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -194,7 +179,7 @@ export const BillingPanel: React.FC = () => {
           <button
             onClick={() => handleCheckout(billingSummary.tier)}
             disabled={!professional || checkoutMutation.isPending}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-extrabold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
           >
             {checkoutMutation.isPending ? (
               <>
@@ -209,12 +194,12 @@ export const BillingPanel: React.FC = () => {
       </div>
 
       {checkoutStatus === 'success' && (
-        <div className="rounded-xl border border-primary/25 bg-primary/10 p-4 text-base font-semibold text-primary">
+        <div className="rounded-xl border border-primary/25 bg-primary/10 p-4 portal-body text-primary">
           {t('components.billingpanel.checkout_completed_if_the_stripe_webhook_has_not_landed_yet_refresh_the_')}
         </div>
       )}
       {checkoutStatus === 'canceled' && (
-        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-base font-semibold text-amber-700 dark:text-amber-300">
+        <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 portal-body text-amber-700 dark:text-amber-300">
           {t('components.billingpanel.checkout_canceled_no_billing_change_was_applied')}
         </div>
       )}
@@ -222,24 +207,24 @@ export const BillingPanel: React.FC = () => {
       <div className="portal-panel rounded-[1.6rem] p-8">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">
+            <p className="portal-label portal-label-primary">
               {t('components.billingpanel.current_state')}
             </p>
-            <h3 className="text-2xl font-black text-foreground">{statusTitle}</h3>
-            <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{statusBody}</p>
+            <h3 className="portal-section-heading">{statusTitle}</h3>
+            <p className="portal-body max-w-2xl">{statusBody}</p>
           </div>
         </div>
       </div>
 
       {billingSummary.proStatus === 'trialing' && billingSummary.clientLimit === 1 && (
-        <div className="rounded-[1.6rem] border border-primary/20 bg-primary/5 p-6 text-base text-foreground">
+        <div className="rounded-[1.6rem] border border-primary/20 bg-primary/5 p-6">
           <div className="flex items-start gap-3">
             <BadgeCheck className="h-5 w-5 shrink-0 text-primary mt-0.5" />
             <div className="space-y-1">
-              <p className="font-extrabold text-foreground">
+              <p className="portal-card-heading text-foreground">
                 {t('components.billingpanel.you_are_on_the_free_trial_plan')}
               </p>
-              <p className="text-sm font-semibold leading-relaxed text-muted-foreground">
+              <p className="portal-body text-muted-foreground">
                 {t('components.billingpanel.your_trial_account_allows_you_to_connect_with_exactly_1_client_for_free_')}
               </p>
             </div>
@@ -260,7 +245,7 @@ export const BillingPanel: React.FC = () => {
         />
         <SummaryCard
           label={t('components.billingpanel.commercial_tier')}
-          value={billingSummary.tierLabel}
+          value={t(billingSummary.tierLabelKey)}
           note={t('components.billingpanel.access_and_capacity_tracked_separately')}
         />
         <SummaryCard
@@ -291,10 +276,10 @@ export const BillingPanel: React.FC = () => {
           <div className="flex items-start gap-3">
             <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
             <div className="space-y-1">
-              <p className="text-base font-black text-foreground dark:text-white">
+              <p className="portal-card-heading text-foreground dark:text-white">
                 {t('components.billingpanel.practice_not_operational_yet')}
               </p>
-              <p className="text-base leading-relaxed text-amber-900 dark:text-amber-100 font-semibold">
+              <p className="portal-body text-amber-900 dark:text-amber-100">
                 {t('components.billingpanel.practice_not_operational_status_body', {
                   status: billingSummary.proStatus,
                 })}
@@ -318,6 +303,7 @@ export const BillingPanel: React.FC = () => {
             ? 'components.billingpanel.price_mo_suffix'
             : 'components.billingpanel.price_yr_suffix';
           const price = `${t(priceKey as any)}${t(suffixKey as any)}`;
+          const tierName = t(getBillingTierLabelKey(tier.id));
 
           return (
             <article
@@ -329,31 +315,31 @@ export const BillingPanel: React.FC = () => {
               <div>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-base font-black uppercase tracking-[0.2em] text-primary">
-                      {tier.name}
+                    <p className="portal-label portal-label-primary">
+                      {tierName}
                     </p>
-                    <h3 className="portal-metric mt-3 text-4xl font-black text-foreground">
+                    <h3 className="portal-metric mt-3 text-foreground">
                       {price}
                     </h3>
                   </div>
                   <div className="portal-soft-panel rounded-xl px-4 py-3 text-right">
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+                    <p className="portal-kpi-label">
                       {t('components.billingpanel.capacity')}
                     </p>
-                    <p className="mt-1 flex items-center gap-1.5 text-base font-black text-foreground">
+                    <p className="portal-card-heading mt-1 flex items-center gap-1.5 text-foreground">
                       <Users className="h-4.5 w-4.5 text-primary" />
                       {tier.clientLimit}
                     </p>
                   </div>
                 </div>
 
-                <p className="mt-4 text-base leading-relaxed text-muted-foreground font-semibold">
+                <p className="portal-body mt-4 text-muted-foreground">
                   {t(tierSummaryKey[tier.id])}
                 </p>
 
                 <ul className="mt-5 space-y-3.5">
                   {tierFeatureKeys[tier.id].map((featureKey) => (
-                    <li key={featureKey} className="flex items-start gap-2.5 text-base font-semibold text-muted-foreground">
+                    <li key={featureKey} className="portal-body flex items-start gap-2.5 text-muted-foreground">
                       <BadgeCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                       <span>{t(featureKey)}</span>
                     </li>
@@ -364,7 +350,7 @@ export const BillingPanel: React.FC = () => {
               <button
                 onClick={() => handleCheckout(tier.id)}
                 disabled={!professional || isCurrentPlan || checkoutMutation.isPending}
-                className={`mt-8 flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-3.5 text-xs font-extrabold uppercase tracking-[0.16em] transition-colors ${
+                className={`mt-8 flex w-full items-center justify-center gap-2.5 rounded-xl px-5 py-3.5 portal-action transition-colors ${
                   isCurrentPlan
                     ? 'cursor-default border border-primary/30 bg-primary/15 text-primary'
                     : 'bg-primary text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50'
@@ -391,7 +377,7 @@ export const BillingPanel: React.FC = () => {
           onClick={() => setIsFaqExpanded(!isFaqExpanded)}
           className="flex w-full items-center justify-between text-left focus:outline-none cursor-pointer group"
         >
-          <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground select-none">
+          <h3 className="portal-card-heading uppercase tracking-[0.16em] text-foreground select-none">
             {t('components.billingpanel.operating_faq')}
           </h3>
           <div className="p-1 rounded-lg text-muted-foreground group-hover:text-foreground group-hover:bg-accent transition-colors">
@@ -425,7 +411,7 @@ export const BillingPanel: React.FC = () => {
           onClick={() => setIsRemindersExpanded(!isRemindersExpanded)}
           className="flex w-full items-center justify-between text-left focus:outline-none cursor-pointer group"
         >
-          <h3 className="text-xl font-black uppercase tracking-[0.16em] text-foreground select-none">
+          <h3 className="portal-card-heading uppercase tracking-[0.16em] text-foreground select-none">
             {t('components.billingpanel.data_contract_reminders')}
           </h3>
           <div className="p-1 rounded-lg text-muted-foreground group-hover:text-foreground group-hover:bg-accent transition-colors">
@@ -464,11 +450,11 @@ const SummaryCard: React.FC<{
   tone?: 'good' | 'warn' | 'neutral';
 }> = ({ label, value, note, tone = 'neutral' }) => (
   <div className="portal-soft-panel rounded-xl p-6">
-    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+    <p className="portal-label">
       {label}
     </p>
     <p
-      className={`mt-2.5 text-2xl font-black ${
+      className={`portal-metric mt-2.5 ${
         tone === 'good'
           ? 'text-primary'
           : tone === 'warn'
@@ -478,13 +464,13 @@ const SummaryCard: React.FC<{
     >
       {value}
     </p>
-    <p className="mt-1.5 text-sm font-semibold leading-relaxed text-muted-foreground">{note}</p>
+    <p className="portal-meta mt-1.5">{note}</p>
   </div>
 );
 
 const InfoCard: React.FC<{ title: string; body: string }> = ({ title, body }) => (
   <div className="portal-soft-panel rounded-xl p-6">
-    <p className="text-base font-black text-foreground">{title}</p>
-    <p className="mt-2.5 text-base font-semibold leading-relaxed text-muted-foreground">{body}</p>
+    <p className="portal-card-heading">{title}</p>
+    <p className="portal-body mt-2.5">{body}</p>
   </div>
 );

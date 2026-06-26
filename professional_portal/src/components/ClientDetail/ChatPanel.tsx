@@ -100,8 +100,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
             <MessageSquare className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.chatpanel.messages')}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="portal-card-heading">{t('components.clientdetail.chatpanel.messages')}</h3>
+            <p className="portal-meta mt-1">
               {t('components.clientdetail.chatpanel.real_thread_with', { value_0_8: client.display_name || client.client_id.slice(0, 8) })}
             </p>
           </div>
@@ -118,7 +118,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
             body={t('components.clientdetail.chatpanel.messaging_is_enabled_for_this_relationship_but_the_portal_could_not_load')}
           />
         ) : isLoading ? (
-          <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+          <div className="portal-body flex h-full items-center justify-center gap-2 text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
             <span>{t('components.clientdetail.chatpanel.loading_messages')}</span>
           </div>
@@ -138,7 +138,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
                   className={`flex gap-3 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-[10px] font-extrabold overflow-hidden ${
+                    className={`portal-label flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl ${
                       isSelf
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-background text-foreground border border-border'
@@ -161,7 +161,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
 
                   <div className={`max-w-[78%] ${isSelf ? 'text-right' : ''}`}>
                     <div
-                      className={`inline-block rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                      className={`portal-body inline-block rounded-2xl px-4 py-3 leading-relaxed ${
                         isSelf
                           ? 'rounded-tr-sm bg-primary text-primary-foreground'
                           : 'rounded-tl-sm border border-border bg-card text-foreground'
@@ -169,7 +169,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
                     >
                       <p className="whitespace-pre-wrap">{message.body}</p>
                     </div>
-                    <p className="mt-1 px-1 text-[10px] font-semibold text-muted-foreground">
+                    <p className="portal-meta mt-1 px-1">
                       {formatTime(message.created_at)}
                     </p>
                   </div>
@@ -185,12 +185,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
           <input
             type="text"
             placeholder={t('components.clientdetail.chatpanel.write_a_message')}
-            className="portal-input h-11 flex-1 rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+            className="portal-input h-11 flex-1 rounded-xl px-4 outline-none focus:border-primary"
             disabled={sendMutation.isPending}
             {...register('body')}
           />
           {errors.body && (
-            <p className="absolute -top-5 left-1 text-[10px] font-semibold text-red-500">
+            <p className="portal-meta absolute -top-5 left-1 text-red-500">
               {errors.body.message}
             </p>
           )}
@@ -217,7 +217,7 @@ const EmptyChatState: React.FC<{ title: string; body: string }> = ({ title, body
     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-background text-muted-foreground">
       <MessageSquare className="h-6 w-6" />
     </div>
-    <p className="mt-4 text-base font-bold text-foreground">{title}</p>
-    <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{body}</p>
+    <p className="portal-card-heading mt-4">{title}</p>
+    <p className="portal-body mt-2 max-w-sm">{body}</p>
   </div>
 );

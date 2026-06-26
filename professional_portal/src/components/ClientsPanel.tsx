@@ -159,7 +159,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
 
   if (!professional) {
     return (
-      <div className="portal-panel rounded-[1.6rem] p-6 text-sm leading-relaxed text-muted-foreground">
+      <div className="portal-panel rounded-[1.6rem] p-6 portal-body text-muted-foreground">
         {t('components.clientspanel.create_the_professional_profile_first_client_relationships_attach_to_the')}
       </div>
     );
@@ -168,13 +168,13 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+        <h2 className="portal-section-heading uppercase tracking-[0.12em]">
           {t('components.appshell.clients')}
         </h2>
         {onAddClient && (
           <button
             onClick={onAddClient}
-            className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
           >
             <UserPlus className="h-4.5 w-4.5" />
             <span>{t('components.clientspanel.invite_client')}</span>
@@ -186,7 +186,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
         <section className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4">
           <div className="flex items-start gap-3">
             <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-500 dark:text-amber-300" />
-            <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-100">
+            <p className="portal-body text-amber-900 dark:text-amber-100">
               {t('components.clientspanel.billing_not_active_roster_read_only')}
             </p>
           </div>
@@ -203,7 +203,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder={t('components.clientspanel.search_clients')}
-                  className="portal-input w-full rounded-xl py-2.5 pl-10 pr-3 text-sm font-semibold outline-none transition-colors focus:border-primary"
+                  className="portal-input w-full rounded-xl py-2.5 pl-10 pr-3 outline-none transition-colors focus:border-primary"
                 />
               </div>
               <button
@@ -218,14 +218,14 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
 
             <div className="space-y-3">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 pl-1">
+                <label className="portal-label pl-1 text-muted-foreground/80">
                   {t('components.clientspanel.status_filter_label')}
                 </label>
                 <div className="relative">
                   <select
                     value={statusFilter}
                     onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
-                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 text-sm font-semibold outline-none focus:border-primary transition-colors cursor-pointer"
+                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="all">{t('components.clientspanel.all_statuses')}</option>
                     <option value="attention">{t('components.clientspanel.require_attention')}</option>
@@ -238,14 +238,14 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/80 pl-1">
+                <label className="portal-label pl-1 text-muted-foreground/80">
                   {t('components.clientspanel.sharing_filter_label')}
                 </label>
                 <div className="relative">
                   <select
                     value={sharingFilter}
                     onChange={(event) => setSharingFilter(event.target.value as SharingFilter)}
-                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 text-sm font-semibold outline-none focus:border-primary transition-colors cursor-pointer"
+                    className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="all">{t('components.clientspanel.all_modes')}</option>
                     <option value="stale_sync">{t('components.clientspanel.no_sync_recent')}</option>
@@ -303,7 +303,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 gap-3.5">
                         <div className="relative shrink-0">
-                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-base font-black border shadow-inner group-hover:scale-105 transition-transform duration-300 ${
+                          <div className={`portal-card-heading flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border shadow-inner group-hover:scale-105 transition-transform duration-300 ${
                             isLowAdherence
                               ? 'bg-gradient-to-tr from-amber-500/20 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20'
                               : 'bg-gradient-to-tr from-primary/20 to-primary/5 text-primary border-primary/20'
@@ -312,20 +312,20 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-base font-black text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
+                          <p className="portal-card-heading truncate text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
                             {getClientDisplayName(client)}
                           </p>
-                          <p className="mt-1 truncate text-xs font-semibold text-muted-foreground/80 tracking-wide">
+                          <p className="portal-meta mt-1 truncate text-muted-foreground/80 tracking-wide">
                             {getRelationshipStatusLabel(client.status, t)} ·{' '}
                             {getSharingModeLabel(client.sharing_mode, t)}
                           </p>
                           <div className="mt-2.5 flex items-center gap-1.5">
                             {isActiveLabelGreen ? (
-                              <span className="text-[11px] font-black uppercase tracking-wider text-primary">
+                              <span className="portal-pill text-primary">
                                 {activeLabel}
                               </span>
                             ) : (
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/75">
+                              <span className="portal-pill text-muted-foreground/75">
                                 {activeLabel}
                               </span>
                             )}
@@ -335,7 +335,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
 
                       <div className="flex shrink-0 flex-col items-end justify-center">
                         {unreadCount > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]">
+                          <span className="portal-pill inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]">
                             <MessageSquare className="h-2.5 w-2.5" />
                             {unreadCount}
                           </span>
@@ -349,7 +349,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
           </div>
 
           {!isLoading && (
-            <div className="mt-4 border-t border-border/60 pt-3 text-xs font-semibold text-muted-foreground">
+            <div className="portal-meta mt-4 border-t border-border/60 pt-3 text-muted-foreground">
               {t('components.clientspanel.showing_clients_count', {
                 visible: filteredClients.length,
                 total: clients.length,
@@ -371,10 +371,10 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/12 text-primary">
                 <Users className="h-6 w-6" />
               </div>
-              <h3 className="portal-title mt-4 text-2xl text-foreground">
+              <h3 className="portal-section-heading mt-4">
                 {t('components.clientspanel.select_a_client')}
               </h3>
-              <p className="mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+              <p className="portal-body mt-2 max-w-md text-muted-foreground">
                 {t('components.clientspanel.open_real_client_workspace')}
               </p>
             </section>
@@ -395,12 +395,12 @@ const EmptyRosterState: React.FC<{
 
   return (
     <div className="portal-soft-panel rounded-2xl p-6 text-center">
-      <p className="text-sm font-bold text-foreground">
+      <p className="portal-card-heading">
         {hasClients
           ? t('components.clientspanel.no_clients_match_the_current_filters')
           : t('components.clientspanel.no_client_relationships_yet')}
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+      <p className="portal-body mt-2 text-muted-foreground">
         {hasClients
           ? t('components.clientspanel.clear_the_filters_or_search_query_to_see_the_full_roster_again')
           : blockedByBilling
@@ -411,14 +411,14 @@ const EmptyRosterState: React.FC<{
         <button
           onClick={onAddClient}
           disabled={!canInvite}
-          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
           <UserPlus className="h-4 w-4" />
           {t('components.clientspanel.invite_first_client')}
         </button>
       )}
       {hasClients && (
-        <div className="mt-4 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+        <div className="mt-4 inline-flex items-center gap-2 portal-action text-primary">
           {t('components.clientspanel.review_filters')}
           <ArrowRight className="h-4 w-4" />
         </div>

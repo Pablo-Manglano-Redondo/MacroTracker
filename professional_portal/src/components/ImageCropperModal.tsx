@@ -145,7 +145,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-          <h3 className="text-lg font-black uppercase tracking-[0.12em] text-foreground">
+          <h3 className="portal-card-heading uppercase tracking-[0.12em]">
             {t('components.profilepanel.edit_photo')}
           </h3>
           <button
@@ -216,9 +216,9 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
         <div className="p-6 space-y-6 bg-accent/20 border-t border-border">
           {/* Zoom Slider */}
           <div className="space-y-2">
-            <div className="flex justify-between items-center text-xs font-black uppercase tracking-wider text-muted-foreground">
+            <div className="portal-label flex items-center justify-between text-muted-foreground">
               <span>{t('components.profilepanel.zoom')}</span>
-              <span className="font-extrabold text-foreground">{Math.round(zoom * 100)}%</span>
+              <span className="portal-card-heading">{Math.round(zoom * 100)}%</span>
             </div>
             <div className="flex items-center gap-3">
               <ZoomOut className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -239,7 +239,7 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
           <div className="flex justify-center">
             <button
               onClick={handleRotate}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-wider text-foreground bg-background border border-border rounded-xl hover:bg-accent transition-all cursor-pointer"
+              className="portal-action flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-foreground hover:bg-accent transition-all cursor-pointer"
             >
               <RotateCw className="w-4 h-4" />
               {t('components.profilepanel.rotate')}
@@ -251,13 +251,13 @@ export const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
         <div className="flex items-center gap-3 px-6 py-5 border-t border-border bg-accent/10">
           <button
             onClick={onClose}
-            className="flex-1 py-3 text-sm font-black uppercase tracking-[0.16em] text-muted-foreground hover:text-foreground hover:bg-accent/70 bg-accent/30 rounded-xl transition-all cursor-pointer text-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="portal-action flex-1 rounded-xl bg-accent/30 py-3 text-muted-foreground transition-all cursor-pointer text-center hover:bg-accent/70 hover:text-foreground active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             {t('components.profilepanel.cancel')}
           </button>
           <button
             onClick={handleApply}
-            className="flex-1 flex items-center justify-center gap-2 py-3 text-sm font-black uppercase tracking-[0.16em] text-primary-foreground bg-primary hover:bg-primary/90 hover:shadow-lg rounded-xl transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="portal-action flex-1 flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-primary-foreground transition-all cursor-pointer hover:bg-primary/90 hover:shadow-lg active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Check className="w-4 h-4" />
             {t('components.profilepanel.apply_crop')}

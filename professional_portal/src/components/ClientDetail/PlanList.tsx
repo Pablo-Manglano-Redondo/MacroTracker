@@ -64,6 +64,21 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
   const { data: activePlanDetails, isLoading: activePlanDetailsLoading } = usePlan(activePlan?.id);
   const activeDay = activePlanDetails?.days?.[0];
 
+  const mealLabelBySlot = {
+    breakfast: t('components.clientdetail.planbuilder.breakfast'),
+    lunch: t('components.clientdetail.planbuilder.lunch'),
+    dinner: t('components.clientdetail.planbuilder.dinner'),
+    snack: t('components.clientdetail.planbuilder.snack'),
+  } as const;
+
+  const getMealLabel = (value: string | null | undefined) => {
+    const normalized = `${value ?? ''}`.trim().toLowerCase();
+    if (normalized in mealLabelBySlot) {
+      return mealLabelBySlot[normalized as keyof typeof mealLabelBySlot];
+    }
+    return value ?? '';
+  };
+
   const otherActivePlans = activePlans.filter((plan) => plan.id !== activePlan?.id);
 
   const toggleSelectAll = () => {
@@ -138,7 +153,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
 
   if (error) {
     return (
-      <div className="portal-panel rounded-[1.8rem] p-8 text-center text-sm text-muted-foreground">
+      <div className="portal-panel portal-body rounded-[1.8rem] p-8 text-center text-muted-foreground">
         {t('components.clientdetail.planlist.failed_to_load_plans')}
       </div>
     );
@@ -156,12 +171,12 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="text-xl font-black text-foreground">{activePlan.name.replace(/semanals/gi, 'semanal')}</h4>
-                  <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-[#72de98]">
+                  <h4 className="portal-section-heading">{activePlan.name.replace(/semanals/gi, 'semanal')}</h4>
+                  <span className="portal-pill rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-emerald-600 dark:text-[#72de98]">
                     {t('components.clientdetail.planlist.active')}
                   </span>
                 </div>
-                <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                <p className="portal-meta mt-1">
                   {activePlan.starts_on ? formatPortalDate(activePlan.starts_on, locale) : ''}
                   {activePlan.ends_on ? ` - ${formatPortalDate(activePlan.ends_on, locale)}` : ''}
                 </p>
@@ -172,7 +187,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 onClick={() => onEditPlan(activePlan.id)}
                 size="sm"
                 variant="secondary"
-                className="h-10 rounded-xl px-5 text-sm font-bold"
+                className="h-10 rounded-xl px-5 portal-meta"
               >
                 {t('components.clientdetail.summarypanel.edit_plan')}
               </Button>
@@ -188,20 +203,20 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
           ) : activeDay ? (
             <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
               <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40">
-                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">{t('common.kcal')}</span>
-                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="text-xs font-bold text-muted-foreground">{t('common.kcal_unit')}</span></p>
+                <span className="portal-kpi-label">{t('common.kcal')}</span>
+                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="portal-meta text-muted-foreground">{t('common.kcal_unit')}</span></p>
               </div>
               <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-primary">
-                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">{t('components.clientdetail.snapshotspanel.protein')}</span>
-                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.protein_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+                <span className="portal-kpi-label text-primary">{t('components.clientdetail.snapshotspanel.protein')}</span>
+                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.protein_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
               </div>
               <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-sky-500">
-                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
-                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+                <span className="portal-kpi-label text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
+                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
               </div>
               <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-amber-500">
-                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
-                <p className="text-3xl font-black text-foreground mt-1.5">{Math.round(activeDay.fat_goal)} <span className="text-xs font-bold text-muted-foreground">g</span></p>
+                <span className="portal-kpi-label text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
+                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.fat_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
               </div>
             </div>
           ) : null}
@@ -209,17 +224,23 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
           {/* Meals List */}
           {activePlanDetails?.meals && activePlanDetails.meals.length > 0 && (
             <div className="mt-6 border-t border-border pt-6">
-              <span className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">Comidas Planificadas</span>
+              <span className="portal-label">
+                {t('components.clientdetail.planlist.planned_meals')}
+              </span>
               <div className="grid gap-3.5 mt-3.5 sm:grid-cols-2">
                 {activePlanDetails.meals.map((meal) => (
                   <div key={meal.id} className="portal-panel rounded-2xl p-4.5 bg-background/30 flex items-start justify-between gap-3 border border-border/40">
                     <div className="min-w-0">
-                      <span className="text-[9px] font-black uppercase tracking-[0.16em] text-muted-foreground/80">{meal.slot}</span>
-                      <p className="text-sm font-extrabold text-foreground truncate mt-1">{meal.title}</p>
-                      {meal.notes && <p className="text-xs text-muted-foreground truncate mt-0.5">{meal.notes}</p>}
+                      <span className="portal-label text-muted-foreground/80">
+                        {getMealLabel(meal.slot)}
+                      </span>
+                      <p className="portal-card-heading truncate mt-1">
+                        {getMealLabel(meal.title)}
+                      </p>
+                      {meal.notes && <p className="portal-meta truncate mt-0.5">{meal.notes}</p>}
                     </div>
                     {meal.kcal && (
-                      <span className="text-xs font-bold text-muted-foreground bg-secondary/80 px-2.5 py-1 rounded-xl shrink-0">
+                      <span className="portal-meta bg-secondary/80 px-2.5 py-1 rounded-xl shrink-0">
                         {Math.round(meal.kcal)} kcal
                       </span>
                     )}
@@ -234,17 +255,19 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <LayoutList className="h-6 w-6" />
           </div>
-          <h4 className="mt-4 text-lg font-black text-foreground">Sin Plan Activo</h4>
-          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-            No hay ningún plan nutricional activo para este cliente. Crea uno nuevo para establecer sus calorías y macros diarios.
+          <h4 className="portal-card-heading mt-4">
+            {t('components.clientdetail.planlist.no_active_plan_heading')}
+          </h4>
+          <p className="portal-body mt-2 max-w-md mx-auto">
+            {t('components.clientdetail.planlist.no_active_plan_body')}
           </p>
           {canManagePlans && (
             <Button
               onClick={onNewPlan}
-              className="mt-5 bg-primary rounded-xl px-5 py-2.5 font-bold text-sm text-primary-foreground"
+              className="portal-action mt-5 bg-primary rounded-xl px-5 py-2.5 text-primary-foreground"
             >
               <Plus className="mr-1.5 h-4 w-4" />
-              Crear Plan
+              {t('components.clientdetail.summarypanel.create_plan')}
             </Button>
           )}
         </div>
@@ -254,10 +277,10 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
       <div className="portal-panel rounded-[1.8rem]">
         <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
           <div>
-            <h3 className="text-base font-black uppercase tracking-[0.1em] text-foreground">
-              Historial y Borradores
+            <h3 className="portal-card-heading uppercase tracking-[0.1em]">
+              {t('components.clientdetail.planlist.history_and_drafts')}
             </h3>
-            <p className="text-xs font-semibold text-muted-foreground mt-0.5">
+            <p className="portal-meta mt-0.5">
               {t('components.clientdetail.planlist.non_archived', { activeplans_length: otherActivePlans.length })}
             </p>
           </div>
@@ -268,7 +291,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-9 rounded-xl text-sm font-semibold"
+                  className="h-9 rounded-xl portal-meta"
                   onClick={() => {
                     setSelectMode(false);
                     setSelectedPlans(new Set());
@@ -279,7 +302,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="h-9 rounded-xl text-sm font-semibold"
+                  className="h-9 rounded-xl portal-meta"
                   disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
                   onClick={handleBatchArchive}
                 >
@@ -308,7 +331,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                     onClick={onNewPlan}
                     size="sm"
                     disabled={!canManagePlans}
-                    className="h-9 rounded-xl bg-primary text-sm font-bold text-primary-foreground"
+                    className="h-9 rounded-xl bg-primary portal-meta text-primary-foreground"
                   >
                     <Plus className="mr-1.5 h-3.5 w-3.5" />
                     {t('components.clientdetail.planlist.new')}
@@ -320,7 +343,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
         </div>
 
         {!canManagePlans && !activePlan && (
-          <div className="mx-6 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+          <div className="portal-body mx-6 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">
             {client.status !== 'connected'
               ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
               : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
@@ -328,8 +351,8 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
         )}
 
         {otherActivePlans.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground font-semibold">
-            No hay borradores ni planes antiguos registrados.
+          <div className="portal-body px-6 py-10 text-center text-muted-foreground">
+            {t('components.clientdetail.planlist.no_drafts_or_previous_plans')}
           </div>
         ) : (
           <div className="p-3">
@@ -345,7 +368,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                     <Square className="h-4 w-4" />
                   )}
                 </button>
-                <span className="text-xs font-semibold text-muted-foreground">
+                <span className="portal-meta">
                   {selectedPlans.size === 0
                     ? t('components.clientdetail.planlist.select_plans_to_batch_archive')
                     : t('components.clientdetail.planlist.of_selected', { selectedplans_size: selectedPlans.size, activeplans_length: otherActivePlans.length })}
@@ -384,12 +407,12 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-base font-black text-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</span>
-                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.16em] text-primary">
+                      <span className="portal-card-heading truncate">{plan.name.replace(/semanals/gi, 'semanal')}</span>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 portal-pill text-primary">
                         {statusLabel(plan.status)}
                       </span>
                     </div>
-                    <p className="mt-1 text-xs font-semibold text-muted-foreground">
+                    <p className="portal-meta mt-1">
                       {formatPortalDate(plan.created_at, locale)}
                     </p>
                   </div>
@@ -411,7 +434,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                             <Trash2 className="h-3.5 w-3.5" />
                           </IconAction>
                           <button
-                            className="rounded-lg px-2 py-1 text-[10px] font-bold text-muted-foreground hover:bg-accent"
+                            className="portal-label rounded-lg px-2 py-1 text-muted-foreground hover:bg-accent"
                             onClick={() => setConfirmDelete(null)}
                           >
                             {t('components.clientdetail.planlist.cancel')}
@@ -429,7 +452,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
 
               {archivedPlans.length > 0 && (
                 <details className="group mt-2 border-t border-border/40 pt-2">
-                  <summary className="cursor-pointer px-3 py-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground">
+                  <summary className="portal-meta cursor-pointer px-3 py-2 transition-colors hover:text-foreground">
                     {t('components.clientdetail.planlist.archived_2', { archivedplans_length: archivedPlans.length })}
                   </summary>
                   <div className="mt-1 space-y-1">
@@ -439,8 +462,8 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
                         className="flex items-center gap-3 rounded-xl bg-background/70 px-3 py-2 opacity-75 transition-opacity hover:opacity-100"
                       >
                         <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                        <span className="flex-1 truncate text-sm font-semibold text-muted-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</span>
-                        <span className="rounded-full bg-background px-2.5 py-0.5 text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                        <span className="portal-meta flex-1 truncate">{plan.name.replace(/semanals/gi, 'semanal')}</span>
+                        <span className="portal-pill rounded-full bg-background px-2.5 py-0.5 text-muted-foreground">
                           {statusLabel(plan.status)}
                         </span>
                         <IconAction title={t('components.clientdetail.planlist.delete')} onClick={() => handleDelete(plan.id)} danger>

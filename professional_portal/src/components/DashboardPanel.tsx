@@ -95,10 +95,10 @@ export const DashboardPanel: React.FC = () => {
   if (!professional) {
     return (
       <section className="portal-panel rounded-[1.6rem] p-6">
-        <h2 className="portal-title text-2xl text-foreground">
+        <h2 className="portal-section-heading">
           {t('components.dashboardpanel.operational_overview')}
         </h2>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+        <p className="portal-body mt-2 max-w-2xl text-muted-foreground">
           {t('components.dashboardpanel.create_the_professional_profile_first_this_panel_depends_on_the_professi')}
         </p>
       </section>
@@ -279,13 +279,13 @@ export const DashboardPanel: React.FC = () => {
     <div className="space-y-5 animate-fade-in-up">
       {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-black uppercase tracking-[0.14em] text-foreground">
+        <h2 className="portal-card-heading uppercase tracking-[0.14em]">
           {t('components.dashboardpanel.daily_practice_triage')}
         </h2>
         <button
           onClick={exportAdherenceCsv}
           disabled={trends.length === 0}
-          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-extrabold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 portal-action text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
         >
           <Download className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">{t('components.dashboardpanel.export_adherence')}</span>
@@ -296,7 +296,7 @@ export const DashboardPanel: React.FC = () => {
       {!billingSummary.canOperatePractice && (
         <section className="flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/8 px-5 py-3.5">
           <CreditCard className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
-          <p className="text-sm font-semibold leading-relaxed text-amber-900 dark:text-amber-100">
+          <p className="portal-body text-amber-900 dark:text-amber-100">
             {t('components.dashboardpanel.billing_status_read_only_body', {
               status: billingSummary.proStatus,
             })}
@@ -419,7 +419,7 @@ export const DashboardPanel: React.FC = () => {
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
                     {icon}
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-foreground leading-tight">
+                  <span className="portal-action text-foreground leading-tight">
                     {label}
                   </span>
                 </button>
@@ -458,14 +458,14 @@ export const DashboardPanel: React.FC = () => {
                     className="w-full flex items-center justify-between rounded-xl px-4 py-3 border border-transparent bg-accent/20 hover:bg-accent/40 hover:border-border transition-all active:scale-[0.99] cursor-pointer"
                   >
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-foreground">{client.name}</p>
-                      <p className="text-xs font-semibold text-muted-foreground">
+                      <p className="portal-card-heading truncate text-foreground">{client.name}</p>
+                      <p className="portal-meta text-muted-foreground">
                         {t('components.dashboardpanel.snapshots', {
                           client_snapshotcount: client.snapshotCount,
                         })}
                       </p>
                     </div>
-                    <span className="portal-metric text-lg font-black text-primary ml-3 shrink-0">
+                    <span className="portal-metric ml-3 shrink-0 text-primary">
                       {client.avgKcalAdherence}%
                     </span>
                   </button>
@@ -500,7 +500,7 @@ export const DashboardPanel: React.FC = () => {
                 <button
                   key={macro.id}
                   onClick={() => setSelectedMacro(macro.id)}
-                  className={`rounded-lg px-3.5 py-1.5 text-[11px] font-black uppercase tracking-wider transition-all border cursor-pointer ${
+                  className={`rounded-lg px-3.5 py-1.5 portal-action transition-all border cursor-pointer ${
                     selectedMacro === macro.id
                       ? 'bg-primary text-primary-foreground border-transparent shadow-sm'
                       : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent'
@@ -546,7 +546,7 @@ export const DashboardPanel: React.FC = () => {
                           title={`${day.date}: ${adherenceValue}%`}
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-muted-foreground">
+                      <span className="portal-label text-muted-foreground">
                         {day.date.slice(5)}
                       </span>
                     </div>
@@ -599,7 +599,7 @@ export const DashboardPanel: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className={`text-sm truncate ${!n.read ? 'font-bold text-foreground' : 'font-semibold text-muted-foreground'}`}>
+                          <p className={`portal-card-heading truncate ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
                             {displayTitle}
                           </p>
                           {!n.read && (
@@ -607,11 +607,11 @@ export const DashboardPanel: React.FC = () => {
                           )}
                         </div>
                         {displayBody && (
-                          <p className="text-xs text-muted-foreground/80 mt-0.5 line-clamp-1 font-medium">
+                          <p className="portal-meta mt-0.5 line-clamp-1 text-muted-foreground/80">
                             {displayBody}
                           </p>
                         )}
-                        <p className="text-[10px] font-bold text-muted-foreground/50 mt-1 uppercase tracking-wider">
+                        <p className="portal-label mt-1 text-muted-foreground/50">
                           {formatPortalDate(n.created_at, locale, {
                             month: 'short',
                             day: 'numeric',
@@ -642,9 +642,9 @@ const SectionHeader: React.FC<{
 }> = ({ title, subtitle, icon }) => (
   <div className="flex items-start justify-between gap-3">
     <div className="min-w-0">
-      <h3 className="text-sm font-black uppercase tracking-[0.16em] text-foreground">{title}</h3>
+      <h3 className="portal-card-heading uppercase tracking-[0.16em]">{title}</h3>
       {subtitle && (
-        <p className="mt-0.5 text-xs font-semibold text-muted-foreground">{subtitle}</p>
+        <p className="portal-meta mt-0.5 text-muted-foreground">{subtitle}</p>
       )}
     </div>
     {icon && <div className="shrink-0 mt-0.5">{icon}</div>}
@@ -659,7 +659,7 @@ const MetricCard: React.FC<{
 }> = ({ label, icon, value, note }) => (
   <div className="portal-panel rounded-2xl p-4 shadow-sm flex flex-col justify-between min-h-[108px]">
     <div className="flex items-center justify-between">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground leading-tight">
+      <p className="portal-label leading-tight">
         {label}
       </p>
       {icon}
@@ -671,8 +671,8 @@ const MetricCard: React.FC<{
       </div>
     ) : (
       <div className="mt-2">
-        <p className="portal-metric text-2xl font-black text-foreground leading-none">{value}</p>
-        <p className="mt-1.5 text-[11px] font-semibold text-muted-foreground leading-tight">{note}</p>
+        <p className="portal-metric text-foreground leading-none">{value}</p>
+        <p className="portal-meta mt-1.5 leading-tight">{note}</p>
       </div>
     )}
   </div>
@@ -680,8 +680,8 @@ const MetricCard: React.FC<{
 
 const EmptyPanel: React.FC<{ title: string; body: string }> = ({ title, body }) => (
   <div className="portal-soft-panel mt-4 rounded-xl p-4 border border-border/50">
-    <p className="text-sm font-bold text-foreground">{title}</p>
-    <p className="mt-1 text-xs font-semibold text-muted-foreground leading-relaxed">{body}</p>
+    <p className="portal-card-heading">{title}</p>
+    <p className="portal-meta mt-1 text-muted-foreground leading-relaxed">{body}</p>
   </div>
 );
 
@@ -696,7 +696,7 @@ const ActionHint: React.FC<{ title: string; body: string; onClick?: () => void }
       onClick ? 'cursor-pointer hover:bg-accent/40 hover:border-border active:scale-[0.99]' : ''
     }`}
   >
-    <p className="text-sm font-bold text-foreground">{title}</p>
-    <p className="mt-0.5 text-xs font-semibold text-muted-foreground leading-relaxed">{body}</p>
+    <p className="portal-card-heading">{title}</p>
+    <p className="portal-meta mt-0.5 text-muted-foreground leading-relaxed">{body}</p>
   </div>
 );

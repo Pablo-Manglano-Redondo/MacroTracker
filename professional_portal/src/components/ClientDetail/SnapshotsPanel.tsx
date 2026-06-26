@@ -54,9 +54,9 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
     return (
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-muted-foreground">{label}</span>
+          <span className="portal-meta">{label}</span>
           <span
-            className={`text-sm font-bold ${getAdherenceText(actual, target)}`}
+            className={`portal-meta ${getAdherenceText(actual, target)}`}
           >
             {Math.round(actual)}/{Math.round(target)} {unit}
             <span className="ml-1 opacity-70">({rawPercent}%)</span>
@@ -79,8 +79,8 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
           <Calendar className="h-5 w-5 text-primary" />
         </div>
         <div>
-          <p className="text-base font-black uppercase tracking-[0.1em] text-foreground">{t('components.clientdetail.snapshotspanel.snapshots')}</p>
-          <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
+          <p className="portal-card-heading">{t('components.clientdetail.snapshotspanel.snapshots')}</p>
+          <p className="portal-meta mt-0.5">
             {t('components.clientdetail.snapshotspanel.recorded', { snapshots_length: snapshots.length })}
           </p>
         </div>
@@ -92,8 +92,8 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-muted/10">
               <Calendar className="h-5 w-5 text-muted-foreground/60" />
             </div>
-            <p className="text-sm font-bold text-foreground">{t('components.clientdetail.snapshotspanel.no_snapshots_yet')}</p>
-            <p className="mt-1 text-xs font-semibold text-muted-foreground">
+            <p className="portal-card-heading">{t('components.clientdetail.snapshotspanel.no_snapshots_yet')}</p>
+            <p className="portal-meta mt-1">
               {t('components.clientdetail.snapshotspanel.shared_client_snapshot_data_will_appear_here')}
             </p>
           </div>
@@ -109,7 +109,7 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
                     <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                     </div>
-                    <span className="text-base font-black text-foreground">
+                    <span className="portal-card-heading">
                       {snap.snapshot_date}
                     </span>
                   </div>
@@ -136,7 +136,7 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
         <div className="border-t border-border/50 bg-card/5 px-5 py-2.5">
           <button
             onClick={() => setShowAll(!showAll)}
-            className="flex items-center gap-1.5 text-sm font-extrabold text-muted-foreground transition-colors hover:text-foreground"
+            className="portal-action flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
           >
             {showAll ? (
               <>

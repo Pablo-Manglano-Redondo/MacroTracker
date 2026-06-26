@@ -170,12 +170,12 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
   if (error || !plan) {
     return (
       <div className="portal-panel rounded-[1.6rem] p-6 text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="portal-meta">
           {t('components.clientdetail.planeditor.failed_to_load_plan_it_may_have_been_deleted')}
         </p>
         <button
           onClick={onBack}
-          className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+          className="portal-meta mt-4 rounded-xl border border-border px-4 py-2 text-foreground hover:bg-accent"
         >
           {t('components.clientdetail.planeditor.back_to_plan_list')}
         </button>
@@ -195,19 +195,19 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
           </button>
           <div>
             <p className="portal-kicker">{t('components.clientdetail.planeditor.plan_editor')}</p>
-            <h3 className="portal-title mt-2 text-2xl text-foreground">{plan.name.replace(/semanals/gi, 'semanal')}</h3>
+            <h3 className="portal-section-heading mt-2">{plan.name.replace(/semanals/gi, 'semanal')}</h3>
           </div>
         </div>
         <div className="flex items-center gap-3">
           {plan.status !== 'active' ? (
             <button
               onClick={handleActivate}
-              className="rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-sm font-semibold text-primary"
+              className="portal-meta rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-primary"
             >
               {t('components.clientdetail.planeditor.mark_active')}
             </button>
           ) : null}
-          <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+          <span className="portal-pill rounded-full bg-primary/10 px-3 py-1 text-primary">
             {plan.status === 'active' ? t('components.clientdetail.planeditor.active') : plan.status === 'draft' ? t('components.clientdetail.planeditor.draft') : plan.status}
           </span>
         </div>
@@ -217,8 +217,8 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
         <Notice>
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
           <div>
-            <p className="font-bold">{t('components.clientdetail.planeditor.editing_unavailable')}</p>
-            <p className="mt-1 text-sm leading-relaxed">
+            <p className="portal-card-heading">{t('components.clientdetail.planeditor.editing_unavailable')}</p>
+            <p className="portal-body mt-1 text-amber-900 dark:text-amber-100">
               {client.status !== 'connected'
                 ? t('components.clientdetail.planeditor.this_relationship_is_so_the_plan_stays_read_only', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
                 : t('components.clientdetail.planeditor.professional_access_must_be_active_or_trialing_to_edit_or_activate_plans')}
@@ -237,7 +237,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             }}
             disabled={!canEditPlan}
             placeholder={t('components.clientdetail.planeditor.e_g_weekly_nutrition_plan')}
-            className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+            className="portal-input h-11 w-full rounded-xl px-4 outline-none focus:border-primary"
           />
         </Field>
 
@@ -253,8 +253,8 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-bold">{t('components.clientdetail.planeditor.macro_discrepancy')}</p>
-                <p className="mt-1 text-sm leading-relaxed">
+                <p className="portal-card-heading">{t('components.clientdetail.planeditor.macro_discrepancy')}</p>
+                <p className="portal-body mt-1 text-amber-900 dark:text-amber-100">
                   {t('components.clientdetail.planeditor.the_macro_sum_yields_kcal_and_the_declared_target_is_kcal', { calculatedkcal: calculatedKcal, kcal: kcal })}
                 </p>
               </div>
@@ -264,7 +264,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                   setHasChanges(true);
                 }}
                 disabled={!canEditPlan}
-                className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
+                className="portal-meta rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-800 dark:text-amber-200"
               >
                 {t('components.clientdetail.planeditor.autocorrect_kcal')}
               </button>
@@ -282,10 +282,10 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                 <Utensils className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-bold text-foreground">
+                <p className="portal-card-heading">
                   {t('components.clientdetail.planeditor.meal_configuration')}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="portal-meta">
                   {mealTotals.kcal} {t('common.kcal_unit')} · {mealTotals.protein}{t('common.protein_short')} · {mealTotals.carbs}{t('common.carbs_short')} · {mealTotals.fat}{t('common.fat_short')}
                 </p>
               </div>
@@ -297,10 +297,10 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
             <div className="space-y-4 border-t border-border px-5 py-4">
               <div className="rounded-xl border border-border bg-background/60 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="text-sm font-bold text-foreground">{t('components.clientdetail.planeditor.daily_distribution')}</span>
-                  <span className="text-sm font-bold text-foreground">{mealTotals.kcal} / {kcal} {t('common.kcal_unit')}</span>
+                  <span className="portal-card-heading">{t('components.clientdetail.planeditor.daily_distribution')}</span>
+                  <span className="portal-card-heading">{mealTotals.kcal} / {kcal} {t('common.kcal_unit')}</span>
                 </div>
-                <div className="mt-2 flex gap-4 text-xs font-bold text-muted-foreground">
+                <div className="portal-meta mt-2 flex gap-4">
                   <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
                   <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
                   <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
@@ -314,13 +314,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                 {meals.map((meal, index) => (
                   <div key={meal.slot} className="rounded-2xl border border-border bg-background/60 p-4">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                      <span className="portal-label text-primary">
                         {mealSlotLabel(meal.slot)}
                       </span>
                       <button
                         onClick={() => setRecipePickerSlot(meal.slot)}
                         disabled={!canEditPlan}
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-primary"
+                        className="portal-action inline-flex items-center gap-1 text-primary"
                       >
                         <BookOpen className="h-3.5 w-3.5" />
                         {meal.recipe_id ? t('components.clientdetail.planeditor.change_recipe') : t('components.clientdetail.planeditor.assign_recipe')}
@@ -336,12 +336,12 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                       }}
                       disabled={!canEditPlan}
                       placeholder={t('components.clientdetail.planeditor.title', { meal_slot: mealSlotLabel(meal.slot) })}
-                      className="portal-input mt-3 h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                      className="portal-input mt-3 h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
                     />
                     <div className="mt-3 grid grid-cols-4 gap-2">
                       {(['kcal', 'protein', 'carbs', 'fat'] as const).map((field) => (
                         <div key={field} className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                          <label className="portal-label">
                             {field === 'protein' ? t('common.protein_short') : field === 'carbs' ? t('common.carbs_short') : field === 'fat' ? t('common.fat_short') : t('common.kcal')}
                           </label>
                           <input
@@ -358,7 +358,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
                               setHasChanges(true);
                             }}
                             disabled={!canEditPlan}
-                            className="portal-input h-9 w-full rounded-lg px-2 text-center text-xs font-semibold outline-none focus:border-primary"
+                            className="portal-input h-9 w-full rounded-lg px-2 text-center outline-none focus:border-primary"
                           />
                         </div>
                       ))}
@@ -397,13 +397,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
         </div>
 
         <div className="flex flex-col gap-4 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">
+          <p className="portal-meta">
             {t('components.clientdetail.planeditor.created_on')} {formatDateOnly(plan.created_at.slice(0, 10), undefined, locale)}
           </p>
           <button
             onClick={handleSave}
             disabled={!canEditPlan || !hasChanges || updatePlan.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+            className="portal-action inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50"
           >
             {updatePlan.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {t('components.clientdetail.planeditor.save_changes')}
@@ -416,13 +416,13 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="space-y-2">
-    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</label>
+    <label className="portal-label">{label}</label>
     {children}
   </div>
 );
 
 const Notice: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+  <div className="portal-body mb-6 flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">
     {children}
   </div>
 );
@@ -439,7 +439,7 @@ const MacroStepper: React.FC<{
   kcalUnitLabel: string;
 }> = ({ label, unit = '', value, setValue, step, disabled, onChange, caloriesPerUnit, kcalUnitLabel }) => (
   <div className="rounded-2xl border border-border bg-background/60 p-4">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+    <p className="portal-kpi-label">
       {label}
       {unit ? ` (${unit})` : ''}
     </p>
@@ -462,7 +462,7 @@ const MacroStepper: React.FC<{
           onChange();
         }}
         disabled={disabled}
-        className="w-full bg-transparent text-center text-lg font-extrabold outline-none disabled:opacity-50"
+        className="portal-metric w-full bg-transparent text-center outline-none disabled:opacity-50"
       />
       <button
         onClick={() => {
@@ -475,7 +475,7 @@ const MacroStepper: React.FC<{
         <Plus className="h-3.5 w-3.5" />
       </button>
     </div>
-    <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
+    <p className="portal-meta mt-2 text-center">
       {caloriesPerUnit == null ? '' : `${value * caloriesPerUnit} ${kcalUnitLabel}`}
     </p>
   </div>

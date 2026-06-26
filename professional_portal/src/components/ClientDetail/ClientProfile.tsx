@@ -49,10 +49,10 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
       <section className="portal-panel rounded-[1.6rem] p-5">
         <div className="flex items-center gap-2">
           <Mail className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientprofile.client_identity')}</h3>
+          <h3 className="portal-card-heading">{t('components.clientdetail.clientprofile.client_identity')}</h3>
         </div>
 
-        <div className="mt-4 space-y-3 text-sm">
+        <div className="mt-4 space-y-3">
           <Row
             label={t('components.clientdetail.clientprofile.display_name')}
             value={
@@ -61,7 +61,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="portal-input h-9 w-44 rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                    className="portal-input h-9 w-44 rounded-xl px-3 outline-none focus:border-primary"
                     autoFocus
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleSave();
@@ -83,7 +83,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-foreground">
+                  <span className="portal-meta text-foreground">
                     {client.display_name || t('components.clientdetail.clientprofile.no_display_name_set')}
                   </span>
                   <button
@@ -98,7 +98,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
           />
           <Row
             label={t('common.client_id')}
-            value={<span className="font-mono text-xs text-foreground">{client.client_id}</span>}
+            value={<span className="portal-meta font-mono text-foreground">{client.client_id}</span>}
           />
           <Row
             label={t('components.clientdetail.clientprofile.connected_since')}
@@ -107,14 +107,14 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
           <Row
             label={t('components.clientdetail.clientprofile.sharing_mode')}
             value={
-              <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+              <span className="portal-pill rounded-full bg-primary/10 px-3 py-1 text-primary">
                 {getSharingModeLabel(client.sharing_mode, t)}
               </span>
             }
           />
           <Row
             label={t('components.clientdetail.clientprofile.relationship')}
-            value={<span className="font-semibold text-foreground">{getRelationshipStatusLabel(client.status, t)}</span>}
+            value={<span className="portal-meta text-foreground">{getRelationshipStatusLabel(client.status, t)}</span>}
           />
         </div>
       </section>
@@ -122,15 +122,15 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
       <section className="portal-panel rounded-[1.6rem] p-5">
         <div className="flex items-center gap-2">
           <Target className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientprofile.active_plan')}</h3>
+          <h3 className="portal-card-heading">{t('components.clientdetail.clientprofile.active_plan')}</h3>
         </div>
         {activePlan ? (
-          <div className="mt-4 space-y-3 text-sm">
-            <Row label={t('components.clientdetail.clientprofile.name')} value={<span className="font-semibold text-foreground">{activePlan.name}</span>} />
+          <div className="mt-4 space-y-3">
+            <Row label={t('components.clientdetail.clientprofile.name')} value={<span className="portal-meta text-foreground">{activePlan.name}</span>} />
             <Row
               label={t('components.clientdetail.clientprofile.status')}
               value={
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                <span className="portal-pill rounded-full bg-primary/10 px-3 py-1 text-primary">
                   {activePlan.status}
                 </span>
               }
@@ -141,15 +141,15 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
             />
             {activePlan.objective ? (
               <div className="rounded-2xl border border-border bg-background/60 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                <p className="portal-label">
                   {t('components.clientdetail.clientprofile.objective')}
                 </p>
-                <p className="mt-1 text-sm font-medium text-foreground">{activePlan.objective}</p>
+                <p className="portal-body mt-1 text-foreground">{activePlan.objective}</p>
               </div>
             ) : null}
           </div>
         ) : (
-          <div className="mt-4 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
+          <div className="portal-body mt-4 rounded-xl border border-border bg-background/60 p-4 text-muted-foreground">
             {t('components.clientdetail.clientprofile.no_active_plan_is_assigned_to_this_client')}
           </div>
         )}
@@ -159,7 +159,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
         <section className="portal-panel rounded-[1.6rem] p-5">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4.5 w-4.5 text-primary" />
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientprofile.latest_adherence')}</h3>
+            <h3 className="portal-card-heading">{t('components.clientdetail.clientprofile.latest_adherence')}</h3>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {[
@@ -195,20 +195,20 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
               const pct = calcAdherence(metric.actual, metric.target);
               return (
                 <div key={metric.key} className="rounded-xl border border-border bg-background/60 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="portal-kpi-label">
                     {metric.label}
                   </p>
-                  <p className="mt-1 text-xl font-extrabold text-foreground">
+                  <p className="portal-metric mt-1 text-foreground">
                     {pct != null ? `${pct}%` : '--'}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="portal-meta">
                     {metric.actual}/{metric.target} {metric.unit}
                   </p>
                 </div>
               );
             })}
           </div>
-          <p className="mt-3 text-right text-[11px] font-semibold text-muted-foreground">
+          <p className="portal-meta mt-3 text-right">
             {t('components.clientdetail.clientprofile.measured')}: {formatDateOnly(lastSnapshot.snapshot_date, { year: 'numeric', month: 'short', day: 'numeric' }, locale)}
           </p>
         </section>
@@ -217,10 +217,10 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
       <section className="portal-panel rounded-[1.6rem] p-5">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientprofile.follow_up_summary')}</h3>
+          <h3 className="portal-card-heading">{t('components.clientdetail.clientprofile.follow_up_summary')}</h3>
         </div>
         {summaryError ? (
-          <div className="mt-4 rounded-xl border border-border bg-background/60 p-4 text-sm text-muted-foreground">
+          <div className="portal-body mt-4 rounded-xl border border-border bg-background/60 p-4 text-muted-foreground">
             {t('components.clientdetail.clientprofile.summary_metrics_are_not_available_yet_for_this_client_the_profile_still_')}
           </div>
         ) : (
@@ -260,16 +260,16 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
 };
 
 const Row: React.FC<{ label: string; value: React.ReactNode }> = ({ label, value }) => (
-  <div className="flex items-center justify-between gap-3 border-b border-border/50 pb-2 text-sm last:border-b-0 last:pb-0">
-    <span className="text-muted-foreground">{label}</span>
+  <div className="portal-meta flex items-center justify-between gap-3 border-b border-border/50 pb-2 last:border-b-0 last:pb-0">
+    <span className="portal-meta">{label}</span>
     <div className="text-right">{value}</div>
   </div>
 );
 
 const MetricBox: React.FC<{ label: string; value: string; note?: string }> = ({ label, value, note }) => (
   <div className="rounded-xl border border-border bg-background/60 p-4">
-    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
-    <p className="mt-1 text-xl font-extrabold text-foreground">{value}</p>
-    {note ? <p className="mt-1 text-xs text-muted-foreground">{note}</p> : null}
+    <p className="portal-kpi-label">{label}</p>
+    <p className="portal-metric mt-1 text-foreground">{value}</p>
+    {note ? <p className="portal-meta mt-1">{note}</p> : null}
   </div>
 );

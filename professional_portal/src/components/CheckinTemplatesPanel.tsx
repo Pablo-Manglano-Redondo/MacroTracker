@@ -102,12 +102,12 @@ export const CheckinTemplatesPanel: React.FC = () => {
   return (
     <div id="tour-checkins-panel" className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+        <h2 className="portal-section-heading uppercase tracking-[0.12em]">
           {t('components.checkintemplatespanel.check_in_templates')}
         </h2>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
+          className="portal-action inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-primary-foreground shadow-sm hover:opacity-95 transition-opacity"
         >
           <Plus className="h-4.5 w-4.5" />
           <span>{t('components.checkintemplatespanel.new_template')}</span>
@@ -125,15 +125,15 @@ export const CheckinTemplatesPanel: React.FC = () => {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <ClipboardCheck className="h-8 w-8" />
           </div>
-          <h3 className="portal-title mt-5 text-3xl font-extrabold text-foreground">
+          <h3 className="portal-section-heading mt-5">
             {t('components.checkintemplatespanel.no_check_in_templates_yet')}
           </h3>
-          <p className="mt-2 max-w-sm text-base leading-relaxed text-muted-foreground">
+          <p className="portal-body mt-2 max-w-sm text-muted-foreground">
             {t('components.checkintemplatespanel.create_a_first_structure_to_receive_metrics_notes_and_progress_signals_f')}
           </p>
           <button
             onClick={() => setShowForm(true)}
-            className="mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-extrabold uppercase tracking-[0.16em] text-primary-foreground"
+            className="portal-action mt-5 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-primary-foreground"
           >
             <Plus className="h-4 w-4" />
             {t('components.checkintemplatespanel.create_first_template')}
@@ -147,9 +147,9 @@ export const CheckinTemplatesPanel: React.FC = () => {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2.5">
                     <ClipboardCheck className="h-5 w-5 text-primary" />
-                    <h3 className="truncate text-lg font-black text-foreground">{template.title}</h3>
+                    <h3 className="portal-card-heading truncate">{template.title}</h3>
                   </div>
-                  <p className="mt-3 text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label mt-3">
                     {(template.questions as any[] || []).length} {t('components.checkintemplatespanel.questions')}
                     {template.is_default ? ` · ${t('components.checkintemplatespanel.default')}` : ''}
                   </p>
@@ -168,25 +168,25 @@ export const CheckinTemplatesPanel: React.FC = () => {
                   {(template.questions as Question[]).slice(0, 3).map((question) => (
                     <div
                       key={question.id}
-                      className="rounded-xl border border-border bg-background/60 px-4 py-3.5 text-base font-semibold"
+                      className="portal-body rounded-xl border border-border bg-background/60 px-4 py-3.5 text-muted-foreground"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <span className="truncate text-foreground">{question.label}</span>
-                        <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                        <span className="portal-pill rounded-full bg-primary/10 px-2.5 py-1 text-primary">
                           {questionTypeLabel(question.type)}
                         </span>
                       </div>
                     </div>
                   ))}
                   {(template.questions as any[]).length > 3 ? (
-                    <p className="pt-1 text-xs font-black uppercase tracking-[0.2em] text-primary">
+                    <p className="portal-label pt-1 text-primary">
                       +{(template.questions as any[]).length - 3} {t('components.checkintemplatespanel.more_questions')}
                     </p>
                   ) : null}
                 </div>
               ) : null}
 
-              <div className="mt-6 border-t border-border pt-4 text-xs font-semibold text-muted-foreground">
+              <div className="portal-meta mt-6 border-t border-border pt-4">
                 {t('components.checkintemplatespanel.created')}{' '}
                 {formatPortalDate(template.created_at, locale, {
                   month: 'short',
@@ -211,10 +211,10 @@ export const CheckinTemplatesPanel: React.FC = () => {
             >
               <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
                 <div>
-                  <h3 className="text-2xl font-black text-foreground">
+                  <h3 className="portal-section-heading">
                     {t('components.checkintemplatespanel.new_check_in_template')}
                   </h3>
-                  <p className="text-base text-muted-foreground">
+                  <p className="portal-body">
                     {t('components.checkintemplatespanel.build_a_reusable_form_for_your_clients')}
                   </p>
                 </div>
@@ -228,30 +228,30 @@ export const CheckinTemplatesPanel: React.FC = () => {
 
               <div className="space-y-6">
                 <div className="space-y-2.5">
-                  <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <label className="portal-label">
                     {t('components.checkintemplatespanel.title')} *
                   </label>
                   <input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder={t('components.checkintemplatespanel.e_g_weekly_wellness_check')}
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                   />
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-baseline gap-2">
-                      <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                      <label className="portal-label">
                         {t('components.checkintemplatespanel.questions_2')}
                       </label>
-                      <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                      <span className="portal-pill rounded-full bg-primary/10 px-2.5 py-0.5 text-primary">
                         {questions.length}
                       </span>
                     </div>
                     <button
                       onClick={addQuestion}
-                      className="inline-flex items-center gap-1 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-xs font-extrabold uppercase tracking-[0.16em] text-primary"
+                      className="portal-action inline-flex items-center gap-1 rounded-xl border border-primary/20 bg-primary/10 px-4 py-2 text-primary"
                     >
                       <Plus className="h-4 w-4" />
                       {t('components.checkintemplatespanel.add')}
@@ -262,7 +262,7 @@ export const CheckinTemplatesPanel: React.FC = () => {
                     {questions.map((question, index) => (
                       <div key={question.id} className="rounded-2xl border border-border bg-background/60 p-6">
                         <div className="mb-4 flex items-center gap-3">
-                          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-[10px] font-black text-primary">
+                          <span className="portal-label flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             {String(index + 1).padStart(2, '0')}
                           </span>
                           <button
@@ -280,7 +280,7 @@ export const CheckinTemplatesPanel: React.FC = () => {
                             value={question.label}
                             onChange={(e) => updateQuestion(question.id, 'label', e.target.value)}
                             placeholder={t('components.checkintemplatespanel.question', { index_1: index + 1 })}
-                            className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                            className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                           />
 
                           <div className="grid grid-cols-3 gap-2 rounded-xl border border-border bg-background p-1.5">
@@ -289,7 +289,7 @@ export const CheckinTemplatesPanel: React.FC = () => {
                                 key={type}
                                 type="button"
                                 onClick={() => updateQuestion(question.id, 'type', type)}
-                                className={`rounded-lg px-2 py-3 text-xs font-extrabold uppercase tracking-[0.16em] transition-colors ${
+                                className={`portal-action rounded-lg px-2 py-3 transition-colors ${
                                   question.type === type
                                     ? 'bg-primary text-primary-foreground'
                                     : 'text-muted-foreground hover:text-foreground'
@@ -308,14 +308,14 @@ export const CheckinTemplatesPanel: React.FC = () => {
                 <div className="flex justify-end gap-4 border-t border-border pt-5">
                   <button
                     onClick={() => setShowForm(false)}
-                    className="rounded-xl border border-border px-5 py-3 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-accent"
+                    className="portal-action rounded-xl border border-border px-5 py-3 text-foreground transition-colors hover:bg-accent"
                   >
                     {t('components.checkintemplatespanel.cancel')}
                   </button>
                   <button
                     onClick={handleCreate}
                     disabled={createTemplate.isPending || !title.trim()}
-                    className="rounded-xl bg-primary px-5 py-3 text-xs font-extrabold uppercase tracking-[0.16em] text-primary-foreground disabled:opacity-50"
+                    className="portal-action rounded-xl bg-primary px-5 py-3 text-primary-foreground disabled:opacity-50"
                   >
                     {createTemplate.isPending
                       ? t('components.checkintemplatespanel.creating')

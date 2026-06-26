@@ -54,10 +54,10 @@ function PortalErrorFallback({ onRetry }: { onRetry: () => void }) {
       <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
         <AlertTriangle className="w-8 h-8 text-destructive" />
       </div>
-      <h2 className="text-xl font-bold text-foreground mb-2">
+      <h2 className="portal-section-heading mb-2 text-foreground">
         {t('components.errorboundary.something_went_wrong')}
       </h2>
-      <p className="text-sm text-muted-foreground max-w-md mb-6 leading-relaxed">
+      <p className="portal-body max-w-md mb-6 text-muted-foreground">
         {t('components.errorboundary.an_unexpected_error_occurred_please_try_again_or_contact_support_if_the_')}
       </p>
       <div className="flex gap-3">

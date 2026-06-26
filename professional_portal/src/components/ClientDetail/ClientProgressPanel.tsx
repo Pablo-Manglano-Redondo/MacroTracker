@@ -39,7 +39,7 @@ function WeightChart({
 
   return (
     <div className="rounded-xl border border-border bg-background/60 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">{title}</p>
+      <p className="portal-label text-primary">{title}</p>
       <svg viewBox={`0 0 ${w} ${h}`} className="mt-3 h-auto w-full" preserveAspectRatio="xMidYMid meet">
         <defs>
           <linearGradient id="weightGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -157,13 +157,13 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <Scale className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">
+          <h3 className="portal-card-heading">
             {t('components.clientdetail.clientprogresspanel.progress_and_measurements')}
           </h3>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
+          className="portal-action inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-primary-foreground"
         >
           <Plus className="h-3.5 w-3.5" />
           {t('components.clientdetail.clientprogresspanel.record_entry')}
@@ -218,7 +218,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
               ] as const
             ).map((field) => (
               <div key={field} className="space-y-1">
-                <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground capitalize">
+                <label className="portal-label capitalize">
                   {progressFieldLabel(field, t)}
                 </label>
                 <input
@@ -226,7 +226,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
                   step="0.1"
                   value={form[field]}
                   onChange={(e) => setForm((prev) => ({ ...prev, [field]: e.target.value }))}
-                  className="portal-input h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                  className="portal-input h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
                 />
               </div>
             ))}
@@ -236,19 +236,19 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
             onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
             placeholder={t('components.clientdetail.clientprogresspanel.measurement_notes_optional')}
             rows={2}
-            className="portal-input mt-4 w-full rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-primary"
+            className="portal-input mt-4 w-full rounded-xl px-3 py-3 outline-none focus:border-primary"
           />
           <div className="mt-4 flex justify-end gap-2">
             <button
               onClick={() => setShowForm(false)}
-              className="rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+              className="portal-meta rounded-xl border border-border px-3 py-2 text-foreground hover:bg-accent"
             >
               {t('components.clientdetail.clientprogresspanel.cancel')}
             </button>
             <button
               onClick={handleCreate}
               disabled={createRecord.isPending}
-              className="rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="portal-action rounded-xl bg-primary px-3 py-2 text-primary-foreground disabled:opacity-50"
             >
               {t('components.clientdetail.clientprogresspanel.save_record')}
             </button>
@@ -257,7 +257,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
       ) : null}
 
       {error ? (
-        <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientprogresspanel.progress_records_are_not_available_right_now_snapshot_based_metrics_may_')}
         </div>
       ) : isLoading ? (
@@ -267,15 +267,15 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
           ))}
         </div>
       ) : sorted.length === 0 ? (
-        <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientprogresspanel.no_progress_records_have_been_saved_yet')}
         </div>
       ) : (
         <div className="portal-panel overflow-hidden rounded-[1.4rem]">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-sm">
+            <table className="w-full border-collapse">
               <thead>
-                <tr className="border-b border-border bg-background text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                <tr className="portal-label border-b border-border bg-background text-muted-foreground">
                   <th className="px-4 py-3 text-left">{t('components.clientdetail.clientprogresspanel.date')}</th>
                   <th className="px-3 py-3 text-right">{t('components.clientdetail.clientprogresspanel.weight')}</th>
                   <th className="px-3 py-3 text-right">{t('common.body_fat_short')}</th>
@@ -290,7 +290,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
               <tbody className="divide-y divide-border/40">
                 {sorted.map((record) => (
                   <tr key={record.id} className="hover:bg-accent/50">
-                    <td className="px-4 py-3 font-semibold text-foreground">
+                    <td className="px-4 py-3 portal-meta text-foreground">
                       {formatPortalDate(record.record_date, locale)}
                     </td>
                     <td className="px-3 py-3 text-right text-muted-foreground">{record.weight_kg ?? '--'}</td>
@@ -310,7 +310,7 @@ export const ClientProgressPanel: React.FC<{ client: ProfessionalClient }> = ({ 
                             toast.error(t('components.clientdetail.clientprogresspanel.failed_to_delete'));
                           }
                         }}
-                        className="rounded-xl px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
+                        className="portal-meta rounded-xl px-2 py-1 text-muted-foreground hover:bg-rose-500/10 hover:text-rose-500"
                       >
                         {t('components.clientdetail.clientprogresspanel.delete')}
                       </button>
@@ -335,10 +335,10 @@ const MetricCard: React.FC<{
   <div className="portal-panel rounded-[1.4rem] p-4">
     <div className="flex items-center gap-2">
       {icon}
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
+      <p className="portal-kpi-label">{label}</p>
     </div>
-    <p className="mt-2 text-xl font-extrabold text-foreground">{value}</p>
-    {note ? <p className="mt-1 text-xs text-muted-foreground">{note}</p> : null}
+    <p className="portal-metric mt-2 text-foreground">{value}</p>
+    {note ? <p className="portal-meta mt-1">{note}</p> : null}
   </div>
 );
 

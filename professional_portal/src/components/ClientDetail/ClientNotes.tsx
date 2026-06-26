@@ -82,11 +82,11 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
       <div className="flex items-center justify-between border-b border-border pb-3">
         <div className="flex items-center gap-2">
           <FileText className="h-4.5 w-4.5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.clientnotes.client_notes')}</h3>
+          <h3 className="portal-card-heading">{t('components.clientdetail.clientnotes.client_notes')}</h3>
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground"
+          className="portal-action inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-primary-foreground"
         >
           <Plus className="h-3.5 w-3.5" />
           {t('components.clientdetail.clientnotes.new_note')}
@@ -100,20 +100,20 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t('components.clientdetail.clientnotes.note_title')}
-              className="portal-input h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+              className="portal-input h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
             />
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder={t('components.clientdetail.clientnotes.write_the_note')}
               rows={4}
-              className="portal-input w-full rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-primary"
+              className="portal-input w-full rounded-xl px-3 py-3 outline-none focus:border-primary"
             />
             <div className="flex items-center justify-between gap-2">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="portal-input rounded-xl px-3 py-2 text-sm font-semibold outline-none"
+                className="portal-input rounded-xl px-3 py-2 outline-none"
               >
                 {CATEGORIES.map((item) => (
                   <option key={item} value={item}>
@@ -124,14 +124,14 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="rounded-xl border border-border px-3 py-2 text-sm font-semibold text-foreground hover:bg-accent"
+                  className="portal-meta rounded-xl border border-border px-3 py-2 text-foreground hover:bg-accent"
                 >
                   {t('components.clientdetail.clientnotes.cancel')}
                 </button>
                 <button
                   onClick={handleCreate}
                   disabled={createNote.isPending}
-                  className="rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+                  className="portal-action rounded-xl bg-primary px-3 py-2 text-primary-foreground disabled:opacity-50"
                 >
                   {t('components.clientdetail.clientnotes.save')}
                 </button>
@@ -142,7 +142,7 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
       )}
 
       {error ? (
-        <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientnotes.notes_could_not_be_loaded_yet_this_tab_should_remain_explicit_until_real')}
         </div>
       ) : isLoading ? (
@@ -152,7 +152,7 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
           ))}
         </div>
       ) : !sortedNotes.length ? (
-        <div className="portal-panel rounded-[1.4rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientnotes.no_notes_exist_for_this_client_yet')}
         </div>
       ) : (
@@ -177,19 +177,19 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                     <input
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="portal-input h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                      className="portal-input h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
                     />
                     <textarea
                       value={editBody}
                       onChange={(e) => setEditBody(e.target.value)}
                       rows={3}
-                      className="portal-input w-full rounded-xl px-3 py-3 text-sm font-medium outline-none focus:border-primary"
+                      className="portal-input w-full rounded-xl px-3 py-3 outline-none focus:border-primary"
                     />
                     <div className="flex items-center justify-between gap-2">
                       <select
                         value={editCategory}
                         onChange={(e) => setEditCategory(e.target.value)}
-                        className="portal-input rounded-xl px-3 py-2 text-sm font-semibold outline-none"
+                        className="portal-input rounded-xl px-3 py-2 outline-none"
                       >
                         {CATEGORIES.map((item) => (
                           <option key={item} value={item}>
@@ -235,15 +235,15 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           {note.pinned ? <Pin className="h-3.5 w-3.5 rotate-45 fill-primary/20 text-primary" /> : null}
-                          <span className="truncate text-sm font-bold text-foreground">{note.title}</span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] ${categoryTone}`}>
+                          <span className="portal-card-heading truncate">{note.title}</span>
+                          <span className={`portal-pill rounded-full px-2 py-0.5 ${categoryTone}`}>
                             {categoryLabel(note.category || 'general')}
                           </span>
                         </div>
-                        <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                        <p className="portal-body mt-3 whitespace-pre-wrap">
                           {note.body}
                         </p>
-                        <p className="mt-3 text-[11px] font-semibold text-muted-foreground">
+                        <p className="portal-meta mt-3">
                           {t('components.clientdetail.clientnotes.created')}{' '}
                           {formatPortalDate(note.created_at, locale, {
                             year: 'numeric',

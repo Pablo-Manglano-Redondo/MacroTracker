@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { usePortalI18n } from '../../lib/portal-i18n';
 import type { PortalTranslationKey } from '../../lib/generated/i18n';
+import { getBillingTierLabelKey } from '../../view-models/professional';
 
 type CheckoutErrorPayload = {
   code?: string;
@@ -18,7 +19,10 @@ function mapCheckoutError(
     const intervalLabel = payload.billingInterval === 'annual'
       ? t('hooks.mutations.usestripecheckout.annual')
       : t('hooks.mutations.usestripecheckout.monthly');
-    const tierLabel = payload.tier ?? t('hooks.mutations.usestripecheckout.selected');
+    const tierLabel =
+      payload.tier === 'starter' || payload.tier === 'growth' || payload.tier === 'studio'
+        ? t(getBillingTierLabelKey(payload.tier))
+        : payload.tier ?? t('hooks.mutations.usestripecheckout.selected');
     return t('hooks.mutations.usestripecheckout.the_checkout_is_not_configured_yet_update_the_stripe_price_ids_in_supaba', { intervallabel: intervalLabel, tierlabel: tierLabel });
   }
 

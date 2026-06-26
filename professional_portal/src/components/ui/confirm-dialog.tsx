@@ -38,8 +38,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <AlertTriangle className={`w-5 h-5 ${destructive ? 'text-red-500' : 'text-primary'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-bold">{title}</h3>
-            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{message}</p>
+            <h3 className="portal-card-heading">{title}</h3>
+            <p className="portal-meta mt-1 text-muted-foreground leading-relaxed">{message}</p>
           </div>
           <button onClick={onCancel} className="p-1 rounded-md hover:bg-secondary shrink-0">
             <X className="w-4 h-4" />
@@ -49,14 +49,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           <button
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-1.5 text-xs rounded-lg border hover:bg-secondary transition-colors disabled:opacity-50"
+            className="portal-action px-4 py-1.5 rounded-lg border hover:bg-secondary transition-colors disabled:opacity-50"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`px-4 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50 ${
+            className={`portal-action px-4 py-1.5 rounded-lg transition-colors disabled:opacity-50 ${
               destructive
                 ? 'bg-red-500 text-white hover:bg-red-600'
                 : 'bg-primary text-primary-foreground hover:bg-primary/90'

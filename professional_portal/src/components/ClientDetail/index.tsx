@@ -202,19 +202,19 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       <div className="portal-hero rounded-[1.8rem] p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-5">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-sm">
+            <div className="portal-metric flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
               {initials}
             </div>
             <div className="min-w-0 space-y-2.5">
-              <p className="portal-kicker text-xs font-extrabold tracking-[0.2em]">
+              <p className="portal-kicker">
                 {t('components.clientdetail.index.selected_client')}
               </p>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <h2 className="portal-title truncate text-4xl font-extrabold text-foreground">
+                <h2 className="portal-title truncate text-foreground">
                   {clientName}
                 </h2>
                 {isDemoClient(client) && (
-                  <span className="inline-flex items-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-black uppercase tracking-[0.14em] text-amber-600 dark:text-amber-300">
+                  <span className="inline-flex items-center rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 portal-pill text-amber-600 dark:text-amber-300">
                     {t('components.tour.demo_client_badge')}
                   </span>
                 )}
@@ -263,11 +263,11 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
           {/* Adherencia semanal */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.weekly_adherence')}
             </p>
             <div className="mt-2.5 flex items-baseline gap-2">
-              <p className="text-3xl font-black text-foreground">
+              <p className="portal-kpi-value">
                 {weeklyAdherence.val !== null ? `${weeklyAdherence.val}%` : '--'}
               </p>
               {weeklyAdherence.pts.length >= 2 && (
@@ -288,18 +288,18 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 </svg>
               )}
             </div>
-            <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="portal-meta mt-auto pt-2.5 leading-none">
               {t('components.clientdetail.index.goal_over_75')}
             </p>
           </div>
 
           {/* Check-ins pendientes */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.pending_checkin')}
             </p>
-            <p className="mt-2.5 text-3xl font-black text-foreground">{pendingCheckinCount}</p>
-            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="portal-kpi-value mt-2.5">{pendingCheckinCount}</p>
+            <p className="portal-meta mt-auto truncate pt-2.5 leading-none">
               {latestCheckinDateStr
                 ? t('components.clientdetail.index.latest_prefix', { value: latestCheckinDateStr })
                 : t('components.clientdetail.index.none_pending')}
@@ -308,11 +308,11 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           {/* Mensajes sin leer */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.unread_messages')}
             </p>
-            <p className="mt-2.5 text-3xl font-black text-foreground">{unreadCount}</p>
-            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="portal-kpi-value mt-2.5">{unreadCount}</p>
+            <p className="portal-meta mt-auto truncate pt-2.5 leading-none">
               {latestMessageTimeStr
                 ? t('components.clientdetail.index.latest_prefix', {
                     value: `${t('components.clientdetail.index.today')}, ${latestMessageTimeStr}`,
@@ -323,15 +323,15 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           {/* Peso actual */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.current_weight')}
             </p>
-            <p className="mt-2.5 text-3xl font-black text-foreground">
+            <p className="portal-kpi-value mt-2.5">
               {weightMetrics.current ? `${weightMetrics.current.toFixed(1)} kg` : '--'}
             </p>
             {weightMetrics.change !== 0 ? (
               <p
-                className={`mt-auto pt-2.5 flex items-center gap-0.5 text-sm font-bold leading-none ${
+                className={`portal-meta mt-auto flex items-center gap-0.5 pt-2.5 leading-none ${
                   weightMetrics.change < 0 ? 'text-green-500' : 'text-rose-500'
                 }`}
               >
@@ -340,7 +340,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 })}
               </p>
             ) : (
-              <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+              <p className="portal-meta mt-auto pt-2.5 leading-none">
                 {t('components.clientdetail.index.no_changes')}
               </p>
             )}
@@ -348,10 +348,10 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           {/* Última actualización */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.latest_update')}
             </p>
-            <p className="mt-2.5 text-3xl font-black text-foreground">
+            <p className="portal-kpi-value mt-2.5">
               {latestSnapshot
                 ? formatPortalDate(latestSnapshot.snapshot_date, locale, {
                     month: 'short',
@@ -359,7 +359,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                   })
                 : t('components.clientdetail.index.today')}
             </p>
-            <p className="mt-auto pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="portal-meta mt-auto pt-2.5 leading-none">
               {latestSnapshot
                 ? t('components.clientdetail.index.synced')
                 : t('components.clientdetail.index.not_synced')}
@@ -368,13 +368,13 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           {/* Plan activo */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
-            <p className="min-h-[2.5rem] text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+            <p className="min-h-[2.5rem] portal-label">
               {t('components.clientdetail.index.active_plan')}
             </p>
-            <p className="mt-2.5 text-lg font-black leading-tight text-foreground line-clamp-2" title={activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : undefined}>
+            <p className="portal-card-heading mt-2.5 leading-tight line-clamp-2" title={activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : undefined}>
               {activePlan ? activePlan.name.replace(/semanals/gi, 'semanal') : t('components.clientdetail.index.none')}
             </p>
-            <p className="mt-auto truncate pt-2.5 text-sm font-semibold leading-none text-muted-foreground">
+            <p className="portal-meta mt-auto truncate pt-2.5 leading-none">
               {activePlanStartStr
                 ? t('components.clientdetail.index.started_prefix', {
                     date: activePlanStartStr,
@@ -398,7 +398,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 setPlanView('list');
               }
             }}
-            className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 text-base font-extrabold transition-all ${
+            className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 portal-action transition-all ${
               detailTab === tab.id
                 ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
                 : 'portal-chip hover:bg-accent hover:text-foreground'
@@ -407,7 +407,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             {tab.icon}
             <span className="truncate">{tab.label}</span>
             {tab.badge ? (
-              <span className="shrink-0 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-black text-white">
+              <span className="shrink-0 rounded-full bg-rose-500 px-2.5 py-1 portal-pill text-white">
                 {tab.badge}
               </span>
             ) : null}
@@ -422,7 +422,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               setEditingPlanId(null);
               setPlanView('list');
             }}
-            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 portal-action transition-colors ${
               planView === 'list'
                 ? 'border border-border bg-card text-foreground shadow-sm'
                 : 'portal-chip hover:bg-accent'
@@ -436,7 +436,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               setEditingPlanId(null);
               setPlanView('new');
             }}
-            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 portal-action transition-colors ${
               planView === 'new'
                 ? 'border border-border bg-card text-foreground shadow-sm'
                 : 'portal-chip hover:bg-accent'
@@ -517,10 +517,10 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="portal-panel flex items-start gap-3 rounded-[1.6rem] border-amber-500/25 bg-amber-500/8 p-5">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-500 dark:text-amber-300" />
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-foreground">
+                  <p className="portal-card-heading text-foreground">
                     {t('components.clientdetail.index.chat_disabled')}
                   </p>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
+                  <p className="portal-body text-muted-foreground">
                     {t(
                       'components.clientdetail.index.this_client_has_disabled_messages_from_the_privacy_settings_in_the_mobil',
                     )}
@@ -534,5 +534,3 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
     </section>
   );
 };
-
-

@@ -236,7 +236,7 @@ export const AppShell: React.FC = () => {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="text-sm font-semibold text-muted-foreground">
+        <span className="portal-meta text-muted-foreground">
           {t('components.appshell.loading_professional_portal')}
         </span>
       </div>
@@ -249,10 +249,10 @@ export const AppShell: React.FC = () => {
         <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.78fr)] lg:items-center">
           <section className="portal-hero hidden rounded-[2rem] p-10 lg:block">
             <p className="portal-kicker">{t('components.appshell.professional_portal')}</p>
-            <h1 className="portal-title mt-4 max-w-xl text-4xl text-foreground">
+            <h1 className="portal-title mt-4 max-w-xl text-foreground">
               {t('components.appshell.a_restrained_operational_surface_for_nutritionists')}
             </h1>
-            <p className="mt-4 max-w-xl text-base font-medium leading-relaxed text-muted-foreground">
+            <p className="portal-body mt-4 max-w-xl text-muted-foreground">
               {t('components.appshell.manage_real_relationships_plans_check_ins_and_shared_snapshots_without_m')}
             </p>
 
@@ -272,8 +272,8 @@ export const AppShell: React.FC = () => {
                 ],
               ].map(([title, body]) => (
                 <div key={title} className="portal-soft-panel rounded-2xl p-4">
-                  <p className="text-sm font-bold text-foreground">{title}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                  <p className="portal-card-heading text-foreground">{title}</p>
+                  <p className="portal-body mt-2 text-muted-foreground">{body}</p>
                 </div>
               ))}
             </div>
@@ -295,10 +295,10 @@ export const AppShell: React.FC = () => {
         <div className="mx-auto max-w-6xl space-y-6">
           <section className="portal-hero rounded-[2rem] p-6 md:p-8">
             <p className="portal-kicker">{t('components.appshell.initial_setup')}</p>
-            <h1 className="portal-title mt-3 text-2xl text-foreground">
+            <h1 className="portal-title mt-3 text-foreground">
               {t('components.appshell.complete_the_professional_profile_first')}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-muted-foreground">
+            <p className="portal-body mt-3 max-w-2xl text-muted-foreground">
               {t('components.appshell.the_authenticated_user_exists_but_there_is_still_no_row_in_professionals')}
             </p>
           </section>
@@ -381,10 +381,10 @@ export const AppShell: React.FC = () => {
 
                 {/* MacroTracker Logo */}
                 <div className="flex items-center gap-2 mr-2 xl:hidden">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] font-black shadow-inner">
+                  <div className="portal-card-heading flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] shadow-inner">
                     M
                   </div>
-                  <span className="hidden text-base font-black tracking-tight text-white sm:block">
+                  <span className="hidden portal-card-heading text-white sm:block">
                     Macro<span className="text-[#72de98]">Tracker</span>
                   </span>
                 </div>
@@ -412,7 +412,7 @@ export const AppShell: React.FC = () => {
                     <>
                       <button
                         onClick={() => handleSetActivePanel('profile-panel')}
-                        className="rounded-full px-2 py-0.5 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground max-w-[140px] truncate"
+                        className="portal-meta rounded-full px-2 py-0.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground max-w-[140px] truncate"
                         title={t('components.appshell.open_professional_profile')}
                       >
                         {professional.business_name}
@@ -422,13 +422,13 @@ export const AppShell: React.FC = () => {
                   )}
 
                   {/* Active panel — last crumb, highlighted */}
-                  <span className="rounded-full px-2 py-0.5 text-[13px] font-semibold text-primary">
+                  <span className="portal-meta rounded-full px-2 py-0.5 text-primary">
                     {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
                   </span>
                 </nav>
 
                 {/* Mobile fallback: just the panel name */}
-                <span className="truncate text-sm font-bold text-foreground border-l border-border/60 pl-4 xl:hidden">
+                <span className="truncate portal-card-heading border-l border-border/60 pl-4 xl:hidden">
                   {panelLabels[activePanel as keyof typeof panelLabels] ?? panelLabels['dashboard-panel']}
                 </span>
               </div>
@@ -438,7 +438,7 @@ export const AppShell: React.FC = () => {
                   id="tour-topbar-invite"
                   onClick={() => setShowInviteModal(true)}
                   disabled={!billingSummary.canOperatePractice}
-                  className="inline-flex h-12 items-center gap-2.5 rounded-xl border border-border bg-card px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-foreground shadow-sm transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-12 items-center gap-2.5 rounded-xl border border-border bg-card px-5 portal-action text-foreground shadow-sm transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <UserPlus className="h-4.5 w-4.5" />
                   <span className="hidden sm:inline">{t('components.appshell.invite_client')}</span>
@@ -448,7 +448,7 @@ export const AppShell: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setLanguageMenuOpen((prev) => !prev)}
-                    className="flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-4 text-xs font-extrabold uppercase tracking-[0.16em] text-foreground hover:bg-accent transition-colors shadow-sm"
+                    className="flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-4 portal-action text-foreground hover:bg-accent transition-colors shadow-sm"
                     title={t('components.sidebar.language')}
                   >
                     <Globe className="h-4.5 w-4.5 text-muted-foreground" />
@@ -470,14 +470,14 @@ export const AppShell: React.FC = () => {
                                 setLocale(loc.code as any);
                                 setLanguageMenuOpen(false);
                               }}
-                              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left text-xs font-bold uppercase tracking-wider transition-colors ${
+                              className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-left portal-action transition-colors ${
                                 locale === loc.code
                                   ? 'bg-primary/10 text-primary'
                                   : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                               }`}
                             >
                               <span>{loc.nativeName}</span>
-                              <span className="text-[10px] opacity-60 font-semibold">{loc.code}</span>
+                              <span className="portal-label opacity-60">{loc.code}</span>
                             </button>
                           ))}
                         </div>
@@ -507,7 +507,7 @@ export const AppShell: React.FC = () => {
                 <div className="relative">
                   <button
                     onClick={() => setProfileMenuOpen((prev) => !prev)}
-                    className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] font-black shadow-md shadow-[#72de98]/10 transition-transform hover:scale-[1.02] overflow-hidden"
+                    className="portal-card-heading flex h-12 w-12 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] shadow-md shadow-[#72de98]/10 transition-transform hover:scale-[1.02] overflow-hidden"
                     title={t('components.sidebar.profile_settings')}
                   >
                     {professional?.avatar_url ? (
@@ -517,7 +517,7 @@ export const AppShell: React.FC = () => {
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <span className="portal-metric text-sm font-extrabold">{initials}</span>
+                      <span className="portal-metric">{initials}</span>
                     )}
                   </button>
 
@@ -529,7 +529,7 @@ export const AppShell: React.FC = () => {
                       />
                       <div className="absolute right-0 mt-2.5 z-40 w-64 rounded-2xl border border-[#1e2326] bg-[#131719]/98 p-4 shadow-2xl backdrop-blur">
                         <div className="flex items-center gap-3 border-b border-[#181d20] pb-3 mb-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] font-extrabold text-sm overflow-hidden">
+                          <div className="portal-card-heading flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#72de98] text-[#0b0f11] overflow-hidden">
                             {professional?.avatar_url ? (
                               <img
                                 src={professional.avatar_url}
@@ -541,10 +541,10 @@ export const AppShell: React.FC = () => {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-bold text-white">
+                            <p className="truncate portal-card-heading text-white">
                               {professional?.display_name || 'Professional'}
                             </p>
-                            <p className="truncate text-xs font-semibold text-[#8a9499]">
+                            <p className="portal-meta truncate text-[#8a9499]">
                               {user?.email || ''}
                             </p>
                           </div>
@@ -556,7 +556,7 @@ export const AppShell: React.FC = () => {
                               handleSetActivePanel('profile-panel');
                               setProfileMenuOpen(false);
                             }}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-[#8a9499] hover:bg-[#1c2225] hover:text-white transition-colors"
+                            className="portal-action flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[#8a9499] hover:bg-[#1c2225] hover:text-white transition-colors"
                           >
                             <User className="h-4 w-4" />
                             <span>Ver Perfil</span>
@@ -566,7 +566,7 @@ export const AppShell: React.FC = () => {
                               signOut();
                               setProfileMenuOpen(false);
                             }}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold text-rose-400 hover:bg-rose-950/20 hover:text-rose-200 transition-colors"
+                            className="portal-action flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-rose-400 hover:bg-rose-950/20 hover:text-rose-200 transition-colors"
                           >
                             <LogOut className="h-4 w-4" />
                             <span>{t('components.sidebar.sign_out')}</span>
@@ -583,13 +583,13 @@ export const AppShell: React.FC = () => {
           <div className="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-8">
             <div className="mx-auto max-w-[1800px] space-y-6 animate-fade-in-up">
               {practiceBlocked && (
-                <div className="rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-medium leading-relaxed text-amber-900 dark:text-amber-100">
+                <div className="portal-body rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">
                   {t('components.appshell.professional_access_is_currently_the_portal_remains_available_for_profil', { billingsummary_prostatus: billingSummary.proStatus })}{' '}
                   {t('components.appshell.billing')}:
                   {' '}
                   <button
                     onClick={() => handleSetActivePanel('billing-panel')}
-                    className="font-bold underline underline-offset-2"
+                    className="portal-action underline underline-offset-2"
                   >
                     {practiceBlockedLabel}
                   </button>

@@ -44,7 +44,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <ChefHat className="h-4.5 w-4.5 text-primary" />
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.recipepickermodal.assign_recipe')}</h3>
+            <h3 className="portal-card-heading">{t('components.clientdetail.recipepickermodal.assign_recipe')}</h3>
           </div>
           <button onClick={onClose} className="rounded-xl p-2 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-4 w-4" />
@@ -57,7 +57,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder={t('components.clientdetail.recipepickermodal.search_recipes')}
-            className="portal-input h-10 w-full rounded-xl pl-9 pr-3 text-sm font-medium outline-none focus:border-primary"
+            className="portal-input h-10 w-full rounded-xl pl-9 pr-3 outline-none focus:border-primary"
           />
         </div>
 
@@ -69,7 +69,7 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
+            <p className="portal-body py-8 text-center">
               {t('components.clientdetail.recipepickermodal.no_matching_recipes')}
             </p>
           ) : (
@@ -80,15 +80,15 @@ export const RecipePickerModal: React.FC<RecipePickerModalProps> = ({
                 className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-left transition-colors hover:bg-accent"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground">{recipe.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="portal-card-heading truncate">{recipe.title}</p>
+                  <p className="portal-meta mt-0.5">
                     {recipe.kcal != null ? `${recipe.kcal} kcal` : ''}
                     {recipe.protein != null ? ` · P: ${recipe.protein}g` : ''}
                     {recipe.carbs != null ? ` · C: ${recipe.carbs}g` : ''}
                     {recipe.fat != null ? ` · F: ${recipe.fat}g` : ''}
                   </p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold capitalize text-primary">
+                <span className="portal-pill rounded-full bg-primary/10 px-2 py-0.5 normal-case tracking-normal text-primary">
                   {recipe.meal_type || mealType}
                 </span>
               </button>

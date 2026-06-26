@@ -1,3 +1,4 @@
+import type { PortalTranslationKey } from '../lib/generated/i18n';
 import type { Professional } from '../types/database.types';
 
 export type ProfessionalWorkspaceState =
@@ -21,24 +22,42 @@ type ProfessionalStatus = 'inactive' | 'active' | 'trialing' | 'past_due' | 'can
 const ACTIVE_PRO_STATUSES = new Set(['active', 'trialing']);
 const READ_ONLY_HISTORICAL_STATUSES = new Set(['inactive', 'past_due', 'canceled']);
 
-const TIER_LABELS: Record<'starter' | 'growth' | 'studio', string> = {
-  starter: 'Starter',
-  growth: 'Growth',
-  studio: 'Studio',
+const TIER_LABEL_KEYS: Record<'starter' | 'growth' | 'studio', PortalTranslationKey> = {
+  starter: 'components.billingpanel.tier_starter',
+  growth: 'components.billingpanel.tier_growth',
+  studio: 'components.billingpanel.tier_studio',
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  inactive: 'Inactive',
-  trialing: 'Trial active',
-  active: 'Active',
-  past_due: 'Past due',
-  canceled: 'Canceled',
+const STATUS_LABEL_KEYS: Record<ProfessionalStatus, PortalTranslationKey> = {
+  inactive: 'components.billingpanel.inactive',
+  trialing: 'components.billingpanel.trial_active',
+  active: 'components.billingpanel.active',
+  past_due: 'components.billingpanel.past_due',
+  canceled: 'components.billingpanel.canceled',
 };
 
-const INTERVAL_LABELS: Record<'monthly' | 'annual', string> = {
-  monthly: 'Monthly',
-  annual: 'Annual',
+const INTERVAL_LABEL_KEYS: Record<'monthly' | 'annual', PortalTranslationKey> = {
+  monthly: 'components.billingpanel.monthly',
+  annual: 'components.billingpanel.annual',
 };
+
+export function getBillingTierLabelKey(
+  tier: 'starter' | 'growth' | 'studio',
+): PortalTranslationKey {
+  return TIER_LABEL_KEYS[tier];
+}
+
+export function getBillingStatusLabelKey(
+  proStatus: ProfessionalStatus,
+): PortalTranslationKey {
+  return STATUS_LABEL_KEYS[proStatus];
+}
+
+export function getBillingIntervalLabelKey(
+  billingInterval: 'monthly' | 'annual',
+): PortalTranslationKey {
+  return INTERVAL_LABEL_KEYS[billingInterval];
+}
 
 export function hasProfessionalAccess(professional: Professional | null | undefined) {
   return ACTIVE_PRO_STATUSES.has(professional?.pro_status ?? '');
@@ -76,11 +95,11 @@ export function getBillingSummary(
 
   return {
     tier,
-    tierLabel: TIER_LABELS[tier] ?? 'Starter',
+    tierLabelKey: getBillingTierLabelKey(tier),
     billingInterval,
-    billingIntervalLabel: INTERVAL_LABELS[billingInterval] ?? 'Monthly',
+    billingIntervalLabelKey: getBillingIntervalLabelKey(billingInterval),
     proStatus,
-    proStatusLabel: STATUS_LABELS[proStatus] ?? proStatus,
+    proStatusLabelKey: getBillingStatusLabelKey(proStatus),
     clientLimit,
     connectedClients,
     remainingClientSlots,

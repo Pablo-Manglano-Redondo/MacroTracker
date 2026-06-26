@@ -125,8 +125,8 @@ export const AuthPanel: React.FC = () => {
     <div className="glass-card rounded-[2rem] p-8 md:p-10">
       <div className="mb-8">
         <p className="portal-kicker">{t('components.authpanel.professional_access')}</p>
-        <h2 className="portal-title mt-3 text-3xl text-foreground">{title}</h2>
-        <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">{body}</p>
+        <h2 className="portal-title mt-3 text-foreground">{title}</h2>
+        <p className="portal-body mt-3 max-w-md">{body}</p>
       </div>
 
       <div className="mb-8 grid grid-cols-3 gap-2">
@@ -134,7 +134,7 @@ export const AuthPanel: React.FC = () => {
           type="button"
           disabled={loading}
           onClick={() => resetTransientState('magic-link')}
-          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+          className={`portal-meta flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-colors ${
             authMode === 'magic-link'
               ? 'bg-primary text-primary-foreground'
               : 'portal-soft-panel text-foreground'
@@ -147,7 +147,7 @@ export const AuthPanel: React.FC = () => {
           type="button"
           disabled={loading}
           onClick={() => resetTransientState('password')}
-          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+          className={`portal-meta flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-colors ${
             authMode === 'password'
               ? 'bg-primary text-primary-foreground'
               : 'portal-soft-panel text-foreground'
@@ -160,7 +160,7 @@ export const AuthPanel: React.FC = () => {
           type="button"
           disabled={loading}
           onClick={() => resetTransientState('signup')}
-          className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors ${
+          className={`portal-meta flex items-center justify-center gap-2 rounded-xl px-4 py-3 transition-colors ${
             authMode === 'signup'
               ? 'bg-primary text-primary-foreground'
               : 'portal-soft-panel text-foreground'
@@ -176,12 +176,12 @@ export const AuthPanel: React.FC = () => {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
             <Send className="h-5 w-5" />
           </div>
-          <h4 className="mt-4 text-lg font-bold text-foreground">
+          <h4 className="portal-card-heading mt-4">
             {successState === 'magic_link_sent'
               ? t('components.authpanel.magic_link_sent')
               : t('components.authpanel.account_created')}
           </h4>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="portal-body mt-2">
             {successState === 'magic_link_sent'
               ? t('components.authpanel.check_to_complete_sign_in', { email: email })
               : t('components.authpanel.check_and_confirm_the_email_before_saving_the_profile_if_your_project_re', { email: email })}
@@ -192,7 +192,7 @@ export const AuthPanel: React.FC = () => {
               setSuccessState(null);
               setFieldErrors({});
             }}
-            className="mt-5 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+            className="portal-meta mt-5 w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground transition-colors hover:bg-accent"
           >
             {t('components.authpanel.back')}
           </button>
@@ -200,7 +200,7 @@ export const AuthPanel: React.FC = () => {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+            <label className="portal-label">
               {t('components.authpanel.professional_email')}
             </label>
             <div className="relative">
@@ -211,17 +211,17 @@ export const AuthPanel: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
-                className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+                className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 outline-none transition-colors focus:border-primary"
               />
             </div>
             {fieldErrors.email && (
-              <p className="text-xs font-semibold text-red-500">{fieldErrors.email}</p>
+              <p className="portal-meta text-red-500">{fieldErrors.email}</p>
             )}
           </div>
 
           {authMode !== 'magic-link' && (
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              <label className="portal-label">
                 {t('components.authpanel.password')}
               </label>
               <div className="relative">
@@ -232,18 +232,18 @@ export const AuthPanel: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
-                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 outline-none transition-colors focus:border-primary"
                 />
               </div>
               {fieldErrors.password && (
-                <p className="text-xs font-semibold text-red-500">{fieldErrors.password}</p>
+                <p className="portal-meta text-red-500">{fieldErrors.password}</p>
               )}
             </div>
           )}
 
           {authMode === 'signup' && (
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              <label className="portal-label">
                 {t('components.authpanel.confirm_password')}
               </label>
               <div className="relative">
@@ -254,11 +254,11 @@ export const AuthPanel: React.FC = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={loading}
-                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 text-sm font-medium outline-none transition-colors focus:border-primary"
+                  className="portal-input h-14 w-full rounded-xl py-3 pl-12 pr-4 outline-none transition-colors focus:border-primary"
                 />
               </div>
               {fieldErrors.confirmPassword && (
-                <p className="text-xs font-semibold text-red-500">{fieldErrors.confirmPassword}</p>
+                <p className="portal-meta text-red-500">{fieldErrors.confirmPassword}</p>
               )}
             </div>
           )}
@@ -266,7 +266,7 @@ export const AuthPanel: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
+            className="portal-action mt-4 flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
           >
             {loading
               ? t('components.authpanel.sending')
@@ -284,10 +284,10 @@ export const AuthPanel: React.FC = () => {
         <div className="portal-soft-panel flex items-center gap-3 rounded-2xl p-4">
           <ShieldCheck className="h-5 w-5 text-primary" />
           <div>
-            <p className="text-sm font-semibold text-foreground">
+            <p className="portal-meta text-foreground">
               {t('components.authpanel.encrypted_connection')}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="portal-meta">
               {t('components.authpanel.authenticated_with_supabase')}
             </p>
           </div>
@@ -295,10 +295,10 @@ export const AuthPanel: React.FC = () => {
         <div className="portal-soft-panel flex items-center gap-3 rounded-2xl p-4">
           <UserCheck className="h-5 w-5 text-primary" />
           <div>
-            <p className="text-sm font-semibold text-foreground">
+            <p className="portal-meta text-foreground">
               {t('components.authpanel.protected_data')}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="portal-meta">
               {t('components.authpanel.visibility_depends_on_the_active_relationship_and_consent')}
             </p>
           </div>

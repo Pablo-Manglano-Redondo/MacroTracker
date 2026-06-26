@@ -207,7 +207,7 @@ export const ProfilePanel: React.FC = () => {
   return (
     <div id="tour-profile-panel" className="space-y-6 select-none animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+        <h2 className="portal-section-heading uppercase tracking-[0.12em]">
           {t('components.appshell.professional_profile')}
         </h2>
       </div>
@@ -220,10 +220,10 @@ export const ProfilePanel: React.FC = () => {
                 <User className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-foreground">
+                <h3 className="portal-card-heading">
                   {t('components.profilepanel.professional_details')}
                 </h3>
-                <p className="text-sm font-semibold text-muted-foreground">
+                <p className="portal-meta text-muted-foreground">
                   {t('components.profilepanel.information_visible_inside_the_portal_and_related_flows')}
                 </p>
               </div>
@@ -233,7 +233,7 @@ export const ProfilePanel: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 px-8 py-8 md:grid-cols-[180px_minmax(0,1fr)]">
             {/* Left Col: Photo Uploader */}
             <div className="flex flex-col items-center justify-start gap-4">
-              <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground text-center">
+              <label className="portal-label text-center">
                 {t('components.profilepanel.profile_picture')}
               </label>
 
@@ -244,7 +244,7 @@ export const ProfilePanel: React.FC = () => {
                 {isUploading ? (
                   <div className="flex flex-col items-center gap-2">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <span className="portal-label text-muted-foreground">
                       {t('components.profilepanel.uploading')}
                     </span>
                   </div>
@@ -257,7 +257,7 @@ export const ProfilePanel: React.FC = () => {
                     />
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 opacity-0 transition-opacity group-hover:opacity-100 rounded-[1.9rem]">
                       <Camera className="h-6 w-6 text-white" />
-                      <span className="mt-1 text-[10px] font-black uppercase tracking-wider text-white">
+                      <span className="portal-label mt-1 text-white">
                         {t('components.profilepanel.upload_photo')}
                       </span>
                     </div>
@@ -265,7 +265,7 @@ export const ProfilePanel: React.FC = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center p-3 text-center">
                     <Camera className="h-7 w-7 text-muted-foreground transition-transform group-hover:scale-105 group-hover:text-primary" />
-                    <span className="mt-1.5 text-[9px] font-black uppercase leading-tight tracking-wider text-muted-foreground max-w-[90px]">
+                    <span className="portal-label mt-1.5 max-w-[90px] leading-tight text-muted-foreground">
                       {t('components.profilepanel.drag_drop_click')}
                     </span>
                   </div>
@@ -276,7 +276,7 @@ export const ProfilePanel: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePhotoDelete}
-                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black uppercase tracking-wider text-red-500 transition-colors hover:bg-red-500/10"
+                  className="portal-action flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-red-500 transition-colors hover:bg-red-500/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   {t('components.profilepanel.delete_photo')}
@@ -291,7 +291,7 @@ export const ProfilePanel: React.FC = () => {
                 className="hidden"
               />
 
-              <p className="text-[10px] leading-relaxed text-muted-foreground text-center max-w-[150px] font-medium">
+              <p className="portal-meta max-w-[150px] text-center text-muted-foreground">
                 {t('components.profilepanel.photo_formats_limit')}
               </p>
             </div>
@@ -299,7 +299,7 @@ export const ProfilePanel: React.FC = () => {
             {/* Right Col: Fields */}
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                <label className="portal-label">
                   {t('components.profilepanel.display_name')} *
                 </label>
                 <div className="relative">
@@ -308,16 +308,16 @@ export const ProfilePanel: React.FC = () => {
                     {...register('displayName')}
                     placeholder={t('components.profilepanel.e_g_marta_lopez')}
                     disabled={updateProfile.isPending || isUploading}
-                    className="portal-input h-12 w-full rounded-xl pl-12 pr-4 text-base font-semibold outline-none transition-colors focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl pl-12 pr-4 outline-none transition-colors focus:border-primary"
                   />
                 </div>
                 {errors.displayName && (
-                  <p className="text-sm font-bold text-red-500">{errors.displayName.message}</p>
+                  <p className="portal-meta text-red-500">{errors.displayName.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                <label className="portal-label">
                   {t('components.profilepanel.business_name')}
                 </label>
                 <div className="relative">
@@ -326,25 +326,25 @@ export const ProfilePanel: React.FC = () => {
                     {...register('businessName')}
                     placeholder={t('components.profilepanel.e_g_north_nutrition_practice')}
                     disabled={updateProfile.isPending || isUploading}
-                    className="portal-input h-12 w-full rounded-xl pl-12 pr-4 text-base font-semibold outline-none transition-colors focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl pl-12 pr-4 outline-none transition-colors focus:border-primary"
                   />
                 </div>
               </div>
 
               <div className="grid gap-3 rounded-2xl border border-border bg-background/60 p-6 md:grid-cols-2">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.profilepanel.user')}
                   </p>
-                  <p className="mt-1 text-base font-extrabold text-foreground truncate">
+                  <p className="portal-card-heading mt-1 truncate text-foreground">
                     {user?.email || t('components.profilepanel.unavailable')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.profilepanel.last_review')}
                   </p>
-                  <p className="mt-1 text-base font-extrabold text-foreground">
+                  <p className="portal-card-heading mt-1 text-foreground">
                     {formatPortalDate(new Date(), locale)}
                   </p>
                 </div>
@@ -353,7 +353,7 @@ export const ProfilePanel: React.FC = () => {
               <button
                 type="submit"
                 disabled={updateProfile.isPending || isUploading}
-                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-xl bg-primary px-6 text-base font-extrabold uppercase tracking-[0.16em] text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
+                className="inline-flex h-12 items-center justify-center gap-2.5 rounded-xl bg-primary px-6 portal-action text-primary-foreground transition-opacity hover:opacity-95 disabled:opacity-50"
               >
                 <Check className="h-5 w-5" />
                 {updateProfile.isPending
@@ -370,14 +370,14 @@ export const ProfilePanel: React.FC = () => {
           <div className="portal-panel rounded-[1.6rem] p-8 flex-1 flex flex-col">
             <div className="flex items-start justify-between gap-4 border-b border-border pb-5 mb-5">
               <div className="space-y-1">
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">
+                <p className="portal-label portal-label-primary">
                   {t('components.profilepanel.subscription_details')}
                 </p>
-                <h3 className="text-2xl font-black text-foreground">
-                  {billingSummary.tierLabel}
+                <h3 className="portal-section-heading">
+                  {t(billingSummary.tierLabelKey)}
                 </h3>
               </div>
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.15em] ${
+              <span className={`portal-pill inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 tracking-[0.15em] ${
                 billingSummary.hasProfessionalAccess
                   ? 'bg-primary/10 text-primary'
                   : 'bg-red-500/10 text-red-500'
@@ -385,16 +385,16 @@ export const ProfilePanel: React.FC = () => {
                 <span className={`h-1.5 w-1.5 rounded-full ${
                   billingSummary.hasProfessionalAccess ? 'bg-primary' : 'bg-red-500'
                 }`} />
-                {billingSummary.proStatusLabel}
+                {t(billingSummary.proStatusLabelKey)}
               </span>
             </div>
 
             <div className="flex-1 flex flex-col justify-between">
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm font-semibold">
-                    <span className="text-muted-foreground">{t('components.profilepanel.connected_clients')}</span>
-                    <span className="text-foreground font-extrabold">{connectedClients} / {billingSummary.clientLimit}</span>
+                  <div className="portal-meta flex items-center justify-between text-muted-foreground">
+                    <span>{t('components.profilepanel.connected_clients')}</span>
+                    <span className="portal-card-heading text-foreground">{connectedClients} / {billingSummary.clientLimit}</span>
                   </div>
                   <div className="h-2.5 w-full rounded-full bg-border/40 overflow-hidden">
                     <div
@@ -412,19 +412,19 @@ export const ProfilePanel: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3 pt-1">
                   <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <p className="portal-kpi-label">
                       {t('components.profilepanel.remaining_slots')}
                     </p>
-                    <p className="mt-1 text-2xl font-black text-foreground">
+                    <p className="portal-metric mt-1 text-foreground">
                       {billingSummary.remainingClientSlots}
                     </p>
                   </div>
                   <div className="portal-soft-panel rounded-xl p-4 border border-border/30">
-                    <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                    <p className="portal-kpi-label">
                       {t('components.billingpanel.billing_interval')}
                     </p>
-                    <p className="mt-2 text-sm font-black uppercase tracking-wider text-foreground">
-                      {billingSummary.billingIntervalLabel}{currentPriceLabel}
+                    <p className="portal-action mt-2 text-foreground">
+                      {t(billingSummary.billingIntervalLabelKey)}{currentPriceLabel}
                     </p>
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export const ProfilePanel: React.FC = () => {
                 onClick={() => {
                   window.location.hash = 'billing-panel';
                 }}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 text-xs font-extrabold uppercase tracking-[0.16em] text-primary transition-colors hover:bg-primary/20 cursor-pointer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 portal-action text-primary transition-colors hover:bg-primary/20 cursor-pointer"
               >
                 {t('components.profilepanel.manage_subscription')}
               </button>

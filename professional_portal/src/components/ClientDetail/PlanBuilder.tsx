@@ -279,14 +279,14 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
           <div className="mb-6 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="portal-kicker">{t('components.clientdetail.planbuilder.plan_builder')}</p>
-              <h3 className="portal-title mt-2 text-2xl text-foreground">
+              <h3 className="portal-section-heading mt-2">
                 {t('components.clientdetail.planbuilder.publish_a_weekly_plan')}
               </h3>
             </div>
             <button
               onClick={handlePublish}
               disabled={publishMutation.isPending || !canPublishPlan}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground disabled:opacity-50"
             >
               {publishMutation.isPending
                 ? t('components.clientdetail.planbuilder.publishing')
@@ -298,8 +298,8 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             <Notice tone="warn">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
               <div>
-                <p className="font-bold">{t('components.clientdetail.planbuilder.publishing_unavailable')}</p>
-                <p className="mt-1 text-sm leading-relaxed">
+                <p className="portal-card-heading">{t('components.clientdetail.planbuilder.publishing_unavailable')}</p>
+                <p className="portal-body mt-1">
                   {client.status !== 'connected'
                     ? t('components.clientdetail.planbuilder.this_relationship_is_so_the_portal_should_not_publish_new_plans', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
                     : t('components.clientdetail.planbuilder.professional_access_must_be_active_or_trialing_to_publish_plans')}
@@ -312,7 +312,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             <Notice tone="good">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
-                <p className="font-bold">{t('components.clientdetail.planbuilder.plan_published_successfully')}</p>
+                <p className="portal-card-heading">{t('components.clientdetail.planbuilder.plan_published_successfully')}</p>
               </div>
             </Notice>
           ) : null}
@@ -323,7 +323,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                 value={planName}
                 onChange={(event) => setPlanName(event.target.value)}
                 placeholder={t('components.clientdetail.planbuilder.e_g_weekly_nutrition_plan')}
-                className="portal-input h-11 w-full rounded-xl px-4 text-sm font-medium outline-none focus:border-primary"
+                className="portal-input h-11 w-full rounded-xl px-4 outline-none focus:border-primary"
               />
             </Field>
 
@@ -342,19 +342,19 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
               )}
               <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="font-bold">
+                  <p className="portal-card-heading">
                     {hasDiscrepancy
                       ? t('components.clientdetail.planbuilder.there_is_a_macro_kcal_discrepancy')
                       : t('components.clientdetail.planbuilder.calories_and_macros_are_aligned')}
                   </p>
-                  <p className="mt-1 text-sm leading-relaxed">
+                  <p className="portal-body mt-1">
                     {t('components.clientdetail.planbuilder.the_macro_sum_yields_kcal_and_the_declared_target_is_kcal', { calculatedkcal: calculatedKcal, kcal: kcal })}
                   </p>
                 </div>
                 {hasDiscrepancy ? (
                   <button
                     onClick={() => setKcal(calculatedKcal)}
-                    className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm font-semibold text-amber-800 dark:text-amber-200"
+                    className="portal-meta rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-amber-800 dark:text-amber-200"
                   >
                     {t('components.clientdetail.planbuilder.autocorrect_kcal')}
                   </button>
@@ -373,10 +373,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                     <Utensils className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-foreground">
+                    <p className="portal-card-heading">
                       {t('components.clientdetail.planbuilder.meal_configuration')}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="portal-meta">
                       {mealTotals.kcal} {t('common.kcal_unit')} · {mealTotals.protein}{t('common.protein_short')} · {mealTotals.carbs}{t('common.carbs_short')} · {mealTotals.fat}{t('common.fat_short')}
                     </p>
                   </div>
@@ -392,14 +392,14 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                 <div className="space-y-4 border-t border-border px-5 py-4">
                   <div className="rounded-xl border border-border bg-background/60 p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <span className="text-sm font-bold text-foreground">
+                      <span className="portal-card-heading">
                         {t('components.clientdetail.planbuilder.daily_distribution')}
                       </span>
-                      <span className="text-sm font-bold text-foreground">
+                      <span className="portal-card-heading">
                         {mealTotals.kcal} / {kcal} {t('common.kcal_unit')}
                       </span>
                     </div>
-                    <div className="mt-2 flex gap-4 text-xs font-bold text-muted-foreground">
+                    <div className="portal-meta mt-2 flex gap-4">
                       <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
                       <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
                       <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
@@ -434,7 +434,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2">
                               {hasContent ? <GripVertical className="h-3.5 w-3.5 text-muted-foreground" /> : null}
-                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                              <span className="portal-label text-primary">
                                 {mealSlotLabel(meal.slot)}
                               </span>
                             </div>
@@ -462,7 +462,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                                       t('components.clientdetail.planbuilder.cleared', { meal_slot: mealSlotLabel(meal.slot) }),
                                     );
                                   }}
-                                  className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-500"
+                                  className="inline-flex items-center gap-1 portal-label text-rose-500"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                   {t('components.clientdetail.planbuilder.clear')}
@@ -471,7 +471,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                               <button
                                 type="button"
                                 onClick={() => setRecipePickerSlot(meal.slot)}
-                                className="inline-flex items-center gap-1 text-[10px] font-bold text-primary"
+                                className="inline-flex items-center gap-1 portal-label text-primary"
                               >
                                 <BookOpen className="h-3 w-3" />
                                 {meal.recipe_id ? t('components.clientdetail.planbuilder.change') : t('components.clientdetail.planbuilder.assign')}
@@ -490,13 +490,13 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                               setMeals(next);
                             }}
                             placeholder={t('components.clientdetail.planbuilder.title', { meal_slot: mealSlotLabel(meal.slot) })}
-                            className="portal-input mt-3 h-10 w-full rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                            className="portal-input mt-3 h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
                           />
 
                           <div className="mt-3 grid grid-cols-4 gap-2">
                             {(['kcal', 'protein', 'carbs', 'fat'] as const).map((field) => (
                               <div key={field} className="space-y-1">
-                                <label className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                                <label className="portal-label">
                                   {field === 'protein' ? t('common.protein_short') : field === 'carbs' ? t('common.carbs_short') : field === 'fat' ? t('common.fat_short') : t('common.kcal')}
                                 </label>
                                 <input
@@ -514,7 +514,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                                     }
                                     setMeals(next);
                                   }}
-                                  className="portal-input h-9 w-full rounded-lg px-2 text-center text-xs font-semibold outline-none focus:border-primary"
+                                  className="portal-input h-9 w-full rounded-lg px-2 text-center outline-none focus:border-primary"
                                 />
                               </div>
                             ))}
@@ -523,10 +523,10 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                           {!hasContent ? (
                             <div className="mt-3 rounded-xl border border-dashed border-border bg-background px-3 py-4 text-center">
                               <ChefHat className="mx-auto h-5 w-5 text-muted-foreground" />
-                              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                              <p className="portal-label mt-1">
                                 {t('components.clientdetail.planbuilder.empty_slot')}
                               </p>
-                              <p className="mt-1 text-[11px] text-muted-foreground">
+                              <p className="portal-meta mt-1">
                                 {t('components.clientdetail.planbuilder.drag_a_recipe_or_use_assign')}
                               </p>
                             </div>
@@ -572,9 +572,9 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
           <div className="mb-3 border-b border-border pb-4">
             <div className="flex items-center gap-2">
               <ChefHat className="h-4.5 w-4.5 text-primary" />
-              <h4 className="text-base font-bold text-foreground">{t('components.clientdetail.planbuilder.recipe_library')}</h4>
+              <h4 className="portal-card-heading">{t('components.clientdetail.planbuilder.recipe_library')}</h4>
             </div>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="portal-meta mt-1">
               {t('components.clientdetail.planbuilder.drag_recipes_into_the_timeline_or_assign_them_by_slot')}
             </p>
           </div>
@@ -585,7 +585,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder={t('components.clientdetail.planbuilder.search_recipes')}
-              className="portal-input h-10 w-full rounded-xl pl-9 pr-8 text-sm font-medium outline-none focus:border-primary"
+              className="portal-input h-10 w-full rounded-xl pl-9 pr-8 outline-none focus:border-primary"
             />
             {searchQuery ? (
               <button
@@ -603,7 +603,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                 key={category}
                 type="button"
                 onClick={() => setActiveCategory(category)}
-                className={`rounded-lg px-1 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] transition-colors ${
+                className={`rounded-lg px-1 py-1.5 portal-action transition-colors ${
                   activeCategory === category
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
@@ -622,7 +622,7 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                 ))}
               </div>
             ) : filteredRecipes.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
+              <div className="portal-body py-8 text-center text-muted-foreground">
                 {t('components.clientdetail.planbuilder.no_matching_recipes_for_this_filter')}
               </div>
             ) : (
@@ -638,12 +638,12 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">{recipe.title}</p>
-                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                      <p className="portal-meta truncate text-foreground">{recipe.title}</p>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 portal-pill text-primary">
                         {recipe.meal_type ? mealSlotLabel(recipe.meal_type) : t('components.clientdetail.planbuilder.snack')}
                       </span>
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] font-bold text-muted-foreground">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 portal-label">
                       <span>{recipe.kcal || 0} {t('common.kcal_unit')}</span>
                       <span className="text-primary">{t('common.protein_short')}: {recipe.protein || 0}{t('common.grams_unit')}</span>
                       <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {recipe.carbs || 0}{t('common.grams_unit')}</span>
@@ -662,14 +662,14 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
 
 const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
   <div className="space-y-2">
-    <label className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</label>
+    <label className="portal-label">{label}</label>
     {children}
   </div>
 );
 
 const Notice: React.FC<{ tone: 'warn' | 'good'; children: React.ReactNode }> = ({ tone, children }) => (
   <div
-    className={`mb-6 flex items-start gap-3 rounded-xl border p-4 text-sm ${
+    className={`portal-body mb-6 flex items-start gap-3 rounded-xl border p-4 ${
       tone === 'warn'
         ? 'border-amber-500/25 bg-amber-500/10 text-amber-900 dark:text-amber-100'
         : 'border-primary/25 bg-primary/10 text-foreground'
@@ -698,7 +698,7 @@ const MacroStepper: React.FC<{
 
   return (
     <div className={`rounded-2xl border border-border p-4 ${toneClass}`}>
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{label}{unit ? ` (${unit})` : ''}</p>
+      <p className="portal-label text-current">{label}{unit ? ` (${unit})` : ''}</p>
       <div className="mt-3 flex items-center gap-2">
         <button
           onClick={() => setValue((prev) => Math.max(1, prev - step))}
@@ -710,7 +710,7 @@ const MacroStepper: React.FC<{
           type="number"
           value={value}
           onChange={(event) => setValue(Math.max(1, Number(event.target.value)))}
-          className="w-full bg-transparent text-center text-lg font-extrabold outline-none"
+          className="portal-metric w-full bg-transparent text-center outline-none"
         />
         <button
           onClick={() => setValue((prev) => prev + step)}
@@ -719,7 +719,7 @@ const MacroStepper: React.FC<{
           <Plus className="h-3.5 w-3.5" />
         </button>
       </div>
-      <p className="mt-2 text-center text-[11px] font-semibold text-muted-foreground">
+      <p className="portal-meta mt-2 text-center">
         {caloriesPerUnit == null ? '' : `${value * caloriesPerUnit} ${kcalUnitLabel}`}
       </p>
     </div>

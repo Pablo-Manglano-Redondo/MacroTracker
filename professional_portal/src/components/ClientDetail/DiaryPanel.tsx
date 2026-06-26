@@ -54,8 +54,8 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="portal-card-heading">{t('components.clientdetail.diarypanel.client_diary')}</h3>
+            <p className="portal-meta">
               {t('components.clientdetail.diarypanel.detailed_reading_gated_by_consent')}
             </p>
           </div>
@@ -65,10 +65,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-background text-muted-foreground">
             <UtensilsCrossed className="h-6 w-6" />
           </div>
-          <p className="mt-4 text-base font-bold text-foreground">
+          <p className="portal-card-heading mt-4">
             {t('components.clientdetail.diarypanel.detailed_diary_is_not_shared')}
           </p>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+          <p className="portal-body mx-auto mt-2 max-w-md">
             {t('components.clientdetail.diarypanel.this_relationship_is_in_aggregate_mode_so_the_portal_can_read_snapshots_')}
           </p>
         </div>
@@ -86,7 +86,7 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
 
   if (error) {
     return (
-      <div className="portal-panel rounded-[1.6rem] p-6 text-center text-sm text-muted-foreground">
+      <div className="portal-panel portal-body rounded-[1.6rem] p-6 text-center text-muted-foreground">
         {t('components.clientdetail.diarypanel.the_diary_entries_could_not_be_loaded')}
       </div>
     );
@@ -100,8 +100,8 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="portal-card-heading">{t('components.clientdetail.diarypanel.client_diary')}</h3>
+            <p className="portal-meta">
               {t('components.clientdetail.diarypanel.detailed_rows_shared_from_the_mobile_app')}
             </p>
           </div>
@@ -111,10 +111,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-background text-muted-foreground">
             <UtensilsCrossed className="h-6 w-6" />
           </div>
-          <p className="mt-4 text-base font-bold text-foreground">
+          <p className="portal-card-heading mt-4">
             {t('components.clientdetail.diarypanel.no_diary_entries_yet')}
           </p>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
+          <p className="portal-body mx-auto mt-2 max-w-md">
             {t('components.clientdetail.diarypanel.when_the_client_shares_the_diary_in_detailed_mode_meals_will_appear_here')}
           </p>
         </div>
@@ -137,8 +137,8 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
             <UtensilsCrossed className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground">{t('components.clientdetail.diarypanel.client_diary')}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="portal-card-heading">{t('components.clientdetail.diarypanel.client_diary')}</h3>
+            <p className="portal-meta">
               {t('components.clientdetail.diarypanel.shared_entries', { entries_length: entries.length })}
             </p>
           </div>
@@ -159,20 +159,20 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
               className="overflow-hidden rounded-2xl border border-border bg-background/60"
               open={sortedDates.length <= 3}
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-background px-4 py-3 text-sm font-bold text-foreground">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-background px-4 py-3 text-foreground">
                 <div className="flex items-center gap-2">
-                  <span>
+                  <span className="portal-card-heading">
                     {formatPortalDate(date, locale, {
                       weekday: 'short',
                       month: 'short',
                       day: 'numeric',
                     })}
                   </span>
-                  <span className="text-sm font-medium text-muted-foreground">
+                  <span className="portal-meta">
                     · {formatKcal(dayTotalKcal)}
                   </span>
                 </div>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                <span className="portal-pill rounded-full bg-primary/10 px-3 py-1 text-primary">
                   {dayEntries.length} {t('components.clientdetail.diarypanel.meals')}
                 </span>
               </summary>
@@ -190,10 +190,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
                         <span className="rounded-lg bg-primary/10 p-1.5 text-primary">
                           {mealTypeIcon(slot)}
                         </span>
-                        <span className="text-xs font-bold uppercase tracking-[0.16em] text-foreground">
+                        <span className="portal-label text-foreground">
                           {mealTypeLabel(slot)}
                         </span>
-                        <span className="ml-auto text-xs font-semibold text-muted-foreground">
+                        <span className="portal-meta ml-auto">
                           {formatKcal(slotEntries.reduce((sum, entry) => sum + (entry.kcal ?? 0), 0))}
                         </span>
                       </div>
@@ -206,18 +206,18 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-foreground">
+                                <p className="portal-card-heading truncate">
                                   {entry.meal_name || t('components.clientdetail.diarypanel.logged_meal')}
                                 </p>
                                 {entry.meal_brands && (
-                                  <p className="mt-1 truncate text-xs text-muted-foreground">
+                                  <p className="portal-meta mt-1 truncate">
                                     {entry.meal_brands}
                                   </p>
                                 )}
                               </div>
                               <div className="text-right">
-                                <p className="text-sm font-bold text-foreground">{formatKcal(entry.kcal)}</p>
-                                <p className="mt-1 flex gap-2 text-[10px] font-bold">
+                                <p className="portal-card-heading">{formatKcal(entry.kcal)}</p>
+                                <p className="portal-label mt-1 flex gap-2 normal-case tracking-normal">
                                   {entry.protein != null ? (
                                     <span className="text-primary">P: {Math.round(entry.protein)}g</span>
                                   ) : null}
@@ -243,10 +243,10 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
 
                 <div className="rounded-xl border border-border bg-card px-4 py-3">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                    <span className="portal-label">
                       {t('components.clientdetail.diarypanel.day_summary')}
                     </span>
-                    <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
+                    <div className="portal-meta flex flex-wrap items-center gap-3">
                       <span className="text-foreground">{formatKcal(dayTotalKcal)}</span>
                       <span className="text-primary">P: {Math.round(dayTotalProtein)}g</span>
                       <span className="text-sky-500 dark:text-sky-400">C: {Math.round(dayTotalCarbs)}g</span>

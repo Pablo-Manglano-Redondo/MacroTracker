@@ -233,7 +233,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
   const svgChart = useMemo(() => {
     if (chartRecords.length < 2) {
       return (
-        <div className="flex h-36 items-center justify-center rounded-xl bg-muted/5 text-xs text-muted-foreground">
+        <div className="portal-meta flex h-36 items-center justify-center rounded-xl bg-muted/5 text-muted-foreground">
           {t('components.clientdetail.summarypanel.not_enough_records_for_chart')}
         </div>
       );
@@ -392,11 +392,11 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
       <div className="flex md:col-span-6 xl:col-span-4">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
-            <h3 className="text-xl font-black text-foreground">
+            <h3 className="portal-section-heading">
               {t('components.clientdetail.summarypanel.client_summary')}
             </h3>
 
-            <div className="mt-5 flex items-center gap-2.5 text-base font-black uppercase tracking-[0.2em] text-primary">
+            <div className="portal-label portal-label-primary mt-5 flex items-center gap-2.5">
               <CheckSquare className="h-5 w-5 text-primary" />
               {t('components.clientdetail.summarypanel.today_priorities')}
             </div>
@@ -419,13 +419,13 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                     </button>
                     <div className="min-w-0 flex-1">
                       <p
-                        className={`text-lg font-extrabold leading-tight ${
+                        className={`portal-card-heading leading-tight ${
                           isChecked ? 'text-muted-foreground line-through' : 'text-foreground'
                         }`}
                       >
                         {priority.label}
                       </p>
-                      <p className="mt-1.5 text-sm font-semibold text-muted-foreground">
+                      <p className="portal-meta mt-1.5">
                         {priority.sub}
                       </p>
                     </div>
@@ -437,7 +437,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
           <button
             onClick={markAllPrioritiesCompleted}
-            className="mt-5 w-full rounded-xl bg-primary/10 py-4.5 text-base font-extrabold uppercase tracking-[0.2em] text-primary transition-colors hover:bg-primary/15"
+            className="mt-5 w-full rounded-xl bg-primary/10 py-4.5 portal-action text-primary transition-colors hover:bg-primary/15"
           >
             {t('components.clientdetail.summarypanel.mark_all_completed')}
           </button>
@@ -447,7 +447,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
       <div className="flex md:col-span-6 xl:col-span-4">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-6">
           <div>
-            <h3 className="text-xl font-black text-foreground">
+            <h3 className="portal-section-heading">
               {t('components.clientdetail.summarypanel.active_plan')}
             </h3>
 
@@ -459,14 +459,14 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2.5">
-                      <h4 className="truncate text-lg font-black text-foreground">
+                      <h4 className="portal-card-heading truncate">
                         {activePlan.name.replace(/semanals/gi, 'semanal')}
                       </h4>
-                      <span className="rounded-full bg-primary/15 px-2.5 py-1 text-xs font-black uppercase tracking-wider text-primary">
+                      <span className="rounded-full bg-primary/15 px-2.5 py-1 portal-pill text-primary">
                         {t('components.clientdetail.summarypanel.active')}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-base font-medium text-muted-foreground">
+                    <p className="portal-meta mt-1.5">
                       {t('components.clientdetail.summarypanel.started_on', {
                         date: activePlan.starts_on
                           ? formatPortalDate(activePlan.starts_on, locale)
@@ -477,7 +477,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-base font-extrabold">
+                  <div className="portal-meta flex items-center justify-between">
                     <span className="text-foreground">{planWeekText}</span>
                     <span className="text-muted-foreground">{planProgressPct}%</span>
                   </div>
@@ -490,7 +490,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 </div>
 
                 {activePlan.ends_on && (
-                  <p className="text-base font-semibold text-muted-foreground">
+                  <p className="portal-meta">
                     {t('components.clientdetail.summarypanel.next_delivery', {
                       date: formatPortalDate(activePlan.ends_on, locale),
                     })}
@@ -499,7 +499,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
               </div>
             ) : (
               <div className="mt-8 text-center">
-                <p className="text-sm text-muted-foreground">
+                <p className="portal-meta text-muted-foreground">
                   {t('components.clientdetail.summarypanel.no_active_plan_now')}
                 </p>
               </div>
@@ -510,13 +510,13 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
             <div className="grid grid-cols-2 gap-4 pt-2">
               <button
                 onClick={() => onSetActiveTab('plans')}
-                className="rounded-xl border border-border py-4 text-base font-extrabold uppercase tracking-[0.2em] text-foreground hover:bg-accent"
+                className="rounded-xl border border-border py-4 portal-action text-foreground hover:bg-accent"
               >
                 {t('components.clientdetail.summarypanel.view_plan')}
               </button>
               <button
                 onClick={() => onEditPlan && onEditPlan(activePlan.id)}
-                className="rounded-xl bg-primary py-4 text-base font-extrabold uppercase tracking-[0.2em] text-primary-foreground hover:opacity-95"
+                className="rounded-xl bg-primary py-4 portal-action text-primary-foreground hover:opacity-95"
               >
                 {t('components.clientdetail.summarypanel.edit_plan')}
               </button>
@@ -524,7 +524,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
           ) : (
             <button
               onClick={() => onSetActiveTab('plans')}
-              className="mt-4 w-full rounded-xl bg-primary py-3 text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground hover:opacity-95"
+              className="mt-4 w-full rounded-xl bg-primary py-3 portal-action text-primary-foreground hover:opacity-95"
             >
               {t('components.clientdetail.summarypanel.create_plan')}
             </button>
@@ -535,7 +535,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
       <div className="flex md:col-span-12 xl:col-span-4">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
-            <h3 className="text-xl font-black text-foreground">
+            <h3 className="portal-section-heading">
               {t('components.clientdetail.summarypanel.recent_activity')}
             </h3>
             <div className="mt-5 space-y-4">
@@ -554,17 +554,17 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                       {activity.icon}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-base font-extrabold text-foreground">
+                      <p className="portal-card-heading">
                         {activity.text}
                       </p>
-                      <p className="mt-0.5 truncate text-sm font-semibold text-muted-foreground">
+                      <p className="portal-meta mt-0.5 truncate">
                         {activity.date}
                       </p>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="portal-meta text-muted-foreground">
                   {t('components.clientdetail.summarypanel.no_recent_activity')}
                 </p>
               )}
@@ -577,13 +577,13 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
+              <h3 className="portal-section-heading">
                 {t('components.clientdetail.summarypanel.progress')}
               </h3>
               <div className="flex gap-1 rounded-xl bg-muted/10 p-1">
                 <button
                   onClick={() => setMetricType('peso')}
-                  className={`rounded-lg px-5 py-2.5 text-base font-extrabold transition-colors ${
+                  className={`rounded-lg px-5 py-2.5 portal-action transition-colors ${
                     metricType === 'peso'
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground'
@@ -593,7 +593,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 </button>
                 <button
                   onClick={() => setMetricType('adherencia')}
-                  className={`rounded-lg px-5 py-2.5 text-base font-extrabold transition-colors ${
+                  className={`rounded-lg px-5 py-2.5 portal-action transition-colors ${
                     metricType === 'adherencia'
                       ? 'bg-primary text-primary-foreground'
                       : 'text-muted-foreground hover:text-foreground'
@@ -609,11 +609,11 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
               <div className="space-y-5 md:col-span-4">
                 <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.clientdetail.summarypanel.change_7_days')}
                   </p>
                   <p
-                    className={`portal-metric mt-1 text-4xl font-black ${
+                    className={`portal-metric mt-1 ${
                       progressMetrics.change7d < 0
                         ? 'text-green-500'
                         : progressMetrics.change7d > 0
@@ -626,19 +626,19 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                   </p>
                 </div>
                 <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.clientdetail.summarypanel.weekly_average')}
                   </p>
-                  <p className="portal-metric mt-1 text-xl font-black text-foreground">
+                  <p className="portal-metric mt-1 text-foreground">
                     {progressMetrics.avgWeeklyChange > 0 ? '+' : ''}
                     {progressMetrics.avgWeeklyChange.toFixed(2)} kg/día
                   </p>
                 </div>
                 <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.clientdetail.summarypanel.starting_weight')}
                   </p>
-                  <p className="portal-metric mt-1 text-xl font-black text-foreground">
+                  <p className="portal-metric mt-1 text-foreground">
                     {progressMetrics.initialWeight.toFixed(1)} kg
                   </p>
                 </div>
@@ -652,11 +652,11 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-black text-foreground">
+              <h3 className="portal-section-heading">
                 {t('components.clientdetail.summarypanel.latest_messages')}
               </h3>
               {unreadCount > 0 && (
-                <span className="flex h-6 items-center justify-center rounded-full bg-primary px-2.5 text-xs font-black text-primary-foreground">
+                <span className="portal-pill flex h-6 items-center justify-center rounded-full bg-primary px-2.5 text-primary-foreground">
                   {unreadCount}
                 </span>
               )}
@@ -672,10 +672,10 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                       {isUnread && (
                         <span className="absolute left-0 top-2 h-2.5 w-2.5 rounded-full bg-primary" />
                       )}
-                      <p className="line-clamp-2 text-base font-bold leading-relaxed text-foreground">
+                      <p className="portal-card-heading line-clamp-2 leading-relaxed">
                         {message.body}
                       </p>
-                      <p className="mt-1 text-sm font-medium text-muted-foreground">
+                      <p className="portal-meta mt-1">
                         {message.author_role === 'professional'
                           ? t('components.clientdetail.summarypanel.you')
                           : t('components.clientdetail.summarypanel.client')}{' '}
@@ -691,7 +691,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                   );
                 })
               ) : (
-                <p className="text-sm text-muted-foreground">
+                <p className="portal-meta">
                   {t('components.clientdetail.summarypanel.no_previous_messages')}
                 </p>
               )}
@@ -700,7 +700,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
           <button
             onClick={() => onSetActiveTab('chat')}
-            className="mt-5 inline-flex items-center gap-2 text-base font-extrabold uppercase tracking-[0.2em] text-primary transition-colors hover:opacity-85"
+            className="portal-action mt-5 inline-flex items-center gap-2 text-primary transition-colors hover:opacity-85"
           >
             {t('components.clientdetail.summarypanel.view_all_messages')}
             <ArrowRight className="h-4 w-4" />

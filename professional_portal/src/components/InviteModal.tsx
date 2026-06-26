@@ -91,10 +91,10 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
               <UserPlus className="h-6 w-6 stroke-[2]" />
             </div>
             <div>
-              <h3 className="text-2xl font-black uppercase tracking-[0.12em] text-foreground">
+              <h3 className="portal-section-heading uppercase tracking-[0.12em]">
                 {t('components.invitemodal.invite_client')}
               </h3>
-              <p className="mt-1 text-sm font-semibold text-muted-foreground">
+              <p className="portal-meta mt-1">
                 {t('components.invitemodal.link_accounts_using_connection_codes')}
               </p>
             </div>
@@ -112,8 +112,8 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
           {/* Left — Generate code */}
           <div className="flex flex-col gap-5">
             {/* Capacity pill */}
-            <div className="flex items-center gap-2.5 text-sm font-semibold text-muted-foreground">
-              <span className="inline-flex h-7 items-center rounded-full border border-border bg-accent px-3 font-mono text-sm font-bold text-foreground">
+            <div className="portal-meta flex items-center gap-2.5">
+              <span className="portal-pill inline-flex h-7 items-center rounded-full border border-border bg-accent px-3 font-mono text-foreground">
                 {connectedClients}/{billingSummary.clientLimit}
               </span>
               <span>
@@ -125,7 +125,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
 
             {/* Block warning */}
             {blockReason && (
-              <div className="flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-sm font-semibold leading-relaxed text-amber-800 dark:text-amber-100">
+              <div className="portal-body flex items-start gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-100">
                 <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                 <p>{blockReason}</p>
               </div>
@@ -135,16 +135,16 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
             <div className="portal-soft-panel flex flex-1 flex-col items-center justify-center gap-5 rounded-2xl p-8 text-center">
               {!newCode ? (
                 <>
-                  <p className="text-lg font-extrabold text-foreground">
+                  <p className="portal-card-heading">
                     {t('components.invitemodal.create_one_invite_when_ready')}
                   </p>
-                  <p className="text-base font-semibold leading-relaxed text-muted-foreground">
+                  <p className="portal-body">
                     {t('components.invitemodal.client_enters_code_in_app')}
                   </p>
                   <button
                     onClick={handleCreateInvite}
                     disabled={createInviteMutation.isPending || !billingSummary.canInviteClients}
-                    className="inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3 text-sm font-extrabold uppercase tracking-[0.12em] text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="portal-action inline-flex items-center gap-2.5 rounded-xl bg-primary px-6 py-3 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <UserPlus className="h-5 w-5 stroke-[2]" />
                     <span>
@@ -156,13 +156,13 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                 </>
               ) : (
                 <div className="flex w-full flex-col items-center gap-4">
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.invitemodal.invite_issued_and_pending_acceptance')}
                   </p>
 
                   {/* Code row */}
                   <div className="inline-flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background px-5 py-4">
-                    <span className="select-all font-mono text-3xl font-black tracking-[0.25em] text-foreground">
+                    <span className="select-all font-mono text-3xl tracking-[0.25em] text-foreground font-black">
                       {newCode}
                     </span>
                     <div className="flex gap-1">
@@ -190,20 +190,20 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                   {showQr && (
                     <div className="flex flex-col items-center rounded-2xl border border-border bg-white p-5 shadow-inner animate-fade-in-up">
                       <QRCode value={newCode} size={180} />
-                      <p className="mt-3 select-none text-xs font-black uppercase tracking-[0.16em] text-[#08080a]">
+                      <p className="portal-label mt-3 select-none text-[#08080a]">
                         {t('components.invitemodal.scan_in_mobile_app')}
                       </p>
                     </div>
                   )}
 
-                  <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">
+                  <p className="portal-label text-primary">
                     {t('components.invitemodal.expires_in_14_days')}
                   </p>
 
                   <button
                     onClick={handleCreateInvite}
                     disabled={createInviteMutation.isPending || !billingSummary.canInviteClients}
-                    className="text-base font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                    className="portal-meta text-muted-foreground transition-colors hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t('components.invitemodal.generate_another_invite')}
                   </button>
@@ -217,7 +217,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
 
           {/* Right — History */}
           <div className="flex flex-col gap-4">
-            <h4 className="flex items-center gap-2.5 text-base font-extrabold text-foreground">
+            <h4 className="portal-card-heading flex items-center gap-2.5">
               <History className="h-5 w-5 text-primary" />
               <span>{t('components.invitemodal.invite_history')}</span>
             </h4>
@@ -229,7 +229,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                 ))}
               </div>
             ) : !invites?.length ? (
-              <p className="py-10 text-center text-base font-semibold text-muted-foreground">
+              <p className="portal-body py-10 text-center">
                 {t('components.invitemodal.no_connection_codes_generated_yet')}
               </p>
             ) : (
@@ -245,7 +245,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                     >
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex min-w-0 items-center gap-3">
-                          <span className="select-all font-mono text-base font-bold tracking-wider text-foreground">
+                          <span className="portal-card-heading select-all font-mono tracking-wider text-foreground">
                             {inv.invite_code}
                           </span>
                           <StatusBadge status={visualStatus} />
@@ -258,7 +258,7 @@ export const InviteModal: React.FC<InviteModalProps> = ({ onClose }) => {
                           <Copy className="h-4.5 w-4.5" />
                         </button>
                       </div>
-                      <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-muted-foreground">
+                      <div className="portal-meta mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span>
                           {t('components.invitemodal.created_label')}{' '}
                           {formatPortalDate(inv.created_at, locale, {
@@ -309,7 +309,7 @@ const StatusBadge: React.FC<{ status: string }> = ({ status }) => {
           : t('components.invitemodal.active');
 
   return (
-    <span className={`rounded-md px-2 py-0.5 text-xs font-bold uppercase tracking-[0.12em] ${className}`}>
+    <span className={`portal-pill rounded-md px-2 py-0.5 ${className}`}>
       {label}
     </span>
   );

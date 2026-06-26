@@ -230,12 +230,12 @@ export const RecipeLibraryPanel: React.FC = () => {
   return (
     <div id="tour-recipes-panel" className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-black text-foreground uppercase tracking-[0.12em]">
+        <h2 className="portal-section-heading uppercase tracking-[0.12em] text-foreground">
           {t('components.recipelibrarypanel.recipe_library')}
         </h2>
         <button
           onClick={openCreate}
-          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-extrabold uppercase tracking-[0.16em] text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
+          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
         >
           <Plus className="h-4.5 w-4.5" />
           <span>{t('components.recipelibrarypanel.new_recipe')}</span>
@@ -268,7 +268,7 @@ export const RecipeLibraryPanel: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('components.recipelibrarypanel.search_recipes')}
-              className="portal-input h-12 w-full rounded-xl pl-10 pr-4 text-base font-semibold outline-none focus:border-primary"
+              className="portal-input h-12 w-full rounded-xl pl-10 pr-4 outline-none focus:border-primary"
             />
           </div>
 
@@ -277,7 +277,7 @@ export const RecipeLibraryPanel: React.FC = () => {
               <button
                 key={meal}
                 onClick={() => setMealFilter(meal)}
-                className={`rounded-full px-5 py-2.5 text-sm font-extrabold transition-colors ${
+                className={`rounded-full px-5 py-2.5 portal-action transition-colors ${
                   mealFilter === meal
                     ? 'bg-primary text-primary-foreground'
                     : 'portal-chip hover:bg-accent'
@@ -301,10 +301,10 @@ export const RecipeLibraryPanel: React.FC = () => {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <Utensils className="h-8 w-8" />
           </div>
-          <h3 className="portal-title mt-5 text-2xl text-foreground">
+          <h3 className="portal-title mt-5 text-foreground">
             {t('components.recipelibrarypanel.no_recipes_to_show')}
           </h3>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          <p className="portal-body mt-2 max-w-sm text-muted-foreground">
             {t('components.recipelibrarypanel.create_a_new_recipe_or_adjust_the_search_and_filter_to_see_results')}
           </p>
         </div>
@@ -316,7 +316,7 @@ export const RecipeLibraryPanel: React.FC = () => {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2.5">
                   <ChefHat className="h-5 w-5 shrink-0 text-primary" />
-                  <h3 className="truncate text-lg font-extrabold text-foreground">{recipe.title}</h3>
+                  <h3 className="portal-card-heading truncate text-foreground">{recipe.title}</h3>
                 </div>
                 <div className="flex shrink-0 gap-0.5">
                   <IconAction
@@ -340,7 +340,7 @@ export const RecipeLibraryPanel: React.FC = () => {
 
               {/* Description */}
               {recipe.description && (
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                <p className="portal-body mt-2 line-clamp-2 text-muted-foreground">
                   {recipe.description}
                 </p>
               )}
@@ -348,18 +348,18 @@ export const RecipeLibraryPanel: React.FC = () => {
               {/* Chips */}
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {recipe.meal_type && (
-                  <span className="inline-flex items-center rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-foreground">
+                  <span className="portal-pill inline-flex items-center rounded-md border border-border/70 bg-card px-2.5 py-1 text-foreground">
                     {mealLabel(recipe.meal_type)}
                   </span>
                 )}
                 {recipe.prep_time_min ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  <span className="portal-pill inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-muted-foreground">
                     <Clock className="h-3.5 w-3.5" />
                     {t('components.recipelibrarypanel.prep_min', { recipe_prep_time_min: recipe.prep_time_min })}
                   </span>
                 ) : null}
                 {recipe.servings ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  <span className="portal-pill inline-flex items-center gap-1.5 rounded-md border border-border/70 bg-card px-2.5 py-1 text-muted-foreground">
                     <Users className="h-3.5 w-3.5" />
                     {t('components.recipelibrarypanel.serves', { recipe_servings: recipe.servings })}
                   </span>
@@ -390,12 +390,12 @@ export const RecipeLibraryPanel: React.FC = () => {
             >
               <div className="flex items-center justify-between border-b border-border p-6 pb-4 shrink-0">
                 <div>
-                  <h3 className="text-lg font-bold text-foreground">
+                  <h3 className="portal-card-heading text-foreground">
                     {editingId
                       ? t('components.recipelibrarypanel.edit_recipe')
                       : t('components.recipelibrarypanel.create_recipe')}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="portal-meta text-muted-foreground">
                     {t('components.recipelibrarypanel.macros_ingredients_and_instructions_for_the_professional_library')}
                   </p>
                 </div>
@@ -413,7 +413,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                   <input
                     value={form.title}
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                   />
                 </Field>
                 <Field label={t('components.recipelibrarypanel.description')} className="md:col-span-2">
@@ -423,14 +423,14 @@ export const RecipeLibraryPanel: React.FC = () => {
                       setForm((prev) => ({ ...prev, description: e.target.value }))
                     }
                     rows={2}
-                    className="portal-input w-full rounded-xl px-5 py-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input w-full rounded-xl px-5 py-4 outline-none focus:border-primary"
                   />
                 </Field>
                 <Field label={t('components.recipelibrarypanel.meal_type')}>
                   <select
                     value={form.meal_type}
                     onChange={(e) => setForm((prev) => ({ ...prev, meal_type: e.target.value }))}
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none"
                   >
                     {MEAL_TYPES.filter((meal) => meal !== 'all').map((meal) => (
                       <option key={meal} value={meal}>
@@ -445,7 +445,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                     min={1}
                     value={form.servings}
                     onChange={(e) => setForm((prev) => ({ ...prev, servings: +e.target.value }))}
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                   />
                 </Field>
                 <Field label={t('components.recipelibrarypanel.prep_min_2')}>
@@ -455,7 +455,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, prep_time_min: +e.target.value }))
                     }
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                   />
                 </Field>
                 <Field label={t('components.recipelibrarypanel.cook_min')}>
@@ -465,12 +465,12 @@ export const RecipeLibraryPanel: React.FC = () => {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, cook_time_min: +e.target.value }))
                     }
-                    className="portal-input h-12 w-full rounded-xl px-4 text-base font-semibold outline-none focus:border-primary"
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
                   />
                 </Field>
 
                 <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                  <p className="portal-label text-muted-foreground">
                     {t('components.recipelibrarypanel.macros')}
                   </p>
                   <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -487,7 +487,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                           onChange={(e) =>
                             setForm((prev) => ({ ...prev, [macro.key]: +e.target.value }))
                           }
-                          className="portal-input h-10 w-full rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                          className="portal-input h-10 w-full rounded-xl px-3 outline-none focus:border-primary"
                         />
                       </Field>
                     ))}
@@ -496,12 +496,12 @@ export const RecipeLibraryPanel: React.FC = () => {
 
                 <div className="md:col-span-2 rounded-2xl border border-border bg-background/60 p-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                    <p className="portal-label text-muted-foreground">
                       {t('components.recipelibrarypanel.ingredients')}
                     </p>
                     <button
                       onClick={addIngredient}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-primary"
+                      className="inline-flex items-center gap-1 portal-action text-primary"
                     >
                       <PlusCircle className="h-4 w-4" />
                       {t('components.recipelibrarypanel.add_ingredient')}
@@ -518,18 +518,18 @@ export const RecipeLibraryPanel: React.FC = () => {
                           value={ingredient.name}
                           onChange={(e) => updateIngredient(index, 'name', e.target.value)}
                           placeholder={t('components.recipelibrarypanel.ingredient')}
-                          className="portal-input h-10 rounded-xl px-3 text-sm font-medium outline-none focus:border-primary"
+                          className="portal-input h-10 rounded-xl px-3 outline-none focus:border-primary"
                         />
                         <input
                           type="number"
                           value={ingredient.amount || ''}
                           onChange={(e) => updateIngredient(index, 'amount', +e.target.value)}
-                          className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none focus:border-primary"
+                          className="portal-input h-10 rounded-xl px-3 outline-none focus:border-primary"
                         />
                         <select
                           value={ingredient.unit}
                           onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                          className="portal-input h-10 rounded-xl px-3 text-sm font-semibold outline-none"
+                          className="portal-input h-10 rounded-xl px-3 outline-none"
                         >
                           {['g', 'ml', 'tsp', 'tbsp', 'cup', 'oz', 'lb', 'unit', 'slice', 'piece'].map(
                             (unit) => (
@@ -548,7 +548,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                       </div>
                     ))}
                     {form.ingredients.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="portal-meta text-muted-foreground">
                         {t('components.recipelibrarypanel.no_ingredients_yet')}
                       </p>
                     )}
@@ -563,7 +563,7 @@ export const RecipeLibraryPanel: React.FC = () => {
                     }
                     rows={4}
                     placeholder={t('components.recipelibrarypanel.describe_the_preparation_step_by_step')}
-                    className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+                    className="portal-input w-full rounded-xl px-4 py-3 outline-none focus:border-primary"
                   />
                 </Field>
               </div>
@@ -572,14 +572,14 @@ export const RecipeLibraryPanel: React.FC = () => {
               <div className="flex justify-end gap-3 border-t border-border p-6 pt-4 shrink-0">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+                  className="rounded-xl border border-border px-4 py-2 portal-action text-foreground transition-colors hover:bg-accent"
                 >
                   {t('components.recipelibrarypanel.cancel')}
                 </button>
                 <button
                   onClick={handleSave}
                   disabled={createRecipe.isPending || updateRecipe.isPending}
-                  className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+                  className="rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground disabled:opacity-50"
                 >
                   {createRecipe.isPending || updateRecipe.isPending
                     ? t('components.recipelibrarypanel.saving')
@@ -632,8 +632,8 @@ function ProposeModal({
       <div className="glass-card w-full max-w-sm rounded-[1.8rem] p-6" onClick={(e) => e.stopPropagation()}>
         <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
           <div>
-            <h3 className="text-lg font-bold text-foreground">{t('components.recipelibrarypanel.propose_recipe')}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="portal-card-heading text-foreground">{t('components.recipelibrarypanel.propose_recipe')}</h3>
+            <p className="portal-meta text-muted-foreground">
               {t('components.recipelibrarypanel.send_to_a_connected_client')}
             </p>
           </div>
@@ -646,7 +646,7 @@ function ProposeModal({
             <select
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
-              className="portal-input h-11 w-full rounded-xl px-4 text-sm font-semibold outline-none"
+              className="portal-input h-11 w-full rounded-xl px-4 outline-none"
             >
               <option value="">{t('components.recipelibrarypanel.select_a_client_2')}</option>
               {clients.map((client) => (
@@ -662,20 +662,20 @@ function ProposeModal({
               onChange={(e) => setNote(e.target.value)}
               rows={2}
               placeholder={t('components.recipelibrarypanel.e_g_try_this_option_for_dinner')}
-              className="portal-input w-full rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-primary"
+              className="portal-input w-full rounded-xl px-4 py-3 outline-none focus:border-primary"
             />
           </Field>
           <div className="flex justify-end gap-3 border-t border-border pt-4">
             <button
               onClick={onClose}
-              className="rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+              className="rounded-xl border border-border px-4 py-2 portal-action text-foreground transition-colors hover:bg-accent"
             >
               {t('components.recipelibrarypanel.cancel')}
             </button>
             <button
               onClick={() => onSubmit(clientId, note)}
               disabled={!clientId}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-50"
+              className="rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground disabled:opacity-50"
             >
               {t('components.recipelibrarypanel.send_proposal')}
             </button>
@@ -693,9 +693,9 @@ const StatCard: React.FC<{ label: string; value: number; note: string }> = ({
   note,
 }) => (
   <div className="portal-panel rounded-[1.4rem] p-6">
-    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
-    <p className="portal-metric mt-2 text-3xl font-black text-foreground">{value}</p>
-    <p className="mt-1 text-sm font-semibold text-muted-foreground">{note}</p>
+    <p className="portal-label text-muted-foreground">{label}</p>
+    <p className="portal-metric mt-2 text-foreground">{value}</p>
+    <p className="portal-meta mt-1 text-muted-foreground">{note}</p>
   </div>
 );
 
@@ -725,9 +725,9 @@ const MacroCell: React.FC<{
   accent?: string;
 }> = ({ label, value, suffix = '', accent = 'text-muted-foreground' }) => (
   <div className="flex flex-col items-center gap-1 bg-card px-3 py-4 text-center">
-    <p className={`text-[11px] font-black uppercase tracking-[0.16em] ${accent}`}>{label}</p>
-    <p className="text-2xl font-black text-foreground leading-none">
-      {value ?? '--'}<span className="text-sm font-bold text-muted-foreground">{suffix}</span>
+    <p className={`portal-label ${accent}`}>{label}</p>
+    <p className="portal-metric text-foreground leading-none">
+      {value ?? '--'}<span className="portal-meta text-muted-foreground">{suffix}</span>
     </p>
   </div>
 );
@@ -739,7 +739,7 @@ const Field: React.FC<{
   children: React.ReactNode;
 }> = ({ label, required = false, className = '', children }) => (
   <div className={`space-y-2.5 ${className}`}>
-    <label className="text-sm font-black uppercase tracking-[0.2em] text-muted-foreground">
+    <label className="portal-label text-muted-foreground">
       {label}
       {required ? ' *' : ''}
     </label>

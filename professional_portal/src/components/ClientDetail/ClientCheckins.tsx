@@ -31,17 +31,17 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
               <ClipboardCheck className="h-4.5 w-4.5" />
               <p className="portal-kicker">{t('components.clientdetail.clientcheckins.check_ins')}</p>
             </div>
-            <h4 className="text-lg font-bold text-foreground">
+            <h4 className="portal-card-heading">
               {t('components.clientdetail.clientcheckins.client_submissions')}
             </h4>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="portal-body">
               {t('components.clientdetail.clientcheckins.request_a_check_in_and_review_energy_sleep_mood_and_open_ended_responses')}
             </p>
           </div>
           <button
             onClick={handleRequest}
             disabled={requestCheckin.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            className="portal-action inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Send className="h-4 w-4" />
             {requestCheckin.isPending
@@ -52,7 +52,7 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
       </section>
 
       {error ? (
-        <div className="portal-panel rounded-[1.6rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.6rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientcheckins.check_ins_are_not_available_right_now_keep_this_surface_explicit_until_t')}
         </div>
       ) : isLoading ? (
@@ -65,7 +65,7 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
           ))}
         </div>
       ) : !checkins?.length ? (
-        <div className="portal-panel rounded-[1.6rem] p-8 text-center text-sm text-muted-foreground">
+        <div className="portal-panel portal-body rounded-[1.6rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientcheckins.this_client_has_not_submitted_any_check_ins_yet')}
         </div>
       ) : (
@@ -74,10 +74,10 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
             <article key={checkin.id} className="portal-panel rounded-[1.6rem] p-5">
               <div className="flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.clientdetail.clientcheckins.submitted')}
                   </p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">
+                  <p className="portal-meta mt-1 text-foreground">
                     {formatPortalDate(checkin.submitted_at, locale, {
                       weekday: 'short', month: 'short', day: 'numeric',
                     })}
@@ -116,10 +116,10 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
                   {Object.entries(checkin.answers).map(([key, val]) => (
                     <div key={key} className="rounded-xl border border-border bg-background/70 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                      <p className="portal-label">
                         {key}
                       </p>
-                      <p className="mt-1 text-sm leading-relaxed text-foreground">{String(val)}</p>
+                      <p className="portal-body mt-1 text-foreground">{String(val)}</p>
                     </div>
                   ))}
                 </div>
@@ -127,10 +127,10 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
 
               {checkin.notes && (
                 <div className="mt-4 rounded-xl border border-border bg-background/70 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                  <p className="portal-label">
                     {t('components.clientdetail.clientcheckins.client_notes')}
                   </p>
-                  <p className="mt-2 text-sm leading-relaxed text-foreground">{checkin.notes}</p>
+                  <p className="portal-body mt-2 text-foreground">{checkin.notes}</p>
                 </div>
               )}
             </article>
@@ -146,9 +146,9 @@ const MetricChip: React.FC<{ icon: React.ReactNode; label: string; value: string
   label,
   value,
 }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground">
+  <span className="portal-pill inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-foreground normal-case tracking-normal">
     {icon}
-    <span className="text-muted-foreground">{label}</span>
-    <span>{value}</span>
+    <span className="portal-meta text-muted-foreground">{label}</span>
+    <span className="portal-meta text-foreground">{value}</span>
   </span>
 );

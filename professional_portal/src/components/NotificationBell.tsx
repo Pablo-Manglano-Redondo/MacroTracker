@@ -111,7 +111,7 @@ export const NotificationBell: React.FC = () => {
       >
         {unreadCount > 0 ? <BellRing className="w-5 h-5 text-primary animate-pulse" /> : <Bell className="w-5 h-5 text-muted-foreground" />}
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+          <span className="portal-label absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.6)]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -120,13 +120,13 @@ export const NotificationBell: React.FC = () => {
       {open && (
         <div className="absolute right-0 top-full mt-3 w-96 rounded-2xl border border-[#1e2326] bg-[#131719]/98 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-50 overflow-hidden animate-fade-in-up">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e2326]/60 bg-black/20">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8a9499]">
+            <p className="portal-label text-[#8a9499]">
               {t('components.notificationbell.notifications')}
             </p>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                className="portal-action flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
               >
                 <CheckCheck className="w-4 h-4" />
                 {t('components.notificationbell.mark_all_read')}
@@ -135,7 +135,7 @@ export const NotificationBell: React.FC = () => {
           </div>
           <div className="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-[#1e2326]/60">
             {notifications.length === 0 ? (
-              <div className="px-6 py-12 text-center text-sm text-muted-foreground font-semibold">
+              <div className="portal-body px-6 py-12 text-center text-muted-foreground">
                 {t('components.notificationbell.no_notifications_yet')}
               </div>
             ) : (
@@ -184,15 +184,15 @@ export const NotificationBell: React.FC = () => {
                       <Icon className={`w-5 h-5 ${styles.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${!n.read ? 'font-black text-white' : 'font-semibold text-[#8a9499]'}`}>
+                      <p className={`portal-card-heading ${!n.read ? 'text-white' : 'text-[#8a9499]'}`}>
                         {displayTitle}
                       </p>
                       {displayBody && (
-                        <p className="text-xs text-[#8a9499]/85 mt-1 line-clamp-2 leading-relaxed font-semibold">
+                        <p className="portal-meta mt-1 line-clamp-2 text-[#8a9499]/85">
                           {displayBody}
                         </p>
                       )}
-                      <p className="text-[10px] font-black text-[#5c666b] mt-2 uppercase tracking-wider">
+                      <p className="portal-label mt-2 text-[#5c666b]">
                         {formatPortalDate(n.created_at, locale, {
                           month: 'short',
                           day: 'numeric',
