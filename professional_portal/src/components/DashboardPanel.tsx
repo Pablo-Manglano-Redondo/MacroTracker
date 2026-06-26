@@ -2,17 +2,18 @@ import React, { useMemo, useState } from 'react';
 import {
   Activity,
   AlertCircle,
+  ChefHat,
+  ChevronRight,
+  ClipboardCheck,
   CreditCard,
   Download,
   FileText,
   MessageSquare,
-  TrendingUp,
-  Users,
-  ClipboardCheck,
   PlusCircle,
-  ChefHat,
-  ChevronRight,
+  RefreshCw,
+  TrendingUp,
   UserPlus,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { usePortalI18n } from '../lib/portal-i18n';
@@ -21,15 +22,33 @@ import {
   usePerClientAdherence,
   useRosterStats,
 } from '../hooks/queries/useAnalytics';
-import { useClients, useUnreadCounts } from '../hooks/queries/useClients';
+import { useClients } from '../hooks/queries/useClients';
 import { useInvites } from '../hooks/queries/useInvites';
 import { useNotifications, useMarkNotificationRead } from '../hooks/queries/useNotifications';
+import {
+  useDismissPracticeAlert,
+  useOpenPracticeAlerts,
+  useRefreshPracticeAlerts,
+  useResolvedPracticeAlertsToday,
+} from '../hooks/queries/usePracticeAlerts';
 import { openInviteModal } from '../lib/portal-events';
 import { downloadCsv } from '../lib/csv';
 import { formatPortalDate } from '../lib/date';
 import { Skeleton } from './ui/skeleton';
-import { getLatestSnapshot } from '../view-models/clients';
 import { getBillingSummary } from '../view-models/professional';
+import { getClientDisplayName } from '../view-models/clients';
+import {
+  executePracticeAlertAction,
+  getPracticeAlertBody,
+  getPracticeAlertCtaLabel,
+  getPracticeAlertReason,
+  getPracticeAlertSeverityLabel,
+  getPracticeAlertStrings,
+  getPracticeAlertTitle,
+  sortPracticeAlerts,
+} from '../lib/practice-alerts';
+import { trackPortalEvent } from '../lib/portal-analytics';
+import type { PracticeAlert } from '../types/database.types';
 
 const getTypeStyles = (type: string) => {
   switch (type) {
@@ -61,14 +80,29 @@ const getTypeStyles = (type: string) => {
   }
 };
 
+const severityTone: Record<string, string> = {
+  critical: 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+  high: 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  medium: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  low: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+};
+
 export const DashboardPanel: React.FC = () => {
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
+  const strings = getPracticeAlertStrings(locale);
   const { data: clients = [] } = useClients(professional?.id);
-  const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
+  const { data: openAlerts = [], isLoading: alertsLoading } = useOpenPracticeAlerts(professional?.id);
+  const { data: resolvedToday = 0 } = useResolvedPracticeAlertsToday(professional?.id);
+  const refreshAlerts = useRefreshPracticeAlerts(professional?.id);
+  const dismissAlert = useDismissPracticeAlert(professional?.id);
 
   const connectedClients = useMemo(
     () => clients.filter((client) => client.status === 'connected'),
+    [clients],
+  );
+  const clientsByRelationshipId = useMemo(
+    () => new Map(clients.map((client) => [client.id, client])),
     [clients],
   );
 
@@ -76,6 +110,7 @@ export const DashboardPanel: React.FC = () => {
     () => getBillingSummary(professional, connectedClients.length),
     [connectedClients.length, professional],
   );
+
   const { data: roster, isLoading: rosterLoading } = useRosterStats(professional?.id);
   const { data: trends = [], isLoading: trendsLoading } = useAdherenceTrends(professional?.id);
   const { data: clientAdherence = [], isLoading: clientsLoading } = usePerClientAdherence(
@@ -87,9 +122,28 @@ export const DashboardPanel: React.FC = () => {
 
   const [selectedMacro, setSelectedMacro] = useState<'kcal' | 'protein' | 'carbs' | 'fat'>('kcal');
 
+  const sortedAlerts = useMemo(() => sortPracticeAlerts(openAlerts), [openAlerts]);
   const pendingCheckinsCount = useMemo(
-    () => notifications.filter((n) => n.type === 'checkin_submitted' && !n.read).length,
-    [notifications],
+    () =>
+      openAlerts
+        .filter((alert) => alert.alert_type === 'pending_checkin_review')
+        .reduce((sum, alert) => sum + Number(alert.evidence?.pending_checkin_count ?? 1), 0),
+    [openAlerts],
+  );
+  const validPendingInvites = invites.filter(
+    (invite) => invite.status === 'pending' && new Date(invite.expires_at) >= new Date(),
+  );
+  const latestInvite = invites[0]?.created_at ?? null;
+  const clientsNeedingPlan = useMemo(
+    () => openAlerts.filter((alert) => alert.alert_type === 'client_without_plan').length,
+    [openAlerts],
+  );
+  const summaryCounts = useMemo(
+    () => ({
+      critical: openAlerts.filter((alert) => alert.severity === 'critical').length,
+      high: openAlerts.filter((alert) => alert.severity === 'high').length,
+    }),
+    [openAlerts],
   );
 
   if (!professional) {
@@ -109,15 +163,6 @@ export const DashboardPanel: React.FC = () => {
     trends.length > 0
       ? Math.round(trends.reduce((sum, day) => sum + day.kcalAdherence, 0) / trends.length)
       : null;
-
-  const validPendingInvites = invites.filter(
-    (invite) => invite.status === 'pending' && new Date(invite.expires_at) >= new Date(),
-  );
-  const latestInvite = invites[0]?.created_at ?? null;
-  const clientsWithoutSnapshots = connectedClients.filter((client) => !getLatestSnapshot(client));
-  const clientsNeedingPlan = connectedClients.length - (roster?.activePlans ?? 0);
-  const lowAdherenceClients = clientAdherence.filter((client) => client.avgKcalAdherence < 75);
-  const unreadThreads = Object.values(unreadCounts).filter((count) => count > 0).length;
 
   const translateNotification = (title: string, body?: string | null) => {
     let translatedTitle = title;
@@ -179,86 +224,6 @@ export const DashboardPanel: React.FC = () => {
     }
   };
 
-  const actionFeed = [
-    !billingSummary.canOperatePractice
-      ? {
-          title: t('components.dashboardpanel.practice_not_operational_title'),
-          body: t('components.dashboardpanel.practice_not_operational_body'),
-          onClick: () => { window.location.hash = 'billing-panel'; },
-        }
-      : null,
-    connectedClients.length === 0
-      ? {
-          title: t('components.dashboardpanel.no_connected_clients_yet_title'),
-          body: t('components.dashboardpanel.no_connected_clients_yet_body'),
-          onClick: openInviteModal,
-        }
-      : null,
-    pendingCheckinsCount > 0
-      ? {
-          title: t('components.dashboardpanel.pending_checkins_feed_title', { count: pendingCheckinsCount }),
-          body: t('components.dashboardpanel.pending_checkins_feed_body'),
-          onClick: () => { window.location.hash = 'clients-panel'; },
-        }
-      : null,
-    clientsNeedingPlan > 0
-      ? {
-          title:
-            clientsNeedingPlan === 1
-              ? t('components.dashboardpanel.clients_without_active_plan_title_one', {
-                  count: clientsNeedingPlan,
-                })
-              : t('components.dashboardpanel.clients_without_active_plan_title', {
-                  count: clientsNeedingPlan,
-                }),
-          body: t('components.dashboardpanel.clients_without_active_plan_body'),
-          onClick: () => { window.location.hash = 'clients-panel'; },
-        }
-      : null,
-    clientsWithoutSnapshots.length > 0
-      ? {
-          title:
-            clientsWithoutSnapshots.length === 1
-              ? t('components.dashboardpanel.clients_without_snapshots_title_one', {
-                  count: clientsWithoutSnapshots.length,
-                })
-              : t('components.dashboardpanel.clients_without_snapshots_title', {
-                  count: clientsWithoutSnapshots.length,
-                }),
-          body: t('components.dashboardpanel.clients_without_snapshots_body'),
-          onClick: () => { window.location.hash = 'clients-panel'; },
-        }
-      : null,
-    lowAdherenceClients.length > 0
-      ? {
-          title:
-            lowAdherenceClients.length === 1
-              ? t('components.dashboardpanel.clients_with_low_adherence_title_one', {
-                  count: lowAdherenceClients.length,
-                })
-              : t('components.dashboardpanel.clients_with_low_adherence_title', {
-                  count: lowAdherenceClients.length,
-                }),
-          body: t('components.dashboardpanel.clients_with_low_adherence_body'),
-          onClick: () => { window.location.hash = 'clients-panel'; },
-        }
-      : null,
-    unreadThreads > 0
-      ? {
-          title:
-            unreadThreads === 1
-              ? t('components.dashboardpanel.conversations_waiting_title_one', {
-                  count: unreadThreads,
-                })
-              : t('components.dashboardpanel.conversations_waiting_title', {
-                  count: unreadThreads,
-                }),
-          body: t('components.dashboardpanel.conversations_waiting_body'),
-          onClick: () => { window.location.hash = 'clients-panel'; },
-        }
-      : null,
-  ].filter(Boolean) as Array<{ title: string; body: string; onClick?: () => void }>;
-
   const exportAdherenceCsv = () => {
     const rows = trends.map((day) => [
       day.date,
@@ -275,24 +240,64 @@ export const DashboardPanel: React.FC = () => {
     );
   };
 
+  const handleRefreshAlerts = async () => {
+    trackPortalEvent('alerts_refresh_requested', { professionalId: professional.id });
+    const nextAlerts = await refreshAlerts.mutateAsync();
+    trackPortalEvent('alerts_generated', {
+      professionalId: professional.id,
+      openCount: nextAlerts.length,
+    });
+  };
+
+  const handleAlertCta = (alert: PracticeAlert) => {
+    trackPortalEvent('alert_opened', {
+      alertType: alert.alert_type,
+      severity: alert.severity,
+      professionalClientId: alert.professional_client_id,
+    });
+    trackPortalEvent('alert_cta_clicked', {
+      alertType: alert.alert_type,
+      severity: alert.severity,
+      professionalClientId: alert.professional_client_id,
+    });
+    executePracticeAlertAction(alert);
+  };
+
+  const handleDismissAlert = async (alert: PracticeAlert) => {
+    await dismissAlert.mutateAsync(alert.id);
+    trackPortalEvent('alert_dismissed', {
+      alertType: alert.alert_type,
+      severity: alert.severity,
+      professionalClientId: alert.professional_client_id,
+    });
+  };
+
   return (
     <div className="space-y-5 animate-fade-in-up">
-      {/* ── Page header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="portal-card-heading uppercase tracking-[0.14em]">
           {t('components.dashboardpanel.daily_practice_triage')}
         </h2>
-        <button
-          onClick={exportAdherenceCsv}
-          disabled={trends.length === 0}
-          className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 portal-action text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
-        >
-          <Download className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">{t('components.dashboardpanel.export_adherence')}</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefreshAlerts}
+            disabled={refreshAlerts.isPending}
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 portal-action text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshAlerts.isPending ? 'animate-spin' : ''}`} />
+            <span>{strings.refresh}</span>
+          </button>
+          <button
+            onClick={exportAdherenceCsv}
+            disabled={trends.length === 0}
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-border bg-card px-3.5 portal-action text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 shadow-sm"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('components.dashboardpanel.export_adherence')}</span>
+          </button>
+        </div>
       </div>
 
-      {/* ── Billing warning ──────────────────────────────────────────────────── */}
       {!billingSummary.canOperatePractice && (
         <section className="flex items-center gap-3 rounded-2xl border border-amber-500/25 bg-amber-500/8 px-5 py-3.5">
           <CreditCard className="h-4 w-4 shrink-0 text-amber-500 dark:text-amber-300" />
@@ -304,7 +309,6 @@ export const DashboardPanel: React.FC = () => {
         </section>
       )}
 
-      {/* ── Metric row: 5 equal cards ─────────────────────────────────────── */}
       <section
         id="tour-dashboard-metrics"
         className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 animate-scale-in"
@@ -328,7 +332,7 @@ export const DashboardPanel: React.FC = () => {
         <MetricCard
           label={t('components.dashboardpanel.pending_checkins')}
           icon={<ClipboardCheck className="h-4 w-4 text-primary" />}
-          value={rosterLoading ? null : pendingCheckinsCount}
+          value={alertsLoading ? null : pendingCheckinsCount}
           note={
             pendingCheckinsCount > 0
               ? t('components.dashboardpanel.checkins_need_review', { count: pendingCheckinsCount })
@@ -359,32 +363,67 @@ export const DashboardPanel: React.FC = () => {
         />
       </section>
 
-      {/* ── Main 2-column grid ───────────────────────────────────────────────── */}
       <section id="tour-dashboard-feed" className="grid gap-4 xl:grid-cols-2">
-        {/* Left column */}
         <div className="flex flex-col gap-4">
-          {/* Requires Action */}
           <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
             <SectionHeader
-              title={t('components.dashboardpanel.requires_action_today')}
+              title={strings.title}
               subtitle={t('components.dashboardpanel.prioritized_from_real_signals')}
               icon={<AlertCircle className="h-4 w-4 text-primary" />}
             />
-            <div className="mt-4 space-y-2.5">
-              {actionFeed.length === 0 ? (
-                <ActionHint
-                  title={t('components.dashboardpanel.practice_looks_clear')}
-                  body={t('components.dashboardpanel.practice_looks_clear_body')}
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <SummaryCard
+                label={strings.summaryCritical}
+                value={summaryCounts.critical}
+                tone="critical"
+              />
+              <SummaryCard
+                label={strings.summaryHigh}
+                value={summaryCounts.high}
+                tone="high"
+              />
+              <SummaryCard
+                label={strings.summaryResolvedToday}
+                value={resolvedToday}
+                tone="low"
+              />
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {alertsLoading ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((index) => (
+                    <Skeleton key={index} className="h-24 w-full bg-black/5 dark:bg-white/5" />
+                  ))}
+                </div>
+              ) : sortedAlerts.length === 0 ? (
+                <EmptyPanel
+                  title={strings.clear}
+                  body={strings.clearBody}
                 />
               ) : (
-                actionFeed.map((item) => (
-                  <ActionHint key={item.title} title={item.title} body={item.body} onClick={item.onClick} />
-                ))
+                sortedAlerts.map((alert) => {
+                  const client = alert.professional_client_id
+                    ? clientsByRelationshipId.get(alert.professional_client_id)
+                    : null;
+                  const clientName = client ? getClientDisplayName(client) : null;
+
+                  return (
+                    <AlertCard
+                      key={alert.id}
+                      alert={alert}
+                      locale={locale}
+                      clientName={clientName}
+                      onOpen={() => handleAlertCta(alert)}
+                      onDismiss={() => handleDismissAlert(alert)}
+                    />
+                  );
+                })
               )}
             </div>
           </div>
 
-          {/* Quick Actions */}
           <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <SectionHeader
               title={t('components.dashboardpanel.quick_actions')}
@@ -427,7 +466,6 @@ export const DashboardPanel: React.FC = () => {
             </div>
           </div>
 
-          {/* Client Adherence */}
           <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <SectionHeader
               title={t('components.dashboardpanel.client_adherence')}
@@ -475,9 +513,7 @@ export const DashboardPanel: React.FC = () => {
           </div>
         </div>
 
-        {/* Right column */}
         <div className="flex flex-col gap-4">
-          {/* Adherence Trend Chart */}
           <div className="portal-panel rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <SectionHeader
@@ -487,7 +523,6 @@ export const DashboardPanel: React.FC = () => {
               <Activity className="h-4 w-4 shrink-0 text-primary mt-0.5" />
             </div>
 
-            {/* Macro tabs */}
             <div className="mt-4 flex gap-1.5 flex-wrap">
               {(
                 [
@@ -556,7 +591,6 @@ export const DashboardPanel: React.FC = () => {
             )}
           </div>
 
-          {/* Recent Activity */}
           <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
             <div className="flex items-start justify-between border-b border-border/60 pb-4 mb-4">
               <SectionHeader
@@ -633,8 +667,6 @@ export const DashboardPanel: React.FC = () => {
   );
 };
 
-/* ── Sub-components ──────────────────────────────────────────────────────── */
-
 const SectionHeader: React.FC<{
   title: string;
   subtitle?: string;
@@ -678,6 +710,17 @@ const MetricCard: React.FC<{
   </div>
 );
 
+const SummaryCard: React.FC<{
+  label: string;
+  value: number;
+  tone: 'critical' | 'high' | 'low';
+}> = ({ label, value, tone }) => (
+  <div className={`rounded-2xl border p-4 ${severityTone[tone]}`}>
+    <p className="portal-label">{label}</p>
+    <p className="portal-metric mt-2 text-current">{value}</p>
+  </div>
+);
+
 const EmptyPanel: React.FC<{ title: string; body: string }> = ({ title, body }) => (
   <div className="portal-soft-panel mt-4 rounded-xl p-4 border border-border/50">
     <p className="portal-card-heading">{title}</p>
@@ -685,18 +728,64 @@ const EmptyPanel: React.FC<{ title: string; body: string }> = ({ title, body }) 
   </div>
 );
 
-const ActionHint: React.FC<{ title: string; body: string; onClick?: () => void }> = ({
-  title,
-  body,
-  onClick,
-}) => (
-  <div
-    onClick={onClick}
-    className={`portal-soft-panel rounded-xl px-4 py-3 border border-border/50 transition-all ${
-      onClick ? 'cursor-pointer hover:bg-accent/40 hover:border-border active:scale-[0.99]' : ''
-    }`}
-  >
-    <p className="portal-card-heading">{title}</p>
-    <p className="portal-meta mt-0.5 text-muted-foreground leading-relaxed">{body}</p>
-  </div>
-);
+const AlertCard: React.FC<{
+  alert: PracticeAlert;
+  locale?: string;
+  clientName: string | null;
+  onOpen: () => void;
+  onDismiss: () => void;
+}> = ({ alert, locale, clientName, onOpen, onDismiss }) => {
+  const title = getPracticeAlertTitle(alert, locale);
+  const body = getPracticeAlertBody(alert, locale);
+  const ctaLabel = getPracticeAlertCtaLabel(alert, locale);
+  const severityLabel = getPracticeAlertSeverityLabel(alert.severity, locale);
+  const reason = getPracticeAlertReason(alert, locale);
+
+  return (
+    <div className="rounded-2xl border border-border bg-card/70 p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-1 portal-pill ${severityTone[alert.severity]}`}>
+              {severityLabel}
+            </span>
+            {clientName && (
+              <span className="portal-pill rounded-full border border-border bg-background px-2.5 py-1 text-muted-foreground">
+                {clientName}
+              </span>
+            )}
+            <span className="portal-pill rounded-full border border-border bg-background px-2.5 py-1 text-muted-foreground">
+              {reason}
+            </span>
+          </div>
+          <p className="portal-card-heading mt-3 text-foreground">{title}</p>
+          <p className="portal-meta mt-1 leading-relaxed text-muted-foreground">{body}</p>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="rounded-lg border border-border bg-background px-2.5 py-1.5 portal-action text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          {getPracticeAlertStrings(locale).dismiss}
+        </button>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="portal-label text-muted-foreground">
+          {formatPortalDate(alert.detected_at, locale ?? 'en', {
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </p>
+        <button
+          onClick={onOpen}
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground transition-opacity hover:opacity-95"
+        >
+          <span>{ctaLabel}</span>
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+};

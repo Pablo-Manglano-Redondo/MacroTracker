@@ -48,4 +48,14 @@ export const checkinRepository = {
     });
     if (error) throw error;
   },
+
+  markPendingReviewed: async (supabase: SupabaseClient, professionalClientId: string) => {
+    const { error } = await supabase
+      .from('client_checkins')
+      .update({ reviewed_at: new Date().toISOString() })
+      .eq('professional_client_id', professionalClientId)
+      .is('reviewed_at', null);
+
+    if (error) throw error;
+  },
 };

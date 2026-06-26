@@ -120,19 +120,41 @@ export const AppShell: React.FC = () => {
     };
 
     const handleSelectClient = (e: Event) => {
-      const clientId = (e as CustomEvent).detail;
+      const detail = (e as CustomEvent).detail;
+      const relationshipId =
+        typeof detail === 'string' ? null : detail?.relationshipId ?? null;
+      const clientId =
+        typeof detail === 'string' ? detail : detail?.clientId ?? null;
+
       if (professional) {
-        supabase
+        let query = supabase
           .from('professional_clients')
-          .select('*')
-          .eq('professional_id', professional.id)
-          .eq('client_id', clientId)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              setSelectedClient(data as unknown as ProfessionalClient);
-            }
-          });
+          .select(`
+            id,
+            professional_id,
+            client_id,
+            display_name,
+            status,
+            connected_at,
+            sharing_mode,
+            messages_enabled,
+            client_shared_snapshots(*)
+          `)
+          .eq('professional_id', professional.id);
+
+        if (relationshipId) {
+          query = query.eq('id', relationshipId);
+        } else if (clientId) {
+          query = query.eq('client_id', clientId);
+        } else {
+          return;
+        }
+
+        query.single().then(({ data }) => {
+          if (data) {
+            setSelectedClient(data as unknown as ProfessionalClient);
+          }
+        });
       }
     };
 

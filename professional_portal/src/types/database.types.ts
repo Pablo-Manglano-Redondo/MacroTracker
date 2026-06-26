@@ -191,6 +191,7 @@ export interface ClientCheckin {
   mood?: string | null;
   notes?: string | null;
   submitted_at: string;
+  reviewed_at?: string | null;
 }
 
 export interface PlanTemplate {
@@ -237,4 +238,59 @@ export interface ClientProgressSummary {
   last_checkin: string | null;
   recipe_count: number;
   note_count: number;
+}
+
+export type PracticeAlertType =
+  | 'practice_blocked'
+  | 'no_connected_clients'
+  | 'client_without_plan'
+  | 'stale_snapshot'
+  | 'low_adherence'
+  | 'unread_messages'
+  | 'pending_checkin_review'
+  | 'pending_invite_expiring';
+
+export type PracticeAlertSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type PracticeAlertStatus = 'open' | 'dismissed' | 'resolved';
+export type PracticeAlertActionKind =
+  | 'open_billing_panel'
+  | 'open_clients_panel'
+  | 'open_invite_modal'
+  | 'open_client_tab';
+export type PracticeAlertTargetTab =
+  | 'billing-panel'
+  | 'clients-panel'
+  | 'summary'
+  | 'plans'
+  | 'checkins'
+  | 'chat'
+  | 'diary'
+  | 'profile';
+
+export interface PracticeAlertAction {
+  kind: PracticeAlertActionKind;
+  target_tab?: PracticeAlertTargetTab | null;
+  payload: Record<string, any>;
+}
+
+export interface PracticeAlert {
+  id: string;
+  professional_id: string;
+  professional_client_id: string | null;
+  alert_type: PracticeAlertType;
+  severity: PracticeAlertSeverity;
+  status: PracticeAlertStatus;
+  title_key?: string | null;
+  title: string;
+  body_key?: string | null;
+  body?: string | null;
+  action_kind: PracticeAlertActionKind;
+  action_target_tab?: PracticeAlertTargetTab | null;
+  action_payload: Record<string, any>;
+  evidence: Record<string, any>;
+  dedupe_key: string;
+  detected_at: string;
+  updated_at: string;
+  resolved_at?: string | null;
+  created_at: string;
 }

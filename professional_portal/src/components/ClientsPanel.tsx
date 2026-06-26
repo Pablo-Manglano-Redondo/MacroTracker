@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   ChevronDown,
@@ -12,7 +12,8 @@ import {
 import { useAuth } from '../lib/auth-context';
 import { usePortalI18n } from '../lib/portal-i18n';
 import { useClients, useUnreadCounts } from '../hooks/queries/useClients';
-import type { ProfessionalClient } from '../types/database.types';
+import { useOpenPracticeAlerts } from '../hooks/queries/usePracticeAlerts';
+import type { PracticeAlert, ProfessionalClient } from '../types/database.types';
 import { ClientDetail } from './ClientDetail';
 import { Skeleton } from './ui/skeleton';
 import {
@@ -24,6 +25,16 @@ import {
   getSnapshotAdherence,
 } from '../view-models/clients';
 import { getBillingSummary } from '../view-models/professional';
+import {
+  getPracticeAlertReason,
+  getPracticeAlertSeverityLabel,
+  getPracticeAlertSeverityRank,
+  getPracticeAlertStrings,
+  getTopClientAlert,
+  groupAlertsByClient,
+  sortPracticeAlerts,
+} from '../lib/practice-alerts';
+import { trackPortalEvent } from '../lib/portal-analytics';
 
 interface ClientsPanelProps {
   onSelectClient: (client: ProfessionalClient | null) => void;
@@ -31,16 +42,36 @@ interface ClientsPanelProps {
   onAddClient?: () => void;
 }
 
-type StatusFilter = 'all' | 'connected' | 'revoked' | 'archived' | 'attention' | 'no_plan';
-type SharingFilter = 'all' | 'aggregate' | 'detailed' | 'stale_sync' | 'unread';
+type StatusFilter =
+  | 'all'
+  | 'connected'
+  | 'revoked'
+  | 'archived'
+  | 'has_alerts'
+  | 'critical'
+  | 'needs_plan'
+  | 'stale_snapshot'
+  | 'low_adherence'
+  | 'unread';
+type SharingFilter = 'all' | 'aggregate' | 'detailed';
 
 type RankedClient = {
   client: ProfessionalClient;
   unreadCount: number;
   latestSnapshotDate: string | null;
   adherence: number | null;
+  maxAlertSeverity: number;
+  openAlertCount: number;
+  topAlert: PracticeAlert | null;
   actionScore: number;
   actionLabel: string;
+};
+
+const severityBadgeTone: Record<string, string> = {
+  critical: 'bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]',
+  high: 'bg-amber-500 text-black shadow-[0_2px_8px_rgba(245,158,11,0.35)]',
+  medium: 'bg-sky-500 text-white shadow-[0_2px_8px_rgba(14,165,233,0.35)]',
+  low: 'bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.35)]',
 };
 
 export const ClientsPanel: React.FC<ClientsPanelProps> = ({
@@ -49,9 +80,11 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   onAddClient,
 }) => {
   const { professional } = useAuth();
-  const { t } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
+  const alertStrings = getPracticeAlertStrings(locale);
   const { data: clients = [], isLoading, refetch, isRefetching } = useClients(professional?.id);
   const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
+  const { data: openAlerts = [] } = useOpenPracticeAlerts(professional?.id);
 
   const connectedClients = useMemo(
     () => clients.filter((client) => client.status === 'connected').length,
@@ -65,6 +98,16 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [sharingFilter, setSharingFilter] = useState<SharingFilter>('all');
+
+  const alertsByClient = useMemo(() => groupAlertsByClient(openAlerts), [openAlerts]);
+
+  useEffect(() => {
+    if (!professional || openAlerts.length === 0) return;
+    trackPortalEvent('roster_sorted_by_alerts', {
+      professionalId: professional.id,
+      openAlerts: openAlerts.length,
+    });
+  }, [openAlerts.length, professional]);
 
   const getDaysSince = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -95,21 +138,27 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
         const unreadCount = unreadCounts[client.id] ?? 0;
         const latestSnapshot = getLatestSnapshot(client);
         const adherence = getSnapshotAdherence(latestSnapshot);
-        let actionScore = 0;
-        let actionLabel = t('components.clientspanel.stable');
+        const clientAlerts = sortPracticeAlerts(alertsByClient.get(client.id) ?? []);
+        const topAlert = getTopClientAlert(clientAlerts);
+        const maxAlertSeverity = topAlert ? getPracticeAlertSeverityRank(topAlert.severity) : 0;
 
-        if (unreadCount > 0) {
-          actionScore += 1000 + unreadCount;
-          actionLabel = t('components.clientspanel.unread_messages');
-        } else if (!latestSnapshot && client.status === 'connected') {
-          actionScore += 800;
-          actionLabel = t('components.clientspanel.no_sync_recent');
-        } else if (adherence !== null && adherence < 75) {
-          actionScore += 600 + (75 - adherence);
-          actionLabel = t('components.clientspanel.need_attention');
-        } else if (client.sharing_mode === 'detailed') {
-          actionScore += 150;
-          actionLabel = t('components.clientspanel.detailed_sharing');
+        let actionScore = maxAlertSeverity * 10_000;
+        let actionLabel = topAlert
+          ? getPracticeAlertReason(topAlert, locale)
+          : t('components.clientspanel.stable');
+
+        if (topAlert?.alert_type === 'unread_messages') {
+          actionScore += 5_000;
+        } else if (topAlert?.alert_type === 'low_adherence') {
+          actionScore += 4_000;
+        } else if (topAlert?.alert_type === 'stale_snapshot') {
+          actionScore += 3_000;
+        }
+
+        actionScore += unreadCount * 100;
+
+        if (adherence !== null && adherence < 75) {
+          actionScore += 75 - adherence;
         }
 
         actionScore += Date.parse(client.connected_at) / 1000000000000;
@@ -119,34 +168,36 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
           unreadCount,
           latestSnapshotDate: latestSnapshot?.snapshot_date ?? null,
           adherence,
+          maxAlertSeverity,
+          openAlertCount: clientAlerts.length,
+          topAlert,
           actionScore,
           actionLabel,
         };
       })
       .sort((left, right) => right.actionScore - left.actionScore);
-  }, [clients, t, unreadCounts]);
+  }, [alertsByClient, clients, locale, t, unreadCounts]);
 
   const filteredClients = useMemo(() => {
     const query = search.trim().toLowerCase();
 
     return rankedClients.filter((entry) => {
-      const { client, unreadCount, latestSnapshotDate } = entry;
+      const { client, unreadCount, topAlert, openAlertCount } = entry;
 
       if (statusFilter === 'connected' && client.status !== 'connected') return false;
       if (statusFilter === 'revoked' && client.status !== 'revoked') return false;
       if (statusFilter === 'archived' && client.status !== 'archived') return false;
-      if (
-        statusFilter === 'attention' &&
-        !(unreadCount > 0 || (!latestSnapshotDate && client.status === 'connected'))
-      ) {
-        return false;
-      }
-      if (statusFilter === 'no_plan' && client.status !== 'connected') return false;
+      const clientAlerts = alertsByClient.get(client.id) ?? [];
+
+      if (statusFilter === 'has_alerts' && openAlertCount === 0) return false;
+      if (statusFilter === 'critical' && topAlert?.severity !== 'critical') return false;
+      if (statusFilter === 'needs_plan' && !clientAlerts.some((alert) => alert.alert_type === 'client_without_plan')) return false;
+      if (statusFilter === 'stale_snapshot' && !clientAlerts.some((alert) => alert.alert_type === 'stale_snapshot')) return false;
+      if (statusFilter === 'low_adherence' && !clientAlerts.some((alert) => alert.alert_type === 'low_adherence')) return false;
+      if (statusFilter === 'unread' && unreadCount === 0 && !clientAlerts.some((alert) => alert.alert_type === 'unread_messages')) return false;
 
       if (sharingFilter === 'aggregate' && client.sharing_mode !== 'aggregate') return false;
       if (sharingFilter === 'detailed' && client.sharing_mode !== 'detailed') return false;
-      if (sharingFilter === 'stale_sync' && !!latestSnapshotDate) return false;
-      if (sharingFilter === 'unread' && unreadCount === 0) return false;
 
       if (!query) return true;
 
@@ -155,7 +206,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
         client.client_id.toLowerCase().includes(query)
       );
     });
-  }, [rankedClients, search, sharingFilter, statusFilter]);
+  }, [alertsByClient, rankedClients, search, sharingFilter, statusFilter]);
 
   if (!professional) {
     return (
@@ -228,7 +279,12 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="all">{t('components.clientspanel.all_statuses')}</option>
-                    <option value="attention">{t('components.clientspanel.require_attention')}</option>
+                    <option value="has_alerts">{alertStrings.hasAlerts}</option>
+                    <option value="critical">{alertStrings.critical}</option>
+                    <option value="needs_plan">{alertStrings.clientWithoutPlanReason}</option>
+                    <option value="stale_snapshot">{alertStrings.staleSnapshotReason}</option>
+                    <option value="low_adherence">{alertStrings.lowAdherenceReason}</option>
+                    <option value="unread">{alertStrings.unreadReason}</option>
                     <option value="connected">{t('components.clientspanel.connected')}</option>
                     <option value="revoked">{t('components.clientspanel.revoked')}</option>
                     <option value="archived">{t('components.clientspanel.archived')}</option>
@@ -248,8 +304,6 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     className="portal-input w-full appearance-none rounded-xl px-3.5 py-2.5 pr-8 outline-none focus:border-primary transition-colors cursor-pointer"
                   >
                     <option value="all">{t('components.clientspanel.all_modes')}</option>
-                    <option value="stale_sync">{t('components.clientspanel.no_sync_recent')}</option>
-                    <option value="unread">{t('components.clientspanel.unread_messages')}</option>
                     <option value="aggregate">{t('components.clientspanel.aggregate')}</option>
                     <option value="detailed">{t('components.clientspanel.detailed')}</option>
                   </select>
@@ -278,9 +332,8 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               />
             ) : (
               filteredClients.map((entry) => {
-                const { client, adherence, unreadCount } = entry;
+                const { client, adherence, unreadCount, openAlertCount, topAlert } = entry;
                 const isSelected = selectedClient?.id === client.id;
-
                 const activeLabel = getClientActiveLabel(client);
                 const isActiveLabelGreen =
                   activeLabel === t('components.clientspanel.plan_active_short');
@@ -291,22 +344,28 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     key={client.id}
                     onClick={() => onSelectClient(isSelected ? null : client)}
                     className={`group relative w-full rounded-2xl border p-5 text-left transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
-                      isLowAdherence
+                      entry.maxAlertSeverity >= 4
                         ? isSelected
-                          ? 'border-amber-500 bg-amber-500/10 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]'
-                          : 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/8 hover:border-amber-500 hover:shadow-[0_4px_16px_rgba(245,158,11,0.05)]'
-                        : isSelected
-                          ? 'border-primary bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] shadow-[0_4px_20px_-4px_rgba(114,222,152,0.15)]'
-                          : 'border-border/80 bg-card hover:bg-accent/30 hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]'
+                          ? 'border-rose-500 bg-rose-500/10 shadow-[0_4px_20px_-4px_rgba(244,63,94,0.18)]'
+                          : 'border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/8 hover:border-rose-500 hover:shadow-[0_4px_16px_rgba(244,63,94,0.08)]'
+                        : isLowAdherence
+                          ? isSelected
+                            ? 'border-amber-500 bg-amber-500/10 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]'
+                            : 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/8 hover:border-amber-500 hover:shadow-[0_4px_16px_rgba(245,158,11,0.05)]'
+                          : isSelected
+                            ? 'border-primary bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] shadow-[0_4px_20px_-4px_rgba(114,222,152,0.15)]'
+                            : 'border-border/80 bg-card hover:bg-accent/30 hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 gap-3.5">
                         <div className="relative shrink-0">
                           <div className={`portal-card-heading flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border shadow-inner group-hover:scale-105 transition-transform duration-300 ${
-                            isLowAdherence
-                              ? 'bg-gradient-to-tr from-amber-500/20 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                              : 'bg-gradient-to-tr from-primary/20 to-primary/5 text-primary border-primary/20'
+                            entry.maxAlertSeverity >= 4
+                              ? 'bg-gradient-to-tr from-rose-500/20 to-rose-500/5 text-rose-600 dark:text-rose-300 border-rose-500/20'
+                              : isLowAdherence
+                                ? 'bg-gradient-to-tr from-amber-500/20 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                : 'bg-gradient-to-tr from-primary/20 to-primary/5 text-primary border-primary/20'
                           }`}>
                             {getClientInitials(client)}
                           </div>
@@ -319,7 +378,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                             {getRelationshipStatusLabel(client.status, t)} ·{' '}
                             {getSharingModeLabel(client.sharing_mode, t)}
                           </p>
-                          <div className="mt-2.5 flex items-center gap-1.5">
+                          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
                             {isActiveLabelGreen ? (
                               <span className="portal-pill text-primary">
                                 {activeLabel}
@@ -329,11 +388,26 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                                 {activeLabel}
                               </span>
                             )}
+                            {topAlert && (
+                              <span className="portal-pill rounded-full border border-border bg-background px-2 py-0.5 text-muted-foreground">
+                                {entry.actionLabel}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 flex-col items-end justify-center">
+                      <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+                        {topAlert && (
+                          <span className={`portal-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${severityBadgeTone[topAlert.severity]}`}>
+                            {getPracticeAlertSeverityLabel(topAlert.severity, locale)}
+                          </span>
+                        )}
+                        {openAlertCount > 0 && (
+                          <span className="portal-pill inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-muted-foreground">
+                            {openAlertCount}
+                          </span>
+                        )}
                         {unreadCount > 0 && (
                           <span className="portal-pill inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]">
                             <MessageSquare className="h-2.5 w-2.5" />

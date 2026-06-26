@@ -3,6 +3,7 @@ import { Activity, ClipboardCheck, Moon, Send, Smile } from 'lucide-react';
 import type { ProfessionalClient } from '../../types/database.types';
 import { useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useRequestCheckin } from '../../hooks/mutations/useRequestCheckin';
+import { useMarkCheckinsReviewed } from '../../hooks/mutations/useMarkCheckinsReviewed';
 import { useAuth } from '../../lib/auth-context';
 import { formatPortalDate, formatPortalTime } from '../../lib/date';
 import { usePortalI18n } from '../../lib/portal-i18n';
@@ -12,6 +13,9 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
   const requestCheckin = useRequestCheckin();
+  const markReviewed = useMarkCheckinsReviewed(client.id, professional?.id);
+
+  const pendingReviewCount = checkins?.filter((checkin) => !checkin.reviewed_at).length ?? 0;
 
   const handleRequest = () => {
     if (!professional) return;
@@ -20,6 +24,10 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
       clientId: client.client_id,
       professionalClientId: client.id,
     });
+  };
+
+  const handleMarkReviewed = () => {
+    markReviewed.mutate();
   };
 
   return (
@@ -38,16 +46,32 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
               {t('components.clientdetail.clientcheckins.request_a_check_in_and_review_energy_sleep_mood_and_open_ended_responses')}
             </p>
           </div>
-          <button
-            onClick={handleRequest}
-            disabled={requestCheckin.isPending}
-            className="portal-action inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Send className="h-4 w-4" />
-            {requestCheckin.isPending
-              ? t('components.clientdetail.clientcheckins.requesting')
-              : t('components.clientdetail.clientcheckins.request_check_in')}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {pendingReviewCount > 0 && (
+              <button
+                onClick={handleMarkReviewed}
+                disabled={markReviewed.isPending}
+                className="portal-action inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                {markReviewed.isPending
+                  ? '...'
+                  : locale?.toLowerCase().startsWith('es')
+                    ? `Marcar ${pendingReviewCount} revisado${pendingReviewCount === 1 ? '' : 's'}`
+                    : `Mark ${pendingReviewCount} reviewed`}
+              </button>
+            )}
+            <button
+              onClick={handleRequest}
+              disabled={requestCheckin.isPending}
+              className="portal-action inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-primary-foreground transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" />
+              {requestCheckin.isPending
+                ? t('components.clientdetail.clientcheckins.requesting')
+                : t('components.clientdetail.clientcheckins.request_check_in')}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -88,6 +112,15 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                  {checkin.reviewed_at ? (
+                    <span className="portal-pill inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300">
+                      {locale?.toLowerCase().startsWith('es') ? 'Revisado' : 'Reviewed'}
+                    </span>
+                  ) : (
+                    <span className="portal-pill inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+                      {locale?.toLowerCase().startsWith('es') ? 'Pendiente' : 'Pending'}
+                    </span>
+                  )}
                   {checkin.energy_level != null && (
                     <MetricChip
                       icon={<Activity className="h-3.5 w-3.5 text-primary" />}

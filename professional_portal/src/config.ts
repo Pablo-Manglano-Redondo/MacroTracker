@@ -19,3 +19,6 @@ const getEnvConfig = (): SupabaseConfig => {
 };
 
 export const supabaseConfig = getEnvConfig();
+
+export const practiceAlertsEnabled =
+  (((import.meta as any).env?.VITE_ENABLE_PRACTICE_ALERTS as string | undefined) ?? 'true') !== 'false';
