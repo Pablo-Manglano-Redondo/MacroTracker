@@ -736,31 +736,40 @@ class _HomeContextChip extends StatelessWidget {
                 : Colors.black.withValues(alpha: 0.06),
           );
 
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 142),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: bgColor,
-        border: border,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15, color: iconColor),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: textColor,
-                  ),
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(999),
+          color: bgColor,
+          border: border,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: iconColor),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: textColor,
+                    ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 15,
+              color: textColor.withValues(alpha: 0.6),
+            ),
+          ],
+        ),
       ),
     );
   }

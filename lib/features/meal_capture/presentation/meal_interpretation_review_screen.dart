@@ -163,11 +163,7 @@ class _MealInterpretationReviewScreenState
           kcal: adjustedKcal,
           activeItemCount: activeItems.length,
         ),
-        if (_draft!.localImagePath != null &&
-            _draft!.localImagePath!.trim().isNotEmpty) ...[
-          const SizedBox(height: 12),
-          _DraftImagePreviewCard(imagePath: _draft!.localImagePath!),
-        ],
+
 
         const SizedBox(height: 16),
         _MacroHeroCard(
@@ -252,7 +248,7 @@ class _MealInterpretationReviewScreenState
                 final saved = _savedCorrections[_correctionKey(item.label)];
                 final savedLabel = saved == null
                     ? null
-                    : '${saved.amount.toStringAsFixed(saved.amount % 1 == 0 ? 0 : 1)} ${saved.unit}';
+                    : '${saved.amount.toStringAsFixed(saved.amount % 1 == 0 ? 0 : 1)} ${_localizeUnit(context, saved.unit, saved.amount)}';
                 return _DraftItemCard(
                   item: item,
                   unitPresets: _quickUnitsForItem(item),
@@ -1104,161 +1100,7 @@ class _MealInterpretationReviewScreenState
   }
 }
 
-class _DraftImagePreviewCard extends StatefulWidget {
-  final String imagePath;
 
-  const _DraftImagePreviewCard({required this.imagePath});
-
-  @override
-  State<_DraftImagePreviewCard> createState() => _DraftImagePreviewCardState();
-}
-
-class _DraftImagePreviewCardState extends State<_DraftImagePreviewCard> {
-  bool _cropPreview = true;
-
-  @override
-  Widget build(BuildContext context) {
-    final file = File(widget.imagePath);
-    if (!file.existsSync()) {
-      return const SizedBox();
-    }
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).aiPhotoCaptured,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              S.of(context).aiPhotoCapturedHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => _openZoomDialog(file),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Image.file(
-                    file,
-                    fit: _cropPreview ? BoxFit.cover : BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHigh,
-                        alignment: Alignment.center,
-                        child: Text(
-                          S.of(context).aiPhotoPreviewError,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _cropPreview = !_cropPreview;
-                  });
-                },
-                icon: Icon(
-                  _cropPreview
-                      ? Icons.crop_outlined
-                      : Icons.fit_screen_outlined,
-                ),
-                label: Text(_cropPreview
-                    ? S.of(context).aiCropLabel
-                    : S.of(context).aiFitLabel),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openZoomDialog(File imageFile) async {
-    bool cropDialog = _cropPreview;
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              insetPadding: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            S.of(context).aiPhotoZoomTitle,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              cropDialog = !cropDialog;
-                            });
-                          },
-                          icon: Icon(cropDialog
-                              ? Icons.crop_outlined
-                              : Icons.fit_screen_outlined),
-                          label: Text(cropDialog
-                              ? S.of(context).aiCropLabel
-                              : S.of(context).aiFitLabel),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Flexible(
-                      child: AspectRatio(
-                        aspectRatio: 4 / 3,
-                        child: InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 6,
-                          child: Image.file(
-                            imageFile,
-                            fit: cropDialog ? BoxFit.cover : BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
 
 class _DraftHeroCard extends StatelessWidget {
   final InterpretationDraftEntity draft;
@@ -1370,11 +1212,18 @@ class _DraftHeroCard extends StatelessWidget {
                 .toList(),
           ),
           const SizedBox(height: 12),
+          Text(
+            S.of(context).aiCustomServingsLabel,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(height: 6),
           TextField(
             controller: servingsController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: S.of(context).aiCustomServingsLabel,
               helperText: S.of(context).aiCustomServingsHelper,
               border: const OutlineInputBorder(),
             ),
@@ -1771,7 +1620,7 @@ class _DraftItemCard extends StatelessWidget {
                           _DraftChip(
                             icon: Icons.scale_outlined,
                             label:
-                                '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 2)} ${item.unit}',
+                                '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 2)} ${_localizeUnit(context, item.unit, item.amount)}',
                           ),
                           _DraftChip(
                             icon: Icons.local_fire_department_outlined,
@@ -1844,7 +1693,7 @@ class _DraftItemCard extends StatelessWidget {
               children: unitPresets
                   .map(
                     (unit) => ChoiceChip(
-                      label: Text(unit),
+                      label: Text(_localizeUnit(context, unit)),
                       selected: item.unit == unit,
                       onSelected: item.removed || onUnitSelected == null
                           ? null
@@ -1871,12 +1720,6 @@ class _DraftItemCard extends StatelessWidget {
                   onTap: item.removed || onPresetSelected == null
                       ? null
                       : () => onPresetSelected!(0.75),
-                ),
-                _PresetChip(
-                  label: S.of(context).allItemsLabel,
-                  onTap: item.removed || onPresetSelected == null
-                      ? null
-                      : () => onPresetSelected!(1.0),
                 ),
                 _PresetChip(
                   label: '+25 %',
@@ -2423,4 +2266,15 @@ class _IngredientPortionDialogState extends State<_IngredientPortionDialog> {
     }
     return 'g/ml';
   }
+}
+
+String _localizeUnit(BuildContext context, String unit, [double? amount]) {
+  final lower = unit.toLowerCase();
+  if (lower == 'serving') {
+    if (amount != null && amount != 1.0) {
+      return S.of(context).recipeDetailServingUnitPlural;
+    }
+    return S.of(context).recipeDetailServingUnitSingular;
+  }
+  return unit;
 }

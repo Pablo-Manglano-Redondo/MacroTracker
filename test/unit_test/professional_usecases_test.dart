@@ -17,6 +17,7 @@ import 'package:macrotracker/features/professional_plan/domain/usecase/get_profe
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_checkin_template_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_proposed_recipes_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/checkin_template_entity.dart';
+import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/features/professional_plan/data/repository/checkin_repository.dart';
 import '../fixture/meal_entity_fixtures.dart';
 
@@ -425,6 +426,26 @@ class _FakeProfessionalPlanRepository extends Fake
         '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
     return dailyNotes[key];
   }
+
+  @override
+  Future<ProfessionalCheckinRequestEntity?> getPendingCheckinRequest({
+    required ProfessionalConnectionEntity connection,
+  }) async => null;
+
+  @override
+  Future<int> getPendingRecipeProposalCount({
+    required ProfessionalConnectionEntity connection,
+  }) async => 0;
+
+  @override
+  Future<ProfessionalMessageThreadEntity> getMessages({
+    required ProfessionalConnectionEntity connection,
+  }) async => const ProfessionalMessageThreadEntity(
+        threadId: '',
+        isSupported: false,
+        messagesEnabled: false,
+        messages: [],
+      );
 }
 
 class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {

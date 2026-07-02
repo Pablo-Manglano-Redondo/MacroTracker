@@ -948,12 +948,19 @@ class _CaptureHintRow extends StatelessWidget {
   }
 }
 
-class _SelectedPhotoPreview extends StatelessWidget {
+class _SelectedPhotoPreview extends StatefulWidget {
   final _SelectedMealPhoto photo;
 
   const _SelectedPhotoPreview({
     required this.photo,
   });
+
+  @override
+  State<_SelectedPhotoPreview> createState() => _SelectedPhotoPreviewState();
+}
+
+class _SelectedPhotoPreviewState extends State<_SelectedPhotoPreview> {
+  bool _cropPreview = true;
 
   @override
   Widget build(BuildContext context) {
@@ -965,33 +972,132 @@ class _SelectedPhotoPreview extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: AspectRatio(
-                aspectRatio: 1.1,
-                child: Image.memory(
-                  photo.bytes,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
             Text(
-              S.of(context).aiPhotoPreviewTitle,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              S.of(context).aiPhotoCaptured,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             Text(
-              S.of(context).aiPhotoPreviewSubtitle,
+              S.of(context).aiPhotoCapturedHint,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
             ),
+            const SizedBox(height: 10),
+            InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () => _openZoomDialog(widget.photo),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: AspectRatio(
+                  aspectRatio: 4 / 3,
+                  child: Image.memory(
+                    widget.photo.bytes,
+                    fit: _cropPreview ? BoxFit.cover : BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: colorScheme.surfaceContainerHigh,
+                        alignment: Alignment.center,
+                        child: Text(
+                          S.of(context).aiPhotoPreviewError,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _cropPreview = !_cropPreview;
+                  });
+                },
+                icon: Icon(
+                  _cropPreview
+                      ? Icons.crop_outlined
+                      : Icons.fit_screen_outlined,
+                ),
+                label: Text(_cropPreview
+                    ? S.of(context).aiCropLabel
+                    : S.of(context).aiFitLabel),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openZoomDialog(_SelectedMealPhoto photo) async {
+    bool cropDialog = _cropPreview;
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              insetPadding: const EdgeInsets.all(16),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            S.of(context).aiPhotoZoomTitle,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            setDialogState(() {
+                              cropDialog = !cropDialog;
+                            });
+                          },
+                          icon: Icon(cropDialog
+                              ? Icons.crop_outlined
+                              : Icons.fit_screen_outlined),
+                          label: Text(cropDialog
+                              ? S.of(context).aiCropLabel
+                              : S.of(context).aiFitLabel),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Flexible(
+                      child: AspectRatio(
+                        aspectRatio: 4 / 3,
+                        child: InteractiveViewer(
+                          minScale: 1,
+                          maxScale: 6,
+                          child: Image.memory(
+                            photo.bytes,
+                            fit: cropDialog ? BoxFit.cover : BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -54,6 +54,7 @@ Future<void> main() async {
   LoggerConfig.intiLogger();
   try {
     await initLocator();
+    await initializeCloudIntegrations();
     final log = Logger('main');
     final isUserInitialized = await locator<UserDataSource>().hasUserData();
     final configRepo = locator<ConfigRepository>();
@@ -104,12 +105,6 @@ Future<void> main() async {
 Future<void> _runDeferredStartupTasks() async {
   final log = Logger('main');
   await Future<void>.delayed(const Duration(milliseconds: 600));
-
-  try {
-    await initializeCloudIntegrations();
-  } catch (error, stackTrace) {
-    log.severe('Cloud integrations background initialization failed', error, stackTrace);
-  }
 
   try {
     await initializeDriveBackupWorker();
