@@ -14,7 +14,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { Sidebar } from './Sidebar';
-import { supabase } from '../lib/supabase';
 import { ProfessionalClient } from '../types/database.types';
 import { NotificationBell } from './NotificationBell';
 import { InviteModal } from './InviteModal';
@@ -23,7 +22,8 @@ import { getBillingSummary, resolveWorkspaceState } from '../view-models/profess
 import { onOpenInviteModal } from '../lib/portal-events';
 import { usePortalI18n } from '../lib/portal-i18n';
 import { startTour, shouldAutoLaunchTour } from '../lib/tour';
-import { buildDemoClient, isDemoClient, DEMO_CLIENT_ID } from '../lib/demo-client';
+import { buildDemoClient, isDemoClient } from '../lib/demo-client';
+import { usePortalNavigation } from '../lib/navigation-context';
 
 const AuthPanel = lazy(() => import('./AuthPanel').then((m) => ({ default: m.AuthPanel })));
 const ProfilePanel = lazy(() => import('./ProfilePanel').then((m) => ({ default: m.ProfilePanel })));
@@ -40,26 +40,40 @@ const PanelFallback = () => (
   </div>
 );
 
-const PANEL_IDS = [
-  'profile-panel',
-  'billing-panel',
-  'clients-panel',
-  'dashboard-panel',
-  'recipes-panel',
-  'templates-panel',
-  'checkins-panel',
-] as const;
+
 
 export const AppShell: React.FC = () => {
   const { session, loading, professional, user, signOut } = useAuth();
   const { t, locale, setLocale, locales } = usePortalI18n();
-  const [activePanel, setActivePanel] = useState('dashboard-panel');
-  const [selectedClient, setSelectedClient] = useState<ProfessionalClient | null>(null);
+
+  const {
+    activePanel,
+    selectedClient,
+    navigateToPanel: setActivePanel,
+    selectClient: setSelectedClient,
+    selectClientTab,
+  } = usePortalNavigation();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [languageMenuOpen, setLanguageMenuOpen] = useState(false);
   const tourLaunchedRef = useRef(false);
+  const [showSlowLoadWarning, setShowSlowLoadWarning] = useState(false);
+
+  useEffect(() => {
+    let timer: number | undefined;
+    if (loading) {
+      timer = window.setTimeout(() => {
+        setShowSlowLoadWarning(true);
+      }, 5000);
+    } else {
+      setShowSlowLoadWarning(false);
+    }
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [loading]);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -112,63 +126,11 @@ export const AppShell: React.FC = () => {
   );
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (hash && PANEL_IDS.includes(hash as (typeof PANEL_IDS)[number])) {
-        setActivePanel(hash);
-      }
-    };
-
-    const handleSelectClient = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      const relationshipId =
-        typeof detail === 'string' ? null : detail?.relationshipId ?? null;
-      const clientId =
-        typeof detail === 'string' ? detail : detail?.clientId ?? null;
-
-      if (professional) {
-        let query = supabase
-          .from('professional_clients')
-          .select(`
-            id,
-            professional_id,
-            client_id,
-            display_name,
-            status,
-            connected_at,
-            sharing_mode,
-            messages_enabled,
-            client_shared_snapshots(*)
-          `)
-          .eq('professional_id', professional.id);
-
-        if (relationshipId) {
-          query = query.eq('id', relationshipId);
-        } else if (clientId) {
-          query = query.eq('client_id', clientId);
-        } else {
-          return;
-        }
-
-        query.single().then(({ data }) => {
-          if (data) {
-            setSelectedClient(data as unknown as ProfessionalClient);
-          }
-        });
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('select-client', handleSelectClient);
     const detachInviteListener = onOpenInviteModal(() => setShowInviteModal(true));
-    handleHashChange();
-
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('select-client', handleSelectClient);
       detachInviteListener();
     };
-  }, [professional]);
+  }, []);
 
   // Auto-launch tour on first login
   useEffect(() => {
@@ -189,13 +151,11 @@ export const AppShell: React.FC = () => {
     const blockedPanels = new Set(['templates-panel', 'checkins-panel', 'recipes-panel']);
     if (blockedPanels.has(activePanel)) {
       setActivePanel('billing-panel');
-      window.location.hash = 'billing-panel';
     }
   }, [activePanel, practiceBlocked]);
 
-  const handleSetActivePanel = (panel: string) => {
+  const handleSetActivePanel = (panel: any) => {
     setActivePanel(panel);
-    window.location.hash = panel;
     setSidebarOpen(false);
   };
 
@@ -229,7 +189,7 @@ export const AppShell: React.FC = () => {
         ],
       },
       {
-        navigateTo: (panel) => handleSetActivePanel(panel),
+        navigateTo: (panel) => handleSetActivePanel(panel as any),
         selectDemoClient: () => {
           if (hasNoClients) {
             setSelectedClient(demoClient);
@@ -239,11 +199,7 @@ export const AppShell: React.FC = () => {
           handleSetActivePanel('clients-panel');
         },
         selectClientTab: (tab) => {
-          window.dispatchEvent(
-            new CustomEvent('select-client-tab', {
-              detail: { clientId: isDemoClient(selectedClient) ? DEMO_CLIENT_ID : selectedClient?.client_id, tab },
-            }),
-          );
+          selectClientTab(tab as any);
         },
         deselectClient: () => {
           if (isDemoClient(selectedClient)) {
@@ -256,11 +212,24 @@ export const AppShell: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background animate-fade-in">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="portal-meta text-muted-foreground">
+        <span className="portal-meta text-muted-foreground animate-pulse">
           {t('components.appshell.loading_professional_portal')}
         </span>
+        {showSlowLoadWarning && (
+          <div className="mt-4 flex flex-col items-center gap-2.5 max-w-sm text-center px-4 animate-fade-in-up">
+            <p className="text-xs text-muted-foreground/80 leading-normal">
+              {t('components.appshell.slow_load_warning')}
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs font-bold text-primary hover:underline cursor-pointer"
+            >
+              {t('components.appshell.slow_load_reload_button')}
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -361,6 +330,9 @@ export const AppShell: React.FC = () => {
                 }, 100);
               }
             }}
+            onClientUpdated={(client: ProfessionalClient) => {
+              setSelectedClient(client);
+            }}
             onAddClient={() => setShowInviteModal(true)}
           />
         );
@@ -383,8 +355,6 @@ export const AppShell: React.FC = () => {
           }`}
         >
           <Sidebar
-            activePanel={activePanel}
-            setActivePanel={handleSetActivePanel}
             onInviteClient={() => setShowInviteModal(true)}
           />
         </div>

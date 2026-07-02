@@ -12,6 +12,7 @@ class ProfessionalPlanDataSource {
   static const _lastSeenPlanSignatureKey = 'professionalLastSeenPlanSignature';
   static const _lastSeenMessagesCountKey = 'professionalLastSeenMessagesCount';
   static const _messageTable = 'professional_client_messages';
+  static const _checkinRequestTable = 'client_checkin_requests';
   static const debugInviteCode = 'DEBUG';
 
   final Box<dynamic> _box;
@@ -361,6 +362,65 @@ class ProfessionalPlanDataSource {
 
   Future<int> getPendingSyncCount() async => _syncQueueBox.length;
 
+  Future<ProfessionalCheckinRequestEntity?> getPendingCheckinRequest({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    if (connection.relationshipId.isEmpty) {
+      return null;
+    }
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return null;
+    }
+    try {
+      await _identityService.ensureUserSession();
+      final response = await _supabaseClient
+          .from(_checkinRequestTable)
+          .select(
+            'id, professional_client_id, professional_id, client_id, template_id, status, requested_at, completed_at, completed_checkin_id',
+          )
+          .eq('professional_client_id', connection.relationshipId)
+          .eq('client_id', connection.clientId)
+          .eq('status', 'pending')
+          .order('requested_at', ascending: false)
+          .limit(1)
+          .maybeSingle();
+      if (response == null) {
+        return null;
+      }
+      return ProfessionalCheckinRequestEntity.fromJson(
+        Map<String, dynamic>.from(response),
+      );
+    } catch (error) {
+      if (isIgnorableCheckinRequestBackendError(error)) {
+        return null;
+      }
+      return null;
+    }
+  }
+
+  Future<int> getPendingRecipeProposalCount({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    if (connection.relationshipId.isEmpty) {
+      return 0;
+    }
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return 1;
+    }
+    try {
+      await _identityService.ensureUserSession();
+      final response = await _supabaseClient
+          .from('client_proposed_recipes')
+          .select('id')
+          .eq('professional_client_id', connection.relationshipId)
+          .eq('client_id', connection.clientId)
+          .eq('status', 'pending');
+      return response.length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
   Future<int> getUnseenSectionCount() async {
     final connection = await getActiveConnection();
     if (connection == null) {
@@ -373,6 +433,13 @@ class ProfessionalPlanDataSource {
         _box.get(_lastSeenPlanSignatureKey) as String?;
     if (currentPlanSignature != null &&
         currentPlanSignature != lastSeenPlanSignature) {
+      unseenCount += 1;
+    }
+
+    final pendingCheckin = await getPendingCheckinRequest(
+      connection: connection,
+    );
+    if (pendingCheckin != null) {
       unseenCount += 1;
     }
 
@@ -924,6 +991,18 @@ class ProfessionalPlanDataSource {
   static bool isIgnorableMessagesBackendError(Object error) {
     final raw = error.toString().toLowerCase();
     return raw.contains('relation') ||
+        raw.contains('column') ||
+        raw.contains('schema cache') ||
+        raw.contains('does not exist') ||
+        raw.contains('could not find') ||
+        raw.contains('pgrst');
+  }
+
+  @visibleForTesting
+  static bool isIgnorableCheckinRequestBackendError(Object error) {
+    final raw = error.toString().toLowerCase();
+    return raw.contains(_checkinRequestTable) ||
+        raw.contains('relation') ||
         raw.contains('column') ||
         raw.contains('schema cache') ||
         raw.contains('does not exist') ||

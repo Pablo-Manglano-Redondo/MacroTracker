@@ -10,5 +10,5 @@ if (-not $denoCommand) {
     throw "Deno was not found. Install Deno or add deno.exe to PATH."
 }
 
-& $denoCommand.Source test (Join-Path $supabaseDir "functions\_shared")
+& $denoCommand.Source test --allow-env (Join-Path $supabaseDir "functions\_shared")
 exit $LASTEXITCODE

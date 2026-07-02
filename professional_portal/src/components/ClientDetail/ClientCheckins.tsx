@@ -1,7 +1,7 @@
 import React from 'react';
-import { Activity, ClipboardCheck, Moon, Send, Smile } from 'lucide-react';
+import { Activity, ClipboardCheck, Clock, Moon, Send, Smile } from 'lucide-react';
 import type { ProfessionalClient } from '../../types/database.types';
-import { useClientCheckins } from '../../hooks/queries/useCheckins';
+import { useClientCheckinRequests, useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useRequestCheckin } from '../../hooks/mutations/useRequestCheckin';
 import { useMarkCheckinsReviewed } from '../../hooks/mutations/useMarkCheckinsReviewed';
 import { useAuth } from '../../lib/auth-context';
@@ -10,12 +10,14 @@ import { usePortalI18n } from '../../lib/portal-i18n';
 
 export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ client }) => {
   const { data: checkins, isLoading, error } = useClientCheckins(client.id);
+  const { data: requests, isLoading: requestsLoading } = useClientCheckinRequests(client.id);
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
   const requestCheckin = useRequestCheckin();
   const markReviewed = useMarkCheckinsReviewed(client.id, professional?.id);
 
   const pendingReviewCount = checkins?.filter((checkin) => !checkin.reviewed_at).length ?? 0;
+  const pendingRequests = requests?.filter((request) => request.status === 'pending') ?? [];
 
   const handleRequest = () => {
     if (!professional) return;
@@ -75,11 +77,49 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
         </div>
       </section>
 
+      {pendingRequests.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-primary">
+            <Clock className="h-4.5 w-4.5" />
+            <p className="portal-kicker">
+              {locale?.toLowerCase().startsWith('es') ? 'Solicitudes pendientes' : 'Pending requests'}
+            </p>
+          </div>
+          {pendingRequests.map((request) => (
+            <article
+              key={request.id}
+              className="portal-panel flex flex-col gap-3 rounded-[1.6rem] border-amber-500/25 bg-amber-500/5 p-5 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div>
+                <p className="portal-card-heading">
+                  {locale?.toLowerCase().startsWith('es')
+                    ? 'Check-in solicitado al cliente'
+                    : 'Check-in requested from client'}
+                </p>
+                <p className="portal-meta mt-1">
+                  {formatPortalDate(request.requested_at, locale, {
+                    weekday: 'short', month: 'short', day: 'numeric',
+                  })}
+                  {' · '}
+                  {formatPortalTime(request.requested_at, locale, {
+                    hour: '2-digit', minute: '2-digit',
+                  })}
+                </p>
+              </div>
+              <span className="portal-pill inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 py-1 text-amber-700 dark:text-amber-300">
+                <Clock className="h-3.5 w-3.5" />
+                {locale?.toLowerCase().startsWith('es') ? 'Esperando respuesta' : 'Waiting for response'}
+              </span>
+            </article>
+          ))}
+        </div>
+      )}
+
       {error ? (
         <div className="portal-panel portal-body rounded-[1.6rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientcheckins.check_ins_are_not_available_right_now_keep_this_surface_explicit_until_t')}
         </div>
-      ) : isLoading ? (
+      ) : isLoading || requestsLoading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
             <div
@@ -90,7 +130,11 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
         </div>
       ) : !checkins?.length ? (
         <div className="portal-panel portal-body rounded-[1.6rem] p-8 text-center text-muted-foreground">
-          {t('components.clientdetail.clientcheckins.this_client_has_not_submitted_any_check_ins_yet')}
+          {pendingRequests.length > 0
+            ? locale?.toLowerCase().startsWith('es')
+              ? 'Aún no hay respuestas enviadas para la solicitud pendiente.'
+              : 'No submitted responses for the pending request yet.'
+            : t('components.clientdetail.clientcheckins.this_client_has_not_submitted_any_check_ins_yet')}
         </div>
       ) : (
         <div className="space-y-4">

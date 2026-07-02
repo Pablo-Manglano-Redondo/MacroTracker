@@ -106,6 +106,12 @@ Future<void> _runDeferredStartupTasks() async {
   await Future<void>.delayed(const Duration(milliseconds: 600));
 
   try {
+    await initializeCloudIntegrations();
+  } catch (error, stackTrace) {
+    log.severe('Cloud integrations background initialization failed', error, stackTrace);
+  }
+
+  try {
     await initializeDriveBackupWorker();
   } catch (error, stackTrace) {
     log.warning(

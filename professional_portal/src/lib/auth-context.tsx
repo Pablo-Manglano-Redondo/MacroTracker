@@ -28,22 +28,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const initializedRef = useRef(false);
   const currentUserIdRef = useRef<string | null>(null);
 
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('professionals')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+  const profilePromisesRef = useRef<Record<string, Promise<any>>>({});
 
-      if (error) {
-        console.error('Error loading professional profile:', error);
-      } else {
-        setProfessional(data);
-      }
-    } catch (err) {
-      console.error('Failed to load profile:', err);
+  const loadProfile = (userId: string) => {
+    if (profilePromisesRef.current[userId]) {
+      return profilePromisesRef.current[userId];
     }
+
+    const promise = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('professionals')
+          .select('*')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading professional profile:', error);
+        } else {
+          setProfessional(data);
+        }
+      } catch (err) {
+        console.error('Failed to load profile:', err);
+      } finally {
+        delete profilePromisesRef.current[userId];
+      }
+    })();
+
+    profilePromisesRef.current[userId] = promise;
+    return promise;
   };
 
   const refreshProfile = async () => {
@@ -53,22 +66,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      currentUserIdRef.current = session?.user?.id ?? null;
-      if (session?.user) {
-        loadProfile(session.user.id).finally(() => {
+    let active = true;
+
+    const initialize = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!active) return;
+
+        setSession(session);
+        setUser(session?.user ?? null);
+        currentUserIdRef.current = session?.user?.id ?? null;
+
+        if (session?.user) {
+          await loadProfile(session.user.id);
+        }
+      } catch (err) {
+        console.error('Initialization error:', err);
+      } finally {
+        if (active) {
           initializedRef.current = true;
           setLoading(false);
-        });
-      } else {
-        initializedRef.current = true;
-        setLoading(false);
+        }
       }
-    });
+    };
+
+    initialize();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      if (!active) return;
+
       const nextUserId = currentSession?.user?.id ?? null;
       const sameUser = currentUserIdRef.current === nextUserId;
 
@@ -82,6 +108,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         await loadProfile(nextUserId);
+        if (!active) return;
+
         currentUserIdRef.current = nextUserId;
         initializedRef.current = true;
 
@@ -97,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
+      active = false;
       subscription.unsubscribe();
     };
   }, []);

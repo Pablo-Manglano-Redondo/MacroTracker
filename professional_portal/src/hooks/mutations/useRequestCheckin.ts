@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../lib/supabase';
 import { toast } from '../../lib/toast';
 import { usePortalI18n } from '../../lib/portal-i18n';
@@ -6,6 +6,7 @@ import { checkinRepository } from '../../repositories/checkin.repository';
 
 export function useRequestCheckin() {
   const { t } = usePortalI18n();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (params: {
@@ -19,7 +20,10 @@ export function useRequestCheckin() {
         params.clientId,
         params.professionalClientId,
       ),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['client-checkin-requests', variables.professionalClientId] });
+      queryClient.invalidateQueries({ queryKey: ['client-checkins', variables.professionalClientId] });
+      queryClient.invalidateQueries({ queryKey: ['pending-checkin-requests', variables.professionalId] });
       toast.success(
         t('hooks.mutations.userequestcheckin.check_in_requested_push_notification_sent_to_client'),
       );

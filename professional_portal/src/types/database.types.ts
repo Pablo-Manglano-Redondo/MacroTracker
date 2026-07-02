@@ -182,6 +182,7 @@ export interface CheckinTemplate {
 export interface ClientCheckin {
   id: string;
   professional_client_id: string;
+  request_id?: string | null;
   template_id?: string | null;
   professional_id: string;
   client_id: string;
@@ -192,6 +193,20 @@ export interface ClientCheckin {
   notes?: string | null;
   submitted_at: string;
   reviewed_at?: string | null;
+}
+
+export interface ClientCheckinRequest {
+  id: string;
+  professional_client_id: string;
+  professional_id: string;
+  client_id: string;
+  template_id?: string | null;
+  status: 'pending' | 'completed' | 'cancelled';
+  requested_at: string;
+  completed_at?: string | null;
+  completed_checkin_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface PlanTemplate {

@@ -28,10 +28,11 @@ import { DiaryPanel } from './DiaryPanel';
 import { SummaryPanel } from './SummaryPanel';
 import { useAuth } from '../../lib/auth-context';
 import { usePortalI18n } from '../../lib/portal-i18n';
+import { usePortalNavigation, DetailTab } from '../../lib/navigation-context';
 import { formatPortalDate, formatPortalTime } from '../../lib/date';
 import { getLatestSnapshot, getSnapshotAdherence } from '../../view-models/clients';
 import { usePlans } from '../../hooks/queries/usePlans';
-import { useClientCheckins } from '../../hooks/queries/useCheckins';
+import { useClientCheckinRequests, useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useClientProgress } from '../../hooks/queries/useClientProgress';
 import { useMessages } from '../../hooks/queries/useMessages';
 import { isDemoClient } from '../../lib/demo-client';
@@ -43,18 +44,11 @@ interface ClientDetailProps {
   isRosterCollapsed?: boolean;
   onToggleRoster?: () => void;
   unreadCount?: number;
+  onClientUpdated?: (client: ProfessionalClient) => void;
 }
 
 type PlanView = 'list' | 'new' | 'edit';
-type DetailTab =
-  | 'summary'
-  | 'plans'
-  | 'checkins'
-  | 'progress'
-  | 'chat'
-  | 'diary'
-  | 'notes'
-  | 'profile';
+
 
 export const ClientDetail: React.FC<ClientDetailProps> = ({
   client,
@@ -63,44 +57,25 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   isRosterCollapsed = false,
   onToggleRoster,
   unreadCount = 0,
+  onClientUpdated,
 }) => {
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
 
   const [planView, setPlanView] = useState<PlanView>('list');
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
-  const [detailTab, setDetailTab] = useState<DetailTab>('summary');
+  const { detailTab, selectClientTab: setDetailTab } = usePortalNavigation();
 
   React.useEffect(() => {
-    const handleSelectTab = (e: Event) => {
-      const { clientId, tab } = (e as CustomEvent).detail || {};
-      if (clientId === client.client_id || clientId === client.id) {
-        if (tab) {
-          setDetailTab(tab as DetailTab);
-          if (tab === 'plans') {
-            setEditingPlanId(null);
-            setPlanView('list');
-          }
-        }
-      }
-    };
-
-    const pending = (window as any).__pendingClientTab;
-    if (pending && (pending.clientId === client.client_id || pending.clientId === client.id)) {
-      setDetailTab(pending.tab as DetailTab);
-      if (pending.tab === 'plans') {
-        setEditingPlanId(null);
-        setPlanView('list');
-      }
-      delete (window as any).__pendingClientTab;
+    if (detailTab === 'plans') {
+      setEditingPlanId(null);
+      setPlanView('list');
     }
-
-    window.addEventListener('select-client-tab', handleSelectTab);
-    return () => window.removeEventListener('select-client-tab', handleSelectTab);
-  }, [client.id, client.client_id]);
+  }, [detailTab]);
 
   const { data: plans = [] } = usePlans(client.client_id, professional?.id);
   const { data: checkins = [] } = useClientCheckins(client.id);
+  const { data: checkinRequests = [] } = useClientCheckinRequests(client.id);
   const { data: progressRecords = [] } = useClientProgress(client.id);
   const { data: messages = [] } = useMessages(client.id);
 
@@ -125,7 +100,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
     return { val: avg, pts: valid.slice(-5) };
   }, [client.client_shared_snapshots]);
 
-  const pendingCheckinCount = checkins.length;
+  const pendingCheckinCount =
+    checkinRequests.filter((request) => request.status === 'pending').length +
+    checkins.filter((checkin) => !checkin.reviewed_at).length;
   const latestCheckinDateStr =
     checkins.length > 0 && checkins[0]?.submitted_at
       ? formatPortalDate(checkins[0].submitted_at, locale, {
@@ -507,7 +484,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         {detailTab === 'progress' && <ClientProgressPanel client={client} />}
         {detailTab === 'checkins' && <ClientCheckins client={client} />}
         {detailTab === 'diary' && <DiaryPanel client={client} />}
-        {detailTab === 'profile' && <ClientProfile client={client} />}
+        {detailTab === 'profile' && (
+          <ClientProfile client={client} onClientUpdated={onClientUpdated} />
+        )}
 
         {detailTab === 'chat' && (
           <div className="w-full animate-fade-in-up">

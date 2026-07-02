@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:macrotracker/core/services/cloud_account_service.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/utils/locator.dart';
-import 'package:macrotracker/features/professional_plan/data/data_source/professional_plan_data_source.dart';
 import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
@@ -23,6 +23,7 @@ import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/invite_entry_view.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/connected_professional_hub.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalPlanScreen extends StatefulWidget {
   const ProfessionalPlanScreen({super.key});
@@ -34,10 +35,12 @@ class ProfessionalPlanScreen extends StatefulWidget {
 class ProfessionalPlanScreenArguments {
   final String inviteCode;
   final bool preferEmbeddedTabAfterAccept;
+  final ProfessionalHubTab? initialTab;
 
   const ProfessionalPlanScreenArguments({
-    required this.inviteCode,
+    this.inviteCode = '',
     this.preferEmbeddedTabAfterAccept = false,
+    this.initialTab,
   });
 }
 
@@ -64,8 +67,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   ProfessionalInvitePreviewEntity? _invitePreview;
   bool _loading = true;
   bool _protectingAccount = false;
+  bool _acceptingInvite = false;
   bool _sendingMessage = false;
   bool _handledRouteArguments = false;
+  String? _pendingProtectedInviteCode;
+  StreamSubscription<AuthState>? _authSubscription;
   String? _error;
   ProfessionalHubTab _selectedTab = ProfessionalHubTab.summary;
 
@@ -85,6 +91,10 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         locator<GetProfessionalSharingScopeUsecase>();
     _markProfessionalSectionSeenUsecase =
         locator<MarkProfessionalSectionSeenUsecase>();
+    _authSubscription =
+        locator<SupabaseClient>().auth.onAuthStateChange.listen((_) {
+      unawaited(_resumePendingInviteAfterAuth());
+    });
     _loadSection(refreshRemotePlan: true);
   }
 
@@ -96,6 +106,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     }
     _handledRouteArguments = true;
     final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments is ProfessionalPlanScreenArguments) {
+      if (arguments.initialTab != null) {
+        _selectedTab = arguments.initialTab!;
+      }
+    }
     if (arguments is ProfessionalPlanScreenArguments &&
         arguments.inviteCode.trim().isNotEmpty) {
       _codeController.text = arguments.inviteCode.trim();
@@ -109,12 +124,15 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
 
   @override
   void dispose() {
+    _authSubscription?.cancel();
     _codeController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final hasInviteConsentPreview =
+        _invitePreview != null && !_invitePreview!.isExpired;
     return Scaffold(
       appBar: AppBar(
         title: Text(S.of(context).professionalScreenTitle),
@@ -127,19 +145,35 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 children: [
                   if (_connection == null) ...[
-                    _SectionHero(
-                      title: S.of(context).professionalHeroConnectTitle,
-                      subtitle:
-                          S.of(context).professionalSectionConnectSubtitle,
-                      statusLabel: S.of(context).professionalStatusInviteOnly,
-                      icon: Icons.medical_services_outlined,
-                    ),
-                    const SizedBox(height: 16),
+                    if (!hasInviteConsentPreview) ...[
+                      _SectionHero(
+                        title: S.of(context).professionalHeroConnectTitle,
+                        subtitle:
+                            S.of(context).professionalSectionConnectSubtitle,
+                        icon: Icons.medical_services_outlined,
+                        pillLabels: [
+                          (
+                            icon: Icons.key_outlined,
+                            label: S.of(context).professionalInvitePillInvite,
+                          ),
+                          (
+                            icon: Icons.shield_outlined,
+                            label: S.of(context).professionalInvitePillConsent,
+                          ),
+                          (
+                            icon: Icons.lock_clock_outlined,
+                            label:
+                                S.of(context).professionalInvitePillClearPrivacy,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     InviteEntryView(
                       codeController: _codeController,
                       invitePreview: _invitePreview,
                       error: _error,
-                      isBusy: _protectingAccount,
+                      isBusy: _protectingAccount || _acceptingInvite,
                       onPreviewInvite: _previewInvite,
                       onAcceptInvite: _acceptInvite,
                     ),
@@ -195,6 +229,8 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
           _sharingScope = null;
           _messages = null;
           _loading = false;
+          _protectingAccount = false;
+          _acceptingInvite = false;
         });
         return;
       }
@@ -208,21 +244,25 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         connection: summary.connection,
       );
       if (!mounted) return;
-        setState(() {
-          _connection = summary.connection;
-          _summary = summary;
-          _sharingScope = sharingScope;
-          _messages = messages;
-          if (!preserveSelectedTab) {
-            _selectedTab = ProfessionalHubTab.summary;
-          }
-          _loading = false;
-        });
+      setState(() {
+        _connection = summary.connection;
+        _summary = summary;
+        _sharingScope = sharingScope;
+        _messages = messages;
+        if (!preserveSelectedTab && !_hasInitialTabArgument) {
+          _selectedTab = ProfessionalHubTab.summary;
+        }
+        _loading = false;
+        _protectingAccount = false;
+        _acceptingInvite = false;
+      });
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = friendlyError(context, error);
         _loading = false;
+        _protectingAccount = false;
+        _acceptingInvite = false;
       });
     }
   }
@@ -264,20 +304,26 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   }
 
   Future<void> _acceptInvite() async {
-    final accountReady = _isDebugInviteCode()
-        ? true
-        : await _ensureProtectedAccountForConnection();
+    final inviteCode = _codeController.text.trim();
+    if (inviteCode.isEmpty) {
+      return;
+    }
+    final accountReady = await _ensureProtectedAccountForConnection(inviteCode);
     if (!accountReady) {
       return;
     }
+    await _acceptInviteNow(inviteCode);
+  }
 
+  Future<void> _acceptInviteNow(String inviteCode) async {
     setState(() {
-      _loading = true;
+      _acceptingInvite = true;
+      _protectingAccount = false;
       _error = null;
     });
     try {
-      final connection = await _acceptProfessionalInviteUsecase
-          .acceptInvite(_codeController.text);
+      final connection =
+          await _acceptProfessionalInviteUsecase.acceptInvite(inviteCode);
       await locator<ConversionAnalyticsService>().logEvent(
         'professional_invite_accepted',
         parameters: {
@@ -287,20 +333,22 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       );
       if (_shouldReturnToEmbeddedTab) {
         if (!mounted) return;
+        _pendingProtectedInviteCode = null;
         Navigator.of(context).pop(true);
         return;
       }
-      await _loadSection(refreshRemotePlan: true);
+      _pendingProtectedInviteCode = null;
+      await _loadSection(refreshRemotePlan: false);
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = friendlyError(context, error);
-        _loading = false;
+        _acceptingInvite = false;
       });
     }
   }
 
-  Future<bool> _ensureProtectedAccountForConnection() async {
+  Future<bool> _ensureProtectedAccountForConnection(String inviteCode) async {
     try {
       final accountService = locator<CloudAccountService>();
       final status = await accountService.getStatus();
@@ -309,57 +357,52 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       }
 
       if (!mounted) return false;
-
-      final shouldProtect = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(S.of(context).professionalProtectAccountTitle),
-          content: Text(S.of(context).professionalProtectAccountBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop(true),
-              icon: const Icon(Icons.g_mobiledata_outlined),
-              label: Text(S.of(context).professionalProtectAccountAction),
-            ),
-          ],
-        ),
-      );
-
-      if (shouldProtect != true) {
-        return false;
-      }
-      if (!mounted) {
-        return false;
-      }
-
       setState(() {
         _protectingAccount = true;
+        _pendingProtectedInviteCode = inviteCode;
         _error = null;
       });
+
       final opened = await accountService.protectWithGoogle();
       if (!mounted) {
         return false;
       }
-      setState(() => _protectingAccount = false);
-      _showSnackBar(
-        opened
-            ? S.of(context).professionalProtectAccountReturnHint
-            : S.of(context).professionalProtectAccountOpenError,
-      );
+      if (!opened) {
+        setState(() {
+          _protectingAccount = false;
+          _pendingProtectedInviteCode = null;
+          _error = S.of(context).professionalProtectAccountOpenError;
+        });
+      } else {
+        setState(() => _protectingAccount = false);
+        _showSnackBar(S.of(context).professionalProtectAccountReturnHint);
+      }
       return false;
     } catch (error) {
-      if (!mounted) {
-        return false;
-      }
+      if (!mounted) return false;
       setState(() {
         _protectingAccount = false;
+        _pendingProtectedInviteCode = null;
         _error = friendlyError(context, error);
       });
       return false;
+    }
+  }
+
+  Future<void> _resumePendingInviteAfterAuth() async {
+    final inviteCode = _pendingProtectedInviteCode;
+    if (inviteCode == null || _acceptingInvite) {
+      return;
+    }
+    try {
+      final status = await locator<CloudAccountService>().getStatus();
+      if (!status.isProtected) {
+        return;
+      }
+      await _acceptInviteNow(inviteCode);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _protectingAccount = false);
     }
   }
 
@@ -426,17 +469,17 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     }
   }
 
-  bool _isDebugInviteCode() {
-    return kDebugMode &&
-        _codeController.text.trim().toUpperCase() ==
-            ProfessionalPlanDataSource.debugInviteCode;
-  }
-
   bool get _shouldReturnToEmbeddedTab {
     final arguments = ModalRoute.of(context)?.settings.arguments;
     return arguments is ProfessionalPlanScreenArguments &&
         arguments.preferEmbeddedTabAfterAccept &&
         Navigator.of(context).canPop();
+  }
+
+  bool get _hasInitialTabArgument {
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    return arguments is ProfessionalPlanScreenArguments &&
+        arguments.initialTab != null;
   }
 
   void _showSnackBar(
@@ -616,14 +659,14 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
 class _SectionHero extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String statusLabel;
   final IconData icon;
+  final List<({IconData icon, String label})> pillLabels;
 
   const _SectionHero({
     required this.title,
     required this.subtitle,
-    required this.statusLabel,
     required this.icon,
+    this.pillLabels = const [],
   });
 
   @override
@@ -631,50 +674,60 @@ class _SectionHero extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Panel(
       accent: Color.alphaBlend(
-        colorScheme.primary.withValues(alpha: 0.12),
+        colorScheme.primary.withValues(alpha: 0.10),
         colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  color: colorScheme.primary.withValues(alpha: 0.14),
-                ),
-                alignment: Alignment.center,
-                child: Icon(icon, color: colorScheme.primary),
-              ),
-              const SizedBox(width: 12),
-              StatusPill(
-                icon: Icons.check_circle_outline,
-                label: statusLabel,
-              ),
-            ],
+          // ── icon ─────────────────────────────────────────────────────
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13),
+              color: colorScheme.primary.withValues(alpha: 0.14),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, size: 20, color: colorScheme.primary),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 12),
+          // ── title ────────────────────────────────────────────────────
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.0,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                  height: 1.15,
                 ),
           ),
-          const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 520),
-            child: Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    height: 1.4,
-                  ),
-            ),
+          const SizedBox(height: 6),
+          // ── subtitle ─────────────────────────────────────────────────
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
           ),
+          // ── feature pills ────────────────────────────────────────────
+          if (pillLabels.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: colorScheme.outlineVariant.withValues(alpha: 0.45),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final pill in pillLabels)
+                  StatusPill(icon: pill.icon, label: pill.label),
+              ],
+            ),
+          ],
         ],
       ),
     );

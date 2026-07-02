@@ -1,6 +1,5 @@
 plugins {
     id "com.android.application"
-    id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 
     id 'io.sentry.android.gradle' version '6.9.0'
@@ -41,9 +40,6 @@ android {
         coreLibraryDesugaringEnabled true
     }
 
-    sourceSets {
-        main.java.srcDirs += 'src/main/kotlin'
-    }
 
     defaultConfig {
         applicationId "com.epsait.macrotracker"

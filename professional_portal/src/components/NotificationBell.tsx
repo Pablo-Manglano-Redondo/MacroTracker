@@ -16,7 +16,7 @@ const getTypeStyles = (type: string): NotificationStyle => {
     case 'client_connected':
       return {
         bg: 'bg-emerald-500/10 border-emerald-500/20',
-        iconColor: 'text-emerald-400',
+        iconColor: 'text-emerald-600 dark:text-emerald-400',
         icon: UserPlus,
       };
     case 'snapshot_received':
@@ -28,19 +28,19 @@ const getTypeStyles = (type: string): NotificationStyle => {
     case 'checkin_submitted':
       return {
         bg: 'bg-amber-500/10 border-amber-500/20',
-        iconColor: 'text-amber-400',
+        iconColor: 'text-amber-600 dark:text-amber-400',
         icon: ClipboardCheck,
       };
     case 'message_received':
       return {
         bg: 'bg-indigo-500/10 border-indigo-500/20',
-        iconColor: 'text-indigo-400',
+        iconColor: 'text-indigo-600 dark:text-indigo-400',
         icon: MessageSquare,
       };
     default:
       return {
-        bg: 'bg-white/5 border-white/10',
-        iconColor: 'text-[#8a9499]',
+        bg: 'bg-muted/10 border-border/50',
+        iconColor: 'text-muted-foreground',
         icon: Bell,
       };
   }
@@ -118,24 +118,24 @@ export const NotificationBell: React.FC = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-3 w-96 rounded-2xl border border-[#1e2326] bg-[#131719]/98 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-50 overflow-hidden animate-fade-in-up">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#1e2326]/60 bg-black/20">
-            <p className="portal-label text-[#8a9499]">
+        <div className="absolute right-0 top-full mt-3 w-[400px] rounded-2xl border border-border bg-card/98 backdrop-blur-xl shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.6)] z-50 overflow-hidden animate-fade-in-up">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/60 bg-muted/20">
+            <span className="text-[11px] font-bold tracking-wider uppercase text-muted-foreground/80">
               {t('components.notificationbell.notifications')}
-            </p>
+            </span>
             {unreadCount > 0 && (
               <button
                 onClick={markAllRead}
-                className="portal-action flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase text-muted-foreground hover:text-primary transition-colors cursor-pointer whitespace-nowrap"
               >
-                <CheckCheck className="w-4 h-4" />
+                <CheckCheck className="w-3.5 h-3.5" />
                 {t('components.notificationbell.mark_all_read')}
               </button>
             )}
           </div>
-          <div className="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-[#1e2326]/60">
+          <div className="max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-border/60">
             {notifications.length === 0 ? (
-              <div className="portal-body px-6 py-12 text-center text-muted-foreground">
+              <div className="portal-body px-6 py-12 text-center text-muted-foreground text-sm">
                 {t('components.notificationbell.no_notifications_yet')}
               </div>
             ) : (
@@ -174,25 +174,25 @@ export const NotificationBell: React.FC = () => {
                         setOpen(false);
                       }
                     }}
-                    className={`w-full flex items-start gap-4 px-5 py-4.5 text-left transition-colors cursor-pointer border-l-2 ${
+                    className={`w-full flex items-start gap-3.5 px-5 py-3.5 text-left transition-colors cursor-pointer border-l-2 ${
                       !n.read
                         ? 'bg-primary/[0.03] border-l-primary hover:bg-primary/[0.06]'
-                        : 'border-l-transparent hover:bg-white/[0.02]'
+                        : 'border-l-transparent hover:bg-accent/40'
                     }`}
                   >
-                    <div className={`shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border ${styles.bg}`}>
-                      <Icon className={`w-5 h-5 ${styles.iconColor}`} />
+                    <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center border ${styles.bg}`}>
+                      <Icon className={`w-4.5 h-4.5 ${styles.iconColor}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`portal-card-heading ${!n.read ? 'text-white' : 'text-[#8a9499]'}`}>
+                      <p className={`portal-card-heading text-[14px] leading-tight ${!n.read ? 'text-foreground font-bold' : 'text-muted-foreground font-semibold'}`}>
                         {displayTitle}
                       </p>
                       {displayBody && (
-                        <p className="portal-meta mt-1 line-clamp-2 text-[#8a9499]/85">
+                        <p className="text-[13px] leading-snug mt-1 line-clamp-2 text-muted-foreground/80">
                           {displayBody}
                         </p>
                       )}
-                      <p className="portal-label mt-2 text-[#5c666b]">
+                      <p className="text-[11px] font-medium mt-1.5 text-muted-foreground/50">
                         {formatPortalDate(n.created_at, locale, {
                           month: 'short',
                           day: 'numeric',
@@ -202,7 +202,7 @@ export const NotificationBell: React.FC = () => {
                       </p>
                     </div>
                     {!n.read && (
-                      <div className="w-2 h-2 rounded-full bg-primary shrink-0 self-center shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 self-center shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
                     )}
                   </button>
                 );

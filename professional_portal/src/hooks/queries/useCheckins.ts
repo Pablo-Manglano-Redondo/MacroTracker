@@ -19,3 +19,21 @@ export function useClientCheckins(professionalClientId: string | undefined) {
     staleTime: 15_000,
   });
 }
+
+export function useClientCheckinRequests(professionalClientId: string | undefined) {
+  return useQuery({
+    queryKey: ['client-checkin-requests', professionalClientId],
+    queryFn: () => checkinRepository.listRequestsByClient(supabase, professionalClientId!),
+    enabled: !!professionalClientId,
+    staleTime: 15_000,
+  });
+}
+
+export function usePendingCheckinRequests(professionalId: string | undefined) {
+  return useQuery({
+    queryKey: ['pending-checkin-requests', professionalId],
+    queryFn: () => checkinRepository.listPendingRequestsByProfessional(supabase, professionalId!),
+    enabled: !!professionalId,
+    staleTime: 15_000,
+  });
+}

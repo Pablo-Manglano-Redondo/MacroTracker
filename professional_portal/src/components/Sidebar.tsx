@@ -13,19 +13,20 @@ import {
 } from 'lucide-react';
 import { usePortalI18n } from '../lib/portal-i18n';
 import { useAuth } from '../lib/auth-context';
+import { usePortalNavigation } from '../lib/navigation-context';
 import { useUnreadCounts } from '../hooks/queries/useClients';
+import { usePendingCheckinRequests } from '../hooks/queries/useCheckins';
 import { useNotifications } from '../hooks/queries/useNotifications';
 import { usePerClientAdherence } from '../hooks/queries/useAnalytics';
 
 interface SidebarProps {
-  activePanel: string;
-  setActivePanel: (panel: string) => void;
   onInviteClient?: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel }) => {
+export const Sidebar: React.FC<SidebarProps> = () => {
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
+  const { activePanel, navigateToPanel: setActivePanel } = usePortalNavigation();
 
   const formattedDate = useMemo(() => {
     const d = new Date();
@@ -44,6 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
   }, [locale]);
 
   const { data: unreadCounts = {} } = useUnreadCounts(professional?.id);
+  const { data: pendingCheckinRequests = [] } = usePendingCheckinRequests(professional?.id);
   const { data: notifications = [] } = useNotifications(professional?.id);
   const { data: clientAdherence = [] } = usePerClientAdherence(professional?.id);
 
@@ -52,8 +54,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
     [unreadCounts],
   );
   const pendingCheckinsCount = useMemo(
-    () => notifications.filter((n) => n.type === 'checkin_submitted' && !n.read).length,
-    [notifications],
+    () =>
+      notifications.filter((n) => n.type === 'checkin_submitted' && !n.read).length +
+      pendingCheckinRequests.length,
+    [notifications, pendingCheckinRequests.length],
   );
   const clientsInRiskCount = useMemo(
     () => clientAdherence.filter((client) => client.avgKcalAdherence < 75).length,
@@ -92,7 +96,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('dashboard-panel');
-                window.location.hash = 'dashboard-panel';
               }}
               className={getNavItemClass('dashboard-panel')}
             >
@@ -106,7 +109,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('clients-panel');
-                window.location.hash = 'clients-panel';
               }}
               className={getNavItemClass('clients-panel')}
             >
@@ -120,7 +122,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('checkins-panel');
-                window.location.hash = 'checkins-panel';
               }}
               className={getNavItemClass('checkins-panel')}
             >
@@ -144,7 +145,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('recipes-panel');
-                window.location.hash = 'recipes-panel';
               }}
               className={getNavItemClass('recipes-panel')}
             >
@@ -158,7 +158,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('templates-panel');
-                window.location.hash = 'templates-panel';
               }}
               className={getNavItemClass('templates-panel')}
             >
@@ -182,7 +181,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('profile-panel');
-                window.location.hash = 'profile-panel';
               }}
               className={getNavItemClass('profile-panel')}
             >
@@ -196,7 +194,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('billing-panel');
-                window.location.hash = 'billing-panel';
               }}
               className={getNavItemClass('billing-panel')}
             >
@@ -224,7 +221,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('checkins-panel');
-                window.location.hash = 'checkins-panel';
               }}
               className="flex w-full items-center justify-between text-left rounded-xl p-2 -mx-2 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-[#1e2326]/30 group cursor-pointer"
             >
@@ -248,7 +244,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('clients-panel');
-                window.location.hash = 'clients-panel';
               }}
               className="flex w-full items-center justify-between text-left rounded-xl p-2 -mx-2 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-[#1e2326]/30 group cursor-pointer"
             >
@@ -272,7 +267,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePanel, setActivePanel })
             <button
               onClick={() => {
                 setActivePanel('clients-panel');
-                window.location.hash = 'clients-panel';
               }}
               className="flex w-full items-center justify-between text-left rounded-xl p-2 -mx-2 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-[#1e2326]/30 group cursor-pointer"
             >

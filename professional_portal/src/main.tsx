@@ -8,6 +8,7 @@ import { queryClient } from './lib/query-client';
 import { Toaster } from 'sonner';
 import './lib/sentry';
 import { PortalI18nProvider } from './lib/portal-i18n';
+import { NavigationProvider } from './lib/navigation-context';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <PortalI18nProvider>
         <ErrorBoundary>
           <AuthProvider>
-            <AppShell />
+            <NavigationProvider>
+              <AppShell />
+            </NavigationProvider>
             <Toaster
               position="bottom-right"
               richColors

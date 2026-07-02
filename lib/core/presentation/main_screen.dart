@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:macrotracker/core/services/app_review_service.dart';
 import 'package:macrotracker/core/services/backup_nudge_service.dart';
 import 'package:macrotracker/core/services/monetization_service.dart';
+import 'package:macrotracker/core/services/push_notification_service.dart';
 import 'package:macrotracker/core/presentation/widgets/meal_entry_action_sheet.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/locator.dart';
@@ -17,6 +18,7 @@ import 'package:macrotracker/features/home/home_screen.dart';
 import 'package:macrotracker/core/presentation/widgets/main_appbar.dart';
 import 'package:macrotracker/features/profile/profile_screen.dart';
 import 'package:macrotracker/features/professional_plan/presentation/professional_plan_screen.dart';
+import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
 import 'package:macrotracker/features/professional_plan/domain/usecase/get_professional_unseen_section_count_usecase.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
@@ -41,6 +43,7 @@ class _MainScreenState extends State<MainScreen> {
   late final AppLinks _appLinks;
   StreamSubscription<Uri>? _appLinkSubscription;
   StreamSubscription<BoxEvent>? _professionalConnectionSubscription;
+  StreamSubscription<Map<String, dynamic>>? _pushTapSubscription;
   bool _hasProfessionalTab = false;
   int _professionalBadgeCount = 0;
   late final FeatureTourBloc _featureTourBloc;
@@ -55,6 +58,10 @@ class _MainScreenState extends State<MainScreen> {
     _hasProfessionalTab = _hasActiveProfessionalConnection();
     unawaited(_refreshProfessionalBadgeCount());
     _initInviteLinks();
+    _pushTapSubscription =
+        locator<PushNotificationService>().onNotificationTap.listen(
+              _handleNotificationTap,
+            );
     _professionalConnectionSubscription =
         locator<HiveDBProvider>().professionalPlanBox.watch().listen((_) {
       if (!mounted) {
@@ -105,7 +112,7 @@ class _MainScreenState extends State<MainScreen> {
   void dispose() {
     _appLinkSubscription?.cancel();
     _professionalConnectionSubscription?.cancel();
-    _featureTourBloc.close();
+    _pushTapSubscription?.cancel();
     super.dispose();
   }
 
@@ -201,6 +208,33 @@ class _MainScreenState extends State<MainScreen> {
       return segments[inviteIndex + 1];
     }
     return null;
+  }
+
+  void _handleNotificationTap(Map<String, dynamic> data) {
+    if (!mounted) {
+      return;
+    }
+    final tab = _professionalTabForNotification(data);
+    if (tab == null) {
+      return;
+    }
+    Navigator.of(context).pushNamed(
+      NavigationOptions.professionalPlanRoute,
+      arguments: ProfessionalPlanScreenArguments(initialTab: tab),
+    );
+  }
+
+  ProfessionalHubTab? _professionalTabForNotification(
+    Map<String, dynamic> data,
+  ) {
+    final type = data['type']?.toString();
+    return switch (type) {
+      'checkin_requested' => ProfessionalHubTab.checkin,
+      'new_message' => ProfessionalHubTab.messages,
+      'recipe_proposal' => ProfessionalHubTab.recipes,
+      'plan_updated' => ProfessionalHubTab.plan,
+      _ => null,
+    };
   }
 
   void _toggleFab() {

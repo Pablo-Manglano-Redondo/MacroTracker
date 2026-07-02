@@ -14,7 +14,7 @@ import type {
 } from '../../types/database.types';
 import { useAuth } from '../../lib/auth-context';
 import { usePlans } from '../../hooks/queries/usePlans';
-import { useClientCheckins } from '../../hooks/queries/useCheckins';
+import { useClientCheckinRequests, useClientCheckins } from '../../hooks/queries/useCheckins';
 import { useClientProgress } from '../../hooks/queries/useClientProgress';
 import { usePortalI18n } from '../../lib/portal-i18n';
 import { formatPortalDate, formatPortalTime } from '../../lib/date';
@@ -42,6 +42,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
   const { data: plans = [] } = usePlans(client.client_id, professional?.id);
   const { data: checkins = [] } = useClientCheckins(client.id);
+  const { data: checkinRequests = [] } = useClientCheckinRequests(client.id);
   const { data: progressRecords = [] } = useClientProgress(client.id);
 
   const [metricType, setMetricType] = useState<MetricType>('peso');
@@ -97,9 +98,21 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
   const priorities = useMemo(() => {
     const list: Array<{ id: string; label: string; sub: string }> = [];
-    const pendingCheckin = checkins.length > 0 ? (checkins[0] ?? null) : null;
+    const pendingRequest = checkinRequests.find((request) => request.status === 'pending') ?? null;
+    const pendingCheckin = checkins.find((checkin) => !checkin.reviewed_at) ?? null;
 
-    if (pendingCheckin?.submitted_at) {
+    if (pendingRequest?.requested_at) {
+      list.push({
+        id: 'checkin_request',
+        label: locale?.toLowerCase().startsWith('es')
+          ? 'Esperando check-in solicitado'
+          : 'Waiting on requested check-in',
+        sub: formatPortalDate(pendingRequest.requested_at, locale, {
+          month: 'short',
+          day: 'numeric',
+        }),
+      });
+    } else if (pendingCheckin?.submitted_at) {
       list.push({
         id: 'checkin',
         label: t('components.clientdetail.summarypanel.review_pending_checkin'),
@@ -162,7 +175,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
     }
 
     return list;
-  }, [checkins, unreadCount, messages, client, locale, t]);
+  }, [checkinRequests, checkins, unreadCount, messages, client, locale, t]);
 
   const togglePriority = (id: string) => {
     const next = { ...checkedPriorities, [id]: !checkedPriorities[id] };
@@ -334,9 +347,23 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
 
   const recentActivity = useMemo(() => {
     const items: Array<{ id: string; icon: React.ReactNode; text: string; date: string; tone: string }> = [];
-    const pendingCheckin = checkins.length > 0 ? (checkins[0] ?? null) : null;
+    const pendingRequest = checkinRequests.find((request) => request.status === 'pending') ?? null;
+    const pendingCheckin = checkins.find((checkin) => !checkin.reviewed_at) ?? null;
 
-    if (pendingCheckin?.submitted_at) {
+    if (pendingRequest?.requested_at) {
+      items.push({
+        id: 'checkin-request',
+        icon: <Activity className="h-5 w-5" />,
+        text: locale?.toLowerCase().startsWith('es')
+          ? 'Check-in solicitado'
+          : 'Check-in requested',
+        date: formatPortalDate(pendingRequest.requested_at, locale, {
+          month: 'short',
+          day: 'numeric',
+        }),
+        tone: 'orange',
+      });
+    } else if (pendingCheckin?.submitted_at) {
       items.push({
         id: 'checkin',
         icon: <Activity className="h-5 w-5" />,
@@ -385,7 +412,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
     }
 
     return items;
-  }, [checkins, client, locale, messages, progressMetrics.change7d, t]);
+  }, [checkinRequests, checkins, client, locale, messages, progressMetrics.change7d, t]);
 
   return (
     <div className="grid items-stretch gap-6 animate-fade-in-up xl:grid-cols-12">

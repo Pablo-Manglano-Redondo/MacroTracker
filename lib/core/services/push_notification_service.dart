@@ -55,6 +55,22 @@ class PushNotificationService {
           android: AndroidInitializationSettings('@mipmap/ic_launcher'),
           iOS: DarwinInitializationSettings(),
         ),
+        onDidReceiveNotificationResponse: (response) {
+          final payload = response.payload;
+          if (payload == null || payload.isEmpty) {
+            return;
+          }
+          try {
+            final decoded = jsonDecode(payload);
+            if (decoded is Map) {
+              _onNotificationTapController.add(
+                decoded.map(
+                  (key, value) => MapEntry(key.toString(), value),
+                ),
+              );
+            }
+          } catch (_) {}
+        },
       );
 
       messagingClient.onMessage.listen(_handleForegroundMessage);

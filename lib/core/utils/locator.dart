@@ -153,8 +153,6 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<HiveDBProvider>(() => hiveDBProvider);
 
   // Backend
-  await Supabase.initialize(
-      url: Env.supabaseProjectUrl, anonKey: Env.supabaseProjectAnonKey);
   locator.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
   locator.registerLazySingleton<SupabaseIdentityService>(
       () => SupabaseIdentityService(locator()));
@@ -461,12 +459,10 @@ Future<void> initLocator() async {
       ProfessionalPlanDataSource(hiveDBProvider.professionalPlanBox,
           hiveDBProvider.professionalPlanSyncQueueBox, locator(), locator()));
 
-  final subscriptionService = SubscriptionService();
-  await subscriptionService.initialize();
-  locator.registerLazySingleton<SubscriptionService>(() => subscriptionService);
+  locator.registerLazySingleton<SubscriptionService>(() => SubscriptionService());
   locator.registerLazySingleton<MonetizationService>(
     () => MonetizationService(
-      subscriptionService,
+      locator<SubscriptionService>(),
       hiveDBProvider.monetizationBox,
       locator(),
       locator(),
@@ -522,4 +518,13 @@ Future<void> _initializeConfig(ConfigDataSource configDataSource) async {
   if (!await configDataSource.configInitialized()) {
     configDataSource.initializeConfig();
   }
+}
+
+Future<void> initializeCloudIntegrations() async {
+  await Supabase.initialize(
+    url: Env.supabaseProjectUrl,
+    anonKey: Env.supabaseProjectAnonKey,
+  );
+
+  await locator<SubscriptionService>().initialize();
 }

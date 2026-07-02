@@ -103,6 +103,83 @@ class ProfessionalMessageThreadEntity extends Equatable {
   List<Object?> get props => [threadId, isSupported, messagesEnabled, messages];
 }
 
+class ProfessionalCheckinRequestEntity extends Equatable {
+  final String id;
+  final String professionalClientId;
+  final String professionalId;
+  final String clientId;
+  final String? templateId;
+  final String status;
+  final DateTime requestedAt;
+  final DateTime? completedAt;
+  final String? completedCheckinId;
+
+  const ProfessionalCheckinRequestEntity({
+    required this.id,
+    required this.professionalClientId,
+    required this.professionalId,
+    required this.clientId,
+    required this.templateId,
+    required this.status,
+    required this.requestedAt,
+    required this.completedAt,
+    required this.completedCheckinId,
+  });
+
+  bool get isPending => status == 'pending';
+
+  factory ProfessionalCheckinRequestEntity.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return ProfessionalCheckinRequestEntity(
+      id: json['id']?.toString() ?? '',
+      professionalClientId: json['professional_client_id']?.toString() ?? '',
+      professionalId: json['professional_id']?.toString() ?? '',
+      clientId: json['client_id']?.toString() ?? '',
+      templateId: json['template_id']?.toString(),
+      status: json['status']?.toString() ?? 'pending',
+      requestedAt: DateTime.tryParse(json['requested_at']?.toString() ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      completedAt: DateTime.tryParse(json['completed_at']?.toString() ?? ''),
+      completedCheckinId: json['completed_checkin_id']?.toString(),
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        id,
+        professionalClientId,
+        professionalId,
+        clientId,
+        templateId,
+        status,
+        requestedAt,
+        completedAt,
+        completedCheckinId,
+      ];
+}
+
+enum ProfessionalPendingActionKind {
+  checkin,
+  messages,
+  recipes,
+  plan,
+  sync,
+}
+
+class ProfessionalPendingActionEntity extends Equatable {
+  final ProfessionalPendingActionKind kind;
+  final int count;
+
+  const ProfessionalPendingActionEntity({
+    required this.kind,
+    this.count = 1,
+  });
+
+  @override
+  List<Object?> get props => [kind, count];
+}
+
 class ProfessionalAdherenceSliceEntity extends Equatable {
   final double kcalTarget;
   final double kcalActual;
@@ -162,6 +239,10 @@ class ProfessionalSectionSummaryEntity extends Equatable {
   final List<TrackedDayEntity>? _weekTrackedDays;
   List<TrackedDayEntity> get weekTrackedDays => _weekTrackedDays ?? const [];
   final String? dailyNote;
+  final ProfessionalCheckinRequestEntity? pendingCheckinRequest;
+  final int unreadMessageCount;
+  final int pendingRecipeProposalCount;
+  final bool hasUnseenPlanUpdate;
 
   const ProfessionalSectionSummaryEntity({
     required this.connection,
@@ -173,9 +254,42 @@ class ProfessionalSectionSummaryEntity extends Equatable {
     required this.syncStatus,
     List<TrackedDayEntity>? weekTrackedDays,
     this.dailyNote,
+    this.pendingCheckinRequest,
+    this.unreadMessageCount = 0,
+    this.pendingRecipeProposalCount = 0,
+    this.hasUnseenPlanUpdate = false,
   }) : _weekTrackedDays = weekTrackedDays;
 
   bool get hasActivePlan => activePlan != null && todayTarget != null;
+
+  List<ProfessionalPendingActionEntity> get pendingActions => [
+        if (pendingCheckinRequest?.isPending == true)
+          const ProfessionalPendingActionEntity(
+            kind: ProfessionalPendingActionKind.checkin,
+          ),
+        if (unreadMessageCount > 0)
+          ProfessionalPendingActionEntity(
+            kind: ProfessionalPendingActionKind.messages,
+            count: unreadMessageCount,
+          ),
+        if (pendingRecipeProposalCount > 0)
+          ProfessionalPendingActionEntity(
+            kind: ProfessionalPendingActionKind.recipes,
+            count: pendingRecipeProposalCount,
+          ),
+        if (hasUnseenPlanUpdate)
+          const ProfessionalPendingActionEntity(
+            kind: ProfessionalPendingActionKind.plan,
+          ),
+        if (syncStatus.hasPendingSyncs)
+          ProfessionalPendingActionEntity(
+            kind: ProfessionalPendingActionKind.sync,
+            count: syncStatus.pendingSyncCount,
+          ),
+      ];
+
+  int get pendingActionCount =>
+      pendingActions.fold(0, (total, action) => total + action.count);
 
   @override
   List<Object?> get props => [
@@ -188,5 +302,9 @@ class ProfessionalSectionSummaryEntity extends Equatable {
         syncStatus,
         _weekTrackedDays,
         dailyNote,
+        pendingCheckinRequest,
+        unreadMessageCount,
+        pendingRecipeProposalCount,
+        hasUnseenPlanUpdate,
       ];
 }

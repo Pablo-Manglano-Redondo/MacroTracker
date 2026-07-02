@@ -89,6 +89,18 @@ class ProfessionalPlanRepository {
     return _dataSource.getPendingSyncCount();
   }
 
+  Future<ProfessionalCheckinRequestEntity?> getPendingCheckinRequest({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.getPendingCheckinRequest(connection: connection);
+  }
+
+  Future<int> getPendingRecipeProposalCount({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.getPendingRecipeProposalCount(connection: connection);
+  }
+
   Future<ProfessionalMessageThreadEntity> getMessages({
     required ProfessionalConnectionEntity connection,
   }) {

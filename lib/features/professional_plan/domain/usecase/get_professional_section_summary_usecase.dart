@@ -59,6 +59,18 @@ class GetProfessionalSectionSummaryUsecase {
     );
     final pendingSyncCount = await _repository.getPendingSyncCount();
     final dailyNote = await _repository.getDailyNote(now);
+    final pendingCheckinRequest = await _repository.getPendingCheckinRequest(
+      connection: connection,
+    );
+    final messages = await _repository.getMessages(connection: connection);
+    final pendingRecipeProposalCount =
+        await _repository.getPendingRecipeProposalCount(connection: connection);
+    final currentPlanSignature = connection.activePlan?.cacheSignature;
+    final hasUnseenPlanUpdate = currentPlanSignature != null &&
+        connection.lastPlanSyncAt != null &&
+        connection.lastPlanSyncAt!.isAfter(
+          now.subtract(const Duration(minutes: 10)),
+        );
     return ProfessionalSectionSummaryEntity(
       connection: connection.copyWith(
         pendingSyncCount: pendingSyncCount,
@@ -76,6 +88,10 @@ class GetProfessionalSectionSummaryUsecase {
       ),
       weekTrackedDays: trackedDays,
       dailyNote: dailyNote,
+      pendingCheckinRequest: pendingCheckinRequest,
+      unreadMessageCount: messages.unreadCount,
+      pendingRecipeProposalCount: pendingRecipeProposalCount,
+      hasUnseenPlanUpdate: hasUnseenPlanUpdate,
     );
   }
 

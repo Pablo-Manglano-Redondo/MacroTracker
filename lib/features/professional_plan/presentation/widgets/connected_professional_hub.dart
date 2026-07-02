@@ -48,6 +48,13 @@ class ConnectedProfessionalHub extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         HubOverviewCard(summary: summary),
+        if (summary.pendingActions.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          PendingActionsPanel(
+            summary: summary,
+            onSelectTab: onSelectTab,
+          ),
+        ],
         const SizedBox(height: 16),
         HubTabBar(
           selectedTab: selectedTab,
@@ -96,6 +103,99 @@ class ConnectedProfessionalHub extends StatelessWidget {
         },
       ],
     );
+  }
+}
+
+class PendingActionsPanel extends StatelessWidget {
+  final ProfessionalSectionSummaryEntity summary;
+  final ValueChanged<ProfessionalHubTab> onSelectTab;
+
+  const PendingActionsPanel({
+    super.key,
+    required this.summary,
+    required this.onSelectTab,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.task_alt, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'Acciones pendientes',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const Spacer(),
+              StatusPill(
+                icon: Icons.priority_high_outlined,
+                label: '${summary.pendingActionCount}',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final action in summary.pendingActions)
+                ActionChip(
+                  avatar: Icon(_iconFor(action.kind), size: 16),
+                  label: Text(_labelFor(context, action)),
+                  onPressed: () => onSelectTab(_tabFor(action.kind)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _iconFor(ProfessionalPendingActionKind kind) {
+    return switch (kind) {
+      ProfessionalPendingActionKind.checkin =>
+        Icons.assignment_turned_in_outlined,
+      ProfessionalPendingActionKind.messages => Icons.chat_bubble_outline,
+      ProfessionalPendingActionKind.recipes => Icons.restaurant_outlined,
+      ProfessionalPendingActionKind.plan => Icons.assignment_outlined,
+      ProfessionalPendingActionKind.sync => Icons.sync_problem_outlined,
+    };
+  }
+
+  ProfessionalHubTab _tabFor(ProfessionalPendingActionKind kind) {
+    return switch (kind) {
+      ProfessionalPendingActionKind.checkin => ProfessionalHubTab.checkin,
+      ProfessionalPendingActionKind.messages => ProfessionalHubTab.messages,
+      ProfessionalPendingActionKind.recipes => ProfessionalHubTab.recipes,
+      ProfessionalPendingActionKind.plan => ProfessionalHubTab.plan,
+      ProfessionalPendingActionKind.sync => ProfessionalHubTab.tracking,
+    };
+  }
+
+  String _labelFor(
+    BuildContext context,
+    ProfessionalPendingActionEntity action,
+  ) {
+    return switch (action.kind) {
+      ProfessionalPendingActionKind.checkin => 'Check-in solicitado',
+      ProfessionalPendingActionKind.messages =>
+        action.count == 1 ? '1 mensaje sin leer' : '${action.count} mensajes',
+      ProfessionalPendingActionKind.recipes =>
+        action.count == 1 ? '1 receta propuesta' : '${action.count} recetas',
+      ProfessionalPendingActionKind.plan => 'Plan actualizado',
+      ProfessionalPendingActionKind.sync =>
+        action.count == 1 ? '1 sync pendiente' : '${action.count} syncs',
+    };
   }
 }
 

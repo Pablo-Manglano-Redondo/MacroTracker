@@ -23,6 +23,7 @@ import {
   useRosterStats,
 } from '../hooks/queries/useAnalytics';
 import { useClients } from '../hooks/queries/useClients';
+import { usePendingCheckinRequests } from '../hooks/queries/useCheckins';
 import { useInvites } from '../hooks/queries/useInvites';
 import { useNotifications, useMarkNotificationRead } from '../hooks/queries/useNotifications';
 import {
@@ -92,6 +93,7 @@ export const DashboardPanel: React.FC = () => {
   const { t, locale } = usePortalI18n();
   const strings = getPracticeAlertStrings(locale);
   const { data: clients = [] } = useClients(professional?.id);
+  const { data: pendingCheckinRequests = [] } = usePendingCheckinRequests(professional?.id);
   const { data: openAlerts = [], isLoading: alertsLoading } = useOpenPracticeAlerts(professional?.id);
   const { data: resolvedToday = 0 } = useResolvedPracticeAlertsToday(professional?.id);
   const refreshAlerts = useRefreshPracticeAlerts(professional?.id);
@@ -127,8 +129,9 @@ export const DashboardPanel: React.FC = () => {
     () =>
       openAlerts
         .filter((alert) => alert.alert_type === 'pending_checkin_review')
-        .reduce((sum, alert) => sum + Number(alert.evidence?.pending_checkin_count ?? 1), 0),
-    [openAlerts],
+        .reduce((sum, alert) => sum + Number(alert.evidence?.pending_checkin_count ?? 1), 0) +
+      pendingCheckinRequests.length,
+    [openAlerts, pendingCheckinRequests.length],
   );
   const validPendingInvites = invites.filter(
     (invite) => invite.status === 'pending' && new Date(invite.expires_at) >= new Date(),

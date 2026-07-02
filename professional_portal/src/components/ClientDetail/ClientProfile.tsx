@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
 import { Check, Mail, Pencil, Target, TrendingUp, X } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { ProfessionalClient } from '../../types/database.types';
-import { supabase } from '../../lib/supabase';
 import { useClientProgressSummary } from '../../hooks/queries/useClientProgress';
 import { usePlans } from '../../hooks/queries/usePlans';
+import { clientQueryKeys } from '../../hooks/queries/useClients';
+import { clientRepository } from '../../repositories/client.repository';
 import { formatDateOnly, formatPortalDate } from '../../lib/date';
 import { getRelationshipStatusLabel, getSharingModeLabel } from '../../view-models/clients';
 import { usePortalI18n } from '../../lib/portal-i18n';
+import { useAuth } from '../../lib/auth-context';
+import { supabase } from '../../lib/supabase';
 
 interface ClientProfileProps {
   client: ProfessionalClient;
+  onClientUpdated?: (client: ProfessionalClient) => void;
 }
 
-export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
+export const ClientProfile: React.FC<ClientProfileProps> = ({
+  client,
+  onClientUpdated,
+}) => {
+  const queryClient = useQueryClient();
+  const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
   const { data: summary, error: summaryError } = useClientProgressSummary(client.client_id);
   const { data: plans } = usePlans(client.client_id, client.professional_id);
@@ -28,15 +38,33 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({ client }) => {
 
   const handleSave = async () => {
     setSaving(true);
-    const { error } = await supabase
-      .from('professional_clients')
-      .update({ display_name: name || null })
-      .eq('id', client.id);
+    const normalizedName = name.trim() || null;
+    let error: Error | null = null;
+    try {
+      await clientRepository.updateDisplayName(supabase, client.id, normalizedName ?? '');
+    } catch (err) {
+      error = err as Error;
+    }
     setSaving(false);
     if (error) {
       toast.error(t('components.clientdetail.clientprofile.failed_to_update_name'));
       return;
     }
+    const updatedClient: ProfessionalClient = {
+      ...client,
+      display_name: normalizedName,
+    };
+    if (professional?.id) {
+      queryClient.setQueryData<ProfessionalClient[]>(
+        clientQueryKeys.clients(professional.id),
+        (current) =>
+          current?.map((item) => (item.id === client.id ? updatedClient : item)) ?? current,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: clientQueryKeys.clients(professional.id),
+      });
+    }
+    onClientUpdated?.(updatedClient);
     toast.success(t('components.clientdetail.clientprofile.display_name_updated'));
     setEditing(false);
   };

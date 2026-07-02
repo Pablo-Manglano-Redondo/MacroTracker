@@ -1181,7 +1181,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final lockedFreeUses = trialState?.lockedFreeUses ?? 0;
 
     final planBody = _isPremium
-        ? 'Text and photo AI logging is unlocked.'
+        ? copy.settingsPremiumUnlockedMessage
         : needsProtectedAccount
             ? copy.settingsGuestAllowanceUsedBody(lockedFreeUses)
             : (trialState != null &&

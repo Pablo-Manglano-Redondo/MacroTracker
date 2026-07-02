@@ -40,6 +40,7 @@ interface ClientsPanelProps {
   onSelectClient: (client: ProfessionalClient | null) => void;
   selectedClient: ProfessionalClient | null;
   onAddClient?: () => void;
+  onClientUpdated?: (client: ProfessionalClient) => void;
 }
 
 type StatusFilter =
@@ -68,16 +69,17 @@ type RankedClient = {
 };
 
 const severityBadgeTone: Record<string, string> = {
-  critical: 'bg-rose-500 text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]',
-  high: 'bg-amber-500 text-black shadow-[0_2px_8px_rgba(245,158,11,0.35)]',
-  medium: 'bg-sky-500 text-white shadow-[0_2px_8px_rgba(14,165,233,0.35)]',
-  low: 'bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.35)]',
+  critical: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
+  high: 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20',
+  medium: 'bg-sky-500/10 text-sky-700 dark:text-sky-400 border border-sky-500/20',
+  low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20',
 };
 
 export const ClientsPanel: React.FC<ClientsPanelProps> = ({
   onSelectClient,
   selectedClient,
   onAddClient,
+  onClientUpdated,
 }) => {
   const { professional } = useAuth();
   const { t, locale } = usePortalI18n();
@@ -343,75 +345,75 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                   <button
                     key={client.id}
                     onClick={() => onSelectClient(isSelected ? null : client)}
-                    className={`group relative w-full rounded-2xl border p-5 text-left transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
+                    className={`group relative w-full rounded-2xl border p-4.5 text-left transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] cursor-pointer ${
                       entry.maxAlertSeverity >= 4
                         ? isSelected
-                          ? 'border-rose-500 bg-rose-500/10 shadow-[0_4px_20px_-4px_rgba(244,63,94,0.18)]'
-                          : 'border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/8 hover:border-rose-500 hover:shadow-[0_4px_16px_rgba(244,63,94,0.08)]'
+                          ? 'border-rose-500 bg-rose-500/8 dark:bg-rose-500/12 shadow-[0_4px_20px_-4px_rgba(244,63,94,0.15)]'
+                          : 'border-rose-500/25 bg-rose-500/[0.02] dark:bg-rose-500/[0.03] hover:bg-rose-500/[0.05] hover:border-rose-500/40 hover:shadow-[0_4px_16px_rgba(244,63,94,0.04)]'
                         : isLowAdherence
                           ? isSelected
-                            ? 'border-amber-500 bg-amber-500/10 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.15)]'
-                            : 'border-amber-500/40 bg-amber-500/5 hover:bg-amber-500/8 hover:border-amber-500 hover:shadow-[0_4px_16px_rgba(245,158,11,0.05)]'
+                            ? 'border-amber-500 bg-amber-500/8 dark:bg-amber-500/12 shadow-[0_4px_20px_-4px_rgba(245,158,11,0.12)]'
+                            : 'border-amber-500/25 bg-amber-500/[0.02] dark:bg-amber-500/[0.03] hover:bg-amber-500/[0.05] hover:border-amber-500/40 hover:shadow-[0_4px_16px_rgba(245,158,11,0.03)]'
                           : isSelected
-                            ? 'border-primary bg-gradient-to-br from-primary/[0.08] to-primary/[0.02] shadow-[0_4px_20px_-4px_rgba(114,222,152,0.15)]'
-                            : 'border-border/80 bg-card hover:bg-accent/30 hover:border-border hover:shadow-[0_4px_16px_rgba(0,0,0,0.03)]'
+                            ? 'border-primary bg-primary/[0.04] dark:bg-primary/[0.06] shadow-[0_4px_20px_-4px_rgba(114,222,152,0.12)]'
+                            : 'border-border/60 bg-card hover:bg-accent/40 hover:border-border hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 gap-3.5">
                         <div className="relative shrink-0">
-                          <div className={`portal-card-heading flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border shadow-inner group-hover:scale-105 transition-transform duration-300 ${
+                          <div className={`portal-card-heading flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-bold tracking-normal group-hover:scale-105 transition-transform duration-300 ${
                             entry.maxAlertSeverity >= 4
-                              ? 'bg-gradient-to-tr from-rose-500/20 to-rose-500/5 text-rose-600 dark:text-rose-300 border-rose-500/20'
+                              ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                               : isLowAdherence
-                                ? 'bg-gradient-to-tr from-amber-500/20 to-amber-500/5 text-amber-600 dark:text-amber-400 border-amber-500/20'
-                                : 'bg-gradient-to-tr from-primary/20 to-primary/5 text-primary border-primary/20'
+                                ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                                : 'bg-primary/10 text-primary border-primary/20'
                           }`}>
                             {getClientInitials(client)}
                           </div>
                         </div>
                         <div className="min-w-0">
-                          <p className="portal-card-heading truncate text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
+                          <p className="portal-card-heading truncate text-[15px] font-bold text-foreground tracking-tight group-hover:text-primary transition-colors duration-200">
                             {getClientDisplayName(client)}
                           </p>
-                          <p className="portal-meta mt-1 truncate text-muted-foreground/80 tracking-wide">
-                            {getRelationshipStatusLabel(client.status, t)} ·{' '}
+                          <p className="text-xs mt-0.5 truncate text-muted-foreground/75 font-medium tracking-wide">
+                            {client.status !== 'connected' && (
+                              <>{getRelationshipStatusLabel(client.status, t)} · </>
+                            )}
                             {getSharingModeLabel(client.sharing_mode, t)}
                           </p>
-                          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                            {isActiveLabelGreen ? (
-                              <span className="portal-pill text-primary">
-                                {activeLabel}
-                              </span>
-                            ) : (
-                              <span className="portal-pill text-muted-foreground/75">
-                                {activeLabel}
-                              </span>
-                            )}
-                            {topAlert && (
-                              <span className="portal-pill rounded-full border border-border bg-background px-2 py-0.5 text-muted-foreground">
-                                {entry.actionLabel}
-                              </span>
-                            )}
-                          </div>
+                          {(!isActiveLabelGreen || topAlert) && (
+                            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                              {!isActiveLabelGreen && (
+                                <span className="portal-pill text-[10px] font-bold text-muted-foreground/70 bg-muted/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                  {activeLabel}
+                                </span>
+                              )}
+                              {topAlert && (
+                                <span className="portal-pill text-[10px] font-bold tracking-wider uppercase rounded-full border border-border/80 bg-background/50 px-2 py-0.5 text-muted-foreground whitespace-nowrap">
+                                  {entry.actionLabel}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+                      <div className="flex shrink-0 flex-col items-end justify-start gap-1.5 mt-0.5">
                         {topAlert && (
-                          <span className={`portal-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 ${severityBadgeTone[topAlert.severity]}`}>
+                          <span className={`portal-pill inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-extrabold whitespace-nowrap ${severityBadgeTone[topAlert.severity]}`}>
                             {getPracticeAlertSeverityLabel(topAlert.severity, locale)}
                           </span>
                         )}
-                        {openAlertCount > 0 && (
-                          <span className="portal-pill inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-0.5 text-muted-foreground">
-                            {openAlertCount}
-                          </span>
-                        )}
                         {unreadCount > 0 && (
-                          <span className="portal-pill inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)]">
+                          <span className="portal-pill inline-flex items-center gap-1 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-extrabold text-white shadow-[0_2px_8px_rgba(244,63,94,0.4)] whitespace-nowrap">
                             <MessageSquare className="h-2.5 w-2.5" />
                             {unreadCount}
+                          </span>
+                        )}
+                        {openAlertCount > 1 && (
+                          <span className="portal-pill inline-flex items-center gap-1 rounded-full border border-border/80 bg-background/50 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground whitespace-nowrap">
+                            +{openAlertCount - 1}
                           </span>
                         )}
                       </div>
@@ -439,6 +441,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
               onClose={() => onSelectClient(null)}
               onMessagesRead={() => {}}
               unreadCount={unreadCounts[selectedClient.id] ?? 0}
+              onClientUpdated={onClientUpdated}
             />
           ) : (
             <section className="portal-panel flex min-h-[420px] flex-col items-center justify-center rounded-[1.6rem] p-8 text-center">

@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  flutter-readiness:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -56,3 +56,47 @@ jobs:
 
       - name: Run Tests
         run: flutter test
+
+  portal-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: professional_portal
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: professional_portal/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Create config file
+        run: cp config.example.js config.js
+
+      - name: Verify portal
+        run: npm run verify
+
+  supabase-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run Supabase Edge Function Tests
+        shell: pwsh
+        run: ./supabase/test.functions.ps1

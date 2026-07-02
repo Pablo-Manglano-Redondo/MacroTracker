@@ -8,6 +8,7 @@ class SubmitCheckinUsecase {
 
   Future<void> execute({
     required ProfessionalConnectionEntity connection,
+    String? requestId,
     String? templateId,
     Map<String, dynamic> answers = const {},
     int? energyLevel,
@@ -19,6 +20,7 @@ class SubmitCheckinUsecase {
       professionalClientId: connection.relationshipId,
       professionalId: connection.professionalId,
       clientId: connection.clientId,
+      requestId: requestId,
       templateId: templateId,
       answers: answers,
       energyLevel: energyLevel,

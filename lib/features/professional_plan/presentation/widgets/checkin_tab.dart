@@ -100,6 +100,7 @@ class _CheckinTabState extends State<CheckinTab> {
     try {
       await locator<SubmitCheckinUsecase>().execute(
         connection: connection,
+        requestId: widget.summary.pendingCheckinRequest?.id,
         templateId: _template?.id,
         answers: _answers,
         energyLevel: _energyLevel,
@@ -135,12 +136,16 @@ class _CheckinTabState extends State<CheckinTab> {
               Icon(Icons.check_circle, size: 56, color: colorScheme.primary),
               const SizedBox(height: 12),
               Text(
-                S.of(context).checkinTabSubmitted,
+                widget.summary.pendingCheckinRequest != null
+                    ? 'Enviado, pendiente de revisión'
+                    : S.of(context).checkinTabSubmitted,
                 style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 4),
               Text(
-                S.of(context).checkinTabReviewShortly,
+                widget.summary.pendingCheckinRequest != null
+                    ? 'Tu nutricionista recibirá este check-in para revisarlo.'
+                    : S.of(context).checkinTabReviewShortly,
                 style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
@@ -181,6 +186,48 @@ class _CheckinTabState extends State<CheckinTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (widget.summary.pendingCheckinRequest != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.notification_important_outlined,
+                    color: colorScheme.onPrimaryContainer,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Tu nutricionista ha pedido este check-in',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Completa el formulario para cerrar la solicitud pendiente.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(
             _template != null ? _template!.title : S.of(context).checkinTabWeeklyTitle,
             style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),

@@ -138,10 +138,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
                   className={`flex gap-3 ${isSelf ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div
-                    className={`portal-label flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl text-[10px] font-extrabold tracking-wider uppercase ${
                       isSelf
                         ? 'bg-primary text-primary-foreground'
-                        : 'bg-background text-foreground border border-border'
+                        : 'bg-background text-muted-foreground border border-border'
                     }`}
                   >
                     {isSelf ? (
@@ -161,7 +161,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
 
                   <div className={`max-w-[78%] ${isSelf ? 'text-right' : ''}`}>
                     <div
-                      className={`portal-body inline-block rounded-2xl px-4 py-3 leading-relaxed ${
+                      className={`inline-block rounded-2xl px-4 py-3 text-[15px] font-medium leading-relaxed ${
                         isSelf
                           ? 'rounded-tr-sm bg-primary text-primary-foreground'
                           : 'rounded-tl-sm border border-border bg-card text-foreground'

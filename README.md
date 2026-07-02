@@ -277,7 +277,11 @@ Runs on `macos-latest`. Builds on every push to `main`/`develop`, plus manual di
 
 For product-critical changes in monetization, AI request handling, cloud account flows, or Android release readiness, use the repository checks below instead of relying only on broad `flutter test` / `flutter analyze` runs.
 
-*   **Run the minimum readiness ladder:**
+*   **Run the full monorepo readiness checks (Flutter, Portal, and Supabase):**
+    ```powershell
+    powershell -ExecutionPolicy Bypass -File .\scripts\check-monorepo-readiness.ps1
+    ```
+*   **Run the Flutter-only readiness ladder:**
     ```powershell
     powershell -ExecutionPolicy Bypass -File .\scripts\check-product-readiness.ps1
     ```

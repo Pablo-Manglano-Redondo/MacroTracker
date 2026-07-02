@@ -746,23 +746,23 @@ class MessageLookup extends MessageLookupByLibrary {
         "checkinTabAnswerHint":
             MessageLookupByLibrary.simpleMessage("Escribe tu respuesta..."),
         "checkinTabEnergyLevel":
-            MessageLookupByLibrary.simpleMessage("Nivel de Energia"),
+            MessageLookupByLibrary.simpleMessage("Nivel de Energía"),
         "checkinTabHigh": MessageLookupByLibrary.simpleMessage("Alto"),
         "checkinTabHowFeeling":
-            MessageLookupByLibrary.simpleMessage("Como te sientes?"),
+            MessageLookupByLibrary.simpleMessage("Cómo te sientes?"),
         "checkinTabLow": MessageLookupByLibrary.simpleMessage("Bajo"),
         "checkinTabMoodHint": MessageLookupByLibrary.simpleMessage(
-            "Ej. Con energia, cansado, motivado..."),
+            "Ej. Con energía, cansado, motivado..."),
         "checkinTabNotesHint": MessageLookupByLibrary.simpleMessage(
-            "Algun desafio o logro esta semana?"),
+            "Algún desafío o logro esta semana?"),
         "checkinTabNutritionistQuestions":
             MessageLookupByLibrary.simpleMessage("Preguntas del nutricionista"),
         "checkinTabReviewShortly": MessageLookupByLibrary.simpleMessage(
             "Tu nutricionista lo revisara en breve."),
         "checkinTabShareSubtitle":
-            MessageLookupByLibrary.simpleMessage("Comparte como fue tu semana"),
+            MessageLookupByLibrary.simpleMessage("Comparte cómo fue tu semana"),
         "checkinTabSleepHours":
-            MessageLookupByLibrary.simpleMessage("Horas de Sueno"),
+            MessageLookupByLibrary.simpleMessage("Horas de Sueño"),
         "checkinTabSubmitAnother":
             MessageLookupByLibrary.simpleMessage("Enviar otro"),
         "checkinTabSubmitButton":
@@ -1045,7 +1045,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "gymHabitsCompletedToday": m32,
         "gymHabitsCreatineShort":
             MessageLookupByLibrary.simpleMessage("Creat."),
-        "gymHabitsEnergyTitle": MessageLookupByLibrary.simpleMessage("Energia"),
+        "gymHabitsEnergyTitle": MessageLookupByLibrary.simpleMessage("Energía"),
         "gymHabitsFocusCardio":
             MessageLookupByLibrary.simpleMessage("Día de cardio"),
         "gymHabitsFocusLowerBody":
@@ -1068,7 +1068,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "gymHabitsReadinessOnTarget":
             MessageLookupByLibrary.simpleMessage("En objetivo"),
         "gymHabitsSleepTarget": m37,
-        "gymHabitsSleepTitle": MessageLookupByLibrary.simpleMessage("Sueno"),
+        "gymHabitsSleepTitle": MessageLookupByLibrary.simpleMessage("Sueño"),
         "gymHabitsSourceHealthConnectDetail":
             MessageLookupByLibrary.simpleMessage(
                 "Dato principal sincronizado desde Health Connect"),
@@ -1077,7 +1077,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "gymHabitsStepsTarget": m38,
         "gymHabitsStepsTitle": MessageLookupByLibrary.simpleMessage("Pasos"),
         "gymHabitsTitle":
-            MessageLookupByLibrary.simpleMessage("Habitos y recuperacion"),
+            MessageLookupByLibrary.simpleMessage("Hábitos y recuperación"),
         "habitSourceHealthConnect":
             MessageLookupByLibrary.simpleMessage("Health Connect"),
         "habitSourceManual": MessageLookupByLibrary.simpleMessage("Manual"),

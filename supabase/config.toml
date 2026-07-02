@@ -17,10 +17,10 @@ otp_length = 8
 enabled = false
 
 [functions.meal-interpretations-text]
-verify_jwt = false
+verify_jwt = true
 
 [functions.meal-interpretations-photo]
-verify_jwt = false
+verify_jwt = true
 
 [functions.stripe-pro-webhook]
 verify_jwt = false
