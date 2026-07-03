@@ -30,6 +30,27 @@ import 'package:macrotracker/features/recipes/domain/entity/quick_recipe_categor
 import 'package:macrotracker/features/recipes/domain/usecase/save_recipe_usecase.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
+// ──────────────────────────────────────────────────────────────────────
+// Visual palette constants
+// ──────────────────────────────────────────────────────────────────────
+const _kBgColor = Color(0xFFF7F8F5);
+const _kCardColor = Color(0xFFFFFFFF);
+const _kPrimaryGreen = Color(0xFF0F8A4B);
+const _kDarkText = Color(0xFF181D1A);
+const _kMutedText = Color(0xFF68736C);
+const _kSoftBorder = Color(0xFFE6ECE7);
+const _kWarningBg = Color(0xFFFFF4DF);
+const _kCardRadius = 24.0;
+const _kInputRadius = 16.0;
+const _kChipRadius = 999.0;
+const _kCardShadow = [
+  BoxShadow(
+    color: Color(0x0D000000),
+    blurRadius: 12,
+    offset: Offset(0, 4),
+  ),
+];
+
 class MealInterpretationReviewScreen extends StatefulWidget {
   const MealInterpretationReviewScreen({super.key});
 
@@ -47,6 +68,7 @@ class _MealInterpretationReviewScreenState
   bool _isSaving = false;
   bool _isPersistingEdits = false;
   bool _didLoadDraft = false;
+  bool _showCustomServings = false;
   Map<String, AiFoodMemoryEntry> _savedCorrections = const {};
   List<MealInterpretationSuggestion> _mealSuggestions = const [];
   late final CalculateFoodQualityScoreUsecase _foodQualityScorer;
@@ -81,47 +103,103 @@ class _MealInterpretationReviewScreenState
     super.dispose();
   }
 
+  // ── Build ────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: _kBgColor,
       appBar: AppBar(
-        title: Text(S.of(context).aiReviewDraftTitle),
+        backgroundColor: _kBgColor,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          S.of(context).aiReviewDraftTitle,
+          style: const TextStyle(
+            color: _kDarkText,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         actions: [
-          IconButton(
-            onPressed: _activeItems.isEmpty || _isLoading
-                ? null
-                : () => _showSaveRecipeDialog(),
-            icon: const Icon(Icons.bookmark_add_outlined),
-            tooltip: S.of(context).aiSaveAsRecipe,
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, color: _kDarkText),
+            onSelected: (value) {
+              if (value == 'recipe') {
+                _showSaveRecipeDialog();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'recipe',
+                enabled: _activeItems.isNotEmpty && !_isLoading,
+                child: Row(
+                  children: [
+                    const Icon(Icons.bookmark_add_outlined, size: 20),
+                    const SizedBox(width: 12),
+                    Text(S.of(context).aiSaveAsRecipe),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(context),
+      bottomNavigationBar: _buildStickyBottomCta(context),
       body: _buildBody(context),
     );
   }
 
-  Widget? _buildBottomBar(BuildContext context) {
+  Widget? _buildStickyBottomCta(BuildContext context) {
     if (_isLoading || _draft == null) {
       return null;
     }
 
-    return SafeArea(
-      minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-      child: FilledButton.icon(
-        onPressed: _activeItems.isEmpty || _isSaving
-            ? null
-            : () => _commitDraft(_draft!),
-        icon: Icon(_isSaving ? Icons.hourglass_top_outlined : Icons.check),
-        label: Text(
-            _isSaving ? S.of(context).aiSavingMeal : S.of(context).aiSaveMeal),
+    final servings = _parsedServings;
+    final adjustedKcal = _draft!.totalKcal * servings;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: const BoxDecoration(
+        color: _kBgColor,
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _activeItems.isEmpty || _isSaving
+                ? null
+                : () => _commitDraft(_draft!),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _kPrimaryGreen,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: _kPrimaryGreen.withValues(alpha: 0.4),
+              disabledForegroundColor: Colors.white70,
+              elevation: 0,
+              shadowColor: _kPrimaryGreen.withValues(alpha: 0.3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_kChipRadius),
+              ),
+            ),
+            child: Text(
+              _isSaving
+                  ? S.of(context).aiSavingMeal
+                  : '${S.of(context).aiSaveMeal} · ${adjustedKcal.toStringAsFixed(0)} kcal',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildBody(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: _kPrimaryGreen));
     }
 
     if (_draft == null) {
@@ -142,142 +220,195 @@ class _MealInterpretationReviewScreenState
     final adjustedCarbs = _draft!.totalCarbs * servings;
     final adjustedFat = _draft!.totalFat * servings;
     final adjustedProtein = _draft!.totalProtein * servings;
-    final gymLabel = _inferGymLabel(_draft!);
     final foodQualityScore = _foodQualityScorer.scoreDraft(_draft!);
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
       children: [
-        _DraftHeroCard(
+        // 1. Compact summary card
+        _CompactSummaryCard(
           draft: _draft!,
           intakeType: _args.intakeTypeEntity,
-          gymLabel: gymLabel,
-          activeItemCount: activeItems.length,
+          adjustedKcal: adjustedKcal,
+          adjustedProtein: adjustedProtein,
+          adjustedCarbs: adjustedCarbs,
+          adjustedFat: adjustedFat,
+        ),
+        const SizedBox(height: 16),
+
+        // 2. Portions section
+        _PortionsSection(
           servingsController: _servingsController,
+          currentValue: _parsedServings,
+          showCustomInput: _showCustomServings,
+          onQuickSelected: _setQuickServing,
           onServingsChanged: () => setState(() {}),
-          onQuickServingSelected: _setQuickServing,
-          quickServingValue: _parsedServings,
-        ),
-        const SizedBox(height: 12),
-        _AiSaveConversionCard(
-          kcal: adjustedKcal,
-          activeItemCount: activeItems.length,
-        ),
-
-
-        const SizedBox(height: 16),
-        _MacroHeroCard(
-          kcal: adjustedKcal,
-          carbs: adjustedCarbs,
-          fat: adjustedFat,
-          protein: adjustedProtein,
-          servings: servings,
+          onToggleCustom: () =>
+              setState(() => _showCustomServings = !_showCustomServings),
+          onIncrement: () {
+            final current = _parsedServings;
+            _setQuickServing(current + 0.5);
+          },
+          onDecrement: () {
+            final current = _parsedServings;
+            if (current > 0.5) {
+              _setQuickServing(current - 0.5);
+            }
+          },
         ),
         const SizedBox(height: 16),
-        FoodQualityScoreCard(
-          score: foodQualityScore,
-        ),
+
+
+
+        // 4. Ingredients section
+        _buildIngredientsSection(context, activeItems),
+        const SizedBox(height: 16),
+
+        // 5. Food quality card
+        _CompactFoodQualityCard(score: foodQualityScore),
+
+        // 6. Meal suggestions
         if (_mealSuggestions.isNotEmpty) ...[
           const SizedBox(height: 16),
-          _MealSuggestionsCard(
-            suggestions: _mealSuggestions,
-          ),
+          _MealSuggestionsCard(suggestions: _mealSuggestions),
         ],
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
+      ],
+    );
+  }
+
+  Widget _buildIngredientsSection(
+    BuildContext context,
+    List<InterpretationDraftItemEntity> activeItems,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCardColor,
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        boxShadow: _kCardShadow,
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        S.of(context).aiDetectedIngredients,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                      ),
-                    ),
-                    Text(
-                      _isPersistingEdits
-                          ? S.of(context).buttonSaveLabel
-                          : S
-                              .of(context)
-                              .aiActiveItemsCount(activeItems.length),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontStyle:
-                                _isPersistingEdits ? FontStyle.italic : null,
-                          ),
-                    ),
-                  ],
+                Text(
+                  S.of(context).aiDetectedIngredients,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: _kDarkText,
+                  ),
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed:
-                          _isPersistingEdits ? null : _showAddIngredientFlow,
-                      icon: const Icon(Icons.add_outlined),
-                      label: Text(S.of(context).aiAddIngredient),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: _activeItems.isEmpty || _isPersistingEdits
-                          ? null
-                          : () => _showSaveRecipeDialog(),
-                      icon: const Icon(Icons.bookmark_add_outlined),
-                      label: Text(S.of(context).aiSaveAsRecipe),
-                    ),
-                  ],
+                Text(
+                  _isPersistingEdits
+                      ? S.of(context).buttonSaveLabel
+                      : S.of(context).aiActiveItemsCount(activeItems.length),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _kPrimaryGreen,
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 12),
-        ..._draft!.items.map(
-          (item) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Builder(
-              builder: (_) {
-                final saved = _savedCorrections[_correctionKey(item.label)];
-                final savedLabel = saved == null
-                    ? null
-                    : '${saved.amount.toStringAsFixed(saved.amount % 1 == 0 ? 0 : 1)} ${_localizeUnit(context, saved.unit, saved.amount)}';
-                return _DraftItemCard(
-                  item: item,
-                  unitPresets: _quickUnitsForItem(item),
-                  savedCorrectionLabel: savedLabel,
-                  onEditPressed:
-                      item.editable ? () => _showAmountEditor(item) : null,
-                  onEditMacrosPressed:
-                      item.editable ? () => _showMacroEditor(item) : null,
-                  onReplacePressed:
-                      item.editable ? () => _showReplaceDialog(item) : null,
-                  onUnitSelected: item.editable
-                      ? (unit) => _applyUnitPreset(item, unit)
-                      : null,
-                  onPresetSelected: item.editable
-                      ? (factor) => _applyPortionPreset(item, factor)
-                      : null,
-                  onApplySavedCorrection: item.editable && saved != null
-                      ? () => _applySavedCorrection(item)
-                      : null,
-                  onToggleRemoved: () => _toggleRemoved(item),
-                );
-              },
+          const Divider(height: 1, color: _kSoftBorder),
+          ..._draft!.items.asMap().entries.map(
+            (entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isLast = index == _draft!.items.length - 1;
+              return _IngredientRow(
+                item: item,
+                isLast: isLast,
+                onToggleRemoved: () => _toggleRemoved(item),
+                onTap: item.editable
+                    ? () => _showIngredientBottomSheet(item)
+                    : null,
+              );
+            },
+          ),
+          const Divider(height: 1, color: _kSoftBorder),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _OutlinedActionBtn(
+                    icon: Icons.add,
+                    label: S.of(context).aiAddIngredient,
+                    onTap: _isPersistingEdits ? null : _showAddIngredientFlow,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _OutlinedActionBtn(
+                    icon: Icons.bookmark_border_rounded,
+                    label: S.of(context).aiSaveAsRecipe,
+                    onTap: activeItems.isEmpty || _isPersistingEdits
+                        ? null
+                        : _showSaveRecipeDialog,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        const SizedBox(height: 90),
-      ],
+        ],
+      ),
     );
   }
+
+  void _showIngredientBottomSheet(InterpretationDraftItemEntity item) {
+    final saved = _savedCorrections[_correctionKey(item.label)];
+    final savedLabel = saved == null
+        ? null
+        : '${saved.amount.toStringAsFixed(saved.amount % 1 == 0 ? 0 : 1)} ${_localizeUnit(context, saved.unit, saved.amount)}';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => _IngredientBottomSheet(
+        item: item,
+        unitPresets: _quickUnitsForItem(item),
+        savedCorrectionLabel: savedLabel,
+        onAmountChanged: (amount) {
+          Navigator.of(sheetContext).pop();
+          _updateItemAmount(item, amount);
+        },
+        onUnitSelected: (unit) {
+          Navigator.of(sheetContext).pop();
+          _applyUnitPreset(item, unit);
+        },
+        onPresetApplied: (factor) {
+          Navigator.of(sheetContext).pop();
+          _applyPortionPreset(item, factor);
+        },
+        onReplace: () {
+          Navigator.of(sheetContext).pop();
+          _showReplaceDialog(item);
+        },
+        onRemove: () {
+          Navigator.of(sheetContext).pop();
+          _toggleRemoved(item);
+        },
+        onEditMacros: () {
+          Navigator.of(sheetContext).pop();
+          _showMacroEditor(item);
+        },
+        onApplySavedCorrection: saved != null
+            ? () {
+                Navigator.of(sheetContext).pop();
+                _applySavedCorrection(item);
+              }
+            : null,
+      ),
+    );
+  }
+
+  // ── Business logic (preserved) ─────────────────────────────────────
 
   List<InterpretationDraftItemEntity> get _activeItems =>
       _draft?.items.where((item) => !item.removed).toList() ?? const [];
@@ -852,27 +983,6 @@ class _MealInterpretationReviewScreenState
     return value % 1 == 0 ? 0 : 2;
   }
 
-  String _inferGymLabel(InterpretationDraftEntity draft) {
-    final protein = draft.totalProtein;
-    final carbs = draft.totalCarbs;
-    final fat = draft.totalFat;
-    final kcal = draft.totalKcal;
-
-    if (protein >= 35 && carbs >= 45) {
-      return S.current.aiGymLabelPostWorkout;
-    }
-    if (carbs >= 50 && fat <= 20) {
-      return S.current.aiGymLabelPreWorkout;
-    }
-    if (protein >= 35 && fat <= 20) {
-      return S.current.aiGymLabelHighProtein;
-    }
-    if (kcal <= 550 && fat <= 18) {
-      return S.current.aiGymLabelLeanDefinition;
-    }
-    return S.current.aiGymLabelBalanced;
-  }
-
   List<String> _quickUnitsForItem(InterpretationDraftItemEntity item) {
     final meal = item.matchedMealSnapshot;
     if (meal == null) {
@@ -1100,162 +1210,1220 @@ class _MealInterpretationReviewScreenState
   }
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// PRIVATE WIDGETS
+// ════════════════════════════════════════════════════════════════════════
 
+// ── Compact Summary Card ──────────────────────────────────────────────
 
-class _DraftHeroCard extends StatelessWidget {
+class _CompactSummaryCard extends StatelessWidget {
   final InterpretationDraftEntity draft;
   final IntakeTypeEntity intakeType;
-  final String gymLabel;
-  final int activeItemCount;
-  final TextEditingController servingsController;
-  final VoidCallback onServingsChanged;
-  final ValueChanged<double> onQuickServingSelected;
-  final double quickServingValue;
+  final double adjustedKcal;
+  final double adjustedProtein;
+  final double adjustedCarbs;
+  final double adjustedFat;
 
-  const _DraftHeroCard({
+  const _CompactSummaryCard({
     required this.draft,
     required this.intakeType,
-    required this.gymLabel,
-    required this.activeItemCount,
-    required this.servingsController,
-    required this.onServingsChanged,
-    required this.onQuickServingSelected,
-    required this.quickServingValue,
+    required this.adjustedKcal,
+    required this.adjustedProtein,
+    required this.adjustedCarbs,
+    required this.adjustedFat,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Color.alphaBlend(
-          colorScheme.primary.withValues(alpha: 0.08),
-          colorScheme.surfaceContainerLow,
-        ),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-        ),
+        color: _kCardColor,
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        boxShadow: _kCardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          // Photo + title + chips row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _DraftChip(
-                icon: draft.sourceType == DraftSourceEntity.photo
-                    ? Icons.camera_alt_outlined
-                    : Icons.notes_outlined,
-                label: draft.sourceType == DraftSourceEntity.photo
-                    ? S.of(context).aiSourcePhoto
-                    : S.of(context).aiSourceText,
-              ),
-              _DraftChip(
-                icon: Icons.restaurant_outlined,
-                label: intakeType.name,
-              ),
-              _DraftChip(
-                icon: Icons.layers_outlined,
-                label: S.of(context).aiIngredientsCount(activeItemCount),
-              ),
-              _DraftChip(
-                icon: Icons.fitness_center_outlined,
-                label: gymLabel,
-              ),
-              _DraftChip(
-                icon: _confidenceIcon(draft.confidenceBand),
-                label: _confidenceLabel(draft.confidenceBand),
+              _buildPhotoThumbnail(),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      draft.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: _kDarkText,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        _MetadataChip(
+                          label: draft.sourceType == DraftSourceEntity.photo
+                              ? S.of(context).aiSourcePhoto
+                              : S.of(context).aiSourceText,
+                        ),
+                        _MetadataChip(label: intakeType.name),
+                        _MetadataChip(
+                          label: _confidenceLabel(context, draft.confidenceBand),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Text(
-            draft.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          if (draft.summary != null && draft.summary!.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              draft.summary!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ],
           const SizedBox(height: 16),
+          // Kcal headline
           Text(
-            S.of(context).aiServingsToSave,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [0.5, 1.0, 1.5, 2.0]
-                .map(
-                  (value) => ChoiceChip(
-                    label: Text(
-                      value % 1 == 0 ? value.toInt().toString() : '$value',
-                    ),
-                    selected: quickServingValue == value,
-                    onSelected: (_) => onQuickServingSelected(value),
-                  ),
-                )
-                .toList(),
+            '${adjustedKcal.toStringAsFixed(0)} kcal',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: _kDarkText,
+            ),
           ),
           const SizedBox(height: 12),
-          Text(
-            S.of(context).aiCustomServingsLabel,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 6),
-          TextField(
-            controller: servingsController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              helperText: S.of(context).aiCustomServingsHelper,
-              border: const OutlineInputBorder(),
-            ),
-            onChanged: (_) => onServingsChanged(),
+          // Macros row
+          Row(
+            children: [
+              _CompactMacro(
+                label: S.of(context).proteinLabel,
+                value: '${adjustedProtein.toStringAsFixed(1)}g',
+                color: _kPrimaryGreen,
+              ),
+              const SizedBox(width: 12),
+              _CompactMacro(
+                label: S.of(context).carbohydrateLabel,
+                value: '${adjustedCarbs.toStringAsFixed(1)}g',
+                color: const Color(0xFF4A90D9),
+              ),
+              const SizedBox(width: 12),
+              _CompactMacro(
+                label: S.of(context).fatLabel,
+                value: '${adjustedFat.toStringAsFixed(1)}g',
+                color: const Color(0xFFE7A83B),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  static String _confidenceLabel(ConfidenceBandEntity band) {
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        return S.current.aiConfidenceHigh;
-      case ConfidenceBandEntity.medium:
-        return S.current.aiConfidenceMedium;
-      case ConfidenceBandEntity.low:
-        return S.current.aiConfidenceLow;
+  Widget _buildPhotoThumbnail() {
+    final imagePath = draft.localImagePath;
+    if (imagePath != null && imagePath.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.file(
+          File(imagePath),
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _placeholderThumbnail(),
+        ),
+      );
     }
+    return _placeholderThumbnail();
   }
 
-  static IconData _confidenceIcon(ConfidenceBandEntity band) {
+  Widget _placeholderThumbnail() {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: _kPrimaryGreen.withValues(alpha: 0.10),
+      ),
+      child: const Icon(
+        Icons.restaurant_outlined,
+        color: _kPrimaryGreen,
+        size: 26,
+      ),
+    );
+  }
+
+  static String _confidenceLabel(
+      BuildContext context, ConfidenceBandEntity band) {
     switch (band) {
       case ConfidenceBandEntity.high:
-        return Icons.verified_outlined;
+        return S.of(context).aiConfidenceHigh;
       case ConfidenceBandEntity.medium:
-        return Icons.rule_folder_outlined;
+        return S.of(context).aiConfidenceMedium;
       case ConfidenceBandEntity.low:
-        return Icons.error_outline;
+        return S.of(context).aiConfidenceLow;
     }
   }
 }
+
+class _MetadataChip extends StatelessWidget {
+  final String label;
+  const _MetadataChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(_kChipRadius),
+        color: _kSoftBorder.withValues(alpha: 0.6),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: _kMutedText,
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactMacro extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+  const _CompactMacro({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_kInputRadius),
+          color: color.withValues(alpha: 0.08),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: _kMutedText,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Portions Section ──────────────────────────────────────────────────
+
+class _PortionsSection extends StatelessWidget {
+  final TextEditingController servingsController;
+  final double currentValue;
+  final bool showCustomInput;
+  final ValueChanged<double> onQuickSelected;
+  final VoidCallback onServingsChanged;
+  final VoidCallback onToggleCustom;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+
+  const _PortionsSection({
+    required this.servingsController,
+    required this.currentValue,
+    required this.showCustomInput,
+    required this.onQuickSelected,
+    required this.onServingsChanged,
+    required this.onToggleCustom,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _kCardColor,
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        boxShadow: _kCardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title row: icon + title
+          Row(
+            children: [
+              const Icon(
+                Icons.pie_chart_outline_rounded,
+                color: _kPrimaryGreen,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                S.of(context).servingsLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: _kDarkText,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Stepper + Presets Horizontal Row
+          Row(
+            children: [
+              // Stepper Left
+              _StepperButton(
+                icon: Icons.remove,
+                onTap: currentValue > 0.5 ? onDecrement : null,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                currentValue % 1 == 0
+                    ? currentValue.toInt().toString()
+                    : currentValue.toStringAsFixed(1),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: _kDarkText,
+                ),
+              ),
+              const SizedBox(width: 10),
+              _StepperButton(
+                icon: Icons.add,
+                onTap: onIncrement,
+              ),
+              const SizedBox(width: 12),
+              // Presets Right (Scrollable to prevent overflow)
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [0.5, 1.0, 1.5, 2.0].map(
+                        (value) => Padding(
+                          padding: const EdgeInsets.only(left: 6),
+                          child: _QuickPresetChip(
+                            label: value % 1 == 0 ? value.toInt().toString() : '$value',
+                            selected: currentValue == value,
+                            onTap: () => onQuickSelected(value),
+                          ),
+                        ),
+                      ).toList(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Custom toggle
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: onToggleCustom,
+              child: Text(
+                S.of(context).aiCustomServingsLabel,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _kPrimaryGreen,
+                ),
+              ),
+            ),
+          ),
+          if (showCustomInput) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: servingsController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                helperText: S.of(context).aiCustomServingsHelper,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_kInputRadius),
+                  borderSide: const BorderSide(color: _kSoftBorder),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_kInputRadius),
+                  borderSide: const BorderSide(color: _kSoftBorder),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(_kInputRadius),
+                  borderSide: const BorderSide(color: _kPrimaryGreen, width: 2),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (_) => onServingsChanged(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StepperButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+  const _StepperButton({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: disabled
+              ? _kSoftBorder.withValues(alpha: 0.5)
+              : const Color(0xFFE8F5EE), // Very light green
+        ),
+        child: Icon(
+          icon,
+          color: disabled ? _kMutedText.withValues(alpha: 0.4) : _kPrimaryGreen,
+          size: 18,
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickPresetChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _QuickPresetChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 34,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: selected
+              ? const Color(0xFFF0F9F4) // Very light green background
+              : Colors.transparent,
+          border: Border.all(
+            color: selected ? _kPrimaryGreen : const Color(0xFFE6ECE7),
+            width: selected ? 1.2 : 1.0,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? _kPrimaryGreen : _kMutedText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Ingredient Row ────────────────────────────────────────────────────
+
+class _IngredientRow extends StatelessWidget {
+  final InterpretationDraftItemEntity item;
+  final VoidCallback onToggleRemoved;
+  final VoidCallback? onTap;
+  final bool isLast;
+
+  const _IngredientRow({
+    required this.item,
+    required this.onToggleRemoved,
+    required this.onTap,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isRemoved = item.removed;
+
+    // Determine category icon and colors dynamically based on the label keywords
+    IconData foodIcon = Icons.flatware_outlined;
+    Color iconColor = _kPrimaryGreen;
+    Color bgColor = const Color(0xFFE8F5EE);
+
+    final labelLower = item.label.toLowerCase();
+    if (labelLower.contains('pollo') ||
+        labelLower.contains('chicken') ||
+        labelLower.contains('pechuga') ||
+        labelLower.contains('carne') ||
+        labelLower.contains('meat') ||
+        labelLower.contains('ternera') ||
+        labelLower.contains('cerdo') ||
+        labelLower.contains('pavo')) {
+      foodIcon = Icons.kebab_dining_outlined;
+      iconColor = _kPrimaryGreen;
+      bgColor = const Color(0xFFE8F5EE);
+    } else if (labelLower.contains('aceite') ||
+        labelLower.contains('oil') ||
+        labelLower.contains('gras') ||
+        labelLower.contains('mantequ') ||
+        labelLower.contains('olive')) {
+      foodIcon = Icons.opacity_outlined;
+      iconColor = const Color(0xFFE7A83B);
+      bgColor = const Color(0xFFFFF4DF);
+    } else if (labelLower.contains('verdura') ||
+        labelLower.contains('vegetal') ||
+        labelLower.contains('mix') ||
+        labelLower.contains('salad') ||
+        labelLower.contains('brocol') ||
+        labelLower.contains('zanahor') ||
+        labelLower.contains('lechug') ||
+        labelLower.contains('tomate') ||
+        labelLower.contains('cebolla') ||
+        labelLower.contains('judías') ||
+        labelLower.contains('espárrago')) {
+      foodIcon = Icons.eco_outlined;
+      iconColor = _kPrimaryGreen;
+      bgColor = const Color(0xFFE8F5EE);
+    }
+
+    // Determine confidence tag parameters
+    String bandLabel = '';
+    Color bandTextColor = _kPrimaryGreen;
+    Color bandBgColor = const Color(0xFFF0F9F4);
+
+    switch (item.confidenceBand) {
+      case ConfidenceBandEntity.high:
+        bandLabel = S.of(context).aiConfidenceHigh;
+        bandTextColor = _kPrimaryGreen;
+        bandBgColor = const Color(0xFFF0F9F4);
+        break;
+      case ConfidenceBandEntity.medium:
+        bandLabel = S.of(context).aiConfidenceMedium;
+        bandTextColor = const Color(0xFFE7A83B);
+        bandBgColor = const Color(0xFFFFF4DF);
+        break;
+      case ConfidenceBandEntity.low:
+        bandLabel = S.of(context).aiConfidenceLow;
+        bandTextColor = Colors.red;
+        bandBgColor = const Color(0xFFFFECEC);
+        break;
+    }
+
+    return InkWell(
+      onTap: isRemoved ? null : onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          border: isLast
+              ? null
+              : Border(
+                  bottom: BorderSide(color: _kSoftBorder.withValues(alpha: 0.6)),
+                ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Custom Checkbox
+            GestureDetector(
+              onTap: onToggleRemoved,
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    color: isRemoved ? Colors.transparent : _kPrimaryGreen,
+                    border: Border.all(
+                      color: isRemoved ? _kSoftBorder : _kPrimaryGreen,
+                      width: 1.5,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: isRemoved
+                      ? const SizedBox.shrink()
+                      : const Icon(
+                          Icons.check,
+                          size: 14,
+                          color: Colors.white,
+                        ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Food Icon Card/Box
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: isRemoved ? _kSoftBorder.withValues(alpha: 0.3) : bgColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                foodIcon,
+                color: isRemoved ? _kMutedText.withValues(alpha: 0.4) : iconColor,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Name + Confidence Tag
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isRemoved ? _kMutedText.withValues(alpha: 0.5) : _kDarkText,
+                      decoration: isRemoved ? TextDecoration.lineThrough : null,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (!isRemoved) ...[
+                    const SizedBox(height: 3),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: bandBgColor,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        bandLabel,
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: bandTextColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Amount Column (Right-aligned, fixed width to keep alignment homogeneous)
+            SizedBox(
+              width: 58,
+              child: Text(
+                '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 1)} ${_localizeUnit(context, item.unit, item.amount)}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isRemoved ? _kMutedText.withValues(alpha: 0.4) : _kMutedText,
+                ),
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            // Separator Column (Centered divider line in a fixed-width box)
+            SizedBox(
+              width: 14,
+              child: Center(
+                child: Container(
+                  width: 1,
+                  height: 14,
+                  color: _kSoftBorder,
+                ),
+              ),
+            ),
+            // Kcal Column (Left-aligned, fixed width)
+            SizedBox(
+              width: 60,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    item.kcal.toStringAsFixed(0),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: isRemoved ? _kMutedText.withValues(alpha: 0.4) : _kDarkText,
+                    ),
+                  ),
+                  const SizedBox(width: 1),
+                  Text(
+                    'kcal',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isRemoved ? _kMutedText.withValues(alpha: 0.4) : _kMutedText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Chevron Column (Fixed width container so spacing is constant even if chevron is hidden)
+            Container(
+              width: 14,
+              alignment: Alignment.centerRight,
+              child: isRemoved
+                  ? const SizedBox.shrink()
+                  : Icon(
+                      Icons.chevron_right_rounded,
+                      size: 14,
+                      color: _kMutedText.withValues(alpha: 0.5),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ConfidenceDot extends StatelessWidget {
+  final ConfidenceBandEntity band;
+  final bool dimmed;
+  const _ConfidenceDot({required this.band, this.dimmed = false});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    switch (band) {
+      case ConfidenceBandEntity.high:
+        color = _kPrimaryGreen;
+        break;
+      case ConfidenceBandEntity.medium:
+        color = Colors.orange;
+        break;
+      case ConfidenceBandEntity.low:
+        color = Colors.red;
+        break;
+    }
+    if (dimmed) {
+      color = color.withValues(alpha: 0.3);
+    }
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+      ),
+    );
+  }
+}
+
+// ── Ingredient Bottom Sheet ───────────────────────────────────────────
+
+class _IngredientBottomSheet extends StatefulWidget {
+  final InterpretationDraftItemEntity item;
+  final List<String> unitPresets;
+  final String? savedCorrectionLabel;
+  final ValueChanged<double> onAmountChanged;
+  final ValueChanged<String> onUnitSelected;
+  final ValueChanged<double> onPresetApplied;
+  final VoidCallback onReplace;
+  final VoidCallback onRemove;
+  final VoidCallback onEditMacros;
+  final VoidCallback? onApplySavedCorrection;
+
+  const _IngredientBottomSheet({
+    required this.item,
+    required this.unitPresets,
+    required this.savedCorrectionLabel,
+    required this.onAmountChanged,
+    required this.onUnitSelected,
+    required this.onPresetApplied,
+    required this.onReplace,
+    required this.onRemove,
+    required this.onEditMacros,
+    required this.onApplySavedCorrection,
+  });
+
+  @override
+  State<_IngredientBottomSheet> createState() =>
+      _IngredientBottomSheetState();
+}
+
+class _IngredientBottomSheetState extends State<_IngredientBottomSheet> {
+  late final TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(
+      text: widget.item.amount
+          .toStringAsFixed(widget.item.amount % 1 == 0 ? 0 : 2),
+    );
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: _kCardColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(_kCardRadius)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(2),
+                    color: _kSoftBorder,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                widget.item.label,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: _kDarkText,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Quantity + unit row
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: TextField(
+                      controller: _amountController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true),
+                      decoration: InputDecoration(
+                        labelText: S.of(context).quantityLabel,
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(_kInputRadius),
+                          borderSide: const BorderSide(color: _kSoftBorder),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(_kInputRadius),
+                          borderSide: const BorderSide(color: _kSoftBorder),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(_kInputRadius),
+                          borderSide: const BorderSide(
+                              color: _kPrimaryGreen, width: 2),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 3,
+                    child: SizedBox(
+                      height: 44,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: widget.unitPresets
+                            .map(
+                              (unit) => Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: _QuickPresetChip(
+                                  label: _localizeUnit(context, unit),
+                                  selected: widget.item.unit == unit,
+                                  onTap: () => widget.onUnitSelected(unit),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Macro summary
+              Row(
+                children: [
+                  _SheetMacroItem(
+                    label: S.of(context).proteinLabel,
+                    value: '${widget.item.protein.toStringAsFixed(1)}g',
+                  ),
+                  const SizedBox(width: 12),
+                  _SheetMacroItem(
+                    label: S.of(context).carbohydrateLabel,
+                    value: '${widget.item.carbs.toStringAsFixed(1)}g',
+                  ),
+                  const SizedBox(width: 12),
+                  _SheetMacroItem(
+                    label: S.of(context).fatLabel,
+                    value: '${widget.item.fat.toStringAsFixed(1)}g',
+                  ),
+                  const SizedBox(width: 12),
+                  _SheetMacroItem(
+                    label: 'kcal',
+                    value: widget.item.kcal.toStringAsFixed(0),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              // Quick adjustments
+              Text(
+                S.of(context).aiQuickAdjustment,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: _kMutedText,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _AdjustmentChip(
+                    label: '-25%',
+                    onTap: () => widget.onPresetApplied(0.75),
+                  ),
+                  const SizedBox(width: 8),
+                  _AdjustmentChip(
+                    label: '+25%',
+                    onTap: () => widget.onPresetApplied(1.25),
+                  ),
+                  const SizedBox(width: 8),
+                  _AdjustmentChip(
+                    label: '+50%',
+                    onTap: () => widget.onPresetApplied(1.5),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () {
+                      final parsed = double.tryParse(
+                          _amountController.text.replaceAll(',', '.'));
+                      if (parsed == null || parsed <= 0) {
+                        return;
+                      }
+                      widget.onAmountChanged(parsed);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(_kChipRadius),
+                        color: _kPrimaryGreen,
+                      ),
+                      child: Text(
+                        S.of(context).buttonSaveLabel,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Saved correction
+              if (widget.savedCorrectionLabel != null &&
+                  widget.onApplySavedCorrection != null) ...[
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: widget.onApplySavedCorrection,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(_kInputRadius),
+                      color: _kPrimaryGreen.withValues(alpha: 0.06),
+                      border: Border.all(
+                        color: _kPrimaryGreen.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.history_outlined,
+                            size: 18, color: _kPrimaryGreen),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            S.of(context).aiUseHabitual(
+                                widget.savedCorrectionLabel!),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _kPrimaryGreen,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
+              const Divider(height: 1, color: _kSoftBorder),
+              const SizedBox(height: 12),
+
+              // Actions row
+              Row(
+                children: [
+                  _SheetAction(
+                    icon: Icons.tune_outlined,
+                    label: S.of(context).aiEditMacrosLabel,
+                    onTap: widget.onEditMacros,
+                  ),
+                  const SizedBox(width: 12),
+                  _SheetAction(
+                    icon: Icons.swap_horiz_outlined,
+                    label: S.of(context).aiSubstituteLabel,
+                    onTap: widget.onReplace,
+                  ),
+                  const SizedBox(width: 12),
+                  _SheetAction(
+                    icon: Icons.remove_circle_outline,
+                    label: S.of(context).aiRemoveLabel,
+                    onTap: widget.onRemove,
+                    destructive: true,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetMacroItem extends StatelessWidget {
+  final String label;
+  final String value;
+  const _SheetMacroItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: _kDarkText,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: _kMutedText),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AdjustmentChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _AdjustmentChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_kChipRadius),
+          color: _kSoftBorder.withValues(alpha: 0.5),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: _kDarkText,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool destructive;
+  const _SheetAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.destructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = destructive ? Colors.red : _kMutedText;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(_kInputRadius),
+            color: destructive
+                ? Colors.red.withValues(alpha: 0.06)
+                : _kSoftBorder.withValues(alpha: 0.4),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, size: 20, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Small Action Button ───────────────────────────────────────────────
+
+class _SmallActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  const _SmallActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(_kChipRadius),
+          color: _kPrimaryGreen.withValues(alpha: 0.10),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: _kPrimaryGreen),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: _kPrimaryGreen,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Compact Food Quality Card ─────────────────────────────────────────
+
+class _CompactFoodQualityCard extends StatelessWidget {
+  final dynamic score;
+  const _CompactFoodQualityCard({required this.score});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCardColor,
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        boxShadow: _kCardShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        child: FoodQualityScoreCard(score: score),
+      ),
+    );
+  }
+}
+
+
+
+// ── Meal Suggestions Card ─────────────────────────────────────────────
 
 class _MealSuggestionsCard extends StatelessWidget {
   final List<MealInterpretationSuggestion> suggestions;
@@ -1264,10 +2432,14 @@ class _MealSuggestionsCard extends StatelessWidget {
   });
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Card(
+    return Container(
+      decoration: BoxDecoration(
+        color: _kCardColor,
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        boxShadow: _kCardShadow,
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1278,21 +2450,24 @@ class _MealSuggestionsCard extends StatelessWidget {
                   height: 36,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    color: colorScheme.primary.withValues(alpha: 0.12),
+                    color: _kPrimaryGreen.withValues(alpha: 0.12),
                   ),
                   alignment: Alignment.center,
-                  child: Icon(
+                  child: const Icon(
                     Icons.history_toggle_off_outlined,
-                    color: colorScheme.primary,
+                    color: _kPrimaryGreen,
+                    size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     S.of(context).aiYourMatches,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: _kDarkText,
+                    ),
                   ),
                 ),
               ],
@@ -1300,9 +2475,10 @@ class _MealSuggestionsCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               S.of(context).aiMatchesReferenceHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: const TextStyle(
+                fontSize: 13,
+                color: _kMutedText,
+              ),
             ),
             const SizedBox(height: 14),
             ...suggestions.map(
@@ -1317,9 +2493,9 @@ class _MealSuggestionsCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: colorScheme.surfaceContainerHighest,
-                      border: Border.all(color: colorScheme.outlineVariant),
+                      borderRadius: BorderRadius.circular(_kInputRadius),
+                      color: _kBgColor,
+                      border: Border.all(color: _kSoftBorder),
                     ),
                     child: Row(
                       children: [
@@ -1328,12 +2504,12 @@ class _MealSuggestionsCard extends StatelessWidget {
                           height: 40,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(14),
-                            color: colorScheme.primary.withValues(alpha: 0.14),
+                            color: _kPrimaryGreen.withValues(alpha: 0.12),
                           ),
                           alignment: Alignment.center,
-                          child: Icon(
+                          child: const Icon(
                             Icons.auto_fix_high_outlined,
-                            color: colorScheme.primary,
+                            color: _kPrimaryGreen,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1343,38 +2519,28 @@ class _MealSuggestionsCard extends StatelessWidget {
                             children: [
                               Text(
                                 suggestion.title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: _kDarkText,
+                                ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '${suggestion.sourceLabel} \u00b7 ${suggestion.defaultAmount.toStringAsFixed(suggestion.defaultAmount % 1 == 0 ? 0 : 1)} ${suggestion.defaultUnit}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: _kMutedText,
+                                ),
                               ),
-                              const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  _InlineInfoChip(
-                                    icon: Icons.local_fire_department_outlined,
-                                    label:
-                                        '${suggestionNutrition.kcal.toStringAsFixed(0)} kcal',
-                                  ),
-                                  _InlineInfoChip(
-                                    icon: Icons.auto_awesome_outlined,
-                                    label: _suggestionMatchLabel(
-                                      suggestion.score,
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(height: 6),
+                              Text(
+                                '${suggestionNutrition.kcal.toStringAsFixed(0)} kcal · ${_suggestionMatchLabel(suggestion.score)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _kPrimaryGreen.withValues(alpha: 0.8),
+                                ),
                               ),
                             ],
                           ),
@@ -1402,694 +2568,7 @@ class _MealSuggestionsCard extends StatelessWidget {
   }
 }
 
-class _MacroHeroCard extends StatelessWidget {
-  final double kcal;
-  final double carbs;
-  final double fat;
-  final double protein;
-  final double servings;
-
-  const _MacroHeroCard({
-    required this.kcal,
-    required this.carbs,
-    required this.fat,
-    required this.protein,
-    required this.servings,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${kcal.toStringAsFixed(0)} kcal',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        S.of(context).aiServingsReady(
-                            servings % 1 == 0 ? servings.toInt() : servings),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(999),
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                  ),
-                  child: Text(
-                    S.of(context).aiEditableLabel,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                _MacroTile(
-                  label: S.of(context).proteinLabel,
-                  value: '${protein.toStringAsFixed(1)} g',
-                  accentColor: colorScheme.primary,
-                ),
-                _MacroTile(
-                  label: S.of(context).carbohydrateLabel,
-                  value: '${carbs.toStringAsFixed(1)} g',
-                  accentColor: colorScheme.tertiary,
-                ),
-                _MacroTile(
-                  label: S.of(context).fatLabel,
-                  value: '${fat.toStringAsFixed(1)} g',
-                  accentColor: const Color(0xFFE7A83B),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MacroTile extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color accentColor;
-
-  const _MacroTile({
-    required this.label,
-    required this.value,
-    required this.accentColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minWidth: 110),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: accentColor.withValues(alpha: 0.12),
-        border: Border.all(
-          color: accentColor.withValues(alpha: 0.22),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DraftItemCard extends StatelessWidget {
-  final InterpretationDraftItemEntity item;
-  final List<String> unitPresets;
-  final String? savedCorrectionLabel;
-  final VoidCallback? onEditPressed;
-  final VoidCallback? onEditMacrosPressed;
-  final VoidCallback? onReplacePressed;
-  final ValueChanged<String>? onUnitSelected;
-  final ValueChanged<double>? onPresetSelected;
-  final VoidCallback? onApplySavedCorrection;
-  final VoidCallback onToggleRemoved;
-  const _DraftItemCard({
-    required this.item,
-    required this.unitPresets,
-    required this.savedCorrectionLabel,
-    required this.onEditPressed,
-    required this.onEditMacrosPressed,
-    required this.onReplacePressed,
-    required this.onUnitSelected,
-    required this.onPresetSelected,
-    required this.onApplySavedCorrection,
-    required this.onToggleRemoved,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final confidenceTone =
-        _ConfidenceTone.fromBand(item.confidenceBand, context);
-    final textStyle = item.removed
-        ? Theme.of(context).textTheme.titleSmall?.copyWith(
-              decoration: TextDecoration.lineThrough,
-              color: Theme.of(context).disabledColor,
-            )
-        : Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            );
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: item.removed
-            ? colorScheme.surfaceContainerLow
-            : Color.alphaBlend(
-                confidenceTone.color.withValues(alpha: 0.06),
-                colorScheme.surface,
-              ),
-        border: Border.all(
-          color: item.removed
-              ? colorScheme.outlineVariant.withValues(alpha: 0.45)
-              : confidenceTone.color.withValues(alpha: 0.24),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(child: Text(item.label, style: textStyle)),
-                          const SizedBox(width: 8),
-                          _ConfidenceChip(band: item.confidenceBand),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _DraftChip(
-                            icon: Icons.scale_outlined,
-                            label:
-                                '${item.amount.toStringAsFixed(item.amount % 1 == 0 ? 0 : 2)} ${_localizeUnit(context, item.unit, item.amount)}',
-                          ),
-                          _DraftChip(
-                            icon: Icons.local_fire_department_outlined,
-                            label: '${item.kcal.toStringAsFixed(0)} kcal',
-                          ),
-                        ],
-                      ),
-                      if (!item.removed &&
-                          item.confidenceBand != ConfidenceBandEntity.high) ...[
-                        const SizedBox(height: 12),
-                        _ConfidenceNotice(
-                          band: item.confidenceBand,
-                          hasSavedCorrection: savedCorrectionLabel != null,
-                        ),
-                      ],
-                      if (savedCorrectionLabel != null) ...[
-                        const SizedBox(height: 12),
-                        FilledButton.tonalIcon(
-                          onPressed:
-                              item.removed ? null : onApplySavedCorrection,
-                          icon: const Icon(Icons.history_outlined),
-                          label: Text(S
-                              .of(context)
-                              .aiUseHabitual(savedCorrectionLabel!)),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: !item.removed,
-                  onChanged: (_) => onToggleRemoved(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _InlineInfoChip(
-                  icon: Icons.bubble_chart_outlined,
-                  label:
-                      '${S.of(context).carbsLabel[0].toUpperCase()} ${item.carbs.toStringAsFixed(1)}',
-                ),
-                _InlineInfoChip(
-                  icon: Icons.opacity_outlined,
-                  label:
-                      '${S.of(context).fatLabel[0].toUpperCase()} ${item.fat.toStringAsFixed(1)}',
-                ),
-                _InlineInfoChip(
-                  icon: Icons.fitness_center_outlined,
-                  label:
-                      '${S.of(context).proteinLabel[0].toUpperCase()} ${item.protein.toStringAsFixed(1)}',
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              S.of(context).unitLabel,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: unitPresets
-                  .map(
-                    (unit) => ChoiceChip(
-                      label: Text(_localizeUnit(context, unit)),
-                      selected: item.unit == unit,
-                      onSelected: item.removed || onUnitSelected == null
-                          ? null
-                          : (_) => onUnitSelected!(unit),
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              S.of(context).aiQuickAdjustment,
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _PresetChip(
-                  label: '-25 %',
-                  onTap: item.removed || onPresetSelected == null
-                      ? null
-                      : () => onPresetSelected!(0.75),
-                ),
-                _PresetChip(
-                  label: '+25 %',
-                  onTap: item.removed || onPresetSelected == null
-                      ? null
-                      : () => onPresetSelected!(1.25),
-                ),
-                _PresetChip(
-                  label: '+50 %',
-                  onTap: item.removed || onPresetSelected == null
-                      ? null
-                      : () => onPresetSelected!(1.5),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  onPressed: item.removed ? null : onEditPressed,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: Text(S.of(context).aiAmountLabel),
-                ),
-                OutlinedButton.icon(
-                  onPressed: item.removed ? null : onEditMacrosPressed,
-                  icon: const Icon(Icons.tune_outlined),
-                  label: Text(S.of(context).aiEditMacrosLabel),
-                ),
-                OutlinedButton.icon(
-                  onPressed: item.removed ? null : onReplacePressed,
-                  icon: const Icon(Icons.swap_horiz_outlined),
-                  label: Text(S.of(context).aiSubstituteLabel),
-                ),
-                OutlinedButton.icon(
-                  onPressed: onToggleRemoved,
-                  icon: Icon(
-                    item.removed
-                        ? Icons.undo_outlined
-                        : Icons.remove_circle_outline,
-                  ),
-                  label: Text(item.removed
-                      ? S.of(context).aiRestoreLabel
-                      : S.of(context).aiRemoveLabel),
-                ),
-              ],
-            ),
-            if (item.removed) ...[
-              const SizedBox(height: 10),
-              Text(
-                S.of(context).aiExcludeFromMeal,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PresetChip extends StatelessWidget {
-  final String label;
-  final VoidCallback? onTap;
-  const _PresetChip({
-    required this.label,
-    required this.onTap,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return ActionChip(
-      label: Text(label),
-      avatar: const Icon(Icons.tune_outlined, size: 16),
-      onPressed: onTap,
-    );
-  }
-}
-
-class _ConfidenceNotice extends StatelessWidget {
-  final ConfidenceBandEntity band;
-  final bool hasSavedCorrection;
-
-  const _ConfidenceNotice({
-    required this.band,
-    required this.hasSavedCorrection,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tone = _ConfidenceTone.fromBand(band, context);
-    final colorScheme = Theme.of(context).colorScheme;
-    final message = switch (band) {
-      ConfidenceBandEntity.low => hasSavedCorrection
-          ? S.of(context).aiConfidenceLowHint
-          : S.of(context).aiConfidenceLowGenericHint,
-      ConfidenceBandEntity.medium => S.of(context).aiConfidenceMediumHint,
-      ConfidenceBandEntity.high => '',
-    };
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Color.alphaBlend(
-          tone.color.withValues(alpha: 0.08),
-          colorScheme.surfaceContainerLow,
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(tone.icon, size: 18, color: tone.color),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConfidenceChip extends StatelessWidget {
-  final ConfidenceBandEntity band;
-  const _ConfidenceChip({required this.band});
-  @override
-  Widget build(BuildContext context) {
-    final tone = _ConfidenceTone.fromBand(band, context);
-    final color = tone.color;
-    final label = tone.label;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: color.withValues(alpha: 0.16),
-        border: Border.all(color: color.withValues(alpha: 0.32)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(tone.icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InlineInfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _InlineInfoChip({
-    required this.icon,
-    required this.label,
-  });
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.65),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: colorScheme.onSurfaceVariant),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ConfidenceTone {
-  final Color color;
-  final String label;
-  final IconData icon;
-
-  const _ConfidenceTone({
-    required this.color,
-    required this.label,
-    required this.icon,
-  });
-
-  static _ConfidenceTone fromBand(
-      ConfidenceBandEntity band, BuildContext context) {
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        return _ConfidenceTone(
-          color: Colors.green,
-          label: S.of(context).aiConfidenceHigh,
-          icon: Icons.verified_outlined,
-        );
-      case ConfidenceBandEntity.medium:
-        return _ConfidenceTone(
-          color: Colors.orange,
-          label: S.of(context).aiConfidenceMedium,
-          icon: Icons.tune_outlined,
-        );
-      case ConfidenceBandEntity.low:
-        return _ConfidenceTone(
-          color: Colors.red,
-          label: S.of(context).aiConfidenceLow,
-          icon: Icons.warning_amber_outlined,
-        );
-    }
-  }
-}
-
-class _DraftChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _DraftChip({
-    required this.icon,
-    required this.label,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest
-            .withValues(alpha: 0.45),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-        ],
-      ),
-    );
-  }
-}
-
-class _AiSaveConversionCard extends StatelessWidget {
-  final double kcal;
-  final int activeItemCount;
-
-  const _AiSaveConversionCard({
-    required this.kcal,
-    required this.activeItemCount,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<AiTrialState>(
-      future: locator<MonetizationService>().getAiTrialState(),
-      builder: (context, snapshot) {
-        final state = snapshot.data;
-        if (state == null) {
-          return const SizedBox.shrink();
-        }
-
-        final colorScheme = Theme.of(context).colorScheme;
-        final isBlocked = !state.isPremium && state.remaining <= 0;
-
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            color: isBlocked
-                ? colorScheme.errorContainer.withValues(alpha: 0.28)
-                : colorScheme.primaryContainer.withValues(alpha: 0.32),
-            border: Border.all(
-              color: isBlocked
-                  ? colorScheme.error.withValues(alpha: 0.24)
-                  : colorScheme.primary.withValues(alpha: 0.22),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                isBlocked ? Icons.lock_outline : Icons.auto_awesome_outlined,
-                color: isBlocked ? colorScheme.error : colorScheme.primary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      S.of(context).aiDraftReadyTitle,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _message(
-                        context: context,
-                        state: state,
-                        kcal: kcal,
-                        activeItemCount: activeItemCount,
-                      ),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isBlocked)
-                TextButton(
-                  onPressed: () => showModalBottomSheet<bool>(
-                    context: context,
-                    isScrollControlled: true,
-                    builder: (context) => PaywallSheet(
-                      placement: PaywallPlacement.aiLimit,
-                      trialState: state,
-                    ),
-                  ),
-                  child: Text(S.of(context).aiDraftUpgradeAction),
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  String _message({
-    required BuildContext context,
-    required AiTrialState state,
-    required double kcal,
-    required int activeItemCount,
-  }) {
-    final kcalText = kcal.toStringAsFixed(0);
-    if (state.isPremium) {
-      return S.of(context).aiDraftPremiumMessage(activeItemCount, kcalText);
-    }
-    if (state.remaining > 0) {
-      return S
-          .of(context)
-          .aiDraftTrialMessage(activeItemCount, kcalText, state.remaining);
-    }
-    return S.of(context).aiDraftBlockedMessage(activeItemCount, kcalText);
-  }
-}
+// ── Shared data classes ───────────────────────────────────────────────
 
 class _AiSaveAccess {
   final bool allowed;
@@ -2277,4 +2756,58 @@ String _localizeUnit(BuildContext context, String unit, [double? amount]) {
     return S.of(context).recipeDetailServingUnitSingular;
   }
   return unit;
+}
+
+class _OutlinedActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _OutlinedActionBtn({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final disabled = onTap == null;
+    final color = disabled ? _kMutedText.withOpacity(0.4) : _kPrimaryGreen;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color,
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 6),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: color,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

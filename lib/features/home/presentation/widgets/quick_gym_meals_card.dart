@@ -105,26 +105,11 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _title(context),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _subtitle(context),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    height: 1.3,
-                                  ),
-                        ),
-                      ],
+                    child: Text(
+                      _title(context),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
                     ),
                   ),
                   Tooltip(
@@ -144,9 +129,24 @@ class _QuickGymMealsCardState extends State<QuickGymMealsCard> {
                         S.of(context).recipeLibraryManualSectionTitle,
                         textAlign: TextAlign.center,
                       ),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        foregroundColor: colorScheme.primary,
+                      ),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 52),
+                child: Text(
+                  _subtitle(context),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        height: 1.3,
+                      ),
+                ),
               ),
               const SizedBox(height: 14),
               SingleChildScrollView(

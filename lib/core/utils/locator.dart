@@ -41,6 +41,7 @@ import 'package:macrotracker/core/services/push_notification_service.dart';
 import 'package:macrotracker/core/services/referral_service.dart';
 import 'package:macrotracker/core/services/subscription_service.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
+import 'package:macrotracker/core/services/app_feedback_service.dart';
 import 'package:macrotracker/core/utils/env.dart';
 import 'package:macrotracker/core/utils/hive_db_provider.dart';
 import 'package:macrotracker/core/utils/macrotracker_image_cache_manager.dart';
@@ -483,6 +484,9 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<ReferralService>(
     () => ReferralService(locator(), locator(), locator(), locator()),
+  );
+  locator.registerLazySingleton<AppFeedbackService>(
+    () => AppFeedbackService(locator()),
   );
 
   // Professional Plan Features

@@ -33,6 +33,9 @@ class MonetizationService {
   final AiTrialProfileStore _profileStore;
   final ConversionAnalyticsService? _analyticsService;
   final _log = Logger('MonetizationService');
+  AiTrialState? _cachedTrialState;
+
+  AiTrialState? get cachedTrialState => _cachedTrialState;
 
   MonetizationService(
     this._subscriptionService,
@@ -55,22 +58,26 @@ class MonetizationService {
       final userId = await _identityService.ensureUserSession();
       final isProtectedAccount = _isProtectedAccount();
       final profile = await _getOrCreateProfile(userId);
-      return _buildTrialState(
+      final state = _buildTrialState(
         isPremium: isPremium,
         profile: profile,
         isProtectedAccount: isProtectedAccount,
       );
+      _cachedTrialState = state;
+      return state;
     } catch (error, stackTrace) {
       _log.warning(
         'Falling back to local AI trial state because cloud trial sync is unavailable.',
         error,
         stackTrace,
       );
-      return _buildTrialState(
+      final state = _buildTrialState(
         isPremium: isPremium,
         profile: _localProfileFallback(),
         isProtectedAccount: _isProtectedAccount(),
       );
+      _cachedTrialState = state;
+      return state;
     }
   }
 

@@ -981,6 +981,27 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Diary Management"),
         "featureTourTitle9":
             MessageLookupByLibrary.simpleMessage("Recipes & AI Web Importer"),
+        "feedbackDescriptionHint": MessageLookupByLibrary.simpleMessage(
+            "Please describe your suggestion or the problem you encountered..."),
+        "feedbackDescriptionLabel":
+            MessageLookupByLibrary.simpleMessage("Details"),
+        "feedbackDialogTitle":
+            MessageLookupByLibrary.simpleMessage("Send Feedback"),
+        "feedbackEmptyFieldsWarning": MessageLookupByLibrary.simpleMessage(
+            "Please fill in all fields before submitting"),
+        "feedbackErrorSnackbar": MessageLookupByLibrary.simpleMessage(
+            "Failed to send feedback. Please try again later."),
+        "feedbackSubmitButton": MessageLookupByLibrary.simpleMessage("Submit"),
+        "feedbackSubmittingButton":
+            MessageLookupByLibrary.simpleMessage("Sending..."),
+        "feedbackSuccessSnackbar": MessageLookupByLibrary.simpleMessage(
+            "Thank you! Your feedback has been sent successfully."),
+        "feedbackTitleLabel": MessageLookupByLibrary.simpleMessage("Subject"),
+        "feedbackTypeBug": MessageLookupByLibrary.simpleMessage("Report a bug"),
+        "feedbackTypeFeature":
+            MessageLookupByLibrary.simpleMessage("Suggest a feature"),
+        "feedbackTypeLabel":
+            MessageLookupByLibrary.simpleMessage("Feedback Type"),
         "fiberLabel": MessageLookupByLibrary.simpleMessage("fiber"),
         "flOzUnit": MessageLookupByLibrary.simpleMessage("fl.oz"),
         "fluidOunceUnitLabel": MessageLookupByLibrary.simpleMessage("fl oz"),

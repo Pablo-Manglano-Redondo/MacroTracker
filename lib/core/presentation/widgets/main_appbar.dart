@@ -17,23 +17,36 @@ class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final isDiary = title == S.of(context).diaryLabel;
+    final isProfile = title == S.of(context).profileLabel;
+
+    final Color iconColor;
+    final Color bgColor;
+
+    if (isDiary || isProfile) {
+      iconColor = const Color(0xFF10B981);
+      bgColor = const Color(0xFF10B981).withValues(alpha: 0.12);
+    } else {
+      iconColor = const Color(0xFF0D9488);
+      bgColor = const Color(0xFF0D9488).withValues(alpha: 0.12);
+    }
 
     return AppBar(
       titleSpacing: 16,
       leadingWidth: 64,
       leading: Padding(
         padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: colorScheme.surfaceContainerHigh,
-            border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+        child: Center(
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: bgColor,
             ),
+            alignment: Alignment.center,
+            child: Icon(iconData, color: iconColor, size: 20),
           ),
-          child: Icon(iconData, color: colorScheme.primary),
         ),
       ),
       title: Text(
@@ -43,30 +56,15 @@ class MainAppbar extends StatelessWidget implements PreferredSizeWidget {
             ),
       ),
       actions: [
-        if (isDiary)
-          IconButton(
-              key: ProductTourKeys.recipeIconKey,
-              tooltip: S.of(context).recipeLibraryTitle,
-              onPressed: () {
-                Navigator.of(context).pushNamed(
-                  NavigationOptions.recipeLibraryRoute,
-                  arguments: RecipeLibraryScreenArguments(
-                    DateTime.now(),
-                    IntakeTypeEntity.breakfast,
-                  ),
-                );
-              },
-              icon: const Icon(Icons.bookmarks_outlined))
-        else
-          IconButton(
-              onPressed: () async {
-                await Navigator.of(context)
-                    .pushNamed(NavigationOptions.settingsRoute);
-                locator<HomeBloc>().add(const LoadItemsEvent());
-                locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-                locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
-              },
-              icon: const Icon(Icons.settings_outlined))
+        IconButton(
+            onPressed: () async {
+              await Navigator.of(context)
+                  .pushNamed(NavigationOptions.settingsRoute);
+              locator<HomeBloc>().add(const LoadItemsEvent());
+              locator<DiaryBloc>().add(const LoadDiaryYearEvent());
+              locator<CalendarDayBloc>().add(RefreshCalendarDayEvent());
+            },
+            icon: const Icon(Icons.settings_outlined))
       ],
     );
   }

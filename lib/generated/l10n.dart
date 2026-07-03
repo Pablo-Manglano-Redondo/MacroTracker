@@ -4104,6 +4104,126 @@ class S {
     );
   }
 
+  /// `Please describe your suggestion or the problem you encountered...`
+  String get feedbackDescriptionHint {
+    return Intl.message(
+      'Please describe your suggestion or the problem you encountered...',
+      name: 'feedbackDescriptionHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Details`
+  String get feedbackDescriptionLabel {
+    return Intl.message(
+      'Details',
+      name: 'feedbackDescriptionLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Send Feedback`
+  String get feedbackDialogTitle {
+    return Intl.message(
+      'Send Feedback',
+      name: 'feedbackDialogTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please fill in all fields before submitting`
+  String get feedbackEmptyFieldsWarning {
+    return Intl.message(
+      'Please fill in all fields before submitting',
+      name: 'feedbackEmptyFieldsWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to send feedback. Please try again later.`
+  String get feedbackErrorSnackbar {
+    return Intl.message(
+      'Failed to send feedback. Please try again later.',
+      name: 'feedbackErrorSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Submit`
+  String get feedbackSubmitButton {
+    return Intl.message(
+      'Submit',
+      name: 'feedbackSubmitButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sending...`
+  String get feedbackSubmittingButton {
+    return Intl.message(
+      'Sending...',
+      name: 'feedbackSubmittingButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thank you! Your feedback has been sent successfully.`
+  String get feedbackSuccessSnackbar {
+    return Intl.message(
+      'Thank you! Your feedback has been sent successfully.',
+      name: 'feedbackSuccessSnackbar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Subject`
+  String get feedbackTitleLabel {
+    return Intl.message(
+      'Subject',
+      name: 'feedbackTitleLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Report a bug`
+  String get feedbackTypeBug {
+    return Intl.message(
+      'Report a bug',
+      name: 'feedbackTypeBug',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Suggest a feature`
+  String get feedbackTypeFeature {
+    return Intl.message(
+      'Suggest a feature',
+      name: 'feedbackTypeFeature',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Feedback Type`
+  String get feedbackTypeLabel {
+    return Intl.message(
+      'Feedback Type',
+      name: 'feedbackTypeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `fiber`
   String get fiberLabel {
     return Intl.message(

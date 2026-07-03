@@ -137,53 +137,35 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                           SizedBox(
                             width: double.infinity,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                _HabitStatusPill(
-                                  label: readinessTone.localizedLabel(context),
-                                  icon: readinessTone.icon,
-                                  foreground: readinessTone.foreground(context),
-                                  background: readinessTone.background(context),
+                                Expanded(
+                                  child: _HabitChip(
+                                    label: S.of(context).gymHabitsCreatineShort,
+                                    icon: Icons.bolt_outlined,
+                                    selected: log.creatineTaken,
+                                    onSelected: (value) =>
+                                        _setHabit(creatineTaken: value),
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
-                                _HabitStatusPill(
-                                  label:
-                                      _focusLabel(context, widget.dailyFocus),
-                                  icon: _focusIcon(widget.dailyFocus),
-                                  foreground: const Color(0xFF10B981),
-                                  background: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                Expanded(
+                                  child: _HabitChip(
+                                    label: S.of(context).gymHabitsProteinShort,
+                                    icon: Icons.link,
+                                    selected: log.wheyTaken,
+                                    onSelected: (value) =>
+                                        _setHabit(wheyTaken: value),
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          SizedBox(
-                            width: double.infinity,
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              alignment: WrapAlignment.start,
-                              children: [
-                                _HabitChip(
-                                  label: S.of(context).gymHabitsCreatineShort,
-                                  icon: Icons.bolt_outlined,
-                                  selected: log.creatineTaken,
-                                  onSelected: (value) =>
-                                      _setHabit(creatineTaken: value),
-                                ),
-                                _HabitChip(
-                                  label: S.of(context).gymHabitsProteinShort,
-                                  icon: Icons.link,
-                                  selected: log.wheyTaken,
-                                  onSelected: (value) =>
-                                      _setHabit(wheyTaken: value),
-                                ),
-                                _HabitChip(
-                                  label: S.of(context).gymHabitsCaffeineShort,
-                                  icon: Icons.local_cafe_outlined,
-                                  selected: log.caffeineTaken,
-                                  onSelected: (value) =>
-                                      _setHabit(caffeineTaken: value),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _HabitChip(
+                                    label: S.of(context).gymHabitsCaffeineShort,
+                                    icon: Icons.local_cafe_outlined,
+                                    selected: log.caffeineTaken,
+                                    onSelected: (value) =>
+                                        _setHabit(caffeineTaken: value),
+                                  ),
                                 ),
                               ],
                             ),
@@ -646,16 +628,22 @@ class _HabitChip extends StatelessWidget {
           border: border,
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 14, color: contentColor),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: contentColor,
-                    fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
-                  ),
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: contentColor,
+                        fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+                      ),
+                ),
+              ),
             ),
           ],
         ),
@@ -805,15 +793,21 @@ class _HabitStatusPill extends StatelessWidget {
         color: background,
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: foreground),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: foreground,
-                ),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      color: foreground,
+                    ),
+              ),
+            ),
           ),
         ],
       ),

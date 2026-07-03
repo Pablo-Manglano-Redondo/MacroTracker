@@ -294,10 +294,10 @@ class _MainScreenState extends State<MainScreen> {
           title: S.of(context).professionalScreenTitle,
           iconData: Icons.medical_services_outlined,
         ),
-      MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book),
+      MainAppbar(title: S.of(context).diaryLabel, iconData: Icons.book_outlined),
       MainAppbar(
         title: S.of(context).profileLabel,
-        iconData: Icons.account_circle,
+        iconData: Icons.account_circle_outlined,
       ),
     ];
   }

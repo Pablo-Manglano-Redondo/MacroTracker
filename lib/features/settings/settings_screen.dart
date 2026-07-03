@@ -24,6 +24,7 @@ import 'package:macrotracker/features/settings/presentation/bloc/settings_bloc.d
 import 'package:macrotracker/features/settings/presentation/widgets/calculations_dialog.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/drive_backup_dialog.dart';
 import 'package:macrotracker/features/settings/presentation/widgets/export_import_dialog.dart';
+import 'package:macrotracker/features/settings/presentation/widgets/feedback_dialog.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/core/presentation/widgets/paywall_sheet.dart';
 import 'package:macrotracker/core/services/cloud_account_deletion_service.dart';
@@ -76,6 +77,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
     if (_supportsHealthIntegration) {
       _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
+    }
+    final cached = locator<MonetizationService>().cachedTrialState;
+    if (cached != null) {
+      _isPremium = cached.isPremium;
+      _aiTrialState = cached;
     }
     _refreshPlanStatus();
     _loadReferralInfo();
@@ -801,29 +807,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _reportBug(BuildContext context) async {
-    final emailUri = Uri(
-      scheme: 'mailto',
-      path: AppConst.reportErrorEmail,
-      queryParameters: {
-        'subject': S.of(context).settingsReportBugEmailSubject,
-        'body': S.of(context).settingsReportBugEmailBody(
-              Platform.isAndroid ? 'Android' : 'iOS',
-            ),
-      },
+    showDialog(
+      context: context,
+      builder: (context) => const FeedbackDialog(initialType: 'bug'),
     );
-    _launchUrl(context, emailUri);
   }
 
   void _requestFeature(BuildContext context) async {
-    final emailUri = Uri(
-      scheme: 'mailto',
-      path: AppConst.reportErrorEmail,
-      queryParameters: {
-        'subject': S.of(context).settingsFeatureRequestEmailSubject,
-        'body': S.of(context).settingsFeatureRequestEmailBody,
-      },
+    showDialog(
+      context: context,
+      builder: (context) => const FeedbackDialog(initialType: 'feature'),
     );
-    _launchUrl(context, emailUri);
   }
 
   String _buildHealthConnectStatusText(HealthConnectSyncStatusEntity status) {

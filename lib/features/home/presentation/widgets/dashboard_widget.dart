@@ -143,30 +143,36 @@ class DashboardWidget extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
               children: [
-                _SummaryChip(
-                  icon: Icons.restaurant_outlined,
-                  label: _mealsChip(context, mealsLogged),
-                  compact: isCompact,
-                  color: bodyColor,
-                  background: subtleSurface,
+                Expanded(
+                  child: _SummaryChip(
+                    icon: Icons.restaurant_outlined,
+                    label: _mealsChip(context, mealsLogged),
+                    compact: isCompact,
+                    color: bodyColor,
+                    background: subtleSurface,
+                  ),
                 ),
-                _SummaryChip(
-                  icon: Icons.local_fire_department_outlined,
-                  label: _burnedChip(context, totalKcalBurned.toInt()),
-                  compact: isCompact,
-                  color: bodyColor,
-                  background: subtleSurface,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _SummaryChip(
+                    icon: Icons.local_fire_department_outlined,
+                    label: _burnedChip(context, totalKcalBurned.toInt()),
+                    compact: isCompact,
+                    color: bodyColor,
+                    background: subtleSurface,
+                  ),
                 ),
-                _SummaryChip(
-                  icon: Icons.fitness_center_outlined,
-                  label: _sessionsChip(context, sessionsLogged),
-                  compact: isCompact,
-                  color: bodyColor,
-                  background: subtleSurface,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _SummaryChip(
+                    icon: Icons.fitness_center_outlined,
+                    label: _sessionsChip(context, sessionsLogged),
+                    compact: isCompact,
+                    color: bodyColor,
+                    background: subtleSurface,
+                  ),
                 ),
               ],
             ),
@@ -487,16 +493,22 @@ class _SummaryChip extends StatelessWidget {
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: compact ? 13 : 14, color: textIconColor),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: textIconColor,
-                ),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: textIconColor,
+                    ),
+              ),
+            ),
           ),
         ],
       ),
@@ -657,12 +669,31 @@ class _MacroCircleItem extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 2),
-        Text(
-          S.of(context).homeDashboardMacroRemaining(remaining.toInt()),
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
-                fontSize: 10,
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                ),
+            children: [
+              TextSpan(
+                text: '${remaining.toInt()}g',
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
+              TextSpan(
+                text: S
+                    .of(context)
+                    .homeDashboardMacroRemaining(remaining.toInt())
+                    .replaceFirst('${remaining.toInt()}g', ''),
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

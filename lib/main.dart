@@ -12,6 +12,7 @@ import 'package:macrotracker/core/presentation/widgets/image_full_screen.dart';
 import 'package:macrotracker/core/services/conversion_analytics_service.dart';
 import 'package:macrotracker/core/services/meal_reminder_service.dart';
 import 'package:macrotracker/core/services/push_notification_service.dart';
+import 'package:macrotracker/core/services/monetization_service.dart';
 import 'package:macrotracker/core/styles/color_schemes.dart';
 import 'package:macrotracker/core/styles/fonts.dart';
 import 'package:macrotracker/core/i18n/generated_supported_locales.dart';
@@ -105,6 +106,13 @@ Future<void> main() async {
 Future<void> _runDeferredStartupTasks() async {
   final log = Logger('main');
   await Future<void>.delayed(const Duration(milliseconds: 600));
+
+  try {
+    // Pre-warm the monetization cache in the background
+    unawaited(locator<MonetizationService>().getAiTrialState());
+  } catch (error, stackTrace) {
+    log.warning('Monetization pre-warming failed', error, stackTrace);
+  }
 
   try {
     await initializeDriveBackupWorker();

@@ -576,10 +576,19 @@ class _DaySummaryCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: _MacroDetailTile(
+                    label: S.of(context).proteinLabel,
+                    tracked: trackedDay.proteinTracked ?? 0,
+                    goal: trackedDay.proteinGoal ?? 0,
+                    color: const Color(0xFF10B981),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _MacroDetailTile(
                     label: S.of(context).carbsLabel,
                     tracked: trackedDay.carbsTracked ?? 0,
                     goal: trackedDay.carbsGoal ?? 0,
-                    color: const Color(0xFF0EA5E9),
+                    color: const Color(0xFFE7A83B),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -588,16 +597,7 @@ class _DaySummaryCard extends StatelessWidget {
                     label: S.of(context).fatLabel,
                     tracked: trackedDay.fatTracked ?? 0,
                     goal: trackedDay.fatGoal ?? 0,
-                    color: const Color(0xFFF59E0B),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _MacroDetailTile(
-                    label: S.of(context).proteinLabel,
-                    tracked: trackedDay.proteinTracked ?? 0,
-                    goal: trackedDay.proteinGoal ?? 0,
-                    color: colorScheme.tertiary,
+                    color: const Color(0xFF3B82F6),
                   ),
                 ),
               ],
