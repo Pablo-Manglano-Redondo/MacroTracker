@@ -2594,7 +2594,17 @@
         "select_a_client_2": "Select a client...",
         "optional_note": "Optional note",
         "e_g_try_this_option_for_dinner": "E.g. Try this option for dinner.",
-        "send_proposal": "Send proposal"
+        "send_proposal": "Send proposal",
+        "import_action": "Import",
+        "importing": "Importing...",
+        "recipe_url_placeholder": "https://example.com/recipe",
+        "recipe_url": "Recipe URL",
+        "paste_recipe_url_description": "Paste a recipe URL and we will extract the title, ingredients, and instructions using AI.",
+        "import_recipe_with_ai": "Import Recipe with AI",
+        "import_with_ai": "Import with AI",
+        "failed_to_import_recipe": "Failed to import recipe",
+        "recipe_imported_successfully": "Recipe imported successfully",
+        "please_enter_a_valid_url": "Please enter a valid URL"
       },
       "sidebar": {
         "annual": "Annual",

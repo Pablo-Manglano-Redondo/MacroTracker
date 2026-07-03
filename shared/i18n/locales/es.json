@@ -2594,7 +2594,17 @@
         "select_a_client_2": "Selecciona un cliente...",
         "optional_note": "Nota opcional",
         "e_g_try_this_option_for_dinner": "Ej. Prueba esta opción para la cena.",
-        "send_proposal": "Enviar propuesta"
+        "send_proposal": "Enviar propuesta",
+        "import_action": "Importar",
+        "importing": "Importando...",
+        "recipe_url_placeholder": "https://ejemplo.com/receta",
+        "recipe_url": "URL de la receta",
+        "paste_recipe_url_description": "Pega la URL de una receta y extraeremos el título, ingredientes e instrucciones usando IA.",
+        "import_recipe_with_ai": "Importar receta con IA",
+        "import_with_ai": "Importar con IA",
+        "failed_to_import_recipe": "Error al importar la receta",
+        "recipe_imported_successfully": "Receta importada correctamente",
+        "please_enter_a_valid_url": "Por favor, introduce una URL válida"
       },
       "sidebar": {
         "annual": "Anual",
