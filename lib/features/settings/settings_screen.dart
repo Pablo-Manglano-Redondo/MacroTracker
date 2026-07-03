@@ -9,7 +9,6 @@ import 'package:macrotracker/core/i18n/generated_supported_locales.dart';
 import 'package:macrotracker/core/domain/entity/macro_goal_mode_entity.dart';
 import 'package:macrotracker/core/presentation/widgets/app_banner_version.dart';
 
-import 'package:macrotracker/core/utils/app_const.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/theme_mode_provider.dart';

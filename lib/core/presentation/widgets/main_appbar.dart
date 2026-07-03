@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:macrotracker/core/domain/entity/intake_type_entity.dart';
 import 'package:macrotracker/core/utils/navigation_options.dart';
 import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:macrotracker/features/feature_tour/presentation/widgets/product_tour_overlay.dart';
-import 'package:macrotracker/features/recipes/presentation/recipe_library_screen.dart';
 import 'package:macrotracker/generated/l10n.dart';
 
 class MainAppbar extends StatelessWidget implements PreferredSizeWidget {

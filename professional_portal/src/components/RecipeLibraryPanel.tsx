@@ -13,6 +13,8 @@ import {
   Users,
   Utensils,
   X,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../lib/auth-context';
@@ -27,6 +29,7 @@ import { useClients } from '../hooks/queries/useClients';
 import { ConfirmDialog } from './ui/confirm-dialog';
 import type { ProfessionalRecipe } from '../types/database.types';
 import { usePortalI18n } from '../lib/portal-i18n';
+import { supabase } from '../lib/supabase';
 
 const MEAL_TYPES = ['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const;
 
@@ -77,7 +80,7 @@ function recipeToForm(r: ProfessionalRecipe) {
 
 export const RecipeLibraryPanel: React.FC = () => {
   const { professional } = useAuth();
-  const { t } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
   const { data: recipes, isLoading } = useRecipes(professional?.id);
   const { data: clients } = useClients(professional?.id);
   const createRecipe = useCreateRecipe(professional?.id);
@@ -92,6 +95,69 @@ export const RecipeLibraryPanel: React.FC = () => {
   const [proposeTarget, setProposeTarget] = useState<{ recipeId: string } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm());
+
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importUrl, setImportUrl] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleImport = async () => {
+    if (!importUrl.trim() || !importUrl.startsWith('http')) {
+      toast.error(t('components.recipelibrarypanel.please_enter_a_valid_url'));
+      return;
+    }
+    setIsImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('recipe-scraper', {
+        body: {
+          url: importUrl.trim(),
+          locale: locale === 'es' ? 'es' : 'en',
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const payload = data?.recipe;
+      if (!payload) {
+        throw new Error('No recipe data returned');
+      }
+
+      const mappedIngredients = (payload.ingredients || []).map((i: any) => ({
+        name: String(i.name || ''),
+        amount: Number(i.amount || 0),
+        unit: String(i.unit || 'g'),
+      }));
+
+      setForm({
+        title: String(payload.title || ''),
+        description: String(payload.description || ''),
+        meal_type: 'breakfast',
+        prep_time_min: Number(payload.prepTimeMinutes || 0),
+        cook_time_min: Number(payload.cookTimeMinutes || 0),
+        servings: Number(payload.servings || 1),
+        kcal: Number(payload.estimatedMacros?.kcal || 0),
+        protein: Number(payload.estimatedMacros?.protein || 0),
+        carbs: Number(payload.estimatedMacros?.carbs || 0),
+        fat: Number(payload.estimatedMacros?.fat || 0),
+        ingredients: mappedIngredients,
+        instructions: Array.isArray(payload.instructions)
+          ? payload.instructions.join('\n')
+          : String(payload.instructions || ''),
+      });
+
+      setEditingId(null);
+      setShowImportModal(false);
+      setImportUrl('');
+      setShowForm(true);
+      toast.success(t('components.recipelibrarypanel.recipe_imported_successfully'));
+    } catch (e: any) {
+      console.error(e);
+      toast.error(t('components.recipelibrarypanel.failed_to_import_recipe'));
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const filtered = useMemo(
     () =>
@@ -233,13 +299,25 @@ export const RecipeLibraryPanel: React.FC = () => {
         <h2 className="portal-section-heading uppercase tracking-[0.12em] text-foreground">
           {t('components.recipelibrarypanel.recipe_library')}
         </h2>
-        <button
-          onClick={openCreate}
-          className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0"
-        >
-          <Plus className="h-4.5 w-4.5" />
-          <span>{t('components.recipelibrarypanel.new_recipe')}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setImportUrl('');
+              setShowImportModal(true);
+            }}
+            className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-card px-5 portal-action text-foreground shadow-sm hover:bg-accent transition-colors shrink-0 cursor-pointer"
+          >
+            <Sparkles className="h-4.5 w-4.5 text-primary" />
+            <span>{t('components.recipelibrarypanel.import_with_ai')}</span>
+          </button>
+          <button
+            onClick={openCreate}
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground shadow-sm hover:opacity-95 transition-opacity shrink-0 cursor-pointer"
+          >
+            <Plus className="h-4.5 w-4.5" />
+            <span>{t('components.recipelibrarypanel.new_recipe')}</span>
+          </button>
+        </div>
       </div>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -610,6 +688,69 @@ export const RecipeLibraryPanel: React.FC = () => {
       {proposeTarget && (
         <ProposeModal clients={clients || []} onSubmit={handlePropose} onClose={() => setProposeTarget(null)} />
       )}
+
+      {showImportModal &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            onClick={() => setShowImportModal(false)}
+          >
+            <div
+              className="glass-card flex w-full max-w-md flex-col rounded-[1.8rem] overflow-hidden p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div>
+                  <h3 className="portal-card-heading text-foreground">
+                    {t('components.recipelibrarypanel.import_recipe_with_ai')}
+                  </h3>
+                  <p className="portal-meta text-muted-foreground mt-1">
+                    {t('components.recipelibrarypanel.paste_recipe_url_description')}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground shrink-0 cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="py-6 space-y-4">
+                <Field label={t('components.recipelibrarypanel.recipe_url')} required>
+                  <input
+                    value={importUrl}
+                    onChange={(e) => setImportUrl(e.target.value)}
+                    placeholder={t('components.recipelibrarypanel.recipe_url_placeholder')}
+                    disabled={isImporting}
+                    className="portal-input h-12 w-full rounded-xl px-4 outline-none focus:border-primary"
+                  />
+                </Field>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t border-border pt-4">
+                <button
+                  onClick={() => setShowImportModal(false)}
+                  disabled={isImporting}
+                  className="rounded-xl border border-border px-4 py-2 portal-action text-foreground transition-colors hover:bg-accent disabled:opacity-50 cursor-pointer"
+                >
+                  {t('components.recipelibrarypanel.cancel')}
+                </button>
+                <button
+                  onClick={handleImport}
+                  disabled={isImporting || !importUrl.trim()}
+                  className="rounded-xl bg-primary px-4 py-2 portal-action text-primary-foreground disabled:opacity-50 flex items-center gap-2 cursor-pointer"
+                >
+                  {isImporting && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {isImporting
+                    ? t('components.recipelibrarypanel.importing')
+                    : t('components.recipelibrarypanel.import_action')}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

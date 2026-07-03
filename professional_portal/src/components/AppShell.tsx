@@ -11,6 +11,9 @@ import {
   Moon,
   Globe,
   User,
+  Sparkles,
+  Users,
+  ShieldCheck,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { Sidebar } from './Sidebar';
@@ -236,41 +239,76 @@ export const AppShell: React.FC = () => {
 
   if (!session) {
     return (
-      <div className="portal-page min-h-screen px-6 py-8">
-        <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.78fr)] lg:items-center">
-          <section className="portal-hero hidden rounded-[2rem] p-10 lg:block">
-            <p className="portal-kicker">{t('components.appshell.professional_portal')}</p>
-            <h1 className="portal-title mt-4 max-w-xl text-foreground">
+      <div className="portal-page min-h-screen px-6 py-8 relative overflow-hidden flex items-center justify-center">
+        {/* Glow effects for premium dark mode */}
+        <div className="absolute top-1/4 left-10 -z-10 h-[350px] w-[350px] rounded-full bg-emerald-500/[0.04] blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-1/4 right-10 -z-10 h-[350px] w-[350px] rounded-full bg-teal-500/[0.04] blur-[120px] pointer-events-none" />
+
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(420px,0.85fr)] lg:items-center">
+          <section className="portal-hero hidden rounded-[2.5rem] p-12 lg:block border border-white/[0.06] bg-gradient-to-b from-white/[0.03] to-white/[0.01] backdrop-blur-md shadow-2xl">
+            {/* Branded Header */}
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black shadow-md shadow-emerald-500/20">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <span className="font-sans text-2xl font-black tracking-tight text-white bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                MacroTracker Pro
+              </span>
+            </div>
+
+            <h1 className="portal-title mt-8 text-4xl font-extrabold leading-tight tracking-tight text-white xl:text-5xl">
               {t('components.appshell.a_restrained_operational_surface_for_nutritionists')}
             </h1>
-            <p className="portal-body mt-4 max-w-xl text-muted-foreground">
+            <p className="mt-5 text-base font-medium leading-relaxed text-zinc-300">
               {t('components.appshell.manage_real_relationships_plans_check_ins_and_shared_snapshots_without_m')}
             </p>
 
-            <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <div className="mt-12 grid gap-5 md:grid-cols-3">
               {[
-                [
-                  t('components.appshell.real_relationships'),
-                  t('components.appshell.only_clients_connected_from_the_mobile_app'),
-                ],
-                [
-                  t('components.appshell.explicit_privacy'),
-                  t('components.appshell.aggregate_by_default_detailed_only_by_consent'),
-                ],
-                [
-                  t('components.appshell.daily_work'),
-                  t('components.appshell.plans_notes_messages_and_operational_follow_up'),
-                ],
-              ].map(([title, body]) => (
-                <div key={title} className="portal-soft-panel rounded-2xl p-4">
-                  <p className="portal-card-heading text-foreground">{title}</p>
-                  <p className="portal-body mt-2 text-muted-foreground">{body}</p>
+                {
+                  title: t('components.appshell.real_relationships'),
+                  body: t('components.appshell.only_clients_connected_from_the_mobile_app'),
+                  icon: Users,
+                },
+                {
+                  title: t('components.appshell.explicit_privacy'),
+                  body: t('components.appshell.aggregate_by_default_detailed_only_by_consent'),
+                  icon: ShieldCheck,
+                },
+                {
+                  title: t('components.appshell.daily_work'),
+                  body: t('components.appshell.plans_notes_messages_and_operational_follow_up'),
+                  icon: Sparkles,
+                },
+              ].map(({ title, body, icon: Icon }) => (
+                <div key={title} className="group relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 backdrop-blur-sm transition-all duration-300 hover:border-emerald-500/30 hover:bg-white/[0.04] hover:shadow-lg hover:shadow-emerald-950/20">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 transition-colors group-hover:bg-emerald-500/20 group-hover:text-emerald-300">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-sans text-sm font-bold text-white tracking-wide">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                    {body}
+                  </p>
                 </div>
               ))}
             </div>
           </section>
 
           <main className="mx-auto w-full max-w-[480px]">
+            {/* Mobile Branded Header */}
+            <div className="mb-8 flex flex-col items-center text-center lg:hidden">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-black shadow-lg shadow-emerald-500/20">
+                <Sparkles className="h-6 w-6" />
+              </div>
+              <h1 className="mt-4 font-sans text-2xl font-black tracking-tight text-white bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                MacroTracker Pro
+              </h1>
+              <p className="mt-2 max-w-sm text-sm font-semibold text-zinc-300 text-center">
+                {t('components.appshell.a_restrained_operational_surface_for_nutritionists')}
+              </p>
+            </div>
             <Suspense fallback={<PanelFallback />}>
               <AuthPanel />
             </Suspense>

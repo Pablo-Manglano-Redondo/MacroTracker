@@ -91,7 +91,7 @@ dependencies {
 
 sentry {
     org = "epsait"
-    projectName = "android"
+    projectName = "macroplanner"
 
     includeSourceContext = true
     autoUpload = true

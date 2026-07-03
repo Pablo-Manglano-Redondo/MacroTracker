@@ -39,7 +39,6 @@ const _kPrimaryGreen = Color(0xFF0F8A4B);
 const _kDarkText = Color(0xFF181D1A);
 const _kMutedText = Color(0xFF68736C);
 const _kSoftBorder = Color(0xFFE6ECE7);
-const _kWarningBg = Color(0xFFFFF4DF);
 const _kCardRadius = 24.0;
 const _kInputRadius = 16.0;
 const _kChipRadius = 999.0;
@@ -448,53 +447,6 @@ class _MealInterpretationReviewScreenState
   void _setQuickServing(double value) {
     _servingsController.text = value.toStringAsFixed(value % 1 == 0 ? 0 : 1);
     setState(() {});
-  }
-
-  Future<void> _showAmountEditor(InterpretationDraftItemEntity item) async {
-    final controller = TextEditingController(
-      text: item.amount.toStringAsFixed(_decimals(item.amount)),
-    );
-
-    final updatedAmount = await showDialog<double>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(S.of(context).aiEditAmountTitle(item.label)),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            labelText: S.of(context).aiQuantityUnitLabel(item.unit),
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(S.of(context).dialogCancelLabel),
-          ),
-          TextButton(
-            onPressed: () {
-              final parsed =
-                  double.tryParse(controller.text.replaceAll(',', '.'));
-              if (parsed == null || parsed <= 0) {
-                return;
-              }
-              Navigator.of(context).pop(parsed);
-            },
-            child: Text(S.of(context).buttonSaveLabel),
-          ),
-        ],
-      ),
-    );
-
-    controller.dispose();
-
-    if (updatedAmount == null) {
-      return;
-    }
-
-    _updateItemAmount(item, updatedAmount);
   }
 
   void _updateItemAmount(
@@ -977,10 +929,6 @@ class _MealInterpretationReviewScreenState
 
   Future<void> _checkAndRequestReview() async {
     await locator<AppReviewService>().recordAiMealCommitted();
-  }
-
-  int _decimals(double value) {
-    return value % 1 == 0 ? 0 : 2;
   }
 
   List<String> _quickUnitsForItem(InterpretationDraftItemEntity item) {
@@ -1915,39 +1863,6 @@ class _IngredientRow extends StatelessWidget {
   }
 }
 
-class _ConfidenceDot extends StatelessWidget {
-  final ConfidenceBandEntity band;
-  final bool dimmed;
-  const _ConfidenceDot({required this.band, this.dimmed = false});
-
-  @override
-  Widget build(BuildContext context) {
-    Color color;
-    switch (band) {
-      case ConfidenceBandEntity.high:
-        color = _kPrimaryGreen;
-        break;
-      case ConfidenceBandEntity.medium:
-        color = Colors.orange;
-        break;
-      case ConfidenceBandEntity.low:
-        color = Colors.red;
-        break;
-    }
-    if (dimmed) {
-      color = color.withValues(alpha: 0.3);
-    }
-    return Container(
-      width: 8,
-      height: 8,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
-    );
-  }
-}
-
 // ── Ingredient Bottom Sheet ───────────────────────────────────────────
 
 class _IngredientBottomSheet extends StatefulWidget {
@@ -2357,48 +2272,6 @@ class _SheetAction extends StatelessWidget {
   }
 }
 
-// ── Small Action Button ───────────────────────────────────────────────
-
-class _SmallActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  const _SmallActionButton({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(_kChipRadius),
-          color: _kPrimaryGreen.withValues(alpha: 0.10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: _kPrimaryGreen),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: _kPrimaryGreen,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ── Compact Food Quality Card ─────────────────────────────────────────
 
 class _CompactFoodQualityCard extends StatelessWidget {
@@ -2772,7 +2645,7 @@ class _OutlinedActionBtn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final disabled = onTap == null;
-    final color = disabled ? _kMutedText.withOpacity(0.4) : _kPrimaryGreen;
+    final color = disabled ? _kMutedText.withValues(alpha: 0.4) : _kPrimaryGreen;
 
     return GestureDetector(
       onTap: onTap,

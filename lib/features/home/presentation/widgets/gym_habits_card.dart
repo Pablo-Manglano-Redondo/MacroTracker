@@ -94,14 +94,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
                         sleepGoalHours: sleepGoalHours,
                         stepGoal: stepGoal,
                       );
-                      final readinessTone = _readinessTone(
-                        completedCount: completedCount,
-                        hydrationMet:
-                            log.meetsHydrationGoal(hydrationGoalLiters),
-                        sleepMet: log.meetsSleepGoal(sleepGoalHours),
-                        stepsMet: log.meetsStepGoal(stepGoal),
-                        energyLevel: log.energyLevel,
-                      );
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,32 +493,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
     }
   }
 
-  String _focusLabel(BuildContext context, DailyFocusEntity focus) {
-    switch (focus) {
-      case DailyFocusEntity.lowerBody:
-        return S.of(context).gymHabitsFocusLowerBody;
-      case DailyFocusEntity.upperBody:
-        return S.of(context).gymHabitsFocusUpperBody;
-      case DailyFocusEntity.cardio:
-        return S.of(context).gymHabitsFocusCardio;
-      case DailyFocusEntity.rest:
-        return S.of(context).gymHabitsFocusRest;
-    }
-  }
-
-  IconData _focusIcon(DailyFocusEntity focus) {
-    switch (focus) {
-      case DailyFocusEntity.lowerBody:
-        return Icons.directions_walk_outlined;
-      case DailyFocusEntity.upperBody:
-        return Icons.fitness_center_outlined;
-      case DailyFocusEntity.cardio:
-        return Icons.directions_run_outlined;
-      case DailyFocusEntity.rest:
-        return Icons.hotel_outlined;
-    }
-  }
-
   String _hydrationHint(
     BuildContext context,
     DailyFocusEntity focus,
@@ -551,22 +517,6 @@ class _GymHabitsCardState extends State<GymHabitsCard> {
       return '${flOz.toStringAsFixed(flOz % 1 == 0 ? 0 : 1)} ${S.of(context).fluidOunceUnitLabel}';
     }
     return '${liters.toStringAsFixed(liters % 1 == 0 ? 0 : 1)} ${S.of(context).literUnitLabel}';
-  }
-
-  _ReadinessTone _readinessTone({
-    required int completedCount,
-    required bool hydrationMet,
-    required bool sleepMet,
-    required bool stepsMet,
-    required int energyLevel,
-  }) {
-    if (completedCount >= 6 && energyLevel >= 4) {
-      return const _ReadinessTone.good();
-    }
-    if (completedCount <= 2 || (!hydrationMet && !sleepMet && !stepsMet)) {
-      return const _ReadinessTone.bad();
-    }
-    return const _ReadinessTone.caution();
   }
 
   String _title(BuildContext context) =>
@@ -770,95 +720,3 @@ class _MetricAdjuster extends StatelessWidget {
     );
   }
 }
-
-class _HabitStatusPill extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color foreground;
-  final Color background;
-
-  const _HabitStatusPill({
-    required this.label,
-    required this.icon,
-    required this.foreground,
-    required this.background,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: background,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: foreground),
-          const SizedBox(width: 6),
-          Flexible(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: foreground,
-                    ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ReadinessTone {
-  final String label;
-  final IconData icon;
-  final _ReadinessToneKind kind;
-
-  const _ReadinessTone._(this.label, this.icon, this.kind);
-
-  const _ReadinessTone.good()
-      : this._(
-            'gymHabitsReadinessOnTarget', Icons.check_circle_outline, _ReadinessToneKind.good);
-  const _ReadinessTone.caution()
-      : this._('gymHabitsReadinessImproving', Icons.adjust, _ReadinessToneKind.caution);
-  const _ReadinessTone.bad()
-      : this._(
-            'gymHabitsReadinessOffTarget', Icons.error_outline, _ReadinessToneKind.bad);
-
-  Color foreground(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    switch (kind) {
-      case _ReadinessToneKind.good:
-        return scheme.primary;
-      case _ReadinessToneKind.caution:
-        return scheme.tertiary;
-      case _ReadinessToneKind.bad:
-        return scheme.error;
-    }
-  }
-
-  Color background(BuildContext context) {
-    return foreground(context).withValues(alpha: 0.12);
-  }
-
-  String localizedLabel(BuildContext context) {
-    switch (label) {
-      case 'gymHabitsReadinessOnTarget':
-        return S.of(context).gymHabitsReadinessOnTarget;
-      case 'gymHabitsReadinessImproving':
-        return S.of(context).gymHabitsReadinessImproving;
-      case 'gymHabitsReadinessOffTarget':
-        return S.of(context).gymHabitsReadinessOffTarget;
-      default:
-        return label;
-    }
-  }
-}
-
-enum _ReadinessToneKind { good, caution, bad }

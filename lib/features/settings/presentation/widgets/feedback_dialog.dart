@@ -115,7 +115,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _selectedType,
+                  initialValue: _selectedType,
                   decoration: InputDecoration(
                     labelText: copy.feedbackTypeLabel,
                     border: OutlineInputBorder(
@@ -188,7 +188,7 @@ class _FeedbackDialogState extends State<FeedbackDialog> {
                     TextButton(
                       onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
                       child: Text(
-                        S.of(context).dialogCancelLabel ?? 'Cancelar',
+                        S.of(context).dialogCancelLabel,
                         style: TextStyle(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
