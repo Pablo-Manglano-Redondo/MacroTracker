@@ -258,7 +258,7 @@ void main() {
     await waitForLoadedState(tester);
 
     // Tap "Guardar comida" button
-    final saveButton = find.text('Guardar comida');
+    final saveButton = find.text('Guardar comida · 250 kcal');
     expect(saveButton, findsOneWidget);
 
     await tester.tap(saveButton);
@@ -281,8 +281,8 @@ void main() {
     final eggsFinder = find.text('Eggs');
     await scrollDownUntilVisible(tester, eggsFinder);
 
-    // Toggle the switch for Eggs (which is the first Switch)
-    final switchFinder = find.byType(Switch).first;
+    // Toggle the switch for Eggs (which is the first Checkbox/Check icon)
+    final switchFinder = find.byIcon(Icons.check).first;
     await tester.tap(switchFinder);
     await tester.pumpAndSettle();
 
@@ -303,9 +303,16 @@ void main() {
     await tester.pumpWidget(createTestWidget('draft-123'));
     await waitForLoadedState(tester);
 
-    // Find the "+50 %" preset chip for Eggs and tap it
-    final presetFinder = find.text('+50 %');
-    await scrollDownUntilVisible(tester, presetFinder);
+    // Scroll down to expose first ingredient card (Eggs)
+    final eggsFinder = find.text('Eggs');
+    await scrollDownUntilVisible(tester, eggsFinder);
+
+    // Tap "Eggs" to open the bottom sheet
+    await tester.tap(eggsFinder);
+    await tester.pumpAndSettle();
+
+    // Find the "+50%" preset chip for Eggs and tap it
+    final presetFinder = find.text('+50%');
     await tester.tap(presetFinder.first);
     await tester.pumpAndSettle();
 
@@ -323,19 +330,36 @@ void main() {
 
 
   testWidgets('saving as recipe opens dialog and saves recipe', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(800, 1500);
+    addTearDown(() {
+      tester.view.resetDevicePixelRatio();
+      tester.view.resetPhysicalSize();
+    });
+
     final draft = buildDummyDraft(id: 'draft-123', title: 'Desayuno Proteico');
     fakeCommitUsecase.draft = draft;
 
     await tester.pumpWidget(createTestWidget('draft-123'));
     await waitForLoadedState(tester);
 
-    // Tap the recipe bookmark button in the AppBar
+    // Tap the more vert button in the AppBar to open popup menu
+    await tester.tap(find.byIcon(Icons.more_vert).first);
+    await tester.pumpAndSettle();
+
+    // Tap the recipe bookmark button in the popup menu
     final bookmarkIconFinder = find.byIcon(Icons.bookmark_add_outlined).first;
     await tester.tap(bookmarkIconFinder);
     await tester.pumpAndSettle();
 
     // Dialog should be displayed with title "Guardar como receta"
-    expect(find.text('Guardar como receta'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text('Guardar como receta'),
+      ),
+      findsOneWidget,
+    );
 
     // Tap the "Guardar" text button in dialog actions
     final saveDialogButtonFinder = find.descendant(
@@ -414,6 +438,9 @@ class _FakeMonetizationService extends Fake implements MonetizationService {
     fullLimit: 5,
     aiMealsSaved: 0,
   );
+
+  @override
+  AiTrialState? get cachedTrialState => trialState;
 
   @override
   Future<AiTrialState> getAiTrialState() => SynchronousFuture(trialState);

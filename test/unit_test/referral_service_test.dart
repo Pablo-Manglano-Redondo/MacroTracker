@@ -169,6 +169,9 @@ class _FakeSupabaseIdentityService extends Fake
 
 class _FakeMonetizationService extends Fake implements MonetizationService {
   @override
+  AiTrialState? get cachedTrialState => trialState;
+
+  @override
   String? savedReferralCode;
   int saveCalls = 0;
   int grantBonusCalls = 0;

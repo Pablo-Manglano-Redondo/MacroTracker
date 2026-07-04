@@ -691,6 +691,15 @@ class _FakeReferralService extends Fake implements ReferralService {
 
 class _FakeMonetizationService extends Fake implements MonetizationService {
   @override
+  AiTrialState? get cachedTrialState => const AiTrialState(
+        isPremium: false,
+        used: 2,
+        limit: 5,
+        fullLimit: 5,
+        aiMealsSaved: 1,
+      );
+
+  @override
   Future<AiTrialState> getAiTrialState() => SynchronousFuture(const AiTrialState(
         isPremium: false,
         used: 2,

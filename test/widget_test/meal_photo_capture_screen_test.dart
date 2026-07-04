@@ -229,7 +229,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Preview should show up
-    expect(find.text(S.current.aiPhotoPreviewTitle), findsOneWidget);
+    expect(find.text(S.current.aiPhotoCaptured), findsOneWidget);
     expect(find.text(S.current.aiPhotoUseThisPhoto), findsOneWidget);
     expect(find.text(S.current.aiPhotoRemovePhoto), findsOneWidget);
 
@@ -275,14 +275,14 @@ void main() {
     await tester.pumpAndSettle();
 
     // Preview should show up
-    expect(find.text(S.current.aiPhotoPreviewTitle), findsOneWidget);
+    expect(find.text(S.current.aiPhotoCaptured), findsOneWidget);
 
     // Tap "Quitar foto"
     await tester.tap(find.text(S.current.aiPhotoRemovePhoto));
     await tester.pumpAndSettle();
 
     // Preview should be gone
-    expect(find.text(S.current.aiPhotoPreviewTitle), findsNothing);
+    expect(find.text(S.current.aiPhotoCaptured), findsNothing);
   });
 
   testWidgets(
@@ -513,6 +513,15 @@ class _FakeSaveInterpretationDraftUsecase extends Fake
 }
 
 class _FakeMonetizationService extends Fake implements MonetizationService {
+  @override
+  AiTrialState? get cachedTrialState => const AiTrialState(
+        isPremium: true,
+        used: 0,
+        limit: 5,
+        fullLimit: 5,
+        aiMealsSaved: 0,
+      );
+
   @override
   Future<AiTrialState> getAiTrialState() async {
     return const AiTrialState(

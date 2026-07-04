@@ -2,14 +2,12 @@ import React, { useMemo, useState } from 'react';
 import {
   Activity,
   AlertCircle,
-  ChefHat,
   ChevronRight,
   ClipboardCheck,
   CreditCard,
   Download,
   FileText,
   MessageSquare,
-  PlusCircle,
   RefreshCw,
   TrendingUp,
   UserPlus,
@@ -32,7 +30,6 @@ import {
   useRefreshPracticeAlerts,
   useResolvedPracticeAlertsToday,
 } from '../hooks/queries/usePracticeAlerts';
-import { openInviteModal } from '../lib/portal-events';
 import { downloadCsv } from '../lib/csv';
 import { formatPortalDate } from '../lib/date';
 import { Skeleton } from './ui/skeleton';
@@ -367,303 +364,256 @@ export const DashboardPanel: React.FC = () => {
       </section>
 
       <section id="tour-dashboard-feed" className="grid gap-4 xl:grid-cols-2">
-        <div className="flex flex-col gap-4">
-          <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
-            <SectionHeader
-              title={strings.title}
-              subtitle={t('components.dashboardpanel.prioritized_from_real_signals')}
-              icon={<AlertCircle className="h-4 w-4 text-primary" />}
+        <div className="portal-panel rounded-2xl p-6 shadow-sm">
+          <SectionHeader
+            title={strings.title}
+            subtitle={t('components.dashboardpanel.prioritized_from_real_signals')}
+            icon={<AlertCircle className="h-4 w-4 text-primary" />}
+          />
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <SummaryCard
+              label={strings.summaryCritical}
+              value={summaryCounts.critical}
+              tone="critical"
             />
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <SummaryCard
-                label={strings.summaryCritical}
-                value={summaryCounts.critical}
-                tone="critical"
-              />
-              <SummaryCard
-                label={strings.summaryHigh}
-                value={summaryCounts.high}
-                tone="high"
-              />
-              <SummaryCard
-                label={strings.summaryResolvedToday}
-                value={resolvedToday}
-                tone="low"
-              />
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {alertsLoading ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((index) => (
-                    <Skeleton key={index} className="h-24 w-full bg-black/5 dark:bg-white/5" />
-                  ))}
-                </div>
-              ) : sortedAlerts.length === 0 ? (
-                <EmptyPanel
-                  title={strings.clear}
-                  body={strings.clearBody}
-                />
-              ) : (
-                sortedAlerts.map((alert) => {
-                  const client = alert.professional_client_id
-                    ? clientsByRelationshipId.get(alert.professional_client_id)
-                    : null;
-                  const clientName = client ? getClientDisplayName(client) : null;
-
-                  return (
-                    <AlertCard
-                      key={alert.id}
-                      alert={alert}
-                      locale={locale}
-                      clientName={clientName}
-                      onOpen={() => handleAlertCta(alert)}
-                      onDismiss={() => handleDismissAlert(alert)}
-                    />
-                  );
-                })
-              )}
-            </div>
+            <SummaryCard
+              label={strings.summaryHigh}
+              value={summaryCounts.high}
+              tone="high"
+            />
+            <SummaryCard
+              label={strings.summaryResolvedToday}
+              value={resolvedToday}
+              tone="low"
+            />
           </div>
 
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <SectionHeader
-              title={t('components.dashboardpanel.quick_actions')}
-            />
-            <div className="mt-4 grid grid-cols-3 gap-2.5">
-              {[
-                {
-                  icon: <UserPlus className="h-4 w-4" />,
-                  label: t('components.dashboardpanel.invite_client'),
-                  onClick: openInviteModal,
-                  disabled: !billingSummary.canOperatePractice,
-                },
-                {
-                  icon: <PlusCircle className="h-4 w-4" />,
-                  label: t('components.dashboardpanel.create_template_desc'),
-                  onClick: () => { window.location.hash = 'templates-panel'; },
-                  disabled: !billingSummary.canOperatePractice,
-                },
-                {
-                  icon: <ChefHat className="h-4 w-4" />,
-                  label: t('components.dashboardpanel.create_recipe_desc'),
-                  onClick: () => { window.location.hash = 'recipes-panel'; },
-                  disabled: !billingSummary.canOperatePractice,
-                },
-              ].map(({ icon, label, onClick, disabled }) => (
-                <button
-                  key={label}
-                  onClick={onClick}
-                  disabled={disabled}
-                  className="flex flex-col items-center gap-2.5 rounded-xl border border-border bg-background/50 p-3.5 text-center transition-all hover:bg-accent hover:border-border/80 group disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
-                    {icon}
-                  </div>
-                  <span className="portal-action text-foreground leading-tight">
-                    {label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <SectionHeader
-              title={t('components.dashboardpanel.client_adherence')}
-              subtitle={t('components.dashboardpanel.client_adherence_quick_prioritization')}
-              icon={<Users className="h-4 w-4 text-primary" />}
-            />
-            {clientsLoading ? (
-              <div className="mt-4 space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-11 w-full bg-black/5 dark:bg-white/5" />
+          <div className="mt-4 space-y-3">
+            {alertsLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((index) => (
+                  <Skeleton key={index} className="h-24 w-full bg-black/5 dark:bg-white/5" />
                 ))}
               </div>
-            ) : clientAdherence.length === 0 ? (
+            ) : sortedAlerts.length === 0 ? (
               <EmptyPanel
-                title={t('components.dashboardpanel.no_rows_yet')}
-                body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
+                title={strings.clear}
+                body={strings.clearBody}
               />
             ) : (
-              <div className="mt-4 space-y-1.5">
-                {clientAdherence.slice(0, 6).map((client) => (
-                  <button
-                    key={client.clientId}
-                    onClick={() => {
-                      (window as any).__pendingClientTab = { clientId: client.clientId, tab: 'summary' };
-                      window.location.hash = 'clients-panel';
-                      window.dispatchEvent(new CustomEvent('select-client', { detail: client.clientId }));
-                    }}
-                    className="w-full flex items-center justify-between rounded-xl px-4 py-3 border border-transparent bg-accent/20 hover:bg-accent/40 hover:border-border transition-all active:scale-[0.99] cursor-pointer"
-                  >
-                    <div className="min-w-0">
-                      <p className="portal-card-heading truncate text-foreground">{client.name}</p>
-                      <p className="portal-meta text-muted-foreground">
-                        {t('components.dashboardpanel.snapshots', {
-                          client_snapshotcount: client.snapshotCount,
-                        })}
-                      </p>
-                    </div>
-                    <span className="portal-metric ml-3 shrink-0 text-primary">
-                      {client.avgKcalAdherence}%
-                    </span>
-                  </button>
-                ))}
-              </div>
+              sortedAlerts.map((alert) => {
+                const client = alert.professional_client_id
+                  ? clientsByRelationshipId.get(alert.professional_client_id)
+                  : null;
+                const clientName = client ? getClientDisplayName(client) : null;
+
+                return (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    locale={locale}
+                    clientName={clientName}
+                    onOpen={() => handleAlertCta(alert)}
+                    onDismiss={() => handleDismissAlert(alert)}
+                  />
+                );
+              })
             )}
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <div className="portal-panel rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between">
-              <SectionHeader
-                title={t('components.dashboardpanel.adherence_trend')}
-                subtitle={t('components.dashboardpanel.shared_snapshot_trend_for_latest_roster')}
-              />
-              <Activity className="h-4 w-4 shrink-0 text-primary mt-0.5" />
-            </div>
+        <div className="portal-panel rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start justify-between">
+            <SectionHeader
+              title={t('components.dashboardpanel.adherence_trend')}
+              subtitle={t('components.dashboardpanel.shared_snapshot_trend_for_latest_roster')}
+            />
+            <Activity className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+          </div>
 
-            <div className="mt-4 flex gap-1.5 flex-wrap">
-              {(
-                [
-                  { id: 'kcal', label: t('common.kcal') },
-                  { id: 'protein', label: t('common.protein') },
-                  { id: 'carbs', label: t('common.carbs') },
-                  { id: 'fat', label: t('common.fat') },
-                ] as const
-              ).map((macro) => (
+          <div className="mt-4 flex gap-1.5 flex-wrap">
+            {(
+              [
+                { id: 'kcal', label: t('common.kcal') },
+                { id: 'protein', label: t('common.protein') },
+                { id: 'carbs', label: t('common.carbs') },
+                { id: 'fat', label: t('common.fat') },
+              ] as const
+            ).map((macro) => (
+              <button
+                key={macro.id}
+                onClick={() => setSelectedMacro(macro.id)}
+                className={`rounded-lg px-3.5 py-1.5 portal-action transition-all border cursor-pointer ${
+                  selectedMacro === macro.id
+                    ? 'bg-primary text-primary-foreground border-transparent shadow-sm'
+                    : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                {macro.label}
+              </button>
+            ))}
+          </div>
+
+          {trendsLoading ? (
+            <div className="mt-5 space-y-2">
+              <Skeleton className="h-3 w-32 bg-black/5 dark:bg-white/5" />
+              <Skeleton className="h-44 w-full bg-black/5 dark:bg-white/5" />
+            </div>
+          ) : trends.length === 0 ? (
+            <EmptyPanel
+              title={t('components.dashboardpanel.no_trend_yet')}
+              body={t('components.dashboardpanel.the_chart_will_populate_after_connected_clients_sync_aggregate_snapshots')}
+            />
+          ) : (
+            <div className="mt-5 portal-soft-panel flex h-52 items-end gap-1.5 rounded-xl p-3">
+              {trends.slice(-14).map((day) => {
+                const adherenceValue = {
+                  kcal: day.kcalAdherence,
+                  protein: day.proteinAdherence,
+                  carbs: day.carbsAdherence,
+                  fat: day.fatAdherence,
+                }[selectedMacro];
+
+                return (
+                  <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
+                    <div className="flex h-36 w-full items-end">
+                      <div
+                        className={`w-full rounded-t-md transition-all duration-300 ${
+                          adherenceValue >= 85
+                            ? 'bg-emerald-500'
+                            : adherenceValue >= 70
+                              ? 'bg-amber-500'
+                              : 'bg-rose-500'
+                        }`}
+                        style={{ height: `${Math.max(adherenceValue, 6)}%` }}
+                        title={`${day.date}: ${adherenceValue}%`}
+                      />
+                    </div>
+                    <span className="portal-label text-muted-foreground">
+                      {day.date.slice(5)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        <div className="portal-panel rounded-2xl p-6 shadow-sm">
+          <SectionHeader
+            title={t('components.dashboardpanel.client_adherence')}
+            subtitle={t('components.dashboardpanel.client_adherence_quick_prioritization')}
+            icon={<Users className="h-4 w-4 text-primary" />}
+          />
+          {clientsLoading ? (
+            <div className="mt-4 space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-11 w-full bg-black/5 dark:bg-white/5" />
+              ))}
+            </div>
+          ) : clientAdherence.length === 0 ? (
+            <EmptyPanel
+              title={t('components.dashboardpanel.no_rows_yet')}
+              body={t('components.dashboardpanel.once_snapshots_arrive_this_panel_will_rank_connected_clients_by_average_')}
+            />
+          ) : (
+            <div className="mt-4 space-y-1.5">
+              {clientAdherence.slice(0, 6).map((client) => (
                 <button
-                  key={macro.id}
-                  onClick={() => setSelectedMacro(macro.id)}
-                  className={`rounded-lg px-3.5 py-1.5 portal-action transition-all border cursor-pointer ${
-                    selectedMacro === macro.id
-                      ? 'bg-primary text-primary-foreground border-transparent shadow-sm'
-                      : 'border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent'
-                  }`}
+                  key={client.clientId}
+                  onClick={() => {
+                    (window as any).__pendingClientTab = { clientId: client.clientId, tab: 'summary' };
+                    window.location.hash = 'clients-panel';
+                    window.dispatchEvent(new CustomEvent('select-client', { detail: client.clientId }));
+                  }}
+                  className="w-full flex items-center justify-between rounded-xl px-4 py-3 border border-transparent bg-accent/20 hover:bg-accent/40 hover:border-border transition-all active:scale-[0.99] cursor-pointer"
                 >
-                  {macro.label}
+                  <div className="min-w-0">
+                    <p className="portal-card-heading truncate text-foreground">{client.name}</p>
+                    <p className="portal-meta text-muted-foreground">
+                      {t('components.dashboardpanel.snapshots', {
+                        client_snapshotcount: client.snapshotCount,
+                      })}
+                    </p>
+                  </div>
+                  <span className="portal-metric ml-3 shrink-0 text-primary">
+                    {client.avgKcalAdherence}%
+                  </span>
                 </button>
               ))}
             </div>
+          )}
+        </div>
 
-            {trendsLoading ? (
-              <div className="mt-5 space-y-2">
-                <Skeleton className="h-3 w-32 bg-black/5 dark:bg-white/5" />
-                <Skeleton className="h-44 w-full bg-black/5 dark:bg-white/5" />
-              </div>
-            ) : trends.length === 0 ? (
-              <EmptyPanel
-                title={t('components.dashboardpanel.no_trend_yet')}
-                body={t('components.dashboardpanel.the_chart_will_populate_after_connected_clients_sync_aggregate_snapshots')}
-              />
-            ) : (
-              <div className="mt-5 portal-soft-panel flex h-52 items-end gap-1.5 rounded-xl p-3">
-                {trends.slice(-14).map((day) => {
-                  const adherenceValue = {
-                    kcal: day.kcalAdherence,
-                    protein: day.proteinAdherence,
-                    carbs: day.carbsAdherence,
-                    fat: day.fatAdherence,
-                  }[selectedMacro];
-
-                  return (
-                    <div key={day.date} className="flex flex-1 flex-col items-center gap-1.5">
-                      <div className="flex h-36 w-full items-end">
-                        <div
-                          className={`w-full rounded-t-md transition-all duration-300 ${
-                            adherenceValue >= 85
-                              ? 'bg-emerald-500'
-                              : adherenceValue >= 70
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
-                          }`}
-                          style={{ height: `${Math.max(adherenceValue, 6)}%` }}
-                          title={`${day.date}: ${adherenceValue}%`}
-                        />
-                      </div>
-                      <span className="portal-label text-muted-foreground">
-                        {day.date.slice(5)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+        <div className="portal-panel rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start justify-between border-b border-border/60 pb-4 mb-4">
+            <SectionHeader
+              title={t('components.dashboardpanel.recent_activity')}
+              subtitle={t('components.dashboardpanel.latest_events_roster')}
+            />
+            <ClipboardCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
           </div>
-
-          <div className="portal-panel flex-1 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between border-b border-border/60 pb-4 mb-4">
-              <SectionHeader
-                title={t('components.dashboardpanel.recent_activity')}
-                subtitle={t('components.dashboardpanel.latest_events_roster')}
-              />
-              <ClipboardCheck className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+          {notificationsLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-14 w-full bg-black/5 dark:bg-white/5" />
+              ))}
             </div>
+          ) : notifications.length === 0 ? (
+            <EmptyPanel
+              title={t('components.dashboardpanel.no_rows_yet')}
+              body={t('components.dashboardpanel.no_connected_clients_yet_body')}
+            />
+          ) : (
+            <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              {notifications.map((n) => {
+                const { title: displayTitle, body: displayBody } = translateNotification(n.title, n.body);
+                const styles = getTypeStyles(n.type);
+                const Icon = styles.icon;
 
-            {notificationsLoading ? (
-              <div className="space-y-2.5">
-                {[1, 2, 3].map((idx) => (
-                  <Skeleton key={idx} className="h-14 w-full bg-black/5 dark:bg-white/5" />
-                ))}
-              </div>
-            ) : notifications.length === 0 ? (
-              <EmptyPanel
-                title={t('components.dashboardpanel.no_rows_yet')}
-                body={t('components.dashboardpanel.no_connected_clients_yet_body')}
-              />
-            ) : (
-              <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
-                {notifications.slice(0, 8).map((n) => {
-                  const styles = getTypeStyles(n.type);
-                  const Icon = styles.icon;
-                  const { title: displayTitle, body: displayBody } = translateNotification(n.title, n.body);
-
-                  return (
-                    <button
-                      key={n.id}
-                      onClick={() => handleNotificationClick(n)}
-                      className={`w-full flex items-center gap-3 p-3.5 text-left transition-all border rounded-xl cursor-pointer ${
-                        !n.read
-                          ? 'bg-primary/[0.03] border-primary/30 hover:bg-primary/[0.06] active:scale-[0.99]'
-                          : 'border-border/50 bg-accent/10 hover:bg-accent/20 active:scale-[0.99]'
-                      }`}
-                    >
-                      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border ${styles.bg}`}>
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className={`portal-card-heading truncate ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
-                            {displayTitle}
-                          </p>
-                          {!n.read && (
-                            <span className="shrink-0 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
-                          )}
-                        </div>
-                        {displayBody && (
-                          <p className="portal-meta mt-0.5 line-clamp-1 text-muted-foreground/80">
-                            {displayBody}
-                          </p>
-                        )}
-                        <p className="portal-label mt-1 text-muted-foreground/50">
-                          {formatPortalDate(n.created_at, locale, {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`w-full flex items-center gap-3 p-3.5 text-left transition-all border rounded-xl cursor-pointer ${
+                      !n.read
+                        ? 'bg-primary/[0.03] border-primary/30 hover:bg-primary/[0.06] active:scale-[0.99]'
+                        : 'border-border/50 bg-accent/10 hover:bg-accent/20 active:scale-[0.99]'
+                    }`}
+                  >
+                    <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border ${styles.bg}`}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`portal-card-heading truncate ${!n.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {displayTitle}
                         </p>
+                        {!n.read && (
+                          <span className="shrink-0 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
+                        )}
                       </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                      {displayBody && (
+                        <p className="portal-meta mt-0.5 line-clamp-1 text-muted-foreground/80">
+                          {displayBody}
+                        </p>
+                      )}
+                      <p className="portal-label mt-1 text-muted-foreground/50">
+                        {formatPortalDate(n.created_at, locale, {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
     </div>

@@ -471,6 +471,15 @@ class _FakeMonetizationService extends Fake implements MonetizationService {
   AiTrialState? trialState;
 
   @override
+  AiTrialState? get cachedTrialState => trialState ?? const AiTrialState(
+    isPremium: false,
+    used: 0,
+    limit: 5,
+    fullLimit: 5,
+    aiMealsSaved: 0,
+  );
+
+  @override
   Future<AiTrialState> getAiTrialState() async {
     return trialState ?? const AiTrialState(
       isPremium: false,

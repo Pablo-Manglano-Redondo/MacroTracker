@@ -135,7 +135,13 @@ class _MealInterpretationReviewScreenState
                   children: [
                     const Icon(Icons.bookmark_add_outlined, size: 20),
                     const SizedBox(width: 12),
-                    Text(S.of(context).aiSaveAsRecipe),
+                    Expanded(
+                      child: Text(
+                        S.of(context).aiSaveAsRecipe,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1041,6 +1047,7 @@ class _MealInterpretationReviewScreenState
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<RecipeSaveCategoryEntity>(
+                    isExpanded: true,
                     initialValue: saveCategory,
                     decoration: InputDecoration(
                       labelText: S.of(context).recipeQuickCategoryLabel,
@@ -1820,7 +1827,7 @@ class _IngredientRow extends StatelessWidget {
             ),
             // Kcal Column (Left-aligned, fixed width)
             SizedBox(
-              width: 60,
+              width: 90,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.start,
