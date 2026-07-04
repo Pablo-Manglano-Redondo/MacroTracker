@@ -1601,6 +1601,12 @@
       "missingPriceConfiguration": "Falta el precio de Stripe para el plan {tier} con facturación {billingInterval}",
       "missingProfessionalProfile": "Primero debes crear el perfil profesional"
     },
+    "stripeProPortal": {
+      "missingSecretKey": "Falta configurar STRIPE_SECRET_KEY en el entorno",
+      "missingProfessionalProfile": "El perfil profesional debe crearse primero",
+      "missingStripeCustomer": "Cliente de Stripe no encontrado para este perfil",
+      "portalSessionCreationFailed": "Error al crear la sesión del portal de Stripe: {details}"
+    },
     "stripeProWebhook": {
       "missingConfiguration": "Falta la configuración del webhook de Stripe",
       "missingSignature": "Falta la firma de Stripe",
@@ -1734,6 +1740,8 @@
         "create_the_professional_profile_before_opening_stripe_checkout": "Crea primero el perfil profesional para abrir el pago de Stripe.",
         "stripe_checkout_failed": "El pago de Stripe ha fallado.",
         "checkout_unavailable": "Pago no disponible",
+        "failed_to_open_portal": "Error al abrir el portal de facturación",
+        "manage_invoices_and_billing": "Gestionar facturas y pagos",
         "billing": "Facturación",
         "access_tier_and_capacity": "Acceso, plan y capacidad.",
         "the_portal_separates_access_status_commercial_tier_and_billing_interval_": "El portal separa estado de acceso, plan comercial e intervalo de cobro. Un plan da capacidad operativa; no cambia el contrato de privacidad con clientes.",
@@ -2485,6 +2493,7 @@
       },
       "profilepanel": {
         "cancel": "Cancelar",
+        "features_included": "Funciones incluidas",
         "edit_photo": "Editar foto",
         "zoom": "Zoom",
         "rotate": "Rotar",
@@ -2528,6 +2537,8 @@
         "connected_clients": "Clientes conectados",
         "remaining_slots": "Plazas disponibles",
         "manage_subscription": "Gestionar suscripción",
+        "failed_to_open_portal": "Error al abrir el portal de facturación",
+        "redirecting": "Redirigiendo...",
         "practitioner_credentials": "Credenciales del profesional",
         "verification_status": "Estado de verificación",
         "basic_practitioner": "Profesional Básico",
@@ -2705,6 +2716,10 @@
           "create_your_professional_profile_before_opening_stripe_checkout": "Crea tu perfil profesional antes de abrir el pago de Stripe.",
           "stripe_checkout_failed": "El pago de Stripe ha fallado.",
           "stripe_checkout_did_not_return_a_valid_url": "El pago de Stripe no devolvió una URL válida."
+        },
+        "usestripeportal": {
+          "failed_to_open_billing_portal": "Error al abrir el portal de facturación",
+          "stripe_portal_did_not_return_a_valid_url": "El portal de Stripe no devolvió una URL válida."
         }
       }
     }

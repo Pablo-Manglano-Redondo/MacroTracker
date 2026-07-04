@@ -1601,6 +1601,12 @@
       "missingPriceConfiguration": "Missing Stripe price for tier {tier} with {billingInterval} billing",
       "missingProfessionalProfile": "Professional profile must be created first"
     },
+    "stripeProPortal": {
+      "missingSecretKey": "Missing STRIPE_SECRET_KEY in environment",
+      "missingProfessionalProfile": "Professional profile must be created first",
+      "missingStripeCustomer": "Stripe customer not found for this profile",
+      "portalSessionCreationFailed": "Stripe portal session creation failed: {details}"
+    },
     "stripeProWebhook": {
       "missingConfiguration": "Missing Stripe webhook configuration",
       "missingSignature": "Missing Stripe signature",
@@ -1734,6 +1740,8 @@
         "create_the_professional_profile_before_opening_stripe_checkout": "Create the professional profile before opening Stripe checkout.",
         "stripe_checkout_failed": "Stripe checkout failed.",
         "checkout_unavailable": "Checkout unavailable",
+        "failed_to_open_portal": "Failed to open billing portal",
+        "manage_invoices_and_billing": "Manage invoices & billing",
         "billing": "Billing",
         "access_tier_and_capacity": "Access, tier, and capacity.",
         "the_portal_separates_access_status_commercial_tier_and_billing_interval_": "The portal separates access status, commercial tier, and billing interval. A plan unlocks operational capacity; it does not change the privacy contract with clients.",
@@ -2485,6 +2493,7 @@
       },
       "profilepanel": {
         "cancel": "Cancel",
+        "features_included": "Features included",
         "edit_photo": "Edit photo",
         "zoom": "Zoom",
         "rotate": "Rotate",
@@ -2528,6 +2537,8 @@
         "connected_clients": "Connected clients",
         "remaining_slots": "Remaining slots",
         "manage_subscription": "Manage subscription",
+        "failed_to_open_portal": "Failed to open billing portal",
+        "redirecting": "Redirecting...",
         "practitioner_credentials": "Practitioner credentials",
         "verification_status": "Verification status",
         "basic_practitioner": "Basic Practitioner",
@@ -2705,6 +2716,10 @@
           "create_your_professional_profile_before_opening_stripe_checkout": "Create your professional profile before opening Stripe checkout.",
           "stripe_checkout_failed": "Stripe checkout failed.",
           "stripe_checkout_did_not_return_a_valid_url": "Stripe checkout did not return a valid URL."
+        },
+        "usestripeportal": {
+          "failed_to_open_billing_portal": "Failed to open billing portal",
+          "stripe_portal_did_not_return_a_valid_url": "Stripe portal did not return a valid URL."
         }
       }
     }

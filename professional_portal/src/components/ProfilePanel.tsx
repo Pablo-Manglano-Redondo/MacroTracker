@@ -8,10 +8,12 @@ import {
   Camera,
   Trash2,
   Loader2,
+  BadgeCheck,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
 import { profileSchema, type ProfileFormData } from '../lib/validation/schemas';
 import { useUpdateProfile } from '../hooks/mutations/useUpdateProfile';
+import { useStripePortal } from '../hooks/mutations/useStripePortal';
 import { formatPortalDate } from '../lib/date';
 import { toast } from '../lib/toast';
 import { usePortalI18n } from '../lib/portal-i18n';
@@ -19,11 +21,31 @@ import { supabase } from '../lib/supabase';
 import { useClients } from '../hooks/queries/useClients';
 import { getBillingSummary } from '../view-models/professional';
 import { ImageCropperModal } from './ImageCropperModal';
+import type { PortalTranslationKey } from '../lib/generated/i18n';
+
+const TIER_FEATURES: Record<string, PortalTranslationKey[]> = {
+  starter: [
+    'components.billingpanel.up_to_10_active_client_relationships',
+    'components.billingpanel.plans_notes_check_ins_and_aggregate_snapshots',
+    'components.billingpanel.detailed_diary_only_when_the_client_grants_explicit_consent',
+  ],
+  growth: [
+    'components.billingpanel.up_to_50_active_client_relationships',
+    'components.billingpanel.the_same_operational_surfaces_as_starter',
+    'components.billingpanel.more_capacity_for_plan_publishing_and_invite_operations',
+  ],
+  studio: [
+    'components.billingpanel.up_to_500_active_client_relationships',
+    'components.billingpanel.the_same_data_contract_and_privacy_model',
+    'components.billingpanel.built_for_higher_volume_invite_only_operations',
+  ],
+};
 
 export const ProfilePanel: React.FC = () => {
   const { user, professional, refreshProfile } = useAuth();
   const { t, locale } = usePortalI18n();
   const updateProfile = useUpdateProfile();
+  const stripePortal = useStripePortal();
 
   const { data: clients = [] } = useClients(professional?.id);
   const connectedClients = useMemo(
@@ -428,16 +450,49 @@ export const ProfilePanel: React.FC = () => {
                     </p>
                   </div>
                 </div>
+
+                <div className="pt-5 border-t border-border/40 space-y-3.5">
+                  <p className="portal-kpi-label text-muted-foreground/80 font-semibold tracking-wider">
+                    {t('components.profilepanel.features_included')}
+                  </p>
+                  <ul className="space-y-3">
+                    {TIER_FEATURES[billingSummary.tier]?.map((featureKey) => (
+                      <li key={featureKey} className="portal-body flex items-start gap-2.5 text-muted-foreground text-sm leading-normal">
+                        <BadgeCheck className="mt-0.5 h-4.5 w-4.5 shrink-0 text-primary" />
+                        <span>{t(featureKey)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => {
-                  window.location.hash = 'billing-panel';
+                disabled={stripePortal.isPending}
+                onClick={async () => {
+                  if (professional?.stripe_customer_id) {
+                    try {
+                      const url = await stripePortal.mutateAsync({
+                        origin: window.location.origin + window.location.pathname,
+                      });
+                      window.location.href = url;
+                    } catch (err: any) {
+                      toast.error(err.message || t('components.profilepanel.failed_to_open_portal'));
+                    }
+                  } else {
+                    window.location.hash = 'billing-panel';
+                  }
                 }}
-                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 portal-action text-primary transition-colors hover:bg-primary/20 cursor-pointer"
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-4 py-3.5 portal-action text-primary transition-colors hover:bg-primary/20 cursor-pointer disabled:opacity-50"
               >
-                {t('components.profilepanel.manage_subscription')}
+                {stripePortal.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t('components.profilepanel.redirecting')}
+                  </>
+                ) : (
+                  t('components.profilepanel.manage_subscription')
+                )}
               </button>
             </div>
           </div>

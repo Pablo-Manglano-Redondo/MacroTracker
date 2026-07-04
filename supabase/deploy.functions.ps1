@@ -57,6 +57,7 @@ $functions = @(
     "meal-interpretations-photo",
     "delete-current-account",
     "stripe-pro-checkout",
+    "stripe-pro-portal",
     "stripe-pro-webhook"
 )
 

@@ -9,6 +9,7 @@ export interface Professional {
   client_limit: number | null;
   avatar_url?: string | null;
   verification_status?: 'basic' | 'verified' | 'rejected';
+  stripe_customer_id?: string | null;
 }
 
 export interface ClientInvite {

@@ -5,6 +5,7 @@ import type { PortalTranslationKey } from '../lib/generated/i18n';
 import { usePortalI18n } from '../lib/portal-i18n';
 import { toast } from '../lib/toast';
 import { useStripeCheckout } from '../hooks/mutations/useStripeCheckout';
+import { useStripePortal } from '../hooks/mutations/useStripePortal';
 import { useClients } from '../hooks/queries/useClients';
 import { getBillingSummary, getBillingTierLabelKey } from '../view-models/professional';
 
@@ -55,6 +56,7 @@ export const BillingPanel: React.FC = () => {
   const { professional } = useAuth();
   const { t } = usePortalI18n();
   const checkoutMutation = useStripeCheckout();
+  const stripePortal = useStripePortal();
   const { data: clients = [] } = useClients(professional?.id);
   const connectedClients = useMemo(
     () => clients.filter((client) => client.status === 'connected').length,
@@ -151,6 +153,21 @@ export const BillingPanel: React.FC = () => {
     );
   };
 
+  const handleOpenPortal = async () => {
+    if (!professional) return;
+    try {
+      setLoadingTier('portal');
+      const url = await stripePortal.mutateAsync({
+        origin: window.location.origin + window.location.pathname,
+      });
+      window.location.href = url;
+    } catch (err: any) {
+      toast.error(err.message || t('components.billingpanel.failed_to_open_portal'));
+    } finally {
+      setLoadingTier(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -177,11 +194,21 @@ export const BillingPanel: React.FC = () => {
             ))}
           </div>
           <button
-            onClick={() => handleCheckout(billingSummary.tier)}
-            disabled={!professional || checkoutMutation.isPending}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50 shadow-sm"
+            onClick={() => {
+              if (
+                professional?.stripe_customer_id &&
+                (billingSummary.primaryAction === 'manage_plan' ||
+                  billingSummary.primaryAction === 'resolve_payment')
+              ) {
+                handleOpenPortal();
+              } else {
+                handleCheckout(billingSummary.tier);
+              }
+            }}
+            disabled={!professional || checkoutMutation.isPending || stripePortal.isPending}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 portal-action text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50 shadow-sm cursor-pointer"
           >
-            {checkoutMutation.isPending ? (
+            {checkoutMutation.isPending || stripePortal.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {t('components.billingpanel.redirecting')}
@@ -213,6 +240,22 @@ export const BillingPanel: React.FC = () => {
             <h3 className="portal-section-heading">{statusTitle}</h3>
             <p className="portal-body max-w-2xl">{statusBody}</p>
           </div>
+          {professional?.stripe_customer_id && (
+            <button
+              onClick={handleOpenPortal}
+              disabled={checkoutMutation.isPending || stripePortal.isPending}
+              className="mt-4 lg:mt-0 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary/10 border border-primary/20 px-5 portal-action text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-sm"
+            >
+              {stripePortal.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t('components.billingpanel.redirecting')}
+                </>
+              ) : (
+                t('components.billingpanel.manage_invoices_and_billing')
+              )}
+            </button>
+          )}
         </div>
       </div>
 

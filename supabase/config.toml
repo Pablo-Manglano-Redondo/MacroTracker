@@ -30,3 +30,6 @@ verify_jwt = true
 
 [functions.delete-current-account]
 verify_jwt = true
+
+[functions.stripe-pro-portal]
+verify_jwt = true
