@@ -395,18 +395,30 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                       <span className="portal-card-heading">
                         {t('components.clientdetail.planbuilder.daily_distribution')}
                       </span>
-                      <span className="portal-card-heading">
+                      <span className={`portal-card-heading ${mealTotals.kcal > kcal ? 'text-rose-500 font-bold' : ''}`}>
                         {mealTotals.kcal} / {kcal} {t('common.kcal_unit')}
                       </span>
                     </div>
                     <div className="portal-meta mt-2 flex gap-4">
-                      <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
-                      <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
-                      <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
+                      <span className={mealTotals.protein > protein ? 'text-rose-500 font-bold' : 'text-primary'}>
+                        {t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}
+                      </span>
+                      <span className={mealTotals.carbs > carbs ? 'text-rose-500 font-bold' : 'text-sky-500 dark:text-sky-300'}>
+                        {t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}
+                      </span>
+                      <span className={mealTotals.fat > fat ? 'text-rose-500 font-bold' : 'text-amber-500 dark:text-amber-300'}>
+                        {t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}
+                      </span>
                     </div>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
                       <div
-                        className="h-full rounded-full bg-primary transition-all duration-500"
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          mealTotals.kcal > kcal
+                            ? 'bg-rose-500'
+                            : Math.abs(mealTotals.kcal - kcal) <= 5
+                              ? 'bg-emerald-500 dark:bg-emerald-400'
+                              : 'bg-primary'
+                        }`}
                         style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }}
                       />
                     </div>
@@ -597,16 +609,16 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
             ) : null}
           </div>
 
-          <div className="mb-4 grid grid-cols-5 gap-1 rounded-xl border border-border bg-background p-1">
+          <div className="mb-4 flex flex-wrap gap-1.5">
             {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const).map((category) => (
               <button
                 key={category}
                 type="button"
                 onClick={() => setActiveCategory(category)}
-                className={`rounded-lg px-1 py-1.5 portal-action transition-colors ${
+                className={`rounded-lg px-2.5 py-1.5 portal-action transition-colors border text-[10px] ${
                   activeCategory === category
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-background text-muted-foreground border-border/80 hover:text-foreground hover:bg-accent'
                 }`}
               >
                 {category === 'all' ? t('components.clientdetail.planbuilder.all') : mealSlotLabel(category)}
@@ -710,7 +722,7 @@ const MacroStepper: React.FC<{
           type="number"
           value={value}
           onChange={(event) => setValue(Math.max(1, Number(event.target.value)))}
-          className="portal-metric w-full bg-transparent text-center outline-none"
+          className="flex-1 min-w-0 bg-transparent text-center text-xl font-extrabold outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
         <button
           onClick={() => setValue((prev) => prev + step)}

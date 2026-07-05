@@ -298,15 +298,32 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ client, planId, onBack }
               <div className="rounded-xl border border-border bg-background/60 p-4">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <span className="portal-card-heading">{t('components.clientdetail.planeditor.daily_distribution')}</span>
-                  <span className="portal-card-heading">{mealTotals.kcal} / {kcal} {t('common.kcal_unit')}</span>
+                  <span className={`portal-card-heading ${mealTotals.kcal > kcal ? 'text-rose-500 font-bold' : ''}`}>
+                    {mealTotals.kcal} / {kcal} {t('common.kcal_unit')}
+                  </span>
                 </div>
                 <div className="portal-meta mt-2 flex gap-4">
-                  <span className="text-primary">{t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}</span>
-                  <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}</span>
-                  <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}</span>
+                  <span className={mealTotals.protein > protein ? 'text-rose-500 font-bold' : 'text-primary'}>
+                    {t('common.protein_short')}: {mealTotals.protein}/{protein}{t('common.grams_unit')}
+                  </span>
+                  <span className={mealTotals.carbs > carbs ? 'text-rose-500 font-bold' : 'text-sky-500 dark:text-sky-300'}>
+                    {t('common.carbs_short')}: {mealTotals.carbs}/{carbs}{t('common.grams_unit')}
+                  </span>
+                  <span className={mealTotals.fat > fat ? 'text-rose-500 font-bold' : 'text-amber-500 dark:text-amber-300'}>
+                    {t('common.fat_short')}: {mealTotals.fat}/{fat}{t('common.grams_unit')}
+                  </span>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-background">
-                  <div className="h-full rounded-full bg-primary transition-all duration-500" style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }} />
+                  <div
+                    className={`h-full rounded-full transition-all duration-500 ${
+                      mealTotals.kcal > kcal
+                        ? 'bg-rose-500'
+                        : Math.abs(mealTotals.kcal - kcal) <= 5
+                          ? 'bg-emerald-500 dark:bg-emerald-400'
+                          : 'bg-primary'
+                    }`}
+                    style={{ width: `${Math.min(100, (mealTotals.kcal / Math.max(1, kcal)) * 100)}%` }}
+                  />
                 </div>
               </div>
 
@@ -462,7 +479,7 @@ const MacroStepper: React.FC<{
           onChange();
         }}
         disabled={disabled}
-        className="portal-metric w-full bg-transparent text-center outline-none disabled:opacity-50"
+        className="flex-1 min-w-0 bg-transparent text-center text-xl font-extrabold outline-none focus:ring-0 disabled:opacity-50 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
       <button
         onClick={() => {

@@ -448,7 +448,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
         {detailTab === 'plans' && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <div className="lg:col-span-7">
+            <div className={planView === 'list' ? 'lg:col-span-7' : 'lg:col-span-12'}>
               {planView === 'list' && (
                 <PlanList
                   client={client}
@@ -474,9 +474,11 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 />
               )}
             </div>
-            <div className="lg:col-span-5">
-              <SnapshotsPanel client={client} />
-            </div>
+            {planView === 'list' && (
+              <div className="lg:col-span-5">
+                <SnapshotsPanel client={client} />
+              </div>
+            )}
           </div>
         )}
 

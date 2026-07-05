@@ -9,6 +9,10 @@ import {
   Plus,
   Square,
   Trash2,
+  Coffee,
+  Utensils,
+  Apple,
+  Moon,
 } from 'lucide-react';
 import { useAuth } from '../../lib/auth-context';
 import { usePlans, usePlan } from '../../hooks/queries/usePlans';
@@ -201,51 +205,107 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
               ))}
             </div>
           ) : activeDay ? (
-            <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
-              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40">
-                <span className="portal-kpi-label">{t('common.kcal')}</span>
-                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="portal-meta text-muted-foreground">{t('common.kcal_unit')}</span></p>
-              </div>
-              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-primary">
-                <span className="portal-kpi-label text-primary">{t('components.clientdetail.snapshotspanel.protein')}</span>
-                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.protein_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
-              </div>
-              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-sky-500">
-                <span className="portal-kpi-label text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
-                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
-              </div>
-              <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-amber-500">
-                <span className="portal-kpi-label text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
-                <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.fat_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
-              </div>
-            </div>
+            (() => {
+              const pCal = activeDay.protein_goal * 4;
+              const cCal = activeDay.carbs_goal * 4;
+              const fCal = activeDay.fat_goal * 9;
+              const totalCal = pCal + cCal + fCal;
+              const pPct = totalCal > 0 ? Math.round((pCal / totalCal) * 100) : 0;
+              const cPct = totalCal > 0 ? Math.round((cCal / totalCal) * 100) : 0;
+              const fPct = totalCal > 0 ? Math.round((fCal / totalCal) * 100) : 0;
+
+              return (
+                <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-primary/70 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
+                    <span className="portal-kpi-label">{t('common.kcal')}</span>
+                    <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="portal-meta text-muted-foreground">{t('common.kcal_unit')}</span></p>
+                  </div>
+                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-emerald-500 dark:border-l-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
+                    <div className="flex items-center justify-between">
+                      <span className="portal-kpi-label text-emerald-600 dark:text-emerald-400">{t('components.clientdetail.snapshotspanel.protein')}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground bg-emerald-500/10 px-1.5 py-0.5 rounded-md">({pPct}%)</span>
+                    </div>
+                    <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.protein_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
+                  </div>
+                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-sky-500 shadow-[0_0_15px_-3px_rgba(14,165,233,0.05)]">
+                    <div className="flex items-center justify-between">
+                      <span className="portal-kpi-label text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground bg-sky-500/10 px-1.5 py-0.5 rounded-md">({cPct}%)</span>
+                    </div>
+                    <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
+                  </div>
+                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-amber-500 shadow-[0_0_15px_-3px_rgba(245,158,11,0.05)]">
+                    <div className="flex items-center justify-between">
+                      <span className="portal-kpi-label text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground bg-amber-500/10 px-1.5 py-0.5 rounded-md">({fPct}%)</span>
+                    </div>
+                    <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.fat_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
+                  </div>
+                </div>
+              );
+            })()
           ) : null}
 
-          {/* Meals List */}
+          {/* Meals List - Timeline Layout */}
           {activePlanDetails?.meals && activePlanDetails.meals.length > 0 && (
-            <div className="mt-6 border-t border-border pt-6">
-              <span className="portal-label">
+            <div className="mt-6 border-t border-border/80 pt-6">
+              <span className="portal-label block mb-4">
                 {t('components.clientdetail.planlist.planned_meals')}
               </span>
-              <div className="grid gap-3.5 mt-3.5 sm:grid-cols-2">
-                {activePlanDetails.meals.map((meal) => (
-                  <div key={meal.id} className="portal-panel rounded-2xl p-4.5 bg-background/30 flex items-start justify-between gap-3 border border-border/40">
-                    <div className="min-w-0">
-                      <span className="portal-label text-muted-foreground/80">
-                        {getMealLabel(meal.slot)}
+              <div className="relative pl-6 border-l-2 border-border/60 ml-3.5 space-y-6 my-2">
+                {activePlanDetails.meals.map((meal) => {
+                  const slotLower = `${meal.slot ?? ''}`.toLowerCase();
+                  let MealIcon = FileText;
+                  if (slotLower.includes('breakfast') || slotLower.includes('desayuno')) {
+                    MealIcon = Coffee;
+                  } else if (slotLower.includes('lunch') || slotLower.includes('comida') || slotLower.includes('almuerzo')) {
+                    MealIcon = Utensils;
+                  } else if (slotLower.includes('snack') || slotLower.includes('merienda')) {
+                    MealIcon = Apple;
+                  } else if (slotLower.includes('dinner') || slotLower.includes('cena')) {
+                    MealIcon = Moon;
+                  }
+
+                  return (
+                    <div key={meal.id} className="relative group">
+                      {/* Timeline Node */}
+                      <span className="absolute -left-[35px] top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-border bg-card text-muted-foreground group-hover:border-primary group-hover:text-primary transition-all duration-200 shadow-sm">
+                        <MealIcon className="h-3.5 w-3.5" />
                       </span>
-                      <p className="portal-card-heading truncate mt-1">
-                        {getMealLabel(meal.title)}
-                      </p>
-                      {meal.notes && <p className="portal-meta truncate mt-0.5">{meal.notes}</p>}
+
+                      <div className="portal-panel rounded-2xl p-4.5 bg-background/25 hover:bg-background/45 flex items-start justify-between gap-4 border border-border/40 transition-all duration-200">
+                        <div className="min-w-0">
+                          <span className="portal-label text-primary font-bold">
+                            {getMealLabel(meal.slot)}
+                          </span>
+                          <h5 className="portal-card-heading truncate mt-1 text-base font-extrabold text-foreground">
+                            {getMealLabel(meal.title)}
+                          </h5>
+                          {meal.notes && (
+                            <p className="portal-meta mt-1.5 text-muted-foreground/80 leading-relaxed max-w-lg">
+                              {meal.notes}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          {meal.kcal && (
+                            <span className="portal-meta bg-primary/10 text-primary px-3 py-1 rounded-xl font-extrabold">
+                              {Math.round(meal.kcal)} kcal
+                            </span>
+                          )}
+                          {(meal.protein || meal.carbs || meal.fat) && (
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/70 bg-secondary/50 px-2 py-0.5 rounded-lg border border-border/40">
+                              {meal.protein ? <span>{Math.round(meal.protein)}P</span> : null}
+                              {meal.carbs ? <span>{Math.round(meal.carbs)}C</span> : null}
+                              {meal.fat ? <span>{Math.round(meal.fat)}F</span> : null}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    {meal.kcal && (
-                      <span className="portal-meta bg-secondary/80 px-2.5 py-1 rounded-xl shrink-0">
-                        {Math.round(meal.kcal)} kcal
-                      </span>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -274,87 +334,103 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
       )}
 
       {/* History and Other Plans (Drafts & Inactive Plans) */}
-      <div className="portal-panel rounded-[1.8rem]">
-        <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
-          <div>
-            <h3 className="portal-card-heading uppercase tracking-[0.1em]">
-              {t('components.clientdetail.planlist.history_and_drafts')}
-            </h3>
-            <p className="portal-meta mt-0.5">
-              {t('components.clientdetail.planlist.non_archived', { activeplans_length: otherActivePlans.length })}
-            </p>
+      {otherActivePlans.length === 0 ? (
+        <div className="border border-border/40 bg-secondary/15 rounded-2xl p-4.5 flex items-center justify-between text-muted-foreground/80">
+          <div className="flex items-center gap-2.5">
+            <Archive className="h-4 w-4 text-muted-foreground/60" />
+            <span className="portal-meta text-xs">
+              {t('components.clientdetail.planlist.no_drafts_or_previous_plans')}
+            </span>
           </div>
-
-          <div className="flex items-center gap-2">
-            {selectMode ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-9 rounded-xl portal-meta"
-                  onClick={() => {
-                    setSelectMode(false);
-                    setSelectedPlans(new Set());
-                  }}
-                >
-                  {t('components.clientdetail.planlist.cancel')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="h-9 rounded-xl portal-meta"
-                  disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
-                  onClick={handleBatchArchive}
-                >
-                  {batchArchivePlans.isPending ? (
-                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Archive className="mr-1.5 h-3.5 w-3.5" />
-                  )}
-                  {t('components.clientdetail.planlist.archive')} ({selectedPlans.size})
-                </Button>
-              </>
-            ) : (
-              <>
-                {otherActivePlans.length > 0 && (
-                  <button
-                    className="rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                    onClick={() => setSelectMode(true)}
-                    disabled={!canManagePlans}
-                    title={t('components.clientdetail.planlist.select_plans')}
-                  >
-                    <CheckSquare className="h-4 w-4" />
-                  </button>
-                )}
-                {(!activePlan || otherActivePlans.length > 0) && (
-                  <Button
-                    onClick={onNewPlan}
-                    size="sm"
-                    disabled={!canManagePlans}
-                    className="h-9 rounded-xl bg-primary portal-meta text-primary-foreground"
-                  >
-                    <Plus className="mr-1.5 h-3.5 w-3.5" />
-                    {t('components.clientdetail.planlist.new')}
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+          {canManagePlans && (
+            <Button
+              onClick={onNewPlan}
+              size="sm"
+              variant="secondary"
+              className="h-8 rounded-xl px-4 text-xs font-semibold"
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              {t('components.clientdetail.planlist.new')}
+            </Button>
+          )}
         </div>
+      ) : (
+        <div className="portal-panel rounded-[1.8rem]">
+          <div className="flex items-center justify-between border-b border-border px-6 py-4.5">
+            <div>
+              <h3 className="portal-card-heading uppercase tracking-[0.1em]">
+                {t('components.clientdetail.planlist.history_and_drafts')}
+              </h3>
+              <p className="portal-meta mt-0.5">
+                {t('components.clientdetail.planlist.non_archived', { activeplans_length: otherActivePlans.length })}
+              </p>
+            </div>
 
-        {!canManagePlans && !activePlan && (
-          <div className="portal-body mx-6 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">
-            {client.status !== 'connected'
-              ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
-              : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
+            <div className="flex items-center gap-2">
+              {selectMode ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-9 rounded-xl portal-meta"
+                    onClick={() => {
+                      setSelectMode(false);
+                      setSelectedPlans(new Set());
+                    }}
+                  >
+                    {t('components.clientdetail.planlist.cancel')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-9 rounded-xl portal-meta"
+                    disabled={selectedPlans.size === 0 || batchArchivePlans.isPending}
+                    onClick={handleBatchArchive}
+                  >
+                    {batchArchivePlans.isPending ? (
+                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Archive className="mr-1.5 h-3.5 w-3.5" />
+                    )}
+                    {t('components.clientdetail.planlist.archive')} ({selectedPlans.size})
+                  </Button>
+                </>
+              ) : (
+                <>
+                  {otherActivePlans.length > 0 && (
+                    <button
+                      className="rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      onClick={() => setSelectMode(true)}
+                      disabled={!canManagePlans}
+                      title={t('components.clientdetail.planlist.select_plans')}
+                    >
+                      <CheckSquare className="h-4 w-4" />
+                    </button>
+                  )}
+                  {(!activePlan || otherActivePlans.length > 0) && (
+                    <Button
+                      onClick={onNewPlan}
+                      size="sm"
+                      disabled={!canManagePlans}
+                      className="h-9 rounded-xl bg-primary portal-meta text-primary-foreground"
+                    >
+                      <Plus className="mr-1.5 h-3.5 w-3.5" />
+                      {t('components.clientdetail.planlist.new')}
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        )}
 
-        {otherActivePlans.length === 0 ? (
-          <div className="portal-body px-6 py-10 text-center text-muted-foreground">
-            {t('components.clientdetail.planlist.no_drafts_or_previous_plans')}
-          </div>
-        ) : (
+          {!canManagePlans && !activePlan && (
+            <div className="portal-body mx-6 mt-4 rounded-xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">
+              {client.status !== 'connected'
+                ? t('components.clientdetail.planlist.plan_actions_are_disabled_because_this_relationship_is', { status_tolowercase: getRelationshipStatusLabel(client.status, t).toLowerCase() })
+                : t('components.clientdetail.planlist.plan_actions_are_disabled_until_professional_access_returns_to_active_or')}
+            </div>
+          )}
+
           <div className="p-3">
             {selectMode && otherActivePlans.length > 0 && (
               <div className="mb-1 flex items-center gap-2 px-3 py-2">
@@ -476,9 +552,8 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
               )}
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}</div>
   );
 };
 

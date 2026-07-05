@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Check, FileText, Pencil, Pin, Plus, Trash2, X } from 'lucide-react';
+import { Check, FileText, Pencil, Pin, Plus, Trash2, X, Activity, TrendingUp, CreditCard, ClipboardList, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ClientNote, ProfessionalClient } from '../../types/database.types';
 import { useClientNotes } from '../../hooks/queries/useClientNotes';
@@ -13,6 +13,23 @@ import { ConfirmDialog } from '../ui/confirm-dialog';
 import { usePortalI18n } from '../../lib/portal-i18n';
 
 const CATEGORIES = ['general', 'assessment', 'medical', 'progress', 'billing', 'other'] as const;
+
+const categoryIcon = (value: string) => {
+  switch (value) {
+    case 'medical':
+      return <Activity className="h-4 w-4" />;
+    case 'progress':
+      return <TrendingUp className="h-4 w-4" />;
+    case 'billing':
+      return <CreditCard className="h-4 w-4" />;
+    case 'assessment':
+      return <ClipboardList className="h-4 w-4" />;
+    case 'general':
+      return <FileText className="h-4 w-4" />;
+    default:
+      return <Layers className="h-4 w-4" />;
+  }
+};
 
 export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }) => {
   const { t, locale } = usePortalI18n();
@@ -30,11 +47,20 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
   const [editBody, setEditBody] = useState('');
   const [editCategory, setEditCategory] = useState<string>('general');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [filter, setFilter] = useState<string>('all');
 
-  const sortedNotes = useMemo(
-    () => [...(notes || [])].sort((a, b) => Number(b.pinned) - Number(a.pinned)),
-    [notes],
-  );
+  const filteredNotes = useMemo(() => {
+    let list = notes || [];
+    if (filter !== 'all') {
+      list = list.filter((note) => note.category === filter);
+    }
+    return [...list].sort((a, b) => {
+      if (Number(b.pinned) !== Number(a.pinned)) {
+        return Number(b.pinned) - Number(a.pinned);
+      }
+      return b.created_at.localeCompare(a.created_at);
+    });
+  }, [notes, filter]);
 
   const startEdit = (note: ClientNote) => {
     setEditingId(note.id);
@@ -64,6 +90,22 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
       toast.success(t('components.clientdetail.clientnotes.note_created'));
     } catch {
       toast.error(t('components.clientdetail.clientnotes.failed_to_create_note'));
+    }
+  };
+
+  const handleTogglePin = async (note: ClientNote) => {
+    try {
+      await updateNote.mutateAsync({
+        id: note.id,
+        updates: { pinned: !note.pinned },
+      });
+      toast.success(
+        note.pinned
+          ? (locale?.toLowerCase().startsWith('es') ? 'Nota desfijada' : 'Note unpinned')
+          : (locale?.toLowerCase().startsWith('es') ? 'Nota fijada' : 'Note pinned')
+      );
+    } catch {
+      toast.error(t('components.clientdetail.clientnotes.failed_to_update'));
     }
   };
 
@@ -141,6 +183,39 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
         </div>
       )}
 
+      {/* Category Filters */}
+      {notes && notes.length > 0 && (
+        <div className="flex flex-wrap gap-2 pb-1 border-b border-border/40">
+          <button
+            onClick={() => setFilter('all')}
+            className={`portal-action rounded-full px-3 py-1.5 text-xs font-extrabold transition-all border ${
+              filter === 'all'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card text-muted-foreground border-border hover:bg-accent'
+            }`}
+          >
+            {locale?.toLowerCase().startsWith('es') ? 'Todas' : 'All'}
+          </button>
+          {CATEGORIES.map((cat) => {
+            const count = (notes || []).filter((n) => n.category === cat).length;
+            if (count === 0) return null;
+            return (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`portal-action rounded-full px-3 py-1.5 text-xs font-extrabold transition-all border ${
+                  filter === cat
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-card text-muted-foreground border-border hover:bg-accent'
+                }`}
+              >
+                {categoryLabel(cat)} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {error ? (
         <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
           {t('components.clientdetail.clientnotes.notes_could_not_be_loaded_yet_this_tab_should_remain_explicit_until_real')}
@@ -151,26 +226,32 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
             <div key={index} className="portal-panel h-24 rounded-[1.4rem] animate-pulse" />
           ))}
         </div>
-      ) : !sortedNotes.length ? (
+      ) : !filteredNotes.length ? (
         <div className="portal-panel portal-body rounded-[1.4rem] p-8 text-center text-muted-foreground">
-          {t('components.clientdetail.clientnotes.no_notes_exist_for_this_client_yet')}
+          {filter !== 'all'
+            ? (locale?.toLowerCase().startsWith('es') ? 'No hay notas en esta categoría.' : 'No notes in this category.')
+            : t('components.clientdetail.clientnotes.no_notes_exist_for_this_client_yet')}
         </div>
       ) : (
         <div className="space-y-3">
-          {sortedNotes.map((note) => {
+          {filteredNotes.map((note) => {
             const categoryTone = {
-              assessment: 'text-sky-600 dark:text-sky-300 bg-sky-500/10',
-              medical: 'text-rose-600 dark:text-rose-300 bg-rose-500/10',
-              progress: 'text-emerald-600 dark:text-emerald-300 bg-emerald-500/10',
-              billing: 'text-amber-600 dark:text-amber-300 bg-amber-500/10',
-              general: 'text-muted-foreground bg-background',
-              other: 'text-violet-600 dark:text-violet-300 bg-violet-500/10',
+              assessment: 'text-sky-600 dark:text-sky-300 bg-sky-500/10 border-sky-500/20',
+              medical: 'text-rose-600 dark:text-rose-300 bg-rose-500/10 border-rose-500/20',
+              progress: 'text-emerald-600 dark:text-emerald-300 bg-emerald-500/10 border-emerald-500/20',
+              billing: 'text-amber-600 dark:text-amber-300 bg-amber-500/10 border-amber-500/20',
+              general: 'text-muted-foreground bg-accent/40 border-border/40',
+              other: 'text-violet-600 dark:text-violet-300 bg-violet-500/10 border-violet-500/20',
             }[note.category || 'general'];
 
             return (
               <div
                 key={note.id}
-                className={`portal-panel rounded-[1.4rem] p-4 ${note.pinned ? 'border-l-4 border-l-primary' : ''}`}
+                className={`portal-panel rounded-[1.4rem] p-4 transition-all duration-200 border border-border/60 ${
+                  note.pinned
+                    ? 'border-l-4 border-l-primary bg-primary/[0.015] shadow-[0_0_15px_-3px_rgba(47,125,104,0.03)]'
+                    : ''
+                }`}
               >
                 {editingId === note.id ? (
                   <div className="space-y-3">
@@ -230,44 +311,64 @@ export const ClientNotes: React.FC<{ client: ProfessionalClient }> = ({ client }
                     </div>
                   </div>
                 ) : (
-                  <>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          {note.pinned ? <Pin className="h-3.5 w-3.5 rotate-45 fill-primary/20 text-primary" /> : null}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex gap-3 min-w-0 flex-1">
+                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${categoryTone}`}>
+                        {categoryIcon(note.category || 'general')}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="portal-card-heading truncate">{note.title}</span>
-                          <span className={`portal-pill rounded-full px-2 py-0.5 ${categoryTone}`}>
+                          <span className={`portal-pill rounded-full px-2 py-0.5 text-[10px] ${categoryTone}`}>
                             {categoryLabel(note.category || 'general')}
                           </span>
                         </div>
-                        <p className="portal-body mt-3 whitespace-pre-wrap">
+                        <p className="portal-body mt-2.5 whitespace-pre-wrap leading-relaxed text-foreground/90">
                           {note.body}
                         </p>
-                        <p className="portal-meta mt-3">
-                          {t('components.clientdetail.clientnotes.created')}{' '}
-                          {formatPortalDate(note.created_at, locale, {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                        <p className="portal-meta mt-3.5 flex items-center gap-1.5 text-[10px] text-muted-foreground/80">
+                          {note.pinned && <Pin className="h-3.5 w-3.5 rotate-45 fill-primary text-primary shrink-0" />}
+                          <span>
+                            {t('components.clientdetail.clientnotes.created')}{' '}
+                            {formatPortalDate(note.created_at, locale, {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                            })}
+                          </span>
                         </p>
                       </div>
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => startEdit(note)}
-                          className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(note.id)}
-                          className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
                     </div>
-                  </>
+
+                    <div className="flex items-center gap-0.5">
+                      <button
+                        onClick={() => handleTogglePin(note)}
+                        className={`rounded-xl p-2 transition-colors ${
+                          note.pinned
+                            ? 'text-primary bg-primary/10 hover:bg-primary/20'
+                            : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                        }`}
+                        title={note.pinned ? (locale?.toLowerCase().startsWith('es') ? 'Desfijar' : 'Unpin') : (locale?.toLowerCase().startsWith('es') ? 'Fijar' : 'Pin')}
+                      >
+                        <Pin className={`h-4 w-4 transition-transform ${note.pinned ? 'rotate-45 fill-primary text-primary' : 'text-muted-foreground hover:text-primary'}`} />
+                      </button>
+                      <button
+                        onClick={() => startEdit(note)}
+                        className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                        title={locale?.toLowerCase().startsWith('es') ? 'Editar' : 'Edit'}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(note.id)}
+                        className="rounded-xl p-2 text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-500"
+                        title={locale?.toLowerCase().startsWith('es') ? 'Eliminar' : 'Delete'}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             );
