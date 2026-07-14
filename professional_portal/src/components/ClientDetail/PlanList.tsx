@@ -199,7 +199,7 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
           </div>
 
           {activePlanDetailsLoading ? (
-            <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
+            <div className="grid gap-4 mt-6 grid-cols-[repeat(auto-fit,minmax(140px,1fr))] w-full">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="portal-panel h-24 rounded-2xl animate-pulse bg-black/5 dark:bg-white/5" />
               ))}
@@ -215,27 +215,27 @@ export const PlanList: React.FC<PlanListProps> = ({ client, onNewPlan, onEditPla
               const fPct = totalCal > 0 ? Math.round((fCal / totalCal) * 100) : 0;
 
               return (
-                <div className="grid grid-cols-2 gap-4 mt-6 md:grid-cols-4">
-                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-primary/70 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
+                <div className="grid gap-4 mt-6 grid-cols-[repeat(auto-fit,minmax(140px,1fr))] w-full">
+                  <div className="portal-panel rounded-2xl p-4 shadow-sm bg-card/40 border-l-4 border-l-primary/70 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
                     <span className="portal-kpi-label">{t('common.kcal')}</span>
                     <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.kcal_goal)} <span className="portal-meta text-muted-foreground">{t('common.kcal_unit')}</span></p>
                   </div>
-                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-emerald-500 dark:border-l-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
-                    <div className="flex items-center justify-between">
+                  <div className="portal-panel rounded-2xl p-4 shadow-sm bg-card/40 border-l-4 border-l-emerald-500 dark:border-l-emerald-400 shadow-[0_0_15px_-3px_rgba(16,185,129,0.05)]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="portal-kpi-label text-emerald-600 dark:text-emerald-400">{t('components.clientdetail.snapshotspanel.protein')}</span>
                       <span className="text-[10px] font-bold text-muted-foreground bg-emerald-500/10 px-1.5 py-0.5 rounded-md">({pPct}%)</span>
                     </div>
                     <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.protein_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
                   </div>
-                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-sky-500 shadow-[0_0_15px_-3px_rgba(14,165,233,0.05)]">
-                    <div className="flex items-center justify-between">
+                  <div className="portal-panel rounded-2xl p-4 shadow-sm bg-card/40 border-l-4 border-l-sky-500 shadow-[0_0_15px_-3px_rgba(14,165,233,0.05)]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="portal-kpi-label text-sky-500">{t('components.clientdetail.snapshotspanel.carbs')}</span>
                       <span className="text-[10px] font-bold text-muted-foreground bg-sky-500/10 px-1.5 py-0.5 rounded-md">({cPct}%)</span>
                     </div>
                     <p className="portal-kpi-value mt-1.5">{Math.round(activeDay.carbs_goal)} <span className="portal-meta text-muted-foreground">g</span></p>
                   </div>
-                  <div className="portal-panel rounded-2xl p-5 shadow-sm bg-card/40 border-l-4 border-l-amber-500 shadow-[0_0_15px_-3px_rgba(245,158,11,0.05)]">
-                    <div className="flex items-center justify-between">
+                  <div className="portal-panel rounded-2xl p-4 shadow-sm bg-card/40 border-l-4 border-l-amber-500 shadow-[0_0_15px_-3px_rgba(245,158,11,0.05)]">
+                    <div className="flex flex-wrap items-center justify-between gap-1">
                       <span className="portal-kpi-label text-amber-500">{t('components.clientdetail.snapshotspanel.fat')}</span>
                       <span className="text-[10px] font-bold text-muted-foreground bg-amber-500/10 px-1.5 py-0.5 rounded-md">({fPct}%)</span>
                     </div>

@@ -117,6 +117,19 @@ class ProfessionalPlanDataSource {
         : Map<String, dynamic>.from(response as Map);
 
     final plan = await fetchActivePlan(row['client_id']?.toString() ?? '');
+    String? avatarUrl;
+    try {
+      final profId = row['professional_id']?.toString();
+      if (profId != null && profId.isNotEmpty) {
+        final profRes = await _supabaseClient
+            .from('professionals')
+            .select('avatar_url')
+            .eq('id', profId)
+            .maybeSingle();
+        avatarUrl = profRes?['avatar_url']?.toString();
+      }
+    } catch (_) {}
+
     final now = DateTime.now();
     final connection = ProfessionalConnectionEntity(
       relationshipId: row['relationship_id']?.toString() ?? '',
@@ -137,6 +150,7 @@ class ProfessionalPlanDataSource {
           row['status']?.toString() ??
           'active',
       activePlan: plan,
+      professionalAvatarUrl: avatarUrl,
     );
     await saveActiveConnection(connection);
     return connection;
@@ -462,6 +476,16 @@ class ProfessionalPlanDataSource {
     await _box.put(_lastSeenMessagesCountKey, messages.unreadCount);
   }
 
+  Future<bool> isPlanUnseen({
+    required ProfessionalConnectionEntity connection,
+  }) async {
+    final currentPlanSignature = _planSignature(connection.activePlan);
+    final lastSeenPlanSignature =
+        _box.get(_lastSeenPlanSignatureKey) as String?;
+    return currentPlanSignature != null &&
+        currentPlanSignature != lastSeenPlanSignature;
+  }
+
   Future<ProfessionalMessageThreadEntity> getMessages({
     required ProfessionalConnectionEntity connection,
   }) async {
@@ -725,7 +749,7 @@ class ProfessionalPlanDataSource {
     final response = await _supabaseClient
         .from('professional_clients')
         .select(
-          'id, professional_id, client_id, status, connected_at, consent_accepted_at, sharing_mode, messages_enabled, professionals(display_name, business_name)',
+          'id, professional_id, client_id, status, connected_at, consent_accepted_at, sharing_mode, messages_enabled, professionals(display_name, business_name, avatar_url)',
         )
         .eq('id', connection.relationshipId)
         .eq('client_id', connection.clientId)
@@ -754,8 +778,8 @@ class ProfessionalPlanDataSource {
       professionalName: businessName?.isNotEmpty == true
           ? businessName!
           : (displayName?.isNotEmpty == true
-              ? displayName!
-              : connection.professionalName),
+               ? displayName!
+               : connection.professionalName),
       connectedAt:
           DateTime.tryParse(row['connected_at']?.toString() ?? '') ??
               connection.connectedAt,
@@ -770,6 +794,7 @@ class ProfessionalPlanDataSource {
           row['messages_enabled'] as bool? ?? connection.messagesEnabled,
       connectionStatus: row['status']?.toString() ?? connection.connectionStatus,
       activePlan: connection.activePlan,
+      professionalAvatarUrl: professionalMap['avatar_url']?.toString(),
     );
   }
 
@@ -809,7 +834,7 @@ class ProfessionalPlanDataSource {
       final response = await _supabaseClient
           .from(_messageTable)
           .select(
-            'id, author_role, body, created_at, client_read_at',
+            'id, author_role, body, created_at, client_read_at, professional_read_at',
           )
           .eq('professional_client_id', relationshipId)
           .order('created_at', ascending: false);
@@ -978,12 +1003,16 @@ class ProfessionalPlanDataSource {
     final isRead =
         row['client_read_at'] != null || authorRole.toLowerCase() == 'client';
 
+    final profReadStr = row['professional_read_at']?.toString();
+    final professionalReadAt = profReadStr != null ? DateTime.tryParse(profReadStr) : null;
+
     return ProfessionalMessageEntity(
       id: id,
       authorRole: authorRole,
       body: body.trim(),
       createdAt: createdAt,
       isRead: isRead,
+      professionalReadAt: professionalReadAt,
     );
   }
 

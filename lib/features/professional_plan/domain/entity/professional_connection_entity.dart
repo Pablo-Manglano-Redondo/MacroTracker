@@ -15,6 +15,7 @@ class ProfessionalConnectionEntity extends Equatable {
   final bool messagesEnabled;
   final String connectionStatus;
   final NutritionPlanEntity? activePlan;
+  final String? professionalAvatarUrl;
 
   const ProfessionalConnectionEntity({
     required this.relationshipId,
@@ -30,6 +31,7 @@ class ProfessionalConnectionEntity extends Equatable {
     required this.messagesEnabled,
     required this.connectionStatus,
     required this.activePlan,
+    this.professionalAvatarUrl,
   });
 
   Map<String, dynamic> toJson() => {
@@ -46,6 +48,7 @@ class ProfessionalConnectionEntity extends Equatable {
         'messages_enabled': messagesEnabled,
         'connection_status': connectionStatus,
         'active_plan': activePlan?.toJson(),
+        'professional_avatar_url': professionalAvatarUrl,
       };
 
   factory ProfessionalConnectionEntity.fromJson(Map<String, dynamic> json) {
@@ -71,6 +74,7 @@ class ProfessionalConnectionEntity extends Equatable {
       activePlan: plan is Map
           ? NutritionPlanEntity.fromJson(Map<String, dynamic>.from(plan))
           : null,
+      professionalAvatarUrl: json['professional_avatar_url']?.toString(),
     );
   }
 
@@ -82,6 +86,7 @@ class ProfessionalConnectionEntity extends Equatable {
     bool? messagesEnabled,
     String? connectionStatus,
     NutritionPlanEntity? activePlan,
+    String? professionalAvatarUrl,
   }) {
     return ProfessionalConnectionEntity(
       relationshipId: relationshipId,
@@ -97,6 +102,8 @@ class ProfessionalConnectionEntity extends Equatable {
       messagesEnabled: messagesEnabled ?? this.messagesEnabled,
       connectionStatus: connectionStatus ?? this.connectionStatus,
       activePlan: activePlan ?? this.activePlan,
+      professionalAvatarUrl:
+          professionalAvatarUrl ?? this.professionalAvatarUrl,
     );
   }
 
@@ -120,6 +127,7 @@ class ProfessionalConnectionEntity extends Equatable {
         messagesEnabled,
         connectionStatus,
         activePlan,
+        professionalAvatarUrl,
       ];
 }
 

@@ -175,7 +175,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
   ];
 
   return (
-    <section className="space-y-6 animate-fade-in-up" id="client-detail-section">
+    <section className="space-y-6 animate-fade-in-up w-full" id="client-detail-section">
       <div className="portal-hero rounded-[1.8rem] p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-5">
@@ -237,7 +237,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-6">
+        <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-5">
           {/* Adherencia semanal */}
           <div className="portal-panel flex flex-col rounded-2xl p-6 shadow-sm">
             <p className="min-h-[2.5rem] portal-label">
@@ -363,7 +363,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+      <div className="flex flex-wrap gap-2.5">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -375,14 +375,14 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 setPlanView('list');
               }
             }}
-            className={`flex w-full items-center justify-center gap-2.5 rounded-xl px-4 py-3.5 portal-action transition-all ${
+            className={`flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 portal-action transition-all ${
               detailTab === tab.id
                 ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
                 : 'portal-chip hover:bg-accent hover:text-foreground'
             }`}
           >
             {tab.icon}
-            <span className="truncate">{tab.label}</span>
+            <span className="font-medium">{tab.label}</span>
             {tab.badge ? (
               <span className="shrink-0 rounded-full bg-rose-500 px-2.5 py-1 portal-pill text-white">
                 {tab.badge}

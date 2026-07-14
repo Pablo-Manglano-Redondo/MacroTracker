@@ -70,10 +70,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
     _authSubscription =
-        locator<SupabaseClient>().auth.onAuthStateChange.listen((_) {
-      _loadCloudAccountStatus();
-      _refreshPlanStatus();
-    });
+        locator<SupabaseClient>().auth.onAuthStateChange.listen(
+      (_) {
+        _loadCloudAccountStatus();
+        _refreshPlanStatus();
+      },
+      onError: (error) {
+        if (!mounted) return;
+        _loadCloudAccountStatus();
+        _refreshPlanStatus();
+        final isConflict = error is AuthException &&
+            (error.statusCode == 'email_exists' ||
+                error.message.toLowerCase().contains('already') ||
+                error.toString().contains('email_exists'));
+        if (isConflict) {
+          _showSignInDialog(context);
+        } else {
+          final message =
+              error is AuthException ? error.message : error.toString();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      },
+    );
     if (_supportsHealthIntegration) {
       _healthConnectStatusFuture = _settingsBloc.getHealthConnectStatus();
     }
@@ -1565,6 +1588,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Text(S.of(context).paywallGoogleLinkStartFailed),
         ),
       );
+    }
+  }
+
+  Future<void> _showSignInDialog(BuildContext context) async {
+    final copy = S.of(context);
+    final title = copy.settingsAccountAlreadyRegisteredTitle;
+    final content = copy.settingsAccountAlreadyRegisteredBody;
+    final cancelLabel = copy.dialogCancelLabel;
+    final confirmLabel = copy.settingsAccountAlreadyRegisteredConfirm;
+
+    final bool? shouldSignIn = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(cancelLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSignIn == true && mounted) {
+      try {
+        final opened = await locator<CloudAccountService>().signInWithGoogle();
+        if (!mounted) return;
+        if (!opened) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(S.of(context).paywallGoogleOpenFailed),
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).paywallGoogleLinkStartFailed),
+          ),
+        );
+      }
     }
   }
 

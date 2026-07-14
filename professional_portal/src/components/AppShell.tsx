@@ -215,19 +215,19 @@ export const AppShell: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-background animate-fade-in">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="portal-meta text-muted-foreground animate-pulse">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background animate-fade-in">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <span className="text-lg font-semibold text-foreground animate-pulse">
           {t('components.appshell.loading_professional_portal')}
         </span>
         {showSlowLoadWarning && (
-          <div className="mt-4 flex flex-col items-center gap-2.5 max-w-sm text-center px-4 animate-fade-in-up">
-            <p className="text-xs text-muted-foreground/80 leading-normal">
+          <div className="mt-4 flex flex-col items-center gap-3 max-w-md text-center px-6 animate-fade-in-up">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {t('components.appshell.slow_load_warning')}
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="text-xs font-bold text-primary hover:underline cursor-pointer"
+              className="text-sm font-bold text-primary hover:underline cursor-pointer"
             >
               {t('components.appshell.slow_load_reload_button')}
             </button>
@@ -610,7 +610,7 @@ export const AppShell: React.FC = () => {
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto px-4 py-5 md:px-8 md:py-8">
+          <div className="flex-1 min-w-0 overflow-y-auto px-4 py-5 md:px-8 md:py-8">
             <div className="mx-auto max-w-[1800px] space-y-6 animate-fade-in-up">
               {practiceBlocked && (
                 <div className="portal-body rounded-2xl border border-amber-500/25 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-100">

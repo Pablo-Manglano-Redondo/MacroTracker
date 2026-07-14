@@ -137,9 +137,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m49(amount) => "${amount}g left";
 
-  static String m50(count) => "${count} meals";
+  static String m50(count) =>
+      "${Intl.plural(count, one: '1 meal', other: '${count} meals')}";
 
-  static String m51(count) => "${count} sessions";
+  static String m51(count) =>
+      "${Intl.plural(count, one: '1 session', other: '${count} sessions')}";
 
   static String m52(recipe, slot) => "${recipe} added to ${slot}";
 
@@ -2299,6 +2301,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalSharingModeSessionError": MessageLookupByLibrary.simpleMessage(
             "Your cloud session is no longer valid for changing this permission. Sign in again and try once more."),
         "professionalSharingPendingSnapshots": m73,
+        "professionalStatusActive":
+            MessageLookupByLibrary.simpleMessage("Active"),
         "professionalStatusConnected":
             MessageLookupByLibrary.simpleMessage("Connected"),
         "professionalStatusInviteOnly":
@@ -2696,6 +2700,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Project"),
         "settingsAboutProjectValue": MessageLookupByLibrary.simpleMessage(
             "Calorie, macro, habit, activity, and local/Drive backup tracking."),
+        "settingsAccountAlreadyRegisteredBody":
+            MessageLookupByLibrary.simpleMessage(
+                "This Google account is already linked to another user. Do you want to sign in with it on this device to recover your professional plan and cloud status?"),
+        "settingsAccountAlreadyRegisteredConfirm":
+            MessageLookupByLibrary.simpleMessage("Sign in"),
+        "settingsAccountAlreadyRegisteredTitle":
+            MessageLookupByLibrary.simpleMessage("Account Already Registered"),
         "settingsAccountBackupsSection":
             MessageLookupByLibrary.simpleMessage("Account and backups"),
         "settingsAccountDeletedMessage": MessageLookupByLibrary.simpleMessage(

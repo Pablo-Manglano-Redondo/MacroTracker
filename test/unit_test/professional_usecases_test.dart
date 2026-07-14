@@ -446,6 +446,11 @@ class _FakeProfessionalPlanRepository extends Fake
         messagesEnabled: false,
         messages: [],
       );
+
+  @override
+  Future<bool> isPlanUnseen({
+    required ProfessionalConnectionEntity connection,
+  }) async => false;
 }
 
 class _FakeGetTrackedDayUsecase extends Fake implements GetTrackedDayUsecase {

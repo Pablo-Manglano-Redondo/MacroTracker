@@ -280,7 +280,8 @@ class _MainScreenState extends State<MainScreen> {
   List<Widget> _buildBodyPages() {
     return [
       const HomeScreen(),
-      if (_hasProfessionalTab) const ProfessionalPlanScreen(),
+      if (_hasProfessionalTab)
+        const ProfessionalPlanScreen(isEmbedded: true),
       const DiaryScreen(),
       const ProfileScreen(),
     ];

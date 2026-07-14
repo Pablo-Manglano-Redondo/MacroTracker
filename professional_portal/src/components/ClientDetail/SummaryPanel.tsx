@@ -415,8 +415,9 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
   }, [checkinRequests, checkins, client, locale, messages, progressMetrics.change7d, t]);
 
   return (
-    <div className="grid items-stretch gap-6 animate-fade-in-up xl:grid-cols-12">
-      <div className="flex md:col-span-6 xl:col-span-4">
+    <>
+      <div className="grid items-stretch gap-6 animate-fade-in-up grid-cols-[repeat(auto-fit,minmax(280px,1fr))] w-full">
+      <div className="flex">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <h3 className="portal-section-heading">
@@ -471,7 +472,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex md:col-span-6 xl:col-span-4">
+      <div className="flex">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-6">
           <div>
             <h3 className="portal-section-heading">
@@ -559,7 +560,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex md:col-span-12 xl:col-span-4">
+      <div className="flex">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <h3 className="portal-section-heading">
@@ -599,8 +600,10 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
           </div>
         </div>
       </div>
+    </div>
 
-      <div className="flex md:col-span-12 xl:col-span-8">
+    <div className="grid gap-6 grid-cols-1 lg:grid-cols-12 w-full mt-6">
+        <div className="flex lg:col-span-8">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <div className="flex items-center justify-between">
@@ -675,7 +678,7 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex md:col-span-12 xl:col-span-4">
+      <div className="flex lg:col-span-4">
         <div className="portal-panel flex w-full flex-col justify-between rounded-[1.8rem] p-8">
           <div>
             <div className="flex items-center justify-between">
@@ -735,5 +738,6 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
         </div>
       </div>
     </div>
-  );
+  </>
+);
 };

@@ -89,6 +89,19 @@ String privacyLabel(BuildContext context, String key) {
   }
 }
 
+String connectionStatusLabel(BuildContext context, String status) {
+  switch (status.toLowerCase()) {
+    case 'connected':
+      return S.of(context).professionalStatusConnected;
+    case 'active':
+      return S.of(context).professionalStatusActive;
+    case 'invite_only':
+      return S.of(context).professionalStatusInviteOnly;
+    default:
+      return status;
+  }
+}
+
 class Panel extends StatelessWidget {
   final Widget child;
   final Color? accent;

@@ -246,8 +246,8 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
         </section>
       )}
 
-      <section className="grid gap-6 lg:grid-cols-4 xl:grid-cols-5">
-        <div className="portal-panel rounded-[1.6rem] p-5 lg:col-span-1 lg:self-start xl:col-span-1">
+      <section className="grid gap-6 grid-cols-1 lg:grid-cols-[280px_1fr] w-full">
+        <div className="portal-panel rounded-[1.6rem] p-5 lg:self-start">
           <div className="flex flex-col gap-3 border-b border-border pb-4">
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -434,7 +434,7 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
           )}
         </div>
 
-        <div className="lg:col-span-3 xl:col-span-4" id="client-detail-section">
+        <div id="client-detail-section" className="min-w-0 w-full">
           {selectedClient ? (
             <ClientDetail
               client={selectedClient}

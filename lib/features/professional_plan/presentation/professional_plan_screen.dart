@@ -26,7 +26,12 @@ import 'package:macrotracker/features/professional_plan/presentation/widgets/con
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfessionalPlanScreen extends StatefulWidget {
-  const ProfessionalPlanScreen({super.key});
+  final bool isEmbedded;
+
+  const ProfessionalPlanScreen({
+    super.key,
+    this.isEmbedded = false,
+  });
 
   @override
   State<ProfessionalPlanScreen> createState() => _ProfessionalPlanScreenState();
@@ -74,6 +79,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   StreamSubscription<AuthState>? _authSubscription;
   String? _error;
   ProfessionalHubTab _selectedTab = ProfessionalHubTab.summary;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
@@ -92,10 +98,32 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     _markProfessionalSectionSeenUsecase =
         locator<MarkProfessionalSectionSeenUsecase>();
     _authSubscription =
-        locator<SupabaseClient>().auth.onAuthStateChange.listen((_) {
-      unawaited(_resumePendingInviteAfterAuth());
-    });
+        locator<SupabaseClient>().auth.onAuthStateChange.listen(
+      (_) {
+        unawaited(_resumePendingInviteAfterAuth());
+      },
+      onError: (error) {
+        debugPrint('Auth error in professional plan screen: $error');
+        if (!mounted) return;
+        final isConflict = error is AuthException &&
+            (error.statusCode == 'email_exists' ||
+                error.message.toLowerCase().contains('already') ||
+                error.toString().contains('email_exists'));
+        if (isConflict) {
+          _showSignInDialog(context);
+        }
+      },
+    );
     _loadSection(refreshRemotePlan: true);
+    _autoRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      if (mounted && _connection != null) {
+        _loadSection(
+          refreshRemotePlan: true,
+          preserveSelectedTab: true,
+          isBackground: true,
+        );
+      }
+    });
   }
 
   @override
@@ -124,6 +152,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
 
   @override
   void dispose() {
+    _autoRefreshTimer?.cancel();
     _authSubscription?.cancel();
     _codeController.dispose();
     super.dispose();
@@ -134,9 +163,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     final hasInviteConsentPreview =
         _invitePreview != null && !_invitePreview!.isExpired;
     return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).professionalScreenTitle),
-      ),
+      appBar: widget.isEmbedded
+          ? null
+          : AppBar(
+              title: Text(S.of(context).professionalScreenTitle),
+            ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : RefreshIndicator(
@@ -195,6 +226,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                       sendingMessage: _sendingMessage,
                       onUpdateSharingMode: _updateSharingMode,
                       onUpdateDailyNote: _updateDailyNote,
+                      onDismissPlanUpdate: _dismissPlanUpdate,
                     )
                   else
                     _InfoCard(
@@ -212,11 +244,14 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   Future<void> _loadSection({
     bool refreshRemotePlan = false,
     bool preserveSelectedTab = false,
+    bool isBackground = false,
   }) async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (!isBackground) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final summary = await _getProfessionalSectionSummaryUsecase.execute(
         refreshRemotePlan: refreshRemotePlan,
@@ -240,9 +275,11 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       final messages = await _getProfessionalMessagesUsecase.execute(
         connection: summary.connection,
       );
-      await _markProfessionalSectionSeenUsecase.execute(
-        connection: summary.connection,
-      );
+      if (!isBackground) {
+        await _markProfessionalSectionSeenUsecase.execute(
+          connection: summary.connection,
+        );
+      }
       if (!mounted) return;
       setState(() {
         _connection = summary.connection;
@@ -258,12 +295,26 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _error = friendlyError(context, error);
-        _loading = false;
-        _protectingAccount = false;
-        _acceptingInvite = false;
-      });
+      if (!isBackground) {
+        setState(() {
+          _error = friendlyError(context, error);
+          _loading = false;
+          _protectingAccount = false;
+          _acceptingInvite = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _dismissPlanUpdate() async {
+    if (_connection == null) return;
+    try {
+      await _markProfessionalSectionSeenUsecase.execute(
+        connection: _connection!,
+      );
+      await _loadSection(preserveSelectedTab: true, isBackground: true);
+    } catch (error) {
+      debugPrint('Error dismissing plan update: $error');
     }
   }
 
@@ -403,6 +454,53 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _protectingAccount = false);
+    }
+  }
+
+  Future<void> _showSignInDialog(BuildContext context) async {
+    final copy = S.of(context);
+    final title = copy.settingsAccountAlreadyRegisteredTitle;
+    final content = copy.settingsAccountAlreadyRegisteredBody;
+    final cancelLabel = copy.dialogCancelLabel;
+    final confirmLabel = copy.settingsAccountAlreadyRegisteredConfirm;
+
+    final bool? shouldSignIn = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(cancelLabel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(confirmLabel),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldSignIn == true && mounted) {
+      try {
+        final opened = await locator<CloudAccountService>().signInWithGoogle();
+        if (!mounted) return;
+        if (!opened) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(S.of(context).paywallGoogleOpenFailed),
+            ),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(S.of(context).paywallGoogleLinkStartFailed),
+          ),
+        );
+      }
     }
   }
 

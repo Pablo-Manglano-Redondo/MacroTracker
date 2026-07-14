@@ -138,6 +138,7 @@ import 'package:macrotracker/features/suggestions/domain/usecase/generate_macro_
 import 'package:macrotracker/features/weekly_insights/domain/usecase/build_weekly_insights_usecase.dart';
 import 'package:macrotracker/features/weekly_insights/domain/usecase/apply_weekly_kcal_adjustment_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:logging/logging.dart';
 
 final locator = GetIt.instance;
 
@@ -528,6 +529,14 @@ Future<void> initializeCloudIntegrations() async {
   await Supabase.initialize(
     url: Env.supabaseProjectUrl,
     anonKey: Env.supabaseProjectAnonKey,
+  );
+
+  // Global handler for Supabase auth stream errors to prevent unhandled exceptions from crashing the app
+  Supabase.instance.client.auth.onAuthStateChange.listen(
+    (data) {},
+    onError: (error, stackTrace) {
+      Logger('SupabaseAuth').severe('Global auth stream error', error, stackTrace);
+    },
   );
 
   await locator<SubscriptionService>().initialize();

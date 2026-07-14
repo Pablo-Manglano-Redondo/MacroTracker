@@ -61,6 +61,7 @@ class ProfessionalMessageEntity extends Equatable {
   final String body;
   final DateTime createdAt;
   final bool isRead;
+  final DateTime? professionalReadAt;
 
   const ProfessionalMessageEntity({
     required this.id,
@@ -68,20 +69,22 @@ class ProfessionalMessageEntity extends Equatable {
     required this.body,
     required this.createdAt,
     required this.isRead,
+    this.professionalReadAt,
   });
 
-  ProfessionalMessageEntity copyWith({bool? isRead}) {
+  ProfessionalMessageEntity copyWith({bool? isRead, DateTime? professionalReadAt}) {
     return ProfessionalMessageEntity(
       id: id,
       authorRole: authorRole,
       body: body,
       createdAt: createdAt,
       isRead: isRead ?? this.isRead,
+      professionalReadAt: professionalReadAt ?? this.professionalReadAt,
     );
   }
 
   @override
-  List<Object?> get props => [id, authorRole, body, createdAt, isRead];
+  List<Object?> get props => [id, authorRole, body, createdAt, isRead, professionalReadAt];
 }
 
 class ProfessionalMessageThreadEntity extends Equatable {

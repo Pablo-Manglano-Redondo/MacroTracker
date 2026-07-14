@@ -224,7 +224,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({
               {t('components.clientdetail.clientprofile.summary_metrics_are_not_available_yet_for_this_client_the_profile_still_')}
             </div>
           ) : (
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full">
               <MetricBox
                 label={t('components.clientdetail.clientprofile.latest_weight')}
                 value={latestWeight}
@@ -271,7 +271,7 @@ export const ClientProfile: React.FC<ClientProfileProps> = ({
               <TrendingUp className="h-4.5 w-4.5 text-primary" />
               <h3 className="portal-card-heading">{t('components.clientdetail.clientprofile.latest_adherence')}</h3>
             </div>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] w-full">
               {[
                 {
                   key: 'kcal',

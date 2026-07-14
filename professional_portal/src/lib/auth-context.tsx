@@ -67,10 +67,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let active = true;
+    let isRetrying = false;
 
     const initialize = async () => {
+      if (isRetrying) return;
+      isRetrying = true;
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth request timeout')), 2500)
+        );
+
+        const sessionPromise = supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
         if (!active) return;
 
         setSession(session);
@@ -78,19 +86,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUserIdRef.current = session?.user?.id ?? null;
 
         if (session?.user) {
-          await loadProfile(session.user.id);
+          const profilePromise = loadProfile(session.user.id);
+          await Promise.race([profilePromise, timeoutPromise]);
         }
-      } catch (err) {
-        console.error('Initialization error:', err);
-      } finally {
+
         if (active) {
           initializedRef.current = true;
           setLoading(false);
         }
+      } catch (err) {
+        console.warn('Auth initialization attempt failed, will retry:', err);
+      } finally {
+        isRetrying = false;
       }
     };
 
     initialize();
+
+    const retryInterval = setInterval(() => {
+      if (active && !initializedRef.current) {
+        initialize();
+      } else {
+        clearInterval(retryInterval);
+      }
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
       if (!active) return;
@@ -107,7 +126,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(true);
         }
 
-        await loadProfile(nextUserId);
+        try {
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Profile request timeout')), 2500)
+          );
+          const profilePromise = loadProfile(nextUserId);
+          await Promise.race([profilePromise, timeoutPromise]);
+        } catch (err) {
+          console.warn('Profile load failed or timed out:', err);
+        }
+
         if (!active) return;
 
         currentUserIdRef.current = nextUserId;
@@ -126,6 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       active = false;
+      clearInterval(retryInterval);
       subscription.unsubscribe();
     };
   }, []);

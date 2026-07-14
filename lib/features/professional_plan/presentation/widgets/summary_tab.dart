@@ -101,7 +101,7 @@ class _SummaryTabState extends State<SummaryTab> {
                   ),
                   (
                     S.of(context).professionalSummaryConnectionStatus,
-                    syncStatus.connectionStatus,
+                    connectionStatusLabel(context, syncStatus.connectionStatus),
                   ),
                 ],
               ),

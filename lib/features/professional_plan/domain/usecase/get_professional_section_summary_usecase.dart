@@ -65,12 +65,7 @@ class GetProfessionalSectionSummaryUsecase {
     final messages = await _repository.getMessages(connection: connection);
     final pendingRecipeProposalCount =
         await _repository.getPendingRecipeProposalCount(connection: connection);
-    final currentPlanSignature = connection.activePlan?.cacheSignature;
-    final hasUnseenPlanUpdate = currentPlanSignature != null &&
-        connection.lastPlanSyncAt != null &&
-        connection.lastPlanSyncAt!.isAfter(
-          now.subtract(const Duration(minutes: 10)),
-        );
+    final hasUnseenPlanUpdate = await _repository.isPlanUnseen(connection: connection);
     return ProfessionalSectionSummaryEntity(
       connection: connection.copyWith(
         pendingSyncCount: pendingSyncCount,

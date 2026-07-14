@@ -5225,10 +5225,12 @@ class S {
     );
   }
 
-  /// `{count} meals`
-  String homeDashboardMealsChip(Object count) {
-    return Intl.message(
-      '$count meals',
+  /// `{count, plural, =1{1 meal} other{{count} meals}}`
+  String homeDashboardMealsChip(num count) {
+    return Intl.plural(
+      count,
+      one: '1 meal',
+      other: '$count meals',
       name: 'homeDashboardMealsChip',
       desc: '',
       args: [count],
@@ -5265,10 +5267,12 @@ class S {
     );
   }
 
-  /// `{count} sessions`
-  String homeDashboardSessionsChip(Object count) {
-    return Intl.message(
-      '$count sessions',
+  /// `{count, plural, =1{1 session} other{{count} sessions}}`
+  String homeDashboardSessionsChip(num count) {
+    return Intl.plural(
+      count,
+      one: '1 session',
+      other: '$count sessions',
       name: 'homeDashboardSessionsChip',
       desc: '',
       args: [count],
@@ -11546,6 +11550,16 @@ class S {
     );
   }
 
+  /// `Active`
+  String get professionalStatusActive {
+    return Intl.message(
+      'Active',
+      name: 'professionalStatusActive',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Connected`
   String get professionalStatusConnected {
     return Intl.message(
@@ -13761,6 +13775,36 @@ class S {
     return Intl.message(
       'Calorie, macro, habit, activity, and local/Drive backup tracking.',
       name: 'settingsAboutProjectValue',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This Google account is already linked to another user. Do you want to sign in with it on this device to recover your professional plan and cloud status?`
+  String get settingsAccountAlreadyRegisteredBody {
+    return Intl.message(
+      'This Google account is already linked to another user. Do you want to sign in with it on this device to recover your professional plan and cloud status?',
+      name: 'settingsAccountAlreadyRegisteredBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sign in`
+  String get settingsAccountAlreadyRegisteredConfirm {
+    return Intl.message(
+      'Sign in',
+      name: 'settingsAccountAlreadyRegisteredConfirm',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Account Already Registered`
+  String get settingsAccountAlreadyRegisteredTitle {
+    return Intl.message(
+      'Account Already Registered',
+      name: 'settingsAccountAlreadyRegisteredTitle',
       desc: '',
       args: [],
     );

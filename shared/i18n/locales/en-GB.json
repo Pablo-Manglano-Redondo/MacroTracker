@@ -691,9 +691,9 @@
     "homeDashboardEmpty": "Log a meal or workout to unlock better guidance.",
     "homeDashboardGoalLabel": "Goal",
     "homeDashboardFocusLabel": "Focus",
-    "homeDashboardMealsChip": "{count} meals",
+    "homeDashboardMealsChip": "{count, plural, =1{1 meal} other{{count} meals}}",
     "homeDashboardBurnedChip": "{count} burned",
-    "homeDashboardSessionsChip": "{count} sessions",
+    "homeDashboardSessionsChip": "{count, plural, =1{1 session} other{{count} sessions}}",
     "homeDashboardProteinRemaining": "Protein left",
     "homeDashboardKcalRemaining": "Kcal left",
     "homeDashboardOverGoal": "Over goal",
@@ -815,6 +815,7 @@
     "professionalConnectedNoPlan": "Connected, no plan published",
     "professionalStatusInviteOnly": "Invite only",
     "professionalStatusConnected": "Connected",
+    "professionalStatusActive": "Active",
     "professionalTabSummary": "Summary",
     "professionalSummaryActivePlan": "Active plan",
     "professionalSummaryNoPlan": "No plan",
@@ -1572,7 +1573,10 @@
     "featureTourDesc9": "Save your frequent meals in your library. Also, copy the link of any web recipe and our AI will import its ingredients automatically.",
     "featureTourDesc10": "Access here to adjust your caloric requirements, change the language, metric/imperial units, or the application theme.\n\nTap the 'Profile' tab to continue.",
     "featureTourDesc11": "Link your account to sync your data in the cloud and schedule automatic encrypted backups to your Google Drive account.",
-    "featureTourDesc12": "You have completed the interactive tour. Start logging your meals and habits today to reach your physical goal. Good luck!"
+    "featureTourDesc12": "You have completed the interactive tour. Start logging your meals and habits today to reach your physical goal. Good luck!",
+    "settingsAccountAlreadyRegisteredTitle": "Account Already Registered",
+    "settingsAccountAlreadyRegisteredBody": "This Google account is already linked to another user. Do you want to sign in with it on this device to recover your professional plan and cloud status?",
+    "settingsAccountAlreadyRegisteredConfirm": "Sign in"
   },
   "functions": {
     "common": {

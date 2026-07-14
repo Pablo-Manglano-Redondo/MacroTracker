@@ -154,4 +154,10 @@ class ProfessionalPlanRepository {
   }) {
     return _dataSource.markSectionSeen(connection: connection);
   }
+
+  Future<bool> isPlanUnseen({
+    required ProfessionalConnectionEntity connection,
+  }) {
+    return _dataSource.isPlanUnseen(connection: connection);
+  }
 }

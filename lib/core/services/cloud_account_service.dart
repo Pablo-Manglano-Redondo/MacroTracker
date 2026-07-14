@@ -27,6 +27,13 @@ class CloudAccountService {
       redirectTo: authRedirectUrl,
     );
   }
+
+  Future<bool> signInWithGoogle() async {
+    return _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: authRedirectUrl,
+    );
+  }
 }
 
 class CloudAccountStatus {

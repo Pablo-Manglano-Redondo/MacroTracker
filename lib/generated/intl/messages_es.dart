@@ -140,9 +140,11 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m49(amount) => "${amount}g restantes";
 
-  static String m50(count) => "${count} comidas";
+  static String m50(count) =>
+      "${Intl.plural(count, one: '1 comida', other: '${count} comidas')}";
 
-  static String m51(count) => "${count} sesión";
+  static String m51(count) =>
+      "${Intl.plural(count, one: '1 sesión', other: '${count} sesiones')}";
 
   static String m52(recipe, slot) => "${recipe} añadida a ${slot}";
 
@@ -193,7 +195,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "No se pudo actualizar la propuesta de receta: ${error}";
 
   static String m73(count) =>
-      "Tu nutricionista ve el nivel real de comparticion activo. Si hay ${count} resumenes pendientes, se enviaran cuando vuelva la conexion.";
+      "Tu nutricionista ve el nivel real de compartición activo. Si hay ${count} resúmenes pendientes, se enviarán cuando vuelva la conexión.";
 
   static String m74(percent) => "Adherencia estimada: ${percent}%";
 
@@ -1981,11 +1983,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalAcceptAndConnect":
             MessageLookupByLibrary.simpleMessage("Aceptar y conectar"),
         "professionalActionRefreshSection":
-            MessageLookupByLibrary.simpleMessage("Actualizar seccion"),
+            MessageLookupByLibrary.simpleMessage("Actualizar sección"),
         "professionalActionRevokeAccess":
             MessageLookupByLibrary.simpleMessage("Revocar acceso"),
         "professionalConnectedNoPlan": MessageLookupByLibrary.simpleMessage(
-            "Conexion activa, sin plan publicado"),
+            "Conexión activa, sin plan publicado"),
         "professionalConsentNotSharedToday":
             MessageLookupByLibrary.simpleMessage("Que no se comparte hoy"),
         "professionalConsentNotSharedTodayBody":
@@ -2002,7 +2004,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalConsentSharedTodayBody": MessageLookupByLibrary.simpleMessage(
             "kcal, macros, comidas registradas, adherencia agregada por dia y mensajeria bidireccional"),
         "professionalDisconnectBody": MessageLookupByLibrary.simpleMessage(
-            "Se revocara el acceso, desaparecera la seccion y se detendra la sincronizacion agregada pendiente."),
+            "Se revocará el acceso, desaparecerá la sección y se detendrá la sincronización agregada pendiente."),
         "professionalDisconnectTitle":
             MessageLookupByLibrary.simpleMessage("Revocar acceso profesional"),
         "professionalEmptyPlanBody": MessageLookupByLibrary.simpleMessage(
@@ -2033,9 +2035,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalInviteCodeLabel":
             MessageLookupByLibrary.simpleMessage("Codigo de invitacion"),
         "professionalInviteExpired":
-            MessageLookupByLibrary.simpleMessage("La invitacion ha expirado."),
+            MessageLookupByLibrary.simpleMessage("La invitación ha expirado."),
         "professionalInviteNotFound": MessageLookupByLibrary.simpleMessage(
-            "No se ha encontrado una invitacion pendiente con ese codigo."),
+            "No se ha encontrado una invitación pendiente con ese código."),
         "professionalInvitePillClearPrivacy":
             MessageLookupByLibrary.simpleMessage("Privacidad clara"),
         "professionalInvitePillConsent":
@@ -2059,7 +2061,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Carbos"),
         "professionalMacroFat": MessageLookupByLibrary.simpleMessage("Grasa"),
         "professionalMacroProtein":
-            MessageLookupByLibrary.simpleMessage("Proteina"),
+            MessageLookupByLibrary.simpleMessage("Proteína"),
         "professionalMessagesAuthorClientFull":
             MessageLookupByLibrary.simpleMessage("Tú (paciente)"),
         "professionalMessagesAuthorClientShort":
@@ -2276,12 +2278,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalProtectAccountAction":
             MessageLookupByLibrary.simpleMessage("Guardar con Google"),
         "professionalProtectAccountBody": MessageLookupByLibrary.simpleMessage(
-            "Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Asi podras recuperar la cuenta y mantener el consentimiento si cambias de movil. Esto no activa Google Drive."),
+            "Para conectar con un profesional necesitas guardar tu cuenta cloud con Google. Así podras recuperar la cuenta y mantener el consentimiento si cambias de móvil. Esto no activa Google Drive."),
         "professionalProtectAccountOpenError":
             MessageLookupByLibrary.simpleMessage("No se pudo abrir Google."),
         "professionalProtectAccountReturnHint":
             MessageLookupByLibrary.simpleMessage(
-                "Completa Google y vuelve para aceptar la invitacion."),
+                "Completa Google y vuelve para aceptar la invitación."),
         "professionalProtectAccountTitle":
             MessageLookupByLibrary.simpleMessage("Guarda tu cuenta"),
         "professionalRecipesDecline":
@@ -2302,13 +2304,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalScreenTitle":
             MessageLookupByLibrary.simpleMessage("Nutricionista"),
         "professionalSectionConnectSubtitle": MessageLookupByLibrary.simpleMessage(
-            "Activa esta seccion con invitacion y consentimiento. Aqui veras plan, seguimiento, privacidad y mensajes."),
+            "Activa esta sección con invitación y consentimiento. Aquí verás plan, seguimiento, privacidad y mensajes."),
         "professionalSectionConnectedSubtitle":
             MessageLookupByLibrary.simpleMessage(
-                "Aqui controlas tu plan, el seguimiento real, la privacidad compartida y las notas del profesional."),
+                "Aquí controlas tu plan, el seguimiento real, la privacidad compartida y las notas del profesional."),
         "professionalSectionLoadErrorTitle":
             MessageLookupByLibrary.simpleMessage(
-                "No se pudo cargar la seccion completa"),
+                "No se pudo cargar la sección completa"),
         "professionalSectionRetryHint": MessageLookupByLibrary.simpleMessage(
             "Intenta actualizar de nuevo."),
         "professionalSharingAggregateEnabled":
@@ -2330,17 +2332,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "professionalSharingModeSessionError": MessageLookupByLibrary.simpleMessage(
             "Tu sesión de nube ya no es válida para cambiar este permiso. Vuelve a iniciar sesión e inténtalo de nuevo."),
         "professionalSharingPendingSnapshots": m73,
+        "professionalStatusActive":
+            MessageLookupByLibrary.simpleMessage("Conexión activa"),
         "professionalStatusConnected":
-            MessageLookupByLibrary.simpleMessage("Conexion activa"),
+            MessageLookupByLibrary.simpleMessage("Conexión activa"),
         "professionalStatusInviteOnly":
-            MessageLookupByLibrary.simpleMessage("Solo por invitacion"),
+            MessageLookupByLibrary.simpleMessage("Solo por invitación"),
         "professionalSummaryActivePlan":
             MessageLookupByLibrary.simpleMessage("Plan activo"),
         "professionalSummaryCalorieProgressBody":
             MessageLookupByLibrary.simpleMessage(
                 "Progreso diario comparado con las metas asignadas por tu profesional."),
         "professionalSummaryConnectionStatus":
-            MessageLookupByLibrary.simpleMessage("Estado de conexion"),
+            MessageLookupByLibrary.simpleMessage("Estado de conexión"),
         "professionalSummaryDailyContextHint":
             MessageLookupByLibrary.simpleMessage("Escribe tu nota aquí..."),
         "professionalSummaryDailyContextSubtitle":
@@ -2350,9 +2354,9 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nota de contexto diaria"),
         "professionalSummaryLastPlanUpdate":
             MessageLookupByLibrary.simpleMessage(
-                "Ultima actualizacion del plan"),
+                "Última actualización del plan"),
         "professionalSummaryLastSnapshot":
-            MessageLookupByLibrary.simpleMessage("Ultimo resumen enviado"),
+            MessageLookupByLibrary.simpleMessage("Último resumen enviado"),
         "professionalSummaryNoPlan":
             MessageLookupByLibrary.simpleMessage("Sin plan"),
         "professionalSummaryNoPublishedPlan":
@@ -2734,6 +2738,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Proyecto"),
         "settingsAboutProjectValue": MessageLookupByLibrary.simpleMessage(
             "Seguimiento de calorías, macros, hábitos, actividad y copias locales/Drive."),
+        "settingsAccountAlreadyRegisteredBody":
+            MessageLookupByLibrary.simpleMessage(
+                "Esta cuenta de Google ya está vinculada a otro usuario. ¿Deseas iniciar sesión con ella en este dispositivo para recuperar tu plan profesional y estado en la nube?"),
+        "settingsAccountAlreadyRegisteredConfirm":
+            MessageLookupByLibrary.simpleMessage("Iniciar sesión"),
+        "settingsAccountAlreadyRegisteredTitle":
+            MessageLookupByLibrary.simpleMessage("Cuenta ya registrada"),
         "settingsAccountBackupsSection":
             MessageLookupByLibrary.simpleMessage("Cuenta y copias"),
         "settingsAccountDeletedMessage": MessageLookupByLibrary.simpleMessage(
