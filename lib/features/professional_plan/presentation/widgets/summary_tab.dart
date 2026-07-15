@@ -70,9 +70,7 @@ class _SummaryTabState extends State<SummaryTab> {
               SectionHeader(
                 eyebrow: S.of(context).todayLabel,
                 title: S.of(context).professionalSummaryTodayPlanVsReality,
-                subtitle: Localizations.localeOf(context).languageCode == 'es'
-                    ? 'Tu nutricionista recibe automáticamente tus macros diarias y notas de contexto.'
-                    : 'Your nutritionist automatically receives your daily macros and context notes.',
+                subtitle: S.of(context).professionalSummarySubtext,
               ),
               const SizedBox(height: 16),
 
@@ -199,9 +197,7 @@ class _SummaryTabState extends State<SummaryTab> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      Localizations.localeOf(context).languageCode == 'es'
-                                          ? '¡Nota de contexto guardada y enviada a tu nutricionista!'
-                                          : 'Note saved and sent to your nutritionist!',
+                                      S.of(context).professionalSummaryNoteSavedSuccess,
                                     ),
                                     backgroundColor: Colors.green,
                                   ),
@@ -219,9 +215,7 @@ class _SummaryTabState extends State<SummaryTab> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      Localizations.localeOf(context).languageCode == 'es'
-                                          ? 'Error al guardar la nota. Revisa tu conexión.'
-                                          : 'Error saving note. Please check your connection.',
+                                      S.of(context).professionalSummaryNoteSavedError,
                                     ),
                                     backgroundColor: Theme.of(context).colorScheme.error,
                                   ),
@@ -251,7 +245,7 @@ class _SummaryTabState extends State<SummaryTab> {
                       _isSaving
                           ? S.of(context).professionalSummarySavingNote
                           : _justSaved
-                              ? (Localizations.localeOf(context).languageCode == 'es' ? '¡Enviada!' : 'Sent!')
+                              ? S.of(context).professionalSummaryNoteSent
                               : S.of(context).professionalSummarySaveNote,
                     ),
                     style: FilledButton.styleFrom(
@@ -276,7 +270,9 @@ class _SummaryTabState extends State<SummaryTab> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Center(
             child: Text(
-              '${Localizations.localeOf(context).languageCode == 'es' ? 'Sincronizado' : 'Synced'}: ${formatDateTime(context, syncStatus.lastPlanSyncAt)}',
+              S.of(context).professionalSummarySyncedAt(
+                formatDateTime(context, syncStatus.lastPlanSyncAt),
+              ),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                     fontSize: 10,

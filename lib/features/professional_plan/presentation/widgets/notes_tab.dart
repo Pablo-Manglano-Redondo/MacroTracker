@@ -57,104 +57,159 @@ class _NotesTabState extends State<NotesTab> {
     final colorScheme = theme.colorScheme;
     final copy = S.of(context);
 
-    if (_loading) return const Center(child: CircularProgressIndicator());
+    Widget content;
 
-    if (_error != null) {
-      return Panel(
+    if (_loading) {
+      content = const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else if (_error != null) {
+      content = Column(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 40, color: colorScheme.error),
+          const SizedBox(height: 8),
+          Text(_error!, style: TextStyle(color: colorScheme.error)),
+        ],
+      );
+    } else if (_notes == null || _notes!.isEmpty) {
+      content = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Column(
           children: [
-            Icon(Icons.error_outline, size: 40, color: colorScheme.error),
-            const SizedBox(height: 8),
-            Text(_error!, style: TextStyle(color: colorScheme.error)),
+            Icon(
+              Icons.note_alt_outlined,
+              size: 48,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              copy.professionalNotesEmptyTitle,
+              style: theme.textTheme.titleSmall?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              copy.professionalNotesEmptyBody,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              ),
+            ),
           ],
         ),
       );
-    }
+    } else {
+      content = Column(
+        children: List.generate(_notes!.length, (index) {
+          final note = _notes![index];
+          final pinned = note['pinned'] == true;
+          final category = note['category'] as String? ?? 'general';
+          final title = note['title'] as String? ?? copy.professionalNotesFallbackTitle;
+          final body = note['body'] as String? ?? '';
 
-    if (_notes == null || _notes!.isEmpty) {
-      return Panel(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          child: Column(
-            children: [
-              Icon(Icons.note_alt_outlined,
-                  size: 48,
-                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
-              const SizedBox(height: 12),
-              Text(copy.professionalNotesEmptyTitle,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
-              const SizedBox(height: 4),
-              Text(copy.professionalNotesEmptyBody,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.7))),
-            ],
-          ),
-        ),
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: pinned
+                  ? colorScheme.primary.withValues(alpha: 0.05)
+                  : colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: pinned
+                    ? colorScheme.primary.withValues(alpha: 0.25)
+                    : colorScheme.outlineVariant.withValues(alpha: 0.15),
+                width: pinned ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (pinned) ...[
+                      Icon(Icons.push_pin_rounded, size: 14, color: colorScheme.primary),
+                      const SizedBox(width: 6),
+                    ],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _categoryColor(category, colorScheme).withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: _categoryColor(category, colorScheme).withValues(alpha: 0.25),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        _categoryLabel(copy, category),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: _categoryColor(category, colorScheme),
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    if (note['created_at'] != null)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.schedule_rounded,
+                            size: 12,
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatDate(note['created_at'] as String),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  body,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    height: 1.45,
+                    color: colorScheme.onSurface.withValues(alpha: 0.85),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
       );
     }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _notes!.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
-      itemBuilder: (context, index) {
-        final note = _notes![index];
-        final pinned = note['pinned'] == true;
-        final category = note['category'] as String? ?? 'general';
-        final title = note['title'] as String? ?? copy.professionalNotesFallbackTitle;
-        final body = note['body'] as String? ?? '';
-
-        return Panel(
-          accent: pinned ? colorScheme.primaryContainer : null,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  if (pinned) ...[
-                    Icon(Icons.push_pin, size: 14, color: colorScheme.primary),
-                    const SizedBox(width: 4),
-                  ],
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: _categoryColor(category, colorScheme)
-                          .withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      _categoryLabel(copy, category),
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: _categoryColor(category, colorScheme),
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  if (note['created_at'] != null)
-                    Text(
-                      _formatDate(note['created_at'] as String),
-                      style: theme.textTheme.labelSmall
-                          ?.copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(title,
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 4),
-              Text(body,
-                  style: theme.textTheme.bodySmall?.copyWith(height: 1.4)),
-            ],
+    return Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(
+            eyebrow: copy.professionalTabNotes,
+            title: copy.professionalNotesHeaderTitle,
+            subtitle: copy.professionalNotesHeaderSubtitle,
           ),
-        );
-      },
+          const SizedBox(height: 20),
+          content,
+        ],
+      ),
     );
   }
 

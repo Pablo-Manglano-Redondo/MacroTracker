@@ -32,7 +32,6 @@ class PlanTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final plan = summary.activePlan;
     final colorScheme = Theme.of(context).colorScheme;
-    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (plan == null) {
       return _EmptyPlanCard(summary: summary);
     }
@@ -58,7 +57,7 @@ class PlanTab extends StatelessWidget {
                 children: [
                   Expanded(
                     child: CompactStat(
-                      label: isEs ? 'Comidas' : 'Meals',
+                      label: S.of(context).professionalPlanMealsLabel,
                       value: plan.meals.length.toString(),
                       icon: Icons.restaurant_menu_outlined,
                     ),
@@ -66,7 +65,7 @@ class PlanTab extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: CompactStat(
-                      label: isEs ? 'Días' : 'Days',
+                      label: S.of(context).professionalPlanDaysLabel,
                       value: fallbackDays.toString(),
                       icon: Icons.calendar_month_outlined,
                     ),
@@ -74,7 +73,7 @@ class PlanTab extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: CompactStat(
-                      label: isEs ? 'Actualizado' : 'Updated',
+                      label: S.of(context).professionalPlanUpdatedLabel,
                       value: formatShortDate(
                           context, plan.updatedAt ?? plan.createdAt),
                       icon: Icons.history_outlined,

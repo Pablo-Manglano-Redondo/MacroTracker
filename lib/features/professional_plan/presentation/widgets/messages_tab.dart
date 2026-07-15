@@ -75,7 +75,8 @@ class _MessagesTabState extends State<MessagesTab> {
   @override
   Widget build(BuildContext context) {
     final messages = widget.messages;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (!messages.isSupported) {
       return Panel(
@@ -87,12 +88,12 @@ class _MessagesTabState extends State<MessagesTab> {
               title: S.of(context).professionalTabMessages,
               subtitle: S.of(context).professionalMessagesUnavailableBody,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Text(
               S.of(context).professionalMessagesUnavailableHint,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -109,32 +110,24 @@ class _MessagesTabState extends State<MessagesTab> {
           SectionHeader(
             eyebrow: S.of(context).professionalMessagesConversationEyebrow,
             title: S.of(context).professionalMessagesChatThreadTitle,
-            subtitle: '',
+            subtitle: S.of(context).professionalMessagesHeaderSubtitle,
           ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // Messages list container (Chat Window Viewport)
           Container(
-            constraints: const BoxConstraints(maxHeight: 360),
-            decoration: BoxDecoration(
-              color: colorScheme.brightness == Brightness.dark
-                  ? colorScheme.surfaceContainerLow
-                  : Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: colorScheme.outlineVariant.withValues(alpha: 0.4),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            constraints: const BoxConstraints(maxHeight: 380),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: sortedMessages.isEmpty
                 ? Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(
                       child: Text(
                         S.of(context).professionalMessagesEmpty,
-                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   )
@@ -142,11 +135,11 @@ class _MessagesTabState extends State<MessagesTab> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       itemCount: sortedMessages.length,
-                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                       itemBuilder: (context, index) {
                         final message = sortedMessages[index];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.only(bottom: 10),
                           child: MessageBubbleCard(
                             message: message,
                             summary: widget.summary,
@@ -157,8 +150,6 @@ class _MessagesTabState extends State<MessagesTab> {
                   ),
           ),
 
-          const SizedBox(height: 16),
-          const Divider(height: 1),
           const SizedBox(height: 16),
 
           // Message input bar
@@ -177,17 +168,28 @@ class _MessagesTabState extends State<MessagesTab> {
                     minLines: 1,
                     maxLines: 4,
                     textCapitalization: TextCapitalization.sentences,
-                    style: const TextStyle(fontSize: 14),
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                     decoration: InputDecoration(
                       hintText: S.of(context).professionalMessagesInputHint,
-                      hintStyle: const TextStyle(fontSize: 13),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
                       filled: true,
-                      fillColor: colorScheme.surfaceContainerHigh,
+                      fillColor: colorScheme.surfaceContainerLow,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        borderSide: BorderSide(
+                          color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(28),
+                        borderSide: BorderSide(
+                          color: colorScheme.primary,
+                          width: 1.5,
+                        ),
+                      ),
+                      hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          ),
                     ),
                   ),
                 ),
@@ -206,17 +208,20 @@ class _MessagesTabState extends State<MessagesTab> {
                           }
                         },
                   icon: widget.sendingMessage
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
                         )
-                      : const Icon(Icons.send),
+                      : const Icon(Icons.send_rounded, size: 20),
                   style: IconButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
                     padding: const EdgeInsets.all(12),
-                    elevation: 2,
+                    elevation: 1,
                   ),
                 ),
               ],
@@ -251,37 +256,35 @@ class MessageBubbleCard extends StatelessWidget {
     final isVeryRecent = timeDifference.inSeconds < 5;
 
     if (isRead) {
-      // Double blue checkmarks
       return const Icon(
-        Icons.done_all,
-        size: 14,
-        color: Colors.cyanAccent,
+        Icons.done_all_rounded,
+        size: 15,
+        color: Colors.lightBlueAccent,
       );
     } else if (isVeryRecent) {
-      // Single white checkmark
       return Icon(
-        Icons.done,
-        size: 14,
-        color: Colors.white.withValues(alpha: 0.6),
+        Icons.done_rounded,
+        size: 15,
+        color: Colors.white.withValues(alpha: 0.5),
       );
     } else {
-      // Double white checkmarks
       return Icon(
-        Icons.done_all,
-        size: 14,
-        color: Colors.white.withValues(alpha: 0.6),
+        Icons.done_all_rounded,
+        size: 15,
+        color: Colors.white.withValues(alpha: 0.5),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final fromClient = message.authorRole == 'client';
 
     final bubbleColor = fromClient
         ? colorScheme.primary
-        : colorScheme.surface;
+        : colorScheme.surfaceContainerHigh.withValues(alpha: 0.85);
 
     final textColor = fromClient
         ? colorScheme.onPrimary
@@ -291,16 +294,16 @@ class MessageBubbleCard extends StatelessWidget {
 
     final borderRadius = fromClient
         ? const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
-            bottomLeft: Radius.circular(16),
+            topLeft: Radius.circular(18),
+            topRight: Radius.circular(18),
+            bottomLeft: Radius.circular(18),
             bottomRight: Radius.circular(4),
           )
         : const BorderRadius.only(
-            topLeft: Radius.circular(16),
-            topRight: Radius.circular(16),
+            topLeft: Radius.circular(18),
+            topRight: Radius.circular(18),
             bottomLeft: Radius.circular(4),
-            bottomRight: Radius.circular(16),
+            bottomRight: Radius.circular(18),
           );
 
     return Align(
@@ -314,33 +317,22 @@ class MessageBubbleCard extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  Localizations.localeOf(context).languageCode == 'es'
-                      ? 'Mensaje copiado al portapapeles'
-                      : 'Message copied to clipboard',
+                  S.of(context).professionalMessagesCopied,
                 ),
                 duration: const Duration(seconds: 1),
               ),
             );
           },
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 290),
+            constraints: const BoxConstraints(maxWidth: 280),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               borderRadius: borderRadius,
               color: bubbleColor,
-              boxShadow: [
-                BoxShadow(
-                  color: fromClient
-                      ? colorScheme.primary.withValues(alpha: 0.15)
-                      : Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1.5),
-                ),
-              ],
               border: fromClient
                   ? null
                   : Border.all(
-                      color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.15),
                     ),
             ),
             child: Column(
@@ -353,17 +345,18 @@ class MessageBubbleCard extends StatelessWidget {
                     children: [
                       Text(
                         summary.connection.professionalName,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w900,
-                              color: colorScheme.primary,
-                              fontSize: 10,
-                            ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: colorScheme.primary,
+                          fontSize: 10,
+                          letterSpacing: 0.2,
+                        ),
                       ),
                       if (!message.isRead) ...[
                         const SizedBox(width: 6),
                         Container(
-                          width: 6,
-                          height: 6,
+                          width: 5,
+                          height: 5,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: colorScheme.primary,
@@ -376,10 +369,10 @@ class MessageBubbleCard extends StatelessWidget {
                 ],
                 Text(
                   message.body,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: textColor,
-                        height: 1.35,
-                      ),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: textColor,
+                    height: 1.35,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -388,12 +381,13 @@ class MessageBubbleCard extends StatelessWidget {
                     const Spacer(),
                     Text(
                       formatShortTime(context, message.createdAt),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: fromClient
-                                ? colorScheme.onPrimary.withValues(alpha: 0.7)
-                                : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-                            fontSize: 9,
-                          ),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: fromClient
+                            ? colorScheme.onPrimary.withValues(alpha: 0.7)
+                            : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     if (fromClient) ...[
                       const SizedBox(width: 4),

@@ -10329,6 +10329,16 @@ class S {
     );
   }
 
+  /// `Message copied to clipboard`
+  String get professionalMessagesCopied {
+    return Intl.message(
+      'Message copied to clipboard',
+      name: 'professionalMessagesCopied',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Messaging exists, but it is disabled for this connection.`
   String get professionalMessagesDisabled {
     return Intl.message(
@@ -10364,6 +10374,16 @@ class S {
     return Intl.message(
       'Got it',
       name: 'professionalMessagesGotIt',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Chat and resolve questions with your nutritionist.`
+  String get professionalMessagesHeaderSubtitle {
+    return Intl.message(
+      'Chat and resolve questions with your nutritionist.',
+      name: 'professionalMessagesHeaderSubtitle',
       desc: '',
       args: [],
     );
@@ -10569,6 +10589,26 @@ class S {
     );
   }
 
+  /// `Recommendations and observations shared by your professional.`
+  String get professionalNotesHeaderSubtitle {
+    return Intl.message(
+      'Recommendations and observations shared by your professional.',
+      name: 'professionalNotesHeaderSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Nutritionist Notes`
+  String get professionalNotesHeaderTitle {
+    return Intl.message(
+      'Nutritionist Notes',
+      name: 'professionalNotesHeaderTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Opening Google`
   String get professionalOpeningGoogle {
     return Intl.message(
@@ -10594,6 +10634,16 @@ class S {
     return Intl.message(
       'Adherence',
       name: 'professionalPlanAdherence',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Days`
+  String get professionalPlanDaysLabel {
+    return Intl.message(
+      'Days',
+      name: 'professionalPlanDaysLabel',
       desc: '',
       args: [],
     );
@@ -10725,6 +10775,16 @@ class S {
     return Intl.message(
       'Tap a meal to view its macronutrient breakdown, or use "+" to add it to today\'s diary.',
       name: 'professionalPlanMealGuideSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Meals`
+  String get professionalPlanMealsLabel {
+    return Intl.message(
+      'Meals',
+      name: 'professionalPlanMealsLabel',
       desc: '',
       args: [],
     );
@@ -11000,6 +11060,16 @@ class S {
     );
   }
 
+  /// `Updated`
+  String get professionalPlanUpdatedLabel {
+    return Intl.message(
+      'Updated',
+      name: 'professionalPlanUpdatedLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `View plan`
   String get professionalPlanViewPlan {
     return Intl.message(
@@ -11100,10 +11170,10 @@ class S {
     );
   }
 
-  /// `Right now the professional cannot read your raw diary or per-meal detail.`
+  /// `Your professional only sees your daily summaries (total calories and macronutrients). They cannot see the details of your meals, individual ingredients, or the specific foods you log in your diary.`
   String get professionalPrivacyAggregateModeBody {
     return Intl.message(
-      'Right now the professional cannot read your raw diary or per-meal detail.',
+      'Your professional only sees your daily summaries (total calories and macronutrients). They cannot see the details of your meals, individual ingredients, or the specific foods you log in your diary.',
       name: 'professionalPrivacyAggregateModeBody',
       desc: '',
       args: [],
@@ -11190,11 +11260,21 @@ class S {
     );
   }
 
-  /// `Right now the professional can read your raw diary and per-meal detail for this relationship.`
+  /// `Your professional has access to the full details of your diary: they can see exactly what foods you log, their ingredients, quantities, and in which meal (breakfast, lunch, dinner, etc.) you consumed them.`
   String get professionalPrivacyDetailedModeBody {
     return Intl.message(
-      'Right now the professional can read your raw diary and per-meal detail for this relationship.',
+      'Your professional has access to the full details of your diary: they can see exactly what foods you log, their ingredients, quantities, and in which meal (breakfast, lunch, dinner, etc.) you consumed them.',
       name: 'professionalPrivacyDetailedModeBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Control what information you share with your nutrition professional and manage their access level.`
+  String get professionalPrivacyHeaderSubtitle {
+    return Intl.message(
+      'Control what information you share with your nutrition professional and manage their access level.',
+      name: 'professionalPrivacyHeaderSubtitle',
       desc: '',
       args: [],
     );
@@ -11375,6 +11455,26 @@ class S {
     return Intl.message(
       'No recipe proposals yet',
       name: 'professionalRecipesEmptyTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recipes recommended by your nutritionist. Save the ones you like to your cookbook.`
+  String get professionalRecipesHeaderSubtitle {
+    return Intl.message(
+      'Recipes recommended by your nutritionist. Save the ones you like to your cookbook.',
+      name: 'professionalRecipesHeaderSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recipe Proposals`
+  String get professionalRecipesHeaderTitle {
+    return Intl.message(
+      'Recipe Proposals',
+      name: 'professionalRecipesHeaderTitle',
       desc: '',
       args: [],
     );
@@ -11680,6 +11780,36 @@ class S {
     );
   }
 
+  /// `Error saving note. Please check your connection.`
+  String get professionalSummaryNoteSavedError {
+    return Intl.message(
+      'Error saving note. Please check your connection.',
+      name: 'professionalSummaryNoteSavedError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Note saved and sent to your nutritionist!`
+  String get professionalSummaryNoteSavedSuccess {
+    return Intl.message(
+      'Note saved and sent to your nutritionist!',
+      name: 'professionalSummaryNoteSavedSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sent!`
+  String get professionalSummaryNoteSent {
+    return Intl.message(
+      'Sent!',
+      name: 'professionalSummaryNoteSent',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Offline queue`
   String get professionalSummaryOfflineQueue {
     return Intl.message(
@@ -11747,6 +11877,26 @@ class S {
       name: 'professionalSummarySavingNote',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Your nutritionist automatically receives your daily macros and context notes.`
+  String get professionalSummarySubtext {
+    return Intl.message(
+      'Your nutritionist automatically receives your daily macros and context notes.',
+      name: 'professionalSummarySubtext',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Synced: {time}`
+  String professionalSummarySyncedAt(Object time) {
+    return Intl.message(
+      'Synced: $time',
+      name: 'professionalSummarySyncedAt',
+      desc: '',
+      args: [time],
     );
   }
 
