@@ -36,6 +36,8 @@ export interface ClientSharedSnapshot {
   weight_kg?: number | null;
   waist_cm?: number | null;
   meals_logged?: number;
+  notes?: string | null;
+  synced_at?: string | null;
   created_at: string;
 }
 
@@ -44,6 +46,7 @@ export interface ProfessionalClient {
   professional_id: string;
   client_id: string;
   display_name?: string | null;
+  avatar_url?: string | null;
   status: 'connected' | 'revoked' | 'archived' | string;
   connected_at: string;
   sharing_mode: string;

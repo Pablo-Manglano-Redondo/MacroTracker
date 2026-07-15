@@ -152,6 +152,8 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
           const dayTotalProtein = dayEntries.reduce((sum, entry) => sum + (entry.protein ?? 0), 0);
           const dayTotalCarbs = dayEntries.reduce((sum, entry) => sum + (entry.carbs ?? 0), 0);
           const dayTotalFat = dayEntries.reduce((sum, entry) => sum + (entry.fat ?? 0), 0);
+          const matchSnap = client.client_shared_snapshots?.find((s) => s.snapshot_date === date);
+          const dayNote = matchSnap?.notes;
 
           return (
             <details
@@ -178,6 +180,14 @@ export const DiaryPanel: React.FC<DiaryPanelProps> = ({ client }) => {
               </summary>
 
               <div className="space-y-4 border-t border-border p-4">
+                {dayNote && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs text-muted-foreground italic flex flex-col gap-1">
+                    <span className="font-extrabold text-[9px] uppercase tracking-wider text-primary not-italic">
+                      Nota de contexto del cliente
+                    </span>
+                    "{dayNote}"
+                  </div>
+                )}
                 {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((slot) => {
                   const slotEntries = dayEntries.filter((entry) => entry.meal_type === slot);
                   if (slotEntries.length === 0) {

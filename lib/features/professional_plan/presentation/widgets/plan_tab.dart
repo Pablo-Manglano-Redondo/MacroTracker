@@ -32,6 +32,7 @@ class PlanTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final plan = summary.activePlan;
     final colorScheme = Theme.of(context).colorScheme;
+    final isEs = Localizations.localeOf(context).languageCode == 'es';
     if (plan == null) {
       return _EmptyPlanCard(summary: summary);
     }
@@ -42,10 +43,6 @@ class PlanTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Panel(
-          accent: Color.alphaBlend(
-            colorScheme.secondary.withValues(alpha: 0.10),
-            colorScheme.surface,
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -54,25 +51,34 @@ class PlanTab extends StatelessWidget {
                 title: plan.name,
                 subtitle: plan.objective.isEmpty
                     ? S.of(context).professionalPlanDefaultObjective
-                    : plan.objective,
+                    : _formatObjective(plan.objective),
               ),
               const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              Row(
                 children: [
-                  CompactStat(
-                    label: S.of(context).professionalPlanSuggestedMeals,
-                    value: plan.meals.length.toString(),
+                  Expanded(
+                    child: CompactStat(
+                      label: isEs ? 'Comidas' : 'Meals',
+                      value: plan.meals.length.toString(),
+                      icon: Icons.restaurant_menu_outlined,
+                    ),
                   ),
-                  CompactStat(
-                    label: S.of(context).professionalPlanTemplateDays,
-                    value: fallbackDays.toString(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CompactStat(
+                      label: isEs ? 'Días' : 'Days',
+                      value: fallbackDays.toString(),
+                      icon: Icons.calendar_month_outlined,
+                    ),
                   ),
-                  CompactStat(
-                    label: S.of(context).professionalPlanUpdated,
-                    value: formatShortDate(
-                        context, plan.updatedAt ?? plan.createdAt),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CompactStat(
+                      label: isEs ? 'Actualizado' : 'Updated',
+                      value: formatShortDate(
+                          context, plan.updatedAt ?? plan.createdAt),
+                      icon: Icons.history_outlined,
+                    ),
                   ),
                 ],
               ),
@@ -116,7 +122,7 @@ class PlanTab extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionHeader(
-                eyebrow: S.of(context).professionalPlanWeeklyView,
+                eyebrow: S.of(context).professionalTabPlan,
                 title: S.of(context).professionalPlanWeeklyView,
                 subtitle: S.of(context).professionalPlanWeeklyViewSubtitle,
               ),
@@ -183,6 +189,14 @@ class PlanTab extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  String _formatObjective(String objective) {
+    if (objective.isEmpty) return '';
+    return objective
+        .split('_')
+        .map((word) => word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}')
+        .join(' ');
   }
 
   Future<void> _handleLogSuggestedMeal(
@@ -388,8 +402,9 @@ class _WeekPlanRow extends StatelessWidget {
               : colorScheme.surfaceContainerLow,
           border: Border.all(
             color: day.isToday
-                ? colorScheme.primary.withValues(alpha: 0.18)
+                ? colorScheme.primary.withValues(alpha: 0.22)
                 : colorScheme.outlineVariant.withValues(alpha: 0.20),
+            width: day.isToday ? 1.8 : 1.0,
           ),
         ),
         child: Column(
@@ -410,26 +425,89 @@ class _WeekPlanRow extends StatelessWidget {
                     icon: Icons.today_outlined,
                     label: S.of(context).todayLabel,
                   ),
-                if (day.usesWeekdayFallback) ...[
-                  const SizedBox(width: 8),
-                  StatusPill(
-                    icon: Icons.auto_awesome_motion_outlined,
-                    label: S.of(context).professionalWeekTemplate,
-                  ),
-                ],
               ],
             ),
             const SizedBox(height: 10),
-            Text(
-              target == null
-                  ? S.of(context).professionalWeekNoTarget
-                  : '${target.kcalGoal.round()} kcal | ${target.proteinGoal.round()}P | ${target.carbsGoal.round()}C | ${target.fatGoal.round()}F',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+            if (target == null)
+              Text(
+                S.of(context).professionalWeekNoTarget,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              )
+            else
+              Row(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.local_fire_department_outlined,
+                        size: 16,
+                        color: Colors.orangeAccent,
+                      ),
+                      const SizedBox(width: 3),
+                      Text(
+                        '${target.kcalGoal.round()} kcal',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                      ),
+                    ],
                   ),
-            ),
+                  const SizedBox(width: 12),
+                  _MacroBadge(
+                    label: '${target.proteinGoal.round()}g P',
+                    color: const Color(0xFF10B981),
+                  ),
+                  const SizedBox(width: 6),
+                  _MacroBadge(
+                    label: '${target.carbsGoal.round()}g C',
+                    color: const Color(0xFFE7A83B),
+                  ),
+                  const SizedBox(width: 6),
+                  _MacroBadge(
+                    label: '${target.fatGoal.round()}g F',
+                    color: const Color(0xFF3B82F6),
+                  ),
+                ],
+              ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MacroBadge extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const _MacroBadge({
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withValues(alpha: 0.18),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
       ),
     );
   }

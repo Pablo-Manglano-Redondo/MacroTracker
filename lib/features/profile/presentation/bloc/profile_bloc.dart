@@ -18,6 +18,7 @@ import 'package:macrotracker/core/utils/locator.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:macrotracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:macrotracker/features/home/presentation/bloc/home_bloc.dart';
+import 'package:macrotracker/features/professional_plan/data/repository/professional_plan_repository.dart';
 
 part 'profile_event.dart';
 
@@ -70,6 +71,11 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     // Update Tracked Day
     await _updateTrackedDayCalorieGoal(userEntity, DateTime.now());
+
+    // Sync client avatar to Supabase if connected
+    try {
+      await locator<ProfessionalPlanRepository>().syncProfileAvatar();
+    } catch (_) {}
 
     // Refresh Profile
     add(LoadProfileEvent());

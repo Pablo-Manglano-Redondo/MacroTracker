@@ -594,10 +594,16 @@ export const DashboardPanel: React.FC = () => {
                           <span className="shrink-0 w-2 h-2 rounded-full bg-primary shadow-[0_0_6px_rgba(16,185,129,0.5)]" />
                         )}
                       </div>
-                      {displayBody && (
-                        <p className="portal-meta mt-0.5 line-clamp-1 text-muted-foreground/80">
-                          {displayBody}
-                        </p>
+                      {n.metadata?.notes ? (
+                        <div className="mt-1.5 rounded-lg bg-primary/8 border-l-2 border-primary/50 px-2.5 py-1.5 text-[12px] italic text-foreground/90 font-medium leading-relaxed">
+                          "{n.metadata.notes}"
+                        </div>
+                      ) : (
+                        displayBody && (
+                          <p className="portal-meta mt-0.5 line-clamp-1 text-muted-foreground/80">
+                            {displayBody}
+                          </p>
+                        )
                       )}
                       <p className="portal-label mt-1 text-muted-foreground/50">
                         {formatPortalDate(n.created_at, locale, {

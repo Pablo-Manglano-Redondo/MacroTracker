@@ -155,7 +155,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ client, onMessagesRead }) 
                         professional?.display_name?.slice(0, 2).toUpperCase() || 'MT'
                       )
                     ) : (
-                      getInitials(client.client_id)
+                      client.avatar_url ? (
+                        <img
+                          src={client.avatar_url}
+                          alt={client.display_name || ''}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        getInitials(client.client_id)
+                      )
                     )}
                   </div>
 

@@ -11920,6 +11920,16 @@ class S {
     );
   }
 
+  /// `Exceeded`
+  String get professionalTrackingExceeded {
+    return Intl.message(
+      'Exceeded',
+      name: 'professionalTrackingExceeded',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Tracked days`
   String get professionalTrackingFollowUpDays {
     return Intl.message(
@@ -12040,6 +12050,16 @@ class S {
     );
   }
 
+  /// `Weekly Calories`
+  String get professionalTrackingWeeklyCalories {
+    return Intl.message(
+      'Weekly Calories',
+      name: 'professionalTrackingWeeklyCalories',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Weekly calories vs target`
   String get professionalTrackingWeeklyCaloriesVsTarget {
     return Intl.message(
@@ -12077,6 +12097,17 @@ class S {
       name: 'professionalTrackingWeeklySubtitle',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Weekly total: {actual} kcal / {target} kcal ({percent}%)`
+  String professionalTrackingWeeklyTotal(
+      Object actual, Object target, Object percent) {
+    return Intl.message(
+      'Weekly total: $actual kcal / $target kcal ($percent%)',
+      name: 'professionalTrackingWeeklyTotal',
+      desc: '',
+      args: [actual, target, percent],
     );
   }
 

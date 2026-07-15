@@ -710,7 +710,6 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
   Future<void> _updateDailyNote(String note) async {
     final connection = _connection;
     if (connection == null) return;
-    setState(() => _loading = true);
     try {
       final todayActual = _summary?.today;
       final kcalActual = todayActual?.kcalActual ?? 0.0;
@@ -743,13 +742,13 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
         weightKg: weightKg,
         waistCm: waistCm,
       );
-      await _loadSection(refreshRemotePlan: false);
+      await _loadSection(refreshRemotePlan: false, isBackground: true);
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = friendlyError(context, e);
-        _loading = false;
       });
+      rethrow;
     }
   }
 }

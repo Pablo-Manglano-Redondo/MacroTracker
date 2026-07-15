@@ -179,8 +179,16 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       <div className="portal-hero rounded-[1.8rem] p-8">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-5">
-            <div className="portal-metric flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              {initials}
+            <div className="portal-metric flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm overflow-hidden">
+              {client.avatar_url ? (
+                <img
+                  src={client.avatar_url}
+                  alt={clientName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                initials
+              )}
             </div>
             <div className="min-w-0 space-y-2.5">
               <p className="portal-kicker">

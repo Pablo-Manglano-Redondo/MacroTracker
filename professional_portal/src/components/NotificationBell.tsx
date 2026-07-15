@@ -187,10 +187,16 @@ export const NotificationBell: React.FC = () => {
                       <p className={`portal-card-heading text-[14px] leading-tight ${!n.read ? 'text-foreground font-bold' : 'text-muted-foreground font-semibold'}`}>
                         {displayTitle}
                       </p>
-                      {displayBody && (
-                        <p className="text-[13px] leading-snug mt-1 line-clamp-2 text-muted-foreground/80">
-                          {displayBody}
-                        </p>
+                      {n.metadata?.notes ? (
+                        <div className="mt-1.5 rounded-lg bg-primary/8 border-l-2 border-primary/50 px-2.5 py-1.5 text-[12px] italic text-foreground/90 font-medium leading-relaxed">
+                          "{n.metadata.notes}"
+                        </div>
+                      ) : (
+                        displayBody && (
+                          <p className="text-[13px] leading-snug mt-1 line-clamp-2 text-muted-foreground/80">
+                            {displayBody}
+                          </p>
+                        )
                       )}
                       <p className="text-[11px] font-medium mt-1.5 text-muted-foreground/50">
                         {formatPortalDate(n.created_at, locale, {

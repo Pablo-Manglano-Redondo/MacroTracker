@@ -362,14 +362,22 @@ export const ClientsPanel: React.FC<ClientsPanelProps> = ({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 gap-3.5">
                         <div className="relative shrink-0">
-                          <div className={`portal-card-heading flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-bold tracking-normal group-hover:scale-105 transition-transform duration-300 ${
+                          <div className={`portal-card-heading flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-sm font-bold tracking-normal group-hover:scale-105 transition-transform duration-300 overflow-hidden ${
                             entry.maxAlertSeverity >= 4
                               ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
                               : isLowAdherence
                                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
                                 : 'bg-primary/10 text-primary border-primary/20'
                           }`}>
-                            {getClientInitials(client)}
+                            {client.avatar_url ? (
+                              <img
+                                src={client.avatar_url}
+                                alt={getClientDisplayName(client)}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              getClientInitials(client)
+                            )}
                           </div>
                         </div>
                         <div className="min-w-0">

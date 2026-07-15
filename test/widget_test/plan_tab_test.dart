@@ -219,7 +219,10 @@ void main() {
 
     // Verify Weekly View Day (2026-06-15 is a Monday, formatted as "Lunes 15/06")
     expect(find.text('${S.current.professionalWeekdayMonday} 15/06'), findsOneWidget);
-    expect(find.text('2200 kcal | 160P | 270C | 75F'), findsOneWidget);
+    expect(find.text('2200 kcal'), findsOneWidget);
+    expect(find.text('160g P'), findsOneWidget);
+    expect(find.text('270g C'), findsOneWidget);
+    expect(find.text('75g F'), findsOneWidget);
 
     // Verify Suggested Meals Guide
     expect(find.text('Tortilla y Avena'), findsOneWidget);
@@ -281,7 +284,7 @@ void main() {
     // Bottom sheet should render with details
     expect(find.text('${S.current.professionalWeekdayMonday} 15/06'), findsNWidgets(2)); // One in background list, one in sheet
     expect(find.text(S.current.professionalPlanSpecificTarget), findsOneWidget);
-    expect(find.text('2200 kcal'), findsOneWidget);
+    expect(find.text('2200 kcal'), findsNWidgets(2));
     expect(find.text('160 g'), findsOneWidget); // Protein
     expect(find.text('270 g'), findsOneWidget); // Carbs
     expect(find.text('75 g'), findsOneWidget); // Fat

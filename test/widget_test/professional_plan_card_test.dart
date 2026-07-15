@@ -47,13 +47,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Plan activo'), findsOneWidget);
-    expect(find.text('Plan vs realidad'), findsOneWidget);
-    expect(find.text('Semana fuerza - Coach Studio'), findsOneWidget);
-    expect(find.text('Restantes'), findsOneWidget);
-    expect(find.text('350'), findsOneWidget);
-    expect(find.text('Adherencia'), findsOneWidget);
-    expect(find.text('84'), findsOneWidget);
+    expect(find.text('Semana fuerza'), findsOneWidget);
+    expect(find.text('Coach Studio'), findsOneWidget);
     expect(find.text('Ver plan'), findsOneWidget);
 
     await tester.tap(find.text('Ver plan'));

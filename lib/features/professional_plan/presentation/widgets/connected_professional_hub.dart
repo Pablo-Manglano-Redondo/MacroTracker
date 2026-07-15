@@ -24,7 +24,7 @@ class ConnectedProfessionalHub extends StatelessWidget {
   final Future<void> Function(String body) onSendMessage;
   final bool sendingMessage;
   final ValueChanged<String> onUpdateSharingMode;
-  final ValueChanged<String> onUpdateDailyNote;
+  final Future<void> Function(String) onUpdateDailyNote;
   final VoidCallback onDismissPlanUpdate;
 
   const ConnectedProfessionalHub({
@@ -526,153 +526,12 @@ class HubOverviewCard extends StatelessWidget {
               ),
             ],
           ),
-          if (summary.todayTarget != null) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, thickness: 0.8),
-            ),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _TargetBadge(
-                  label: 'Kcal',
-                  value: '${summary.todayTarget!.kcalGoal.round()}',
-                  color: colorScheme.primary,
-                ),
-                _TargetBadge(
-                  label: 'Prot',
-                  value: '${summary.todayTarget!.proteinGoal.round()}g',
-                  color: const Color(0xFF10B981),
-                ),
-                _TargetBadge(
-                  label: 'Carb',
-                  value: '${summary.todayTarget!.carbsGoal.round()}g',
-                  color: const Color(0xFFE7A83B),
-                ),
-                _TargetBadge(
-                  label: 'Grasa',
-                  value: '${summary.todayTarget!.fatGoal.round()}g',
-                  color: const Color(0xFF3B82F6),
-                ),
-              ],
-            ),
-          ] else ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              child: Divider(height: 1, thickness: 0.8),
-            ),
-            Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 16,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Sin objetivos asignados para hoy.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  onPressed: () => onSelectTab(ProfessionalHubTab.messages),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Solicitar',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        size: 14,
-                        color: colorScheme.primary,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );
   }
 }
 
-class _TargetBadge extends StatelessWidget {
-  final String label;
-  final String value;
-  final Color color;
-
-  const _TargetBadge({
-    required this.label,
-    required this.value,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4.5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              color: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class HubTabBar extends StatelessWidget {
   final ProfessionalHubTab selectedTab;

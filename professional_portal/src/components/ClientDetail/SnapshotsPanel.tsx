@@ -244,6 +244,11 @@ export const SnapshotsPanel: React.FC<SnapshotsPanelProps> = ({ client }) => {
                     )}
                     {renderBar(t('components.clientdetail.snapshotspanel.carbs'), snap.carbs_actual, snap.carbs_target, 'g')}
                     {renderBar(t('components.clientdetail.snapshotspanel.fat'), snap.fat_actual, snap.fat_target, 'g')}
+                    {snap.notes && (
+                      <div className="mt-3 rounded-lg bg-secondary/35 border-l-2 border-primary/50 px-3 py-2 text-xs text-muted-foreground italic">
+                        {snap.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
               );

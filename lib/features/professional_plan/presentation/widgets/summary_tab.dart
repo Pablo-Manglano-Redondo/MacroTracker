@@ -6,7 +6,7 @@ import 'package:macrotracker/features/professional_plan/presentation/widgets/pro
 
 class SummaryTab extends StatefulWidget {
   final ProfessionalSectionSummaryEntity summary;
-  final ValueChanged<String> onUpdateDailyNote;
+  final Future<void> Function(String) onUpdateDailyNote;
 
   const SummaryTab({
     super.key,
@@ -21,6 +21,7 @@ class SummaryTab extends StatefulWidget {
 class _SummaryTabState extends State<SummaryTab> {
   late final TextEditingController _noteController;
   bool _isSaving = false;
+  bool _justSaved = false;
 
   @override
   void initState() {
@@ -37,7 +38,7 @@ class _SummaryTabState extends State<SummaryTab> {
   @override
   void didUpdateWidget(SummaryTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.summary.dailyNote != oldWidget.summary.dailyNote && !_isSaving) {
+    if (widget.summary.dailyNote != oldWidget.summary.dailyNote && !_isSaving && _noteController.text.isNotEmpty) {
       _noteController.text = widget.summary.dailyNote ?? '';
     }
   }
@@ -54,6 +55,10 @@ class _SummaryTabState extends State<SummaryTab> {
     final colorScheme = Theme.of(context).colorScheme;
     final syncStatus = widget.summary.syncStatus;
 
+    if (widget.summary.activePlan == null) {
+      return _EmptyPlanPlaceholder(summary: widget.summary);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -61,214 +66,224 @@ class _SummaryTabState extends State<SummaryTab> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               SectionHeader(
-                eyebrow: S.of(context).professionalSummaryOperationsEyebrow,
-                title: S.of(context).professionalTabSummary,
-                subtitle: S.of(context).professionalSummaryOperationsSubtitle,
+                eyebrow: S.of(context).todayLabel,
+                title: S.of(context).professionalSummaryTodayPlanVsReality,
+                subtitle: Localizations.localeOf(context).languageCode == 'es'
+                    ? 'Tu nutricionista recibe automáticamente tus macros diarias y notas de contexto.'
+                    : 'Your nutritionist automatically receives your daily macros and context notes.',
               ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              const SizedBox(height: 16),
+
+              // Calorie Ring and Progress
+              _CalorieOverviewRing(
+                actual: widget.summary.today.kcalActual,
+                target: widget.summary.today.kcalTarget,
+              ),
+
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Row of macro rings
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  StatusPill(
-                    icon: Icons.assignment_outlined,
-                    label: widget.summary.activePlan?.name ??
-                        S.of(context).professionalSummaryNoPlan,
+                  _MacroRingItem(
+                    label: S.of(context).professionalMacroProtein,
+                    actual: widget.summary.today.proteinActual,
+                    target: widget.summary.today.proteinTarget,
+                    color: const Color(0xFF10B981),
+                    unit: 'g',
                   ),
-                  StatusPill(
-                    icon: Icons.local_fire_department_outlined,
-                    label: widget.summary.todayTarget == null
-                        ? S.of(context).professionalSummaryPending
-                        : '${widget.summary.todayTarget!.kcalGoal.round()} kcal',
+                  _MacroRingItem(
+                    label: S.of(context).professionalMacroCarbs,
+                    actual: widget.summary.today.carbsActual,
+                    target: widget.summary.today.carbsTarget,
+                    color: const Color(0xFFE7A83B),
+                    unit: 'g',
                   ),
-                  StatusPill(
-                    icon: Icons.sync_outlined,
-                    label: S.of(context).professionalHubPendingCount(syncStatus.pendingSyncCount),
+                  _MacroRingItem(
+                    label: S.of(context).professionalMacroFat,
+                    actual: widget.summary.today.fatActual,
+                    target: widget.summary.today.fatTarget,
+                    color: const Color(0xFF3B82F6),
+                    unit: 'g',
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
-              _SyncRail(
-                rows: [
-                  (
-                    S.of(context).professionalSummaryLastPlanUpdate,
-                    formatDateTime(context, syncStatus.lastPlanSyncAt),
+
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Daily Context Note Section
+              Text(
+                S.of(context).professionalSummaryDailyContextTitle,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                S.of(context).professionalSummaryDailyContextSubtitle,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _noteController,
+                maxLines: 3,
+                style: Theme.of(context).textTheme.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: S.of(context).professionalSummaryDailyContextHint,
+                  filled: true,
+                  fillColor: colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.15),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
                   ),
-                  (
-                    S.of(context).professionalSummaryLastSnapshot,
-                    formatDateTime(context, syncStatus.lastSnapshotSyncAt),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                    ),
                   ),
-                  (
-                    S.of(context).professionalSummaryConnectionStatus,
-                    connectionStatusLabel(context, syncStatus.connectionStatus),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (_noteController.text !=
+                      (widget.summary.dailyNote ?? ''))
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _noteController.text =
+                              widget.summary.dailyNote ?? '';
+                        });
+                      },
+                      icon: const Icon(Icons.undo_rounded, size: 18),
+                      label: Text(S.of(context).professionalSummaryUndo),
+                    ),
+                  const SizedBox(width: 8),
+                  FilledButton.icon(
+                    onPressed: _isSaving
+                        ? null
+                        : () async {
+                            FocusScope.of(context).unfocus();
+                            setState(() {
+                              _isSaving = true;
+                              _justSaved = false;
+                            });
+                            try {
+                              await widget.onUpdateDailyNote(_noteController.text);
+                              if (mounted) {
+                                _noteController.clear();
+                                setState(() {
+                                  _justSaved = true;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      Localizations.localeOf(context).languageCode == 'es'
+                                          ? '¡Nota de contexto guardada y enviada a tu nutricionista!'
+                                          : 'Note saved and sent to your nutritionist!',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                                Future.delayed(const Duration(seconds: 3), () {
+                                  if (mounted) {
+                                    setState(() {
+                                      _justSaved = false;
+                                    });
+                                  }
+                                });
+                              }
+                            } catch (_) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      Localizations.localeOf(context).languageCode == 'es'
+                                          ? 'Error al guardar la nota. Revisa tu conexión.'
+                                          : 'Error saving note. Please check your connection.',
+                                    ),
+                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isSaving = false;
+                                });
+                              }
+                            }
+                          },
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : _justSaved
+                            ? const Icon(Icons.check_circle_outline_rounded, color: Colors.white, size: 18)
+                            : const Icon(Icons.save_outlined, size: 18),
+                    label: Text(
+                      _isSaving
+                          ? S.of(context).professionalSummarySavingNote
+                          : _justSaved
+                              ? (Localizations.localeOf(context).languageCode == 'es' ? '¡Enviada!' : 'Sent!')
+                              : S.of(context).professionalSummarySaveNote,
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _justSaved ? Colors.green : null,
+                      foregroundColor: _justSaved ? Colors.white : null,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                    ),
                   ),
                 ],
               ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        if (widget.summary.activePlan == null)
-          _EmptyPlanPlaceholder(summary: widget.summary)
-        else
-          Panel(
-            accent: colorScheme.primary.withValues(alpha: 0.05),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SectionHeader(
-                  eyebrow: S.of(context).todayLabel,
-                  title: S.of(context).professionalSummaryTodayPlanVsReality,
-                  subtitle: S.of(context).professionalSharingPendingSnapshots(
-                        widget.summary.syncStatus.pendingSyncCount,
-                      ),
-                ),
-                const SizedBox(height: 20),
+        const SizedBox(height: 12),
 
-                // Beautiful Calorie Circle and Adherence
-                _CalorieOverviewRing(
-                  actual: widget.summary.today.kcalActual,
-                  target: widget.summary.today.kcalTarget,
-                ),
-
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                // Row of beautiful concentric-like macro rings
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _MacroRingItem(
-                      label: S.of(context).professionalMacroProtein,
-                      actual: widget.summary.today.proteinActual,
-                      target: widget.summary.today.proteinTarget,
-                      color: const Color(0xFF10B981),
-                      unit: 'g',
-                    ),
-                    _MacroRingItem(
-                      label: S.of(context).professionalMacroCarbs,
-                      actual: widget.summary.today.carbsActual,
-                      target: widget.summary.today.carbsTarget,
-                      color: const Color(0xFFE7A83B),
-                      unit: 'g',
-                    ),
-                    _MacroRingItem(
-                      label: S.of(context).professionalMacroFat,
-                      actual: widget.summary.today.fatActual,
-                      target: widget.summary.today.fatTarget,
-                      color: const Color(0xFF3B82F6),
-                      unit: 'g',
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                // Daily Context Note Section
-                Text(
-                  S.of(context).professionalSummaryDailyContextTitle,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  S.of(context).professionalSummaryDailyContextSubtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _noteController,
-                  maxLines: 3,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: S.of(context).professionalSummaryDailyContextHint,
-                    filled: true,
-                    fillColor: colorScheme.surfaceContainerHighest
-                        .withValues(alpha: 0.15),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color:
-                            colorScheme.outlineVariant.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color:
-                            colorScheme.outlineVariant.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.all(12),
+        // Subtle footnote with synchronization/connection status metadata
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Center(
+            child: Text(
+              '${Localizations.localeOf(context).languageCode == 'es' ? 'Sincronizado' : 'Synced'}: ${formatDateTime(context, syncStatus.lastPlanSyncAt)}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    fontSize: 10,
                   ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (_noteController.text !=
-                        (widget.summary.dailyNote ?? ''))
-                      TextButton.icon(
-                        onPressed: () {
-                          setState(() {
-                            _noteController.text =
-                                widget.summary.dailyNote ?? '';
-                          });
-                        },
-                        icon: const Icon(Icons.undo_rounded, size: 18),
-                        label: Text(S.of(context).professionalSummaryUndo),
-                      ),
-                    const SizedBox(width: 8),
-                    FilledButton.icon(
-                      onPressed: _isSaving
-                          ? null
-                          : () async {
-                              setState(() => _isSaving = true);
-                              try {
-                                widget.onUpdateDailyNote(_noteController.text);
-                              } catch (_) {}
-                              setState(() => _isSaving = false);
-                            },
-                      icon: _isSaving
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.save_outlined, size: 18),
-                      label: Text(
-                        _isSaving
-                            ? S.of(context).professionalSummarySavingNote : S.of(context).professionalSummarySaveNote,
-                      ),
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
             ),
           ),
+        ),
       ],
     );
   }
@@ -409,69 +424,6 @@ class _MacroRingItem extends StatelessWidget {
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
                 fontSize: 10,
-              ),
-        ),
-      ],
-    );
-  }
-}
-
-class _SyncRail extends StatelessWidget {
-  final List<(String, String)> rows;
-
-  const _SyncRail({required this.rows});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: colorScheme.surfaceContainerLow,
-      ),
-      child: Column(
-        children: [
-          for (var i = 0; i < rows.length; i++) ...[
-            _SyncRow(label: rows[i].$1, value: rows[i].$2),
-            if (i != rows.length - 1) ...[
-              const SizedBox(height: 10),
-              Divider(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-              const SizedBox(height: 10),
-            ],
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _SyncRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _SyncRow({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
               ),
         ),
       ],

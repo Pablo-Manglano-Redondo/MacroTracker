@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
@@ -15,8 +16,6 @@ class TrackingTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final todayPercent = (summary.today.kcalAdherence * 100).round();
     final weekPercent = summary.week.kcalTarget <= 0
         ? 0
         : ((summary.week.kcalActual / summary.week.kcalTarget).clamp(0, 1) *
@@ -26,56 +25,6 @@ class TrackingTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Panel(
-          accent: Color.alphaBlend(
-            colorScheme.primary.withValues(alpha: 0.10),
-            colorScheme.surface,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SectionHeader(
-                eyebrow: S.of(context).professionalTrackingDailyEyebrow,
-                title: S.of(context).professionalTrackingTodayTitle,
-                subtitle: S.of(context).professionalTrackingDailySubtitle,
-              ),
-              const SizedBox(height: 14),
-              _TrackingScoreCard(
-                label: S.of(context).macroKcalLabel,
-                actual: summary.today.kcalActual,
-                target: summary.today.kcalTarget,
-                adherence: summary.today.kcalAdherence,
-              ),
-              const SizedBox(height: 12),
-              _TrackingFactsRow(
-                leftLabel: S.of(context).professionalTrackingMealsLogged,
-                leftValue: summary.today.mealsLogged.toString(),
-                rightLabel: S.of(context).professionalTrackingTrackedDays,
-                rightValue: summary.today.trackedDays.toString(),
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  StatusPill(
-                    icon: Icons.bolt_outlined,
-                    label: S
-                        .of(context)
-                        .professionalTrackingTodayKcalTarget(todayPercent),
-                  ),
-                  StatusPill(
-                    icon: Icons.event_note_outlined,
-                    label: S.of(context).professionalTrackingMealsLoggedCount(summary.today.mealsLogged),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        _CalorieAdherenceBarChart(summary: summary),
-        const SizedBox(height: 16),
-        Panel(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -84,7 +33,7 @@ class TrackingTab extends StatelessWidget {
                 title: S.of(context).professionalTrackingWeekTitle,
                 subtitle: S.of(context).professionalTrackingWeeklySubtitle,
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -103,40 +52,20 @@ class TrackingTab extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-              _ProgressSummaryRow(
-                label: S.of(context).macroKcalLabel,
-                actual: summary.week.kcalActual,
-                target: summary.week.kcalTarget,
+              const SizedBox(height: 24),
+              _CalorieAdherenceBarChart(summary: summary),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 20),
+              _WeeklyMacrosRow(
+                proteinActual: summary.week.proteinActual,
+                proteinTarget: summary.week.proteinTarget,
+                carbsActual: summary.week.carbsActual,
+                carbsTarget: summary.week.carbsTarget,
+                fatActual: summary.week.fatActual,
+                fatTarget: summary.week.fatTarget,
               ),
-              const SizedBox(height: 10),
-              _ProgressSummaryRow(
-                label: S.of(context).professionalMacroProtein,
-                actual: summary.week.proteinActual,
-                target: summary.week.proteinTarget,
-                unit: 'g',
-              ),
-              const SizedBox(height: 10),
-              _ProgressSummaryRow(
-                label: S.of(context).professionalMacroCarbs,
-                actual: summary.week.carbsActual,
-                target: summary.week.carbsTarget,
-                unit: 'g',
-              ),
-              const SizedBox(height: 10),
-              _ProgressSummaryRow(
-                label: S.of(context).professionalMacroFat,
-                actual: summary.week.fatActual,
-                target: summary.week.fatTarget,
-                unit: 'g',
-              ),
-              const SizedBox(height: 12),
-              _TrackingFactsRow(
-                leftLabel: S.of(context).professionalTrackingMealsLogged,
-                leftValue: summary.week.mealsLogged.toString(),
-                rightLabel: S.of(context).professionalTrackingFollowUpDays,
-                rightValue: summary.week.trackedDays.toString(),
-              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -145,195 +74,120 @@ class TrackingTab extends StatelessWidget {
   }
 }
 
-class _TrackingScoreCard extends StatelessWidget {
-  final String label;
-  final double actual;
-  final double target;
-  final double adherence;
+class _WeeklyMacrosRow extends StatelessWidget {
+  final double proteinActual;
+  final double proteinTarget;
+  final double carbsActual;
+  final double carbsTarget;
+  final double fatActual;
+  final double fatTarget;
 
-  const _TrackingScoreCard({
-    required this.label,
-    required this.actual,
-    required this.target,
-    required this.adherence,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final percent = (adherence * 100).round();
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  '$label ${actual.round()} / ${target.round()}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-              StatusPill(
-                icon: Icons.insights_outlined,
-                label: '$percent%',
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: adherence,
-              minHeight: 9,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            S.of(context).professionalTrackingEstimatedAdherence(percent),
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrackingFactsRow extends StatelessWidget {
-  final String leftLabel;
-  final String leftValue;
-  final String rightLabel;
-  final String rightValue;
-
-  const _TrackingFactsRow({
-    required this.leftLabel,
-    required this.leftValue,
-    required this.rightLabel,
-    required this.rightValue,
+  const _WeeklyMacrosRow({
+    required this.proteinActual,
+    required this.proteinTarget,
+    required this.carbsActual,
+    required this.carbsTarget,
+    required this.fatActual,
+    required this.fatTarget,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Expanded(child: _FactTile(label: leftLabel, value: leftValue)),
-        const SizedBox(width: 10),
-        Expanded(child: _FactTile(label: rightLabel, value: rightValue)),
+        Expanded(
+          child: _WeeklyMacroRingItem(
+            label: S.of(context).professionalMacroProtein,
+            actual: proteinActual,
+            target: proteinTarget,
+            color: const Color(0xFF10B981), // Emerald Green
+            unit: 'g',
+          ),
+        ),
+        Expanded(
+          child: _WeeklyMacroRingItem(
+            label: S.of(context).professionalMacroCarbs,
+            actual: carbsActual,
+            target: carbsTarget,
+            color: const Color(0xFFE7A83B), // Amber/Orange
+            unit: 'g',
+          ),
+        ),
+        Expanded(
+          child: _WeeklyMacroRingItem(
+            label: S.of(context).professionalMacroFat,
+            actual: fatActual,
+            target: fatTarget,
+            color: const Color(0xFF3B82F6), // Blue
+            unit: 'g',
+          ),
+        ),
       ],
     );
   }
 }
 
-class _FactTile extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _FactTile({
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Theme.of(context).colorScheme.surfaceContainerHigh,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProgressSummaryRow extends StatelessWidget {
+class _WeeklyMacroRingItem extends StatelessWidget {
   final String label;
   final double actual;
   final double target;
+  final Color color;
   final String unit;
 
-  const _ProgressSummaryRow({
+  const _WeeklyMacroRingItem({
     required this.label,
     required this.actual,
     required this.target,
-    this.unit = '',
+    required this.color,
+    required this.unit,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final progress =
-        target <= 0 ? 0.0 : (actual / target).clamp(0, 1).toDouble();
-    final suffix = unit.isEmpty ? '' : unit;
-    final delta = (actual - target).round();
-    final deltaValue = delta > 0 ? '+$delta' : delta.toString();
-    final deltaLabel = delta == 0
-        ? S.of(context).professionalTrackingOnTarget
-        : S.of(context).professionalTrackingVsTarget(deltaValue, suffix);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: colorScheme.surfaceContainerLow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  label,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-              ),
-              Text(
-                '${actual.round()}$suffix / ${target.round()}$suffix',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(
-            deltaLabel,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+    final percent = target <= 0 ? 0.0 : (actual / target).clamp(0.0, 1.0);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircularPercentIndicator(
+          radius: 32.0,
+          lineWidth: 6.0,
+          animation: true,
+          percent: percent,
+          center: Text(
+            '${(percent * 100).round()}%',
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 9,
                 ),
           ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-            ),
-          ),
-        ],
-      ),
+          circularStrokeCap: CircularStrokeCap.round,
+          progressColor: color,
+          backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '${actual.round()}$unit / ${target.round()}$unit',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontSize: 9,
+              ),
+        ),
+      ],
     );
   }
 }
@@ -447,7 +301,16 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
 
     maxCal = maxCal * 1.1;
 
-    String detailText = S.of(context).professionalTrackingTapBarHint;
+    final weekPercent = widget.summary.week.kcalTarget <= 0
+        ? 0
+        : ((widget.summary.week.kcalActual / widget.summary.week.kcalTarget).clamp(0, 1) *
+                100)
+            .round();
+    String detailText = S.of(context).professionalTrackingWeeklyTotal(
+          widget.summary.week.kcalActual.round(),
+          widget.summary.week.kcalTarget.round(),
+          weekPercent,
+        );
     if (_selectedBarIndex >= 0 && _selectedBarIndex < dailyData.length) {
       final selected = dailyData[_selectedBarIndex];
       final day = selected['day'] as NutritionPlanResolvedDayEntity;
@@ -460,31 +323,27 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
           '$dayName: ${actual.round()} kcal / ${target.round()} kcal ($pct%)';
     }
 
-    return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SectionHeader(
-            eyebrow: S.of(context).professionalTrackingAdherenceHistory,
-            title: S.of(context).professionalTrackingWeeklyCaloriesVsTarget,
-            subtitle: S.of(context).professionalTrackingWeeklyChartSubtitle,
-          ),
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+              color: colorScheme.surfaceContainerLow,
+              border: Border.all(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.15),
+              ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.info_outline_rounded,
-                  size: 16,
+                  size: 18,
                   color: colorScheme.primary,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     detailText,
@@ -497,111 +356,186 @@ class _CalorieAdherenceBarChartState extends State<_CalorieAdherenceBarChart> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: List.generate(dailyData.length, (index) {
-              final item = dailyData[index];
-              final day = item['day'] as NutritionPlanResolvedDayEntity;
-              final actual = item['actual'] as double;
-              final target = item['target'] as double;
+          const SizedBox(height: 24),
+          Stack(
+            children: [
+              // Background Gridlines
+              Positioned(
+                top: 10,
+                left: 0,
+                right: 0,
+                height: 110,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(3, (index) {
+                    return Container(
+                      height: 1,
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.12),
+                    );
+                  }),
+                ),
+              ),
+              // Chart Columns Row
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: List.generate(dailyData.length, (index) {
+                    final item = dailyData[index];
+                    final day = item['day'] as NutritionPlanResolvedDayEntity;
+                    final actual = item['actual'] as double;
+                    final target = item['target'] as double;
 
-              final isSelected = _selectedBarIndex == index;
-              final isToday = day.isToday;
+                    final isSelected = _selectedBarIndex == index;
+                    final isToday = day.isToday;
 
-              final actualHeight = max(4.0, (actual / maxCal) * 110);
-              final targetHeight = max(4.0, (target / maxCal) * 110);
+                    // Bar heights mapping to 110 pixels maximum
+                    final actualHeight = max(4.0, (actual / maxCal) * 110);
+                    final targetHeight = max(4.0, (target / maxCal) * 110);
+                    final isExceeded = actual > target && target > 0;
+                    const barWidth = 16.0;
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedBarIndex = index;
-                  });
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Opacity(
-                  opacity: (_selectedBarIndex == -1 || isSelected) ? 1.0 : 0.55,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 120,
-                        width: 40,
-                        alignment: Alignment.bottomCenter,
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedBarIndex = index;
+                        });
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Opacity(
+                        opacity: (_selectedBarIndex == -1 || isSelected) ? 1.0 : 0.55,
+                        child: Column(
                           children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 10,
-                              height: actualHeight,
-                              decoration: BoxDecoration(
-                                color: colorScheme.primary,
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(5)),
+                            Container(
+                              height: 120,
+                              width: 38,
+                              alignment: Alignment.bottomCenter,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Stack(
+                                alignment: Alignment.bottomCenter,
+                                children: [
+                                  // 1. Target capsule background
+                                  Container(
+                                    height: targetHeight,
+                                    width: barWidth,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                                      borderRadius: BorderRadius.circular(999),
+                                      border: Border.all(
+                                        color: colorScheme.outlineVariant.withValues(alpha: 0.25),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  // 2. Actual progress filled bar
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 300),
+                                    height: min(actualHeight, targetHeight),
+                                    width: barWidth,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                  ),
+                                  // 3. Exceeded overflow bar (red)
+                                  if (isExceeded)
+                                    Positioned(
+                                      bottom: targetHeight - 2,
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 300),
+                                        height: actualHeight - targetHeight + 2,
+                                        width: barWidth,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFEF4444),
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                                        ),
+                                      ),
+                                    ),
+                                  // 4. Target limit line marker
+                                  Positioned(
+                                    bottom: targetHeight - 1,
+                                    child: Container(
+                                      width: barWidth + 4,
+                                      height: 2,
+                                      decoration: BoxDecoration(
+                                        color: colorScheme.onSurface.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(1),
+                                      ),
+                                    ),
+                                  ),
+                                  // 5. Highlight selection indicator border
+                                  if (isSelected)
+                                    Positioned.fill(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: colorScheme.primary.withValues(alpha: 0.3),
+                                            width: 1.5,
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              width: 10,
-                              height: targetHeight,
+                            const SizedBox(height: 10),
+                            Container(
+                              width: 26,
+                              height: 26,
+                              alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: colorScheme.outlineVariant
-                                    .withValues(alpha: 0.5),
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(5)),
+                                borderRadius: BorderRadius.circular(8),
+                                color: isToday
+                                    ? colorScheme.primary
+                                    : isSelected
+                                        ? colorScheme.primary.withValues(alpha: 0.15)
+                                        : Colors.transparent,
+                              ),
+                              child: Text(
+                                _weekdayInitial(context, day.effectiveDate.weekday),
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: isToday
+                                          ? colorScheme.onPrimary
+                                          : isSelected
+                                              ? colorScheme.primary
+                                              : colorScheme.onSurfaceVariant,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      Container(
-                        width: 24,
-                        height: 24,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isToday
-                              ? colorScheme.primary.withValues(alpha: 0.15)
-                              : Colors.transparent,
-                        ),
-                        child: Text(
-                          _weekdayInitial(context, day.effectiveDate.weekday),
-                          style:
-                              Theme.of(context).textTheme.labelSmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: isToday
-                                        ? colorScheme.primary
-                                        : colorScheme.onSurfaceVariant,
-                                  ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  }),
                 ),
-              );
-            }),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _LegendItem(
-                  label: S.of(context).professionalTrackingConsumed,
-                  color: colorScheme.primary),
+                label: S.of(context).professionalTrackingConsumed,
+                color: colorScheme.primary,
+              ),
               const SizedBox(width: 20),
               _LegendItem(
-                  label: S.of(context).professionalTrackingPlanTarget,
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                label: S.of(context).professionalTrackingPlanTarget,
+                color: colorScheme.outlineVariant.withValues(alpha: 0.7),
+              ),
+              const SizedBox(width: 20),
+              _LegendItem(
+                label: S.of(context).professionalTrackingExceeded,
+                color: const Color(0xFFEF4444),
+              ),
             ],
           ),
         ],
-      ),
-    );
+      );
   }
 }
 
@@ -628,6 +562,7 @@ class _LegendItem extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
               ),
         ),
       ],

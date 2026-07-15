@@ -17,6 +17,12 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
   const markReviewed = useMarkCheckinsReviewed(client.id, professional?.id);
   const markSingleReviewed = useMarkSingleCheckinReviewed(client.id, professional?.id);
 
+  const dailyNotes = React.useMemo(() => {
+    return (client.client_shared_snapshots || [])
+      .filter((s) => s.notes && s.notes.trim() !== '')
+      .sort((a, b) => b.snapshot_date.localeCompare(a.snapshot_date));
+  }, [client.client_shared_snapshots]);
+
   const [expandedCheckins, setExpandedCheckins] = React.useState<Record<string, boolean>>({});
 
   const toggleExpand = (checkinId: string) => {
@@ -344,6 +350,34 @@ export const ClientCheckins: React.FC<{ client: ProfessionalClient }> = ({ clien
             );
           })}
         </div>
+      )}
+
+      {dailyNotes.length > 0 && (
+        <section className="portal-panel rounded-[1.6rem] p-5 space-y-4">
+          <div className="flex items-center gap-2 text-primary border-b border-border pb-3">
+            <ClipboardCheck className="h-4.5 w-4.5" />
+            <h4 className="portal-card-heading">
+              {locale?.toLowerCase().startsWith('es') ? 'Notas de contexto diario' : 'Daily context notes'}
+            </h4>
+          </div>
+          <div className="space-y-3">
+            {dailyNotes.map((note) => (
+              <div key={note.id} className="rounded-2xl border border-border bg-card/45 p-4 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="portal-label text-muted-foreground">
+                    {formatPortalDate(note.snapshot_date, locale)}
+                  </span>
+                  <span className="portal-pill rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-primary">
+                    {locale?.toLowerCase().startsWith('es') ? 'Diario' : 'Daily'}
+                  </span>
+                </div>
+                <p className="portal-body leading-relaxed text-foreground italic border-l-2 border-primary/45 pl-3">
+                  "{note.notes}"
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );

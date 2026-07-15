@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:macrotracker/core/utils/locator.dart';
+import 'package:macrotracker/core/data/data_source/user_data_source.dart';
 import 'package:macrotracker/core/services/supabase_identity_service.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/nutrition_plan_entity.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_connection_entity.dart';
@@ -153,6 +156,7 @@ class ProfessionalPlanDataSource {
       professionalAvatarUrl: avatarUrl,
     );
     await saveActiveConnection(connection);
+    syncProfileAvatar().catchError((_) => null);
     return connection;
   }
 
@@ -196,6 +200,7 @@ class ProfessionalPlanDataSource {
       pendingSyncCount: _syncQueueBox.length,
     );
     await saveActiveConnection(refreshed);
+    syncProfileAvatar().catchError((_) => null);
     return refreshed;
   }
 
@@ -245,6 +250,7 @@ class ProfessionalPlanDataSource {
         relationshipId: connection.relationshipId,
         lastSnapshotSyncAt: DateTime.now(),
       );
+      syncProfileAvatar().catchError((_) => null);
     } catch (error) {
       final pendingId = '${connection.relationshipId}_${_dateKey(day)}';
       await _syncQueueBox.put(
@@ -1051,5 +1057,37 @@ class ProfessionalPlanDataSource {
       }
     }
     return null;
+  }
+
+  Future<void> syncProfileAvatar() async {
+    final connection = await getActiveConnection();
+    if (connection == null || connection.relationshipId.isEmpty) {
+      return;
+    }
+    if (kDebugMode && connection.relationshipId == 'debug-relationship') {
+      return;
+    }
+    try {
+      await _identityService.ensureUserSession();
+      final user = await locator<UserDataSource>().getUserData();
+      final localPath = user.profileImagePath;
+      if (localPath != null && localPath.trim().isNotEmpty) {
+        final file = File(localPath);
+        if (await file.exists()) {
+          final storagePath = '${connection.clientId}/avatar.png';
+          await _supabaseClient.storage.from('client-avatars').upload(
+            storagePath,
+            file,
+            fileOptions: const FileOptions(upsert: true),
+          );
+          final publicUrl = _supabaseClient.storage.from('client-avatars').getPublicUrl(storagePath);
+          await _supabaseClient.from('professional_clients').update({'avatar_url': publicUrl}).eq('id', connection.relationshipId);
+        }
+      } else {
+        await _supabaseClient.from('professional_clients').update({'avatar_url': null}).eq('id', connection.relationshipId);
+      }
+    } catch (error) {
+      debugPrint('ERROR in syncProfileAvatar: $error');
+    }
   }
 }

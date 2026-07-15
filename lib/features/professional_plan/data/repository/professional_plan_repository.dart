@@ -11,6 +11,10 @@ class ProfessionalPlanRepository {
     return _dataSource.getActiveConnection();
   }
 
+  Future<void> syncProfileAvatar() {
+    return _dataSource.syncProfileAvatar();
+  }
+
   Future<ProfessionalConnectionEntity?> refreshActivePlan() {
     return _dataSource.refreshActivePlan();
   }
