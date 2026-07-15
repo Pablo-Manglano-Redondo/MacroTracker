@@ -1,9 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:macrotracker/core/utils/locator.dart';
-import 'package:macrotracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:macrotracker/features/professional_plan/domain/entity/professional_section_entities.dart';
 import 'package:macrotracker/generated/l10n.dart';
 import 'package:macrotracker/features/professional_plan/presentation/widgets/professional_ui_helpers.dart';
@@ -30,12 +26,10 @@ class MessagesTab extends StatefulWidget {
 
 class _MessagesTabState extends State<MessagesTab> {
   final _controller = TextEditingController();
-  String? _clientProfileImagePath;
 
   @override
   void initState() {
     super.initState();
-    _loadClientProfileImage();
     _markAllMessagesAsRead();
   }
 
@@ -45,17 +39,6 @@ class _MessagesTabState extends State<MessagesTab> {
     if (widget.messages != oldWidget.messages) {
       _markAllMessagesAsRead();
     }
-  }
-
-  Future<void> _loadClientProfileImage() async {
-    try {
-      final user = await locator<GetUserUsecase>().getUserData();
-      if (mounted) {
-        setState(() {
-          _clientProfileImagePath = user.profileImagePath;
-        });
-      }
-    } catch (_) {}
   }
 
   void _markAllMessagesAsRead() {

@@ -110,7 +110,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
                 error.message.toLowerCase().contains('already') ||
                 error.toString().contains('email_exists'));
         if (isConflict) {
-          _showSignInDialog(context);
+          _showSignInDialog();
         }
       },
     );
@@ -457,7 +457,7 @@ class _ProfessionalPlanScreenState extends State<ProfessionalPlanScreen> {
     }
   }
 
-  Future<void> _showSignInDialog(BuildContext context) async {
+  Future<void> _showSignInDialog() async {
     final copy = S.of(context);
     final title = copy.settingsAccountAlreadyRegisteredTitle;
     final content = copy.settingsAccountAlreadyRegisteredBody;

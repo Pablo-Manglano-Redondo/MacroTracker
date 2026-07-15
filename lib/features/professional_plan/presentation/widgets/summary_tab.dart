@@ -189,7 +189,7 @@ class _SummaryTabState extends State<SummaryTab> {
                             });
                             try {
                               await widget.onUpdateDailyNote(_noteController.text);
-                              if (mounted) {
+                              if (context.mounted) {
                                 _noteController.clear();
                                 setState(() {
                                   _justSaved = true;
@@ -203,7 +203,7 @@ class _SummaryTabState extends State<SummaryTab> {
                                   ),
                                 );
                                 Future.delayed(const Duration(seconds: 3), () {
-                                  if (mounted) {
+                                  if (context.mounted) {
                                     setState(() {
                                       _justSaved = false;
                                     });
@@ -211,7 +211,7 @@ class _SummaryTabState extends State<SummaryTab> {
                                 });
                               }
                             } catch (_) {
-                              if (mounted) {
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(

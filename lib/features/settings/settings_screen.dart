@@ -84,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 error.message.toLowerCase().contains('already') ||
                 error.toString().contains('email_exists'));
         if (isConflict) {
-          _showSignInDialog(context);
+          _showSignInDialog();
         } else {
           final message =
               error is AuthException ? error.message : error.toString();
@@ -1591,7 +1591,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _showSignInDialog(BuildContext context) async {
+  Future<void> _showSignInDialog() async {
     final copy = S.of(context);
     final title = copy.settingsAccountAlreadyRegisteredTitle;
     final content = copy.settingsAccountAlreadyRegisteredBody;
