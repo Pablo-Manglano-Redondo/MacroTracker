@@ -2490,6 +2490,16 @@ class S {
     );
   }
 
+  /// `Calcium`
+  String get calciumLabel {
+    return Intl.message(
+      'Calcium',
+      name: 'calciumLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `your current weight`
   String get calculationsCurrentWeightFallback {
     return Intl.message(
@@ -4344,6 +4354,16 @@ class S {
     );
   }
 
+  /// `High in micronutrients`
+  String get foodQualityReasonHighMicronutrients {
+    return Intl.message(
+      'High in micronutrients',
+      name: 'foodQualityReasonHighMicronutrients',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `High saturated fat`
   String get foodQualityReasonHighSaturatedFat {
     return Intl.message(
@@ -4389,6 +4409,26 @@ class S {
     return Intl.message(
       'Partial data',
       name: 'foodQualityReasonPartialData',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Contains ultra-processed ingredients`
+  String get foodQualityReasonUltraProcessedFood {
+    return Intl.message(
+      'Contains ultra-processed ingredients',
+      name: 'foodQualityReasonUltraProcessedFood',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mainly unprocessed food`
+  String get foodQualityReasonUnprocessedFood {
+    return Intl.message(
+      'Mainly unprocessed food',
+      name: 'foodQualityReasonUnprocessedFood',
       desc: '',
       args: [],
     );
@@ -5584,6 +5624,16 @@ class S {
     return Intl.message(
       'Added new intake',
       name: 'infoAddedIntakeLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Iron`
+  String get ironLabel {
+    return Intl.message(
+      'Iron',
+      name: 'ironLabel',
       desc: '',
       args: [],
     );
@@ -9834,6 +9884,16 @@ class S {
     return Intl.message(
       'Per Serving',
       name: 'perServingLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Potassium`
+  String get potassiumLabel {
+    return Intl.message(
+      'Potassium',
+      name: 'potassiumLabel',
       desc: '',
       args: [],
     );
@@ -15101,6 +15161,16 @@ class S {
     );
   }
 
+  /// `Sodium`
+  String get sodiumLabel {
+    return Intl.message(
+      'Sodium',
+      name: 'sodiumLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `sugar`
   String get sugarLabel {
     return Intl.message(
@@ -15136,6 +15206,26 @@ class S {
     return Intl.message(
       'Unit',
       name: 'unitLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin C`
+  String get vitaminCLabel {
+    return Intl.message(
+      'Vitamin C',
+      name: 'vitaminCLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Vitamin D`
+  String get vitaminDLabel {
+    return Intl.message(
+      'Vitamin D',
+      name: 'vitaminDLabel',
       desc: '',
       args: [],
     );
@@ -16018,96 +16108,6 @@ class S {
       name: 'yearsLabel',
       desc: '',
       args: [age],
-    );
-  }
-
-  /// `Mainly unprocessed food`
-  String get foodQualityReasonUnprocessedFood {
-    return Intl.message(
-      'Mainly unprocessed food',
-      name: 'foodQualityReasonUnprocessedFood',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Contains ultra-processed ingredients`
-  String get foodQualityReasonUltraProcessedFood {
-    return Intl.message(
-      'Contains ultra-processed ingredients',
-      name: 'foodQualityReasonUltraProcessedFood',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `High in micronutrients`
-  String get foodQualityReasonHighMicronutrients {
-    return Intl.message(
-      'High in micronutrients',
-      name: 'foodQualityReasonHighMicronutrients',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Sodium`
-  String get sodiumLabel {
-    return Intl.message(
-      'Sodium',
-      name: 'sodiumLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Potassium`
-  String get potassiumLabel {
-    return Intl.message(
-      'Potassium',
-      name: 'potassiumLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Calcium`
-  String get calciumLabel {
-    return Intl.message(
-      'Calcium',
-      name: 'calciumLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Iron`
-  String get ironLabel {
-    return Intl.message(
-      'Iron',
-      name: 'ironLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Vitamin C`
-  String get vitaminCLabel {
-    return Intl.message(
-      'Vitamin C',
-      name: 'vitaminCLabel',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Vitamin D`
-  String get vitaminDLabel {
-    return Intl.message(
-      'Vitamin D',
-      name: 'vitaminDLabel',
-      desc: '',
-      args: [],
     );
   }
 }
