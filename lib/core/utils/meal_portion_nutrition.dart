@@ -9,6 +9,12 @@ class MealPortionNutrition {
   final double? fiber;
   final double? sugar;
   final double? saturatedFat;
+  final double? sodium;
+  final double? potassium;
+  final double? calcium;
+  final double? iron;
+  final double? vitaminC;
+  final double? vitaminD;
 
   const MealPortionNutrition({
     required this.kcal,
@@ -18,6 +24,12 @@ class MealPortionNutrition {
     this.fiber,
     this.sugar,
     this.saturatedFat,
+    this.sodium,
+    this.potassium,
+    this.calcium,
+    this.iron,
+    this.vitaminC,
+    this.vitaminD,
   });
 }
 
@@ -37,6 +49,12 @@ class MealPortionCalculator {
       sugar: _scaledOptionalValue(convertedAmount, meal.nutriments.sugars100),
       saturatedFat: _scaledOptionalValue(
           convertedAmount, meal.nutriments.saturatedFat100),
+      sodium: _scaledOptionalValue(convertedAmount, meal.nutriments.sodium100),
+      potassium: _scaledOptionalValue(convertedAmount, meal.nutriments.potassium100),
+      calcium: _scaledOptionalValue(convertedAmount, meal.nutriments.calcium100),
+      iron: _scaledOptionalValue(convertedAmount, meal.nutriments.iron100),
+      vitaminC: _scaledOptionalValue(convertedAmount, meal.nutriments.vitaminC100),
+      vitaminD: _scaledOptionalValue(convertedAmount, meal.nutriments.vitaminD100),
     );
   }
 

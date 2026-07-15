@@ -104,7 +104,7 @@ class MealEntity extends Equatable {
         servingUnit: _tryGetUnit(offProduct.quantity),
         servingSize: offProduct.serving_size,
         nutriments:
-            MealNutrimentsEntity.fromOffNutriments(offProduct.nutriments),
+            MealNutrimentsEntity.fromOffNutriments(offProduct.nutriments, offProduct.nova_group),
         source: MealSourceEntity.off);
   }
 

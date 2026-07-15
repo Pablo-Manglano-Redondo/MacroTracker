@@ -125,6 +125,19 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
         widget.dinnerIntake.length +
         widget.snackIntake.length;
 
+    final allIntakes = [
+      ...widget.breakfastIntake,
+      ...widget.lunchIntake,
+      ...widget.dinnerIntake,
+      ...widget.snackIntake
+    ];
+    final totalSodium = allIntakes.fold(0.0, (sum, item) => sum + item.totalSodiumMg);
+    final totalPotassium = allIntakes.fold(0.0, (sum, item) => sum + item.totalPotassiumMg);
+    final totalCalcium = allIntakes.fold(0.0, (sum, item) => sum + item.totalCalciumMg);
+    final totalIron = allIntakes.fold(0.0, (sum, item) => sum + item.totalIronMg);
+    final totalVitaminC = allIntakes.fold(0.0, (sum, item) => sum + item.totalVitaminCMg);
+    final totalVitaminD = allIntakes.fold(0.0, (sum, item) => sum + item.totalVitaminDMcg);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -179,6 +192,12 @@ class _DayInfoWidgetState extends State<DayInfoWidget>
               canCopyDay:
                   !DateUtils.isSameDay(widget.selectedDay, DateTime.now()),
               onCopyDayToToday: widget.onCopyDayToToday,
+              totalSodium: totalSodium,
+              totalPotassium: totalPotassium,
+              totalCalcium: totalCalcium,
+              totalIron: totalIron,
+              totalVitaminC: totalVitaminC,
+              totalVitaminD: totalVitaminD,
             ),
             const SizedBox(height: 18),
           ],
@@ -435,6 +454,12 @@ class _DaySummaryCard extends StatelessWidget {
   final int activityCount;
   final bool canCopyDay;
   final VoidCallback? onCopyDayToToday;
+  final double totalSodium;
+  final double totalPotassium;
+  final double totalCalcium;
+  final double totalIron;
+  final double totalVitaminC;
+  final double totalVitaminD;
 
   const _DaySummaryCard({
     required this.trackedDay,
@@ -442,6 +467,12 @@ class _DaySummaryCard extends StatelessWidget {
     required this.activityCount,
     required this.canCopyDay,
     required this.onCopyDayToToday,
+    this.totalSodium = 0,
+    this.totalPotassium = 0,
+    this.totalCalcium = 0,
+    this.totalIron = 0,
+    this.totalVitaminC = 0,
+    this.totalVitaminD = 0,
   });
 
   @override
@@ -602,6 +633,21 @@ class _DaySummaryCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (totalSodium > 0 || totalPotassium > 0 || totalCalcium > 0 || totalIron > 0 || totalVitaminC > 0 || totalVitaminD > 0) ...[
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  if (totalSodium > 0) _MicroDetailPill(label: S.of(context).sodiumLabel, value: '${totalSodium.round()}mg'),
+                  if (totalPotassium > 0) _MicroDetailPill(label: S.of(context).potassiumLabel, value: '${totalPotassium.round()}mg'),
+                  if (totalCalcium > 0) _MicroDetailPill(label: S.of(context).calciumLabel, value: '${totalCalcium.round()}mg'),
+                  if (totalIron > 0) _MicroDetailPill(label: S.of(context).ironLabel, value: '${totalIron.round()}mg'),
+                  if (totalVitaminC > 0) _MicroDetailPill(label: S.of(context).vitaminCLabel, value: '${totalVitaminC.round()}mg'),
+                  if (totalVitaminD > 0) _MicroDetailPill(label: S.of(context).vitaminDLabel, value: '${totalVitaminD.round()}µg'),
+                ],
+              ),
+            ],
             const SizedBox(height: 16),
             Wrap(
               spacing: 8,
@@ -1134,5 +1180,53 @@ class _IntakeQuickActionDialogState extends State<_IntakeQuickActionDialog> {
       return value.toStringAsFixed(0);
     }
     return value.toStringAsFixed(1);
+  }
+}
+
+class _MicroDetailPill extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MicroDetailPill({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final activeColor = colorScheme.outline;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: activeColor.withValues(alpha: 0.08),
+        border: Border.all(
+          color: activeColor.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -30,6 +30,7 @@ class OFFProductDTO {
   final String? serving_size; // E.g. 2 Tbsp (32 g)
 
   final OFFProductNutrimentsDTO nutriments;
+  final dynamic nova_group; // Can be int or String or null
 
   String? getLocaleName(SupportedLanguage supportedLanguage) {
     String? localeName;
@@ -70,6 +71,7 @@ class OFFProductDTO {
       required this.product_quantity,
       required this.serving_quantity,
       required this.serving_size,
+      required this.nova_group,
       required this.nutriments});
 
   factory OFFProductDTO.fromJson(Map<String, dynamic> json) =>

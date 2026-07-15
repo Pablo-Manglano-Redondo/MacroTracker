@@ -19,6 +19,7 @@ import { useClientProgress } from '../../hooks/queries/useClientProgress';
 import { usePortalI18n } from '../../lib/portal-i18n';
 import { formatPortalDate, formatPortalTime } from '../../lib/date';
 import { getLatestSnapshot, getSnapshotAdherence } from '../../view-models/clients';
+import { QualityTrendsChart } from './QualityTrendsChart';
 
 interface SummaryPanelProps {
   client: ProfessionalClient;
@@ -28,7 +29,7 @@ interface SummaryPanelProps {
   onEditPlan?: (planId: string) => void;
 }
 
-type MetricType = 'peso' | 'adherencia';
+type MetricType = 'peso' | 'adherencia' | 'calidad';
 
 export const SummaryPanel: React.FC<SummaryPanelProps> = ({
   client,
@@ -250,6 +251,10 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
           {t('components.clientdetail.summarypanel.not_enough_records_for_chart')}
         </div>
       );
+    }
+
+    if (metricType === 'calidad') {
+      return <QualityTrendsChart client={client} />;
     }
 
     const w = 400;
@@ -631,48 +636,60 @@ export const SummaryPanel: React.FC<SummaryPanelProps> = ({
                 >
                   {t('components.clientdetail.summarypanel.adherence')}
                 </button>
+                <button
+                  onClick={() => setMetricType('calidad')}
+                  className={`rounded-lg px-5 py-2.5 portal-action transition-colors ${
+                    metricType === 'calidad'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {locale?.toLowerCase().startsWith('es') ? 'Calidad' : 'Quality'}
+                </button>
               </div>
             </div>
 
             <div className="mt-6 grid items-center gap-6 md:grid-cols-12">
-              <div className="md:col-span-8">{svgChart}</div>
+              <div className={metricType === 'calidad' ? "md:col-span-12" : "md:col-span-8"}>{svgChart}</div>
 
-              <div className="space-y-5 md:col-span-4">
-                <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="portal-label">
-                    {t('components.clientdetail.summarypanel.change_7_days')}
-                  </p>
-                  <p
-                    className={`portal-metric mt-1 ${
-                      progressMetrics.change7d < 0
-                        ? 'text-green-500'
-                        : progressMetrics.change7d > 0
-                          ? 'text-rose-500'
-                          : 'text-foreground'
-                    }`}
-                  >
-                    {progressMetrics.change7d > 0 ? '+' : ''}
-                    {progressMetrics.change7d.toFixed(1)} kg
-                  </p>
+              {metricType !== 'calidad' && (
+                <div className="space-y-5 md:col-span-4">
+                  <div className="border-l-2 border-primary/20 pl-3.5">
+                    <p className="portal-label">
+                      {t('components.clientdetail.summarypanel.change_7_days')}
+                    </p>
+                    <p
+                      className={`portal-metric mt-1 ${
+                        progressMetrics.change7d < 0
+                          ? 'text-green-500'
+                          : progressMetrics.change7d > 0
+                            ? 'text-rose-500'
+                            : 'text-foreground'
+                      }`}
+                    >
+                      {progressMetrics.change7d > 0 ? '+' : ''}
+                      {progressMetrics.change7d.toFixed(1)} kg
+                    </p>
+                  </div>
+                  <div className="border-l-2 border-primary/20 pl-3.5">
+                    <p className="portal-label">
+                      {t('components.clientdetail.summarypanel.weekly_average')}
+                    </p>
+                    <p className="portal-metric mt-1 text-foreground">
+                      {progressMetrics.avgWeeklyChange > 0 ? '+' : ''}
+                      {progressMetrics.avgWeeklyChange.toFixed(2)} kg/día
+                    </p>
+                  </div>
+                  <div className="border-l-2 border-primary/20 pl-3.5">
+                    <p className="portal-label">
+                      {t('components.clientdetail.summarypanel.starting_weight')}
+                    </p>
+                    <p className="portal-metric mt-1 text-foreground">
+                      {progressMetrics.initialWeight.toFixed(1)} kg
+                    </p>
+                  </div>
                 </div>
-                <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="portal-label">
-                    {t('components.clientdetail.summarypanel.weekly_average')}
-                  </p>
-                  <p className="portal-metric mt-1 text-foreground">
-                    {progressMetrics.avgWeeklyChange > 0 ? '+' : ''}
-                    {progressMetrics.avgWeeklyChange.toFixed(2)} kg/día
-                  </p>
-                </div>
-                <div className="border-l-2 border-primary/20 pl-3.5">
-                  <p className="portal-label">
-                    {t('components.clientdetail.summarypanel.starting_weight')}
-                  </p>
-                  <p className="portal-metric mt-1 text-foreground">
-                    {progressMetrics.initialWeight.toFixed(1)} kg
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

@@ -60,6 +60,15 @@ class OFFProductNutrimentsDTO {
   // final double? fiber_value;
   // final String? fiber_unit;
 
+  final dynamic sodium_100g;
+  final dynamic potassium_100g;
+  final dynamic calcium_100g;
+  final dynamic iron_100g;
+  @JsonKey(name: 'vitamin-c_100g')
+  final dynamic vitamin_c_100g;
+  @JsonKey(name: 'vitamin-d_100g')
+  final dynamic vitamin_d_100g;
+
   OFFProductNutrimentsDTO({
     //required this.energy_kcal,
     required this.energy_kcal_100g,
@@ -96,6 +105,12 @@ class OFFProductNutrimentsDTO {
     // required this.fiber_serving,
     // required this.fiber_value,
     // required this.fiber_unit,
+    this.sodium_100g,
+    this.potassium_100g,
+    this.calcium_100g,
+    this.iron_100g,
+    this.vitamin_c_100g,
+    this.vitamin_d_100g,
   });
 
   factory OFFProductNutrimentsDTO.fromJson(Map<String, dynamic> json) =>

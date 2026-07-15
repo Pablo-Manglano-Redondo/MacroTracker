@@ -4,6 +4,7 @@ import 'package:macrotracker/core/domain/entity/food_quality_score_entity.dart';
 import 'package:macrotracker/core/domain/entity/intake_entity.dart';
 import 'package:macrotracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:macrotracker/features/meal_capture/domain/entity/interpretation_draft_entity.dart';
+import 'package:collection/collection.dart';
 
 class CalculateFoodQualityScoreUsecase {
   FoodQualityScoreEntity scoreMeal(MealEntity meal) {
@@ -58,6 +59,35 @@ class CalculateFoodQualityScoreUsecase {
 
     final double energyVal = input.energy ?? 0;
     final double baseKcal = energyVal > 0 ? energyVal : 100.0;
+
+    if (input.novaGroup != null) {
+      final nova = input.novaGroup!;
+      if (nova == 1) {
+        score += 10.0;
+        contributions.add(const _ReasonContribution(FoodQualityReasonCode.unprocessedFood, 10.0));
+      } else if (nova == 3) {
+        score -= 10.0;
+      } else if (nova == 4) {
+        score -= 25.0;
+        contributions.add(const _ReasonContribution(FoodQualityReasonCode.ultraProcessedFood, 25.0));
+      }
+      knownSignals++;
+    }
+
+    int micronutrientsPresent = 0;
+    if (input.sodium != null && input.sodium! > 0) micronutrientsPresent++;
+    if (input.potassium != null && input.potassium! > 0) micronutrientsPresent++;
+    if (input.calcium != null && input.calcium! > 0) micronutrientsPresent++;
+    if (input.iron != null && input.iron! > 0) micronutrientsPresent++;
+    if (input.vitaminC != null && input.vitaminC! > 0) micronutrientsPresent++;
+    if (input.vitaminD != null && input.vitaminD! > 0) micronutrientsPresent++;
+
+    if (micronutrientsPresent >= 3) {
+      final bonus = micronutrientsPresent * 2.0; // up to 12 points
+      score += bonus;
+      contributions.add(_ReasonContribution(FoodQualityReasonCode.highMicronutrients, bonus));
+      knownSignals++;
+    }
 
     if (input.fiber != null) {
       final fiberVal = input.fiber!;
@@ -250,6 +280,13 @@ class _FoodQualityInput {
   final double? sugar;
   final double? fiber;
   final double? saturatedFat;
+  final int? novaGroup;
+  final double? sodium;
+  final double? potassium;
+  final double? calcium;
+  final double? iron;
+  final double? vitaminC;
+  final double? vitaminD;
   final bool isServingBased;
 
   const _FoodQualityInput({
@@ -258,6 +295,13 @@ class _FoodQualityInput {
     required this.sugar,
     required this.fiber,
     required this.saturatedFat,
+    this.novaGroup,
+    this.sodium,
+    this.potassium,
+    this.calcium,
+    this.iron,
+    this.vitaminC,
+    this.vitaminD,
     required this.isServingBased,
   });
 
@@ -266,7 +310,14 @@ class _FoodQualityInput {
       protein != null ||
       sugar != null ||
       fiber != null ||
-      saturatedFat != null;
+      saturatedFat != null ||
+      novaGroup != null ||
+      sodium != null ||
+      potassium != null ||
+      calcium != null ||
+      iron != null ||
+      vitaminC != null ||
+      vitaminD != null;
 
   factory _FoodQualityInput.fromMeal(MealEntity meal) {
     final servingBased = meal.mealUnit == 'serving';
@@ -277,6 +328,13 @@ class _FoodQualityInput {
         sugar: meal.nutriments.sugarsPerUnit,
         fiber: meal.nutriments.fiberPerUnit,
         saturatedFat: meal.nutriments.saturatedFatPerUnit,
+        novaGroup: meal.nutriments.novaGroup,
+        sodium: meal.nutriments.sodiumPerUnit,
+        potassium: meal.nutriments.potassiumPerUnit,
+        calcium: meal.nutriments.calciumPerUnit,
+        iron: meal.nutriments.ironPerUnit,
+        vitaminC: meal.nutriments.vitaminCPerUnit,
+        vitaminD: meal.nutriments.vitaminDPerUnit,
         isServingBased: true,
       );
     }
@@ -287,6 +345,13 @@ class _FoodQualityInput {
       sugar: meal.nutriments.sugars100,
       fiber: meal.nutriments.fiber100,
       saturatedFat: meal.nutriments.saturatedFat100,
+      novaGroup: meal.nutriments.novaGroup,
+      sodium: meal.nutriments.sodium100,
+      potassium: meal.nutriments.potassium100,
+      calcium: meal.nutriments.calcium100,
+      iron: meal.nutriments.iron100,
+      vitaminC: meal.nutriments.vitaminC100,
+      vitaminD: meal.nutriments.vitaminD100,
       isServingBased: false,
     );
   }
@@ -302,6 +367,13 @@ class _FoodQualityInput {
           ? null
           : math.max(0.0, draft.totalFiber!).toDouble(),
       saturatedFat: null,
+      novaGroup: draft.items.map((e) => e.novaGroup).whereType<int>().maxOrNull,
+      sodium: draft.totalSodium,
+      potassium: draft.totalPotassium,
+      calcium: draft.totalCalcium,
+      iron: draft.totalIron,
+      vitaminC: draft.totalVitaminC,
+      vitaminD: draft.totalVitaminD,
       isServingBased: true,
     );
   }

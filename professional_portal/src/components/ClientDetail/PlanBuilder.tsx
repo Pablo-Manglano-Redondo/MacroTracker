@@ -51,7 +51,8 @@ function loadTemplateDefaults(): { name: string; kcal: number; protein: number; 
 
 export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
   const { professional } = useAuth();
-  const { t } = usePortalI18n();
+  const { t, locale } = usePortalI18n();
+  const isEs = locale?.toLowerCase().startsWith('es');
   const billingSummary = getBillingSummary(professional);
   const template = loadTemplateDefaults();
   const mealSlotLabel = (slot: string) =>
@@ -660,6 +661,44 @@ export const PlanBuilder: React.FC<PlanBuilderProps> = ({ client }) => {
                       <span className="text-primary">{t('common.protein_short')}: {recipe.protein || 0}{t('common.grams_unit')}</span>
                       <span className="text-sky-500 dark:text-sky-300">{t('common.carbs_short')}: {recipe.carbs || 0}{t('common.grams_unit')}</span>
                       <span className="text-amber-500 dark:text-amber-300">{t('common.fat_short')}: {recipe.fat || 0}{t('common.grams_unit')}</span>
+                    </div>
+                    <div className="mt-2.5 flex items-center justify-between border-t border-border/40 pt-2">
+                      <span className="text-[9px] font-medium text-muted-foreground">
+                        {isEs ? 'Asignar:' : 'Assign:'}
+                      </span>
+                      <div className="flex gap-1">
+                        {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((slot) => (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() => {
+                              setMeals((prev) =>
+                                prev.map((meal) =>
+                                  meal.slot === slot
+                                    ? {
+                                        ...meal,
+                                        title: recipe.title,
+                                        kcal: recipe.kcal,
+                                        protein: recipe.protein,
+                                        carbs: recipe.carbs,
+                                        fat: recipe.fat,
+                                        recipe_id: recipe.id,
+                                      }
+                                    : meal,
+                                ),
+                              );
+                              toast.success(
+                                isEs
+                                  ? `Receta asignada a ${mealSlotLabel(slot)}`
+                                  : `Recipe assigned to ${mealSlotLabel(slot)}`
+                              );
+                            }}
+                            className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+                          >
+                            {mealSlotLabel(slot).slice(0, 3)}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

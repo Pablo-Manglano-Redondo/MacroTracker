@@ -16,6 +16,12 @@ OFFProductNutrimentsDTO _$OFFProductNutrimentsDTOFromJson(
       sugars_100g: json['sugars_100g'],
       saturated_fat_100g: json['saturated-fat_100g'],
       fiber_100g: json['fiber_100g'],
+      sodium_100g: json['sodium_100g'],
+      potassium_100g: json['potassium_100g'],
+      calcium_100g: json['calcium_100g'],
+      iron_100g: json['iron_100g'],
+      vitamin_c_100g: json['vitamin-c_100g'],
+      vitamin_d_100g: json['vitamin-d_100g'],
     );
 
 Map<String, dynamic> _$OFFProductNutrimentsDTOToJson(
@@ -28,4 +34,10 @@ Map<String, dynamic> _$OFFProductNutrimentsDTOToJson(
       'sugars_100g': instance.sugars_100g,
       'saturated-fat_100g': instance.saturated_fat_100g,
       'fiber_100g': instance.fiber_100g,
+      'sodium_100g': instance.sodium_100g,
+      'potassium_100g': instance.potassium_100g,
+      'calcium_100g': instance.calcium_100g,
+      'iron_100g': instance.iron_100g,
+      'vitamin-c_100g': instance.vitamin_c_100g,
+      'vitamin-d_100g': instance.vitamin_d_100g,
     };

@@ -14,6 +14,13 @@ class InterpretationDraftItemEntity extends Equatable {
   final double protein;
   final double? fiber;
   final double? sugar;
+  final double? sodium;
+  final double? potassium;
+  final double? calcium;
+  final double? iron;
+  final double? vitaminC;
+  final double? vitaminD;
+  final int? novaGroup;
   final ConfidenceBandEntity confidenceBand;
   final bool editable;
   final bool removed;
@@ -30,6 +37,13 @@ class InterpretationDraftItemEntity extends Equatable {
     required this.protein,
     this.fiber,
     this.sugar,
+    this.sodium,
+    this.potassium,
+    this.calcium,
+    this.iron,
+    this.vitaminC,
+    this.vitaminD,
+    this.novaGroup,
     required this.confidenceBand,
     required this.editable,
     required this.removed,
@@ -47,6 +61,13 @@ class InterpretationDraftItemEntity extends Equatable {
     double? protein,
     double? fiber,
     double? sugar,
+    double? sodium,
+    double? potassium,
+    double? calcium,
+    double? iron,
+    double? vitaminC,
+    double? vitaminD,
+    int? novaGroup,
     ConfidenceBandEntity? confidenceBand,
     bool? editable,
     bool? removed,
@@ -63,6 +84,13 @@ class InterpretationDraftItemEntity extends Equatable {
       protein: protein ?? this.protein,
       fiber: fiber ?? this.fiber,
       sugar: sugar ?? this.sugar,
+      sodium: sodium ?? this.sodium,
+      potassium: potassium ?? this.potassium,
+      calcium: calcium ?? this.calcium,
+      iron: iron ?? this.iron,
+      vitaminC: vitaminC ?? this.vitaminC,
+      vitaminD: vitaminD ?? this.vitaminD,
+      novaGroup: novaGroup ?? this.novaGroup,
       confidenceBand: confidenceBand ?? this.confidenceBand,
       editable: editable ?? this.editable,
       removed: removed ?? this.removed,
@@ -82,6 +110,13 @@ class InterpretationDraftItemEntity extends Equatable {
         protein,
         fiber,
         sugar,
+        sodium,
+        potassium,
+        calcium,
+        iron,
+        vitaminC,
+        vitaminD,
+        novaGroup,
         confidenceBand,
         editable,
         removed,

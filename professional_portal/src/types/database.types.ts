@@ -245,6 +245,13 @@ export interface ClientDiaryEntry {
   sugars: number | null;
   fiber: number | null;
   saturated_fat: number | null;
+  sodium: number | null;
+  potassium: number | null;
+  calcium: number | null;
+  iron: number | null;
+  vitamin_c: number | null;
+  vitamin_d: number | null;
+  nova_group: number | null;
   source: string | null;
   created_at: string;
 }

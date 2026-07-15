@@ -716,6 +716,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "buttonSaveLabel": MessageLookupByLibrary.simpleMessage("Save"),
         "buttonStartLabel": MessageLookupByLibrary.simpleMessage("START"),
         "buttonYesLabel": MessageLookupByLibrary.simpleMessage("YES"),
+        "calciumLabel": MessageLookupByLibrary.simpleMessage("Calcium"),
         "calculationsCurrentWeightFallback":
             MessageLookupByLibrary.simpleMessage("your current weight"),
         "calculationsGramPerKgHint": m17,
@@ -1027,6 +1028,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Calorie dense"),
         "foodQualityReasonHighFiber":
             MessageLookupByLibrary.simpleMessage("High fiber"),
+        "foodQualityReasonHighMicronutrients":
+            MessageLookupByLibrary.simpleMessage("High in micronutrients"),
         "foodQualityReasonHighSaturatedFat":
             MessageLookupByLibrary.simpleMessage("High saturated fat"),
         "foodQualityReasonHighSugar":
@@ -1037,6 +1040,11 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Moderate sugar"),
         "foodQualityReasonPartialData":
             MessageLookupByLibrary.simpleMessage("Partial data"),
+        "foodQualityReasonUltraProcessedFood":
+            MessageLookupByLibrary.simpleMessage(
+                "Contains ultra-processed ingredients"),
+        "foodQualityReasonUnprocessedFood":
+            MessageLookupByLibrary.simpleMessage("Mainly unprocessed food"),
         "foodQualitySubtitle":
             MessageLookupByLibrary.simpleMessage("Estimated nutrition score"),
         "foodQualityTitle":
@@ -1236,6 +1244,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Added new activity"),
         "infoAddedIntakeLabel":
             MessageLookupByLibrary.simpleMessage("Added new intake"),
+        "ironLabel": MessageLookupByLibrary.simpleMessage("Iron"),
         "itemDeletedSnackbar":
             MessageLookupByLibrary.simpleMessage("Item deleted"),
         "itemUpdatedSnackbar":
@@ -1957,6 +1966,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "Turn your data into adjustments"),
         "per100gmlLabel": MessageLookupByLibrary.simpleMessage("Per 100g/ml"),
         "perServingLabel": MessageLookupByLibrary.simpleMessage("Per Serving"),
+        "potassiumLabel": MessageLookupByLibrary.simpleMessage("Potassium"),
         "privacyPolicyLabel":
             MessageLookupByLibrary.simpleMessage("Privacy policy"),
         "professionalAcceptAndConnect":
@@ -2944,10 +2954,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "snackExample": MessageLookupByLibrary.simpleMessage(
             "e.g. apple, ice cream, chocolate ..."),
         "snackLabel": MessageLookupByLibrary.simpleMessage("Snack"),
+        "sodiumLabel": MessageLookupByLibrary.simpleMessage("Sodium"),
         "sugarLabel": MessageLookupByLibrary.simpleMessage("sugar"),
         "suppliedLabel": MessageLookupByLibrary.simpleMessage("supplied"),
         "todayLabel": MessageLookupByLibrary.simpleMessage("Today"),
         "unitLabel": MessageLookupByLibrary.simpleMessage("Unit"),
+        "vitaminCLabel": MessageLookupByLibrary.simpleMessage("Vitamin C"),
+        "vitaminDLabel": MessageLookupByLibrary.simpleMessage("Vitamin D"),
         "weeklyInsightsAdherence":
             MessageLookupByLibrary.simpleMessage("Adherence"),
         "weeklyInsightsAdjustmentSuccess": m110,

@@ -16,6 +16,13 @@ class MealNutrimentsEntity extends Equatable {
   final double? saturatedFat100;
   final double? fiber100;
 
+  final double? sodium100;
+  final double? potassium100;
+  final double? calcium100;
+  final double? iron100;
+  final double? vitaminC100;
+  final double? vitaminD100;
+  final int? novaGroup;
   double? get energyPerUnit => _getValuePerUnit(energyKcal100);
 
   double? get carbohydratesPerUnit => _getValuePerUnit(carbohydrates100);
@@ -30,14 +37,34 @@ class MealNutrimentsEntity extends Equatable {
 
   double? get fiberPerUnit => _getValuePerUnit(fiber100);
 
-  const MealNutrimentsEntity(
-      {required this.energyKcal100,
-      required this.carbohydrates100,
-      required this.fat100,
-      required this.proteins100,
-      required this.sugars100,
-      required this.saturatedFat100,
-      required this.fiber100});
+  double? get sodiumPerUnit => _getValuePerUnit(sodium100);
+
+  double? get potassiumPerUnit => _getValuePerUnit(potassium100);
+
+  double? get calciumPerUnit => _getValuePerUnit(calcium100);
+
+  double? get ironPerUnit => _getValuePerUnit(iron100);
+
+  double? get vitaminCPerUnit => _getValuePerUnit(vitaminC100);
+
+  double? get vitaminDPerUnit => _getValuePerUnit(vitaminD100);
+
+  const MealNutrimentsEntity({
+    required this.energyKcal100,
+    required this.carbohydrates100,
+    required this.fat100,
+    required this.proteins100,
+    required this.sugars100,
+    required this.saturatedFat100,
+    required this.fiber100,
+    this.sodium100,
+    this.potassium100,
+    this.calcium100,
+    this.iron100,
+    this.vitaminC100,
+    this.vitaminD100,
+    this.novaGroup,
+  });
 
   factory MealNutrimentsEntity.empty() => const MealNutrimentsEntity(
       energyKcal100: null,
@@ -46,7 +73,15 @@ class MealNutrimentsEntity extends Equatable {
       proteins100: null,
       sugars100: null,
       saturatedFat100: null,
-      fiber100: null);
+      fiber100: null,
+      sodium100: null,
+      potassium100: null,
+      calcium100: null,
+      iron100: null,
+      vitaminC100: null,
+      vitaminD100: null,
+      novaGroup: null,
+  );
 
   factory MealNutrimentsEntity.fromMealNutrimentsDBO(
       MealNutrimentsDBO nutriments) {
@@ -57,11 +92,19 @@ class MealNutrimentsEntity extends Equatable {
         proteins100: nutriments.proteins100,
         sugars100: nutriments.sugars100,
         saturatedFat100: nutriments.saturatedFat100,
-        fiber100: nutriments.fiber100);
+        fiber100: nutriments.fiber100,
+        sodium100: nutriments.sodium100,
+        potassium100: nutriments.potassium100,
+        calcium100: nutriments.calcium100,
+        iron100: nutriments.iron100,
+        vitaminC100: nutriments.vitaminC100,
+        vitaminD100: nutriments.vitaminD100,
+        novaGroup: nutriments.novaGroup,
+    );
   }
 
   factory MealNutrimentsEntity.fromOffNutriments(
-      OFFProductNutrimentsDTO offNutriments) {
+      OFFProductNutrimentsDTO offNutriments, [dynamic novaGroup]) {
     // 1. OFF product nutriments can either be String, int, double or null
     // 2. Extension function asDoubleOrNull does not work on a dynamic data
     // type, so cast to it Object?
@@ -75,7 +118,15 @@ class MealNutrimentsEntity extends Equatable {
         sugars100: (offNutriments.sugars_100g as Object?).asDoubleOrNull(),
         saturatedFat100:
             (offNutriments.saturated_fat_100g as Object?).asDoubleOrNull(),
-        fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull());
+        fiber100: (offNutriments.fiber_100g as Object?).asDoubleOrNull(),
+        sodium100: (offNutriments.sodium_100g as Object?).asDoubleOrNull(),
+        potassium100: (offNutriments.potassium_100g as Object?).asDoubleOrNull(),
+        calcium100: (offNutriments.calcium_100g as Object?).asDoubleOrNull(),
+        iron100: (offNutriments.iron_100g as Object?).asDoubleOrNull(),
+        vitaminC100: (offNutriments.vitamin_c_100g as Object?).asDoubleOrNull(),
+        vitaminD100: (offNutriments.vitamin_d_100g as Object?).asDoubleOrNull(),
+        novaGroup: novaGroup is int ? novaGroup : int.tryParse(novaGroup?.toString() ?? ''),
+    );
   }
 
   factory MealNutrimentsEntity.fromFDCNutriments(
@@ -125,6 +176,36 @@ class MealNutrimentsEntity extends Equatable {
             nutriment.nutrientId == FDCConst.fdcTotalDietaryFiberId)
         ?.amount;
 
+    final sodiumTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalSodiumId)
+        ?.amount;
+
+    final potassiumTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalPotassiumId)
+        ?.amount;
+
+    final calciumTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalCalciumId)
+        ?.amount;
+
+    final ironTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalIronId)
+        ?.amount;
+
+    final vitaminCTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalVitaminCId)
+        ?.amount;
+
+    final vitaminDTotal = fdcNutriment
+        .firstWhereOrNull((nutriment) =>
+            nutriment.nutrientId == FDCConst.fdcTotalVitaminDId)
+        ?.amount;
+
     return MealNutrimentsEntity(
         energyKcal100: energyTotal,
         carbohydrates100: carbsTotal,
@@ -132,7 +213,15 @@ class MealNutrimentsEntity extends Equatable {
         proteins100: proteinsTotal,
         sugars100: sugarTotal,
         saturatedFat100: saturatedFatTotal,
-        fiber100: fiberTotal);
+        fiber100: fiberTotal,
+        sodium100: sodiumTotal,
+        potassium100: potassiumTotal,
+        calcium100: calciumTotal,
+        iron100: ironTotal,
+        vitaminC100: vitaminCTotal,
+        vitaminD100: vitaminDTotal,
+        novaGroup: null, // FDC does not provide NOVA groups
+    );
   }
 
   static double? _getValuePerUnit(double? valuePer100) {
@@ -152,5 +241,12 @@ class MealNutrimentsEntity extends Equatable {
         sugars100,
         saturatedFat100,
         fiber100,
+        sodium100,
+        potassium100,
+        calcium100,
+        iron100,
+        vitaminC100,
+        vitaminD100,
+        novaGroup,
       ];
 }

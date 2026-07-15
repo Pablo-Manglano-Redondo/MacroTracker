@@ -1704,5 +1704,15 @@
   "weeklyShareTextReportWeightDelta": "Cambio de peso",
   "weeklyShareTitle": "Compartir progreso",
   "weightLabel": "Peso",
-  "yearsLabel": "{age} años"
+  "weightLabel": "Peso",
+  "yearsLabel": "{age} años",
+  "foodQualityReasonUnprocessedFood": "Alimento mayormente sin procesar",
+  "foodQualityReasonUltraProcessedFood": "Contiene ingredientes ultraprocesados",
+  "foodQualityReasonHighMicronutrients": "Alto en micronutrientes",
+  "sodiumLabel": "Sodio",
+  "potassiumLabel": "Potasio",
+  "calciumLabel": "Calcio",
+  "ironLabel": "Hierro",
+  "vitaminCLabel": "Vitamina C",
+  "vitaminDLabel": "Vitamina D"
 }

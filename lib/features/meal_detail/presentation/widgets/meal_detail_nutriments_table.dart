@@ -79,7 +79,37 @@ class MealDetailNutrimentsTable extends StatelessWidget {
             _getNutrimentsTableRow(
                 S.of(context).proteinLabel,
                 "${_adjustValueForServing(product.nutriments.proteins100 ?? 0).roundToPrecision(2)}g",
-                textStyleNormal)
+                textStyleNormal),
+            if (product.nutriments.sodium100 != null && product.nutriments.sodium100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).sodiumLabel,
+                  "${_adjustValueForServing(product.nutriments.sodium100 ?? 0).roundToPrecision(2)}mg",
+                  textStyleNormal),
+            if (product.nutriments.potassium100 != null && product.nutriments.potassium100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).potassiumLabel,
+                  "${_adjustValueForServing(product.nutriments.potassium100 ?? 0).roundToPrecision(2)}mg",
+                  textStyleNormal),
+            if (product.nutriments.calcium100 != null && product.nutriments.calcium100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).calciumLabel,
+                  "${_adjustValueForServing(product.nutriments.calcium100 ?? 0).roundToPrecision(2)}mg",
+                  textStyleNormal),
+            if (product.nutriments.iron100 != null && product.nutriments.iron100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).ironLabel,
+                  "${_adjustValueForServing(product.nutriments.iron100 ?? 0).roundToPrecision(2)}mg",
+                  textStyleNormal),
+            if (product.nutriments.vitaminC100 != null && product.nutriments.vitaminC100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).vitaminCLabel,
+                  "${_adjustValueForServing(product.nutriments.vitaminC100 ?? 0).roundToPrecision(2)}mg",
+                  textStyleNormal),
+            if (product.nutriments.vitaminD100 != null && product.nutriments.vitaminD100! > 0)
+              _getNutrimentsTableRow(
+                  S.of(context).vitaminDLabel,
+                  "${_adjustValueForServing(product.nutriments.vitaminD100 ?? 0).roundToPrecision(2)}µg",
+                  textStyleNormal)
           ],
         )
       ],

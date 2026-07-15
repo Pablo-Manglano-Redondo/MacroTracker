@@ -73,6 +73,13 @@ class MealAggregateFactory {
         sugars100: draft.totalSugar,
         saturatedFat100: null,
         fiber100: draft.totalFiber,
+        sodium100: draft.totalSodium,
+        potassium100: draft.totalPotassium,
+        calcium100: draft.totalCalcium,
+        iron100: draft.totalIron,
+        vitaminC100: draft.totalVitaminC,
+        vitaminD100: draft.totalVitaminD,
+        novaGroup: draft.items.map((e) => e.novaGroup).whereType<int>().maxOrNull,
       ),
       source: MealSourceEntity.custom,
     );

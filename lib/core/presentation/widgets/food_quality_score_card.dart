@@ -194,6 +194,12 @@ class FoodQualityUiMeta {
         return S.of(context).foodQualityReasonHighSaturatedFat;
       case FoodQualityReasonCode.partialData:
         return S.of(context).foodQualityReasonPartialData;
+      case FoodQualityReasonCode.unprocessedFood:
+        return S.of(context).foodQualityReasonUnprocessedFood;
+      case FoodQualityReasonCode.ultraProcessedFood:
+        return S.of(context).foodQualityReasonUltraProcessedFood;
+      case FoodQualityReasonCode.highMicronutrients:
+        return S.of(context).foodQualityReasonHighMicronutrients;
     }
   }
 }

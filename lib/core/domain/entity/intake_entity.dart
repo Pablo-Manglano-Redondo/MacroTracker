@@ -42,6 +42,13 @@ class IntakeEntity extends Equatable {
 
   double get totalProteinsGram => _nutrition.protein;
 
+  double get totalSodiumMg => _nutrition.sodium ?? 0.0;
+  double get totalPotassiumMg => _nutrition.potassium ?? 0.0;
+  double get totalCalciumMg => _nutrition.calcium ?? 0.0;
+  double get totalIronMg => _nutrition.iron ?? 0.0;
+  double get totalVitaminCMg => _nutrition.vitaminC ?? 0.0;
+  double get totalVitaminDMcg => _nutrition.vitaminD ?? 0.0;
+
   @override
   List<Object?> get props => [id, unit, amount, type, dateTime];
 }

@@ -149,6 +149,7 @@ void main() {
         product_name_en: 'Apple',
         product_name_fr: 'Pomme',
         product_name_de: 'Apfel',
+        nova_group: 1,
         nutriments: OFFProductNutrimentsDTO(
           energy_kcal_100g: 52,
           carbohydrates_100g: 14,
@@ -288,6 +289,7 @@ void main() {
         product_name_en: 'Pear',
         product_name_fr: 'Poire',
         product_name_de: 'Birne',
+        nova_group: 1,
         nutriments: OFFProductNutrimentsDTO(
           energy_kcal_100g: 57,
           carbohydrates_100g: 15,

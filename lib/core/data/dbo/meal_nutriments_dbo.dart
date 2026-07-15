@@ -21,26 +21,56 @@ class MealNutrimentsDBO extends HiveObject {
   final double? saturatedFat100;
   @HiveField(6)
   final double? fiber100;
+  @HiveField(7)
+  final double? sodium100;
+  @HiveField(8)
+  final double? potassium100;
+  @HiveField(9)
+  final double? calcium100;
+  @HiveField(10)
+  final double? iron100;
+  @HiveField(11)
+  final double? vitaminC100;
+  @HiveField(12)
+  final double? vitaminD100;
+  @HiveField(13)
+  final int? novaGroup;
 
-  MealNutrimentsDBO(
-      {required this.energyKcal100,
-      required this.carbohydrates100,
-      required this.fat100,
-      required this.proteins100,
-      required this.sugars100,
-      required this.saturatedFat100,
-      required this.fiber100});
+  MealNutrimentsDBO({
+    required this.energyKcal100,
+    required this.carbohydrates100,
+    required this.fat100,
+    required this.proteins100,
+    required this.sugars100,
+    required this.saturatedFat100,
+    required this.fiber100,
+    this.sodium100,
+    this.potassium100,
+    this.calcium100,
+    this.iron100,
+    this.vitaminC100,
+    this.vitaminD100,
+    this.novaGroup,
+  });
 
   factory MealNutrimentsDBO.fromProductNutrimentsEntity(
       MealNutrimentsEntity nutriments) {
     return MealNutrimentsDBO(
-        energyKcal100: nutriments.energyKcal100,
-        carbohydrates100: nutriments.carbohydrates100,
-        fat100: nutriments.fat100,
-        proteins100: nutriments.proteins100,
-        sugars100: nutriments.sugars100,
-        saturatedFat100: nutriments.saturatedFat100,
-        fiber100: nutriments.fiber100);
+      energyKcal100: nutriments.energyKcal100,
+      carbohydrates100: nutriments.carbohydrates100,
+      fat100: nutriments.fat100,
+      proteins100: nutriments.proteins100,
+      sugars100: nutriments.sugars100,
+      saturatedFat100: nutriments.saturatedFat100,
+      fiber100: nutriments.fiber100,
+      sodium100: nutriments.sodium100,
+      potassium100: nutriments.potassium100,
+      calcium100: nutriments.calcium100,
+      iron100: nutriments.iron100,
+      vitaminC100: nutriments.vitaminC100,
+      vitaminD100: nutriments.vitaminD100,
+      novaGroup: nutriments.novaGroup,
+    );
   }
 
   factory MealNutrimentsDBO.fromJson(Map<String, dynamic> json) =>

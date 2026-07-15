@@ -17,6 +17,9 @@ enum FoodQualityReasonCode {
   lowEnergyDensity,
   highSaturatedFat,
   partialData,
+  unprocessedFood,
+  ultraProcessedFood,
+  highMicronutrients,
 }
 
 class FoodQualityScoreEntity extends Equatable {

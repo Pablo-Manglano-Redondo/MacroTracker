@@ -35,6 +35,13 @@ export type MealInterpretationItem = {
   protein: number;
   fiber?: number;
   sugar?: number;
+  sodium?: number;
+  potassium?: number;
+  calcium?: number;
+  iron?: number;
+  vitaminC?: number;
+  vitaminD?: number;
+  novaGroup?: number;
   confidenceBand: "low" | "medium" | "high";
   editable: boolean;
 };
@@ -50,6 +57,12 @@ export type MealInterpretationResponse = {
     protein: number;
     fiber?: number;
     sugar?: number;
+    sodium?: number;
+    potassium?: number;
+    calcium?: number;
+    iron?: number;
+    vitaminC?: number;
+    vitaminD?: number;
   };
   items: MealInterpretationItem[];
 };
@@ -382,11 +395,12 @@ function buildSystemPrompt(mode: InterpretationMode, locale?: string): string {
     "",
     "## Core Rules",
     "1. Use units: g, ml, serving, oz, fl oz, g/ml. Prefer g or ml when the food has a clear weight/volume. Use 'serving' only when portion is truly ambiguous.",
-    "2. Estimate kcal, carbs, fat, protein per item. Totals MUST equal the sum of all items.",
-    "3. Ensure macro-calorie coherence: kcal \u2248 (carbs \u00d7 4) + (protein \u00d7 4) + (fat \u00d7 9). Tolerance: \u00b110%.",
-    "4. Do NOT invent brands unless the user names one explicitly.",
-    `5. Respond with all text fields (title, summary, labels) in ${responseLanguage}.`,
-    "6. Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values.",
+    "2. Estimate kcal, carbs, fat, protein, and optionally fiber, sugar, sodium, potassium, calcium, iron, vitaminC, vitaminD per item.",
+    "3. Estimate the NOVA processing group (1=unprocessed, 2=culinary ingredient, 3=processed, 4=ultra-processed) for each item as novaGroup.",
+    "4. Ensure macro-calorie coherence: kcal \u2248 (carbs \u00d7 4) + (protein \u00d7 4) + (fat \u00d7 9). Tolerance: \u00b110%.",
+    "5. Do NOT invent brands unless the user names one explicitly.",
+    `6. Respond with all text fields (title, summary, labels) in ${responseLanguage}.`,
+    "7. Keep JSON keys, unit values, and confidenceBand enum values exactly as specified; translate only user-visible values.",
     "",
     "## Portion Estimation Guidelines",
     "Before estimating, mentally reason about the likely portion size:",
@@ -454,14 +468,14 @@ function buildFinalRetryPrompt(locale?: string): string {
     "Use 2-6 visible food components. Do not return placeholder item names.",
     "For complex plates, group foods into macro-relevant components instead of listing every tiny topping: protein, starch/grain, vegetables/salad, sauces/fats, extras.",
     "For mixed dishes, use a real label such as 'Mixed rice and chicken', 'Creamy pasta with toppings', or 'Mixed tapas plate'.",
-    "Every item must include: id, label, amount, unit, kcal, carbs, fat, protein, confidenceBand, editable.",
+    "Every item must include: id, label, amount, unit, kcal, carbs, fat, protein, confidenceBand, editable. Also estimate novaGroup (1-4) and key micronutrients (sodium, potassium, etc) if possible.",
     "Use practical units: g, ml, serving, oz, fl oz, or g/ml.",
     "Prefer g or ml for recognizable foods. Use serving only when weight is truly unclear.",
     "Every item must have amount > 0 and realistic kcal/macros. Do not use zero kcal unless the visible item is water or a zero-calorie drink.",
     "If exact ingredients are uncertain, estimate the main visible components with low confidence. Do not fail by returning zero nutrition.",
     "Totals must equal the sum of items.",
     "Keep title and summary short.",
-    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"food name\",\"amount\":100,\"unit\":\"g\",\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0,\"confidenceBand\":\"low|medium|high\",\"editable\":true}]}",
+    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"food name\",\"amount\":100,\"unit\":\"g\",\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0,\"novaGroup\":1,\"sodium\":0,\"confidenceBand\":\"low|medium|high\",\"editable\":true}]}",
   ].join("\n");
 }
 
@@ -475,12 +489,12 @@ function buildComplexPhotoFallbackPrompt(locale?: string): string {
     "Do not try to identify every small ingredient. Group the plate into 3-5 macro components.",
     "Use these component types when useful: main protein, carb base, vegetables/salad, sauce or cooking fat, calorie-dense extras.",
     "Each item label must be a real food/component name, never 'Detected item' or 'Meal item'.",
-    "Each item must include a realistic amount, unit, kcal, carbs, fat, protein, confidenceBand, and editable=true.",
+    "Each item must include a realistic amount, unit, kcal, carbs, fat, protein, confidenceBand, and editable=true. Optionally estimate novaGroup and micronutrients.",
     "Use low confidence when uncertain, but still produce a realistic editable estimate.",
     "Use g for solid components and ml for sauces/drinks when possible.",
     "Totals must equal the sum of the items.",
     "If the whole plate is inseparable, return 2-3 broad real components plus one 'Mixed dish estimate' component with realistic macros.",
-    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"main protein\",\"amount\":120,\"unit\":\"g\",\"kcal\":220,\"carbs\":0,\"fat\":8,\"protein\":32,\"confidenceBand\":\"low\",\"editable\":true}]}",
+    "JSON shape: {\"title\":\"...\",\"summary\":\"...\",\"confidenceBand\":\"low|medium|high\",\"totals\":{\"kcal\":0,\"carbs\":0,\"fat\":0,\"protein\":0},\"items\":[{\"id\":\"item_1\",\"label\":\"main protein\",\"amount\":120,\"unit\":\"g\",\"kcal\":220,\"carbs\":0,\"fat\":8,\"protein\":32,\"novaGroup\":2,\"sodium\":100,\"confidenceBand\":\"low\",\"editable\":true}]}",
   ].join("\n");
 }
 

@@ -27,6 +27,12 @@ class InterpretationDraftEntity extends Equatable {
   final double totalProtein;
   final double? totalFiber;
   final double? totalSugar;
+  final double? totalSodium;
+  final double? totalPotassium;
+  final double? totalCalcium;
+  final double? totalIron;
+  final double? totalVitaminC;
+  final double? totalVitaminD;
   final ConfidenceBandEntity confidenceBand;
   final DraftStatusEntity status;
   final DateTime createdAt;
@@ -46,6 +52,12 @@ class InterpretationDraftEntity extends Equatable {
     required this.totalProtein,
     this.totalFiber,
     this.totalSugar,
+    this.totalSodium,
+    this.totalPotassium,
+    this.totalCalcium,
+    this.totalIron,
+    this.totalVitaminC,
+    this.totalVitaminD,
     required this.confidenceBand,
     required this.status,
     required this.createdAt,
@@ -66,6 +78,12 @@ class InterpretationDraftEntity extends Equatable {
     double? totalProtein,
     double? totalFiber,
     double? totalSugar,
+    double? totalSodium,
+    double? totalPotassium,
+    double? totalCalcium,
+    double? totalIron,
+    double? totalVitaminC,
+    double? totalVitaminD,
     ConfidenceBandEntity? confidenceBand,
     DraftStatusEntity? status,
     DateTime? createdAt,
@@ -85,6 +103,12 @@ class InterpretationDraftEntity extends Equatable {
       totalProtein: totalProtein ?? this.totalProtein,
       totalFiber: totalFiber ?? this.totalFiber,
       totalSugar: totalSugar ?? this.totalSugar,
+      totalSodium: totalSodium ?? this.totalSodium,
+      totalPotassium: totalPotassium ?? this.totalPotassium,
+      totalCalcium: totalCalcium ?? this.totalCalcium,
+      totalIron: totalIron ?? this.totalIron,
+      totalVitaminC: totalVitaminC ?? this.totalVitaminC,
+      totalVitaminD: totalVitaminD ?? this.totalVitaminD,
       confidenceBand: confidenceBand ?? this.confidenceBand,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -107,6 +131,12 @@ class InterpretationDraftEntity extends Equatable {
         totalProtein,
         totalFiber,
         totalSugar,
+        totalSodium,
+        totalPotassium,
+        totalCalcium,
+        totalIron,
+        totalVitaminC,
+        totalVitaminD,
         confidenceBand,
         status,
         createdAt,

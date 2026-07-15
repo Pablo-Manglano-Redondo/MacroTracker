@@ -1704,5 +1704,15 @@
   "weeklyShareTextReportWeightDelta": "Weight change",
   "weeklyShareTitle": "Share progress",
   "weightLabel": "Weight",
-  "yearsLabel": "{age} years"
+  "weightLabel": "Weight",
+  "yearsLabel": "{age} years",
+  "foodQualityReasonUnprocessedFood": "Mainly unprocessed food",
+  "foodQualityReasonUltraProcessedFood": "Contains ultra-processed ingredients",
+  "foodQualityReasonHighMicronutrients": "High in micronutrients",
+  "sodiumLabel": "Sodium",
+  "potassiumLabel": "Potassium",
+  "calciumLabel": "Calcium",
+  "ironLabel": "Iron",
+  "vitaminCLabel": "Vitamin C",
+  "vitaminDLabel": "Vitamin D"
 }
