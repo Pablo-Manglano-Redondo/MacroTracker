@@ -38,7 +38,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
   late MealPhotoCaptureScreenArguments _args;
   String? _loadingStatus;
   Uint8List? _loadingPreviewBytes;
-  _SelectedMealPhoto? _pendingPhoto;
 
   bool get _isLoading => _loadingStatus != null;
 
@@ -187,23 +186,14 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                 ),
                 const SizedBox(height: 16),
                 const AiTrialBanner(placement: PaywallPlacement.aiPhoto),
-                const SizedBox(height: 16),
-                if (_pendingPhoto != null) ...[
-                  _SelectedPhotoPreview(
-                    photo: _pendingPhoto!,
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
                     onPressed: _isLoading ? null : _captureAndPreviewPhoto,
                     icon: const Icon(Icons.camera_alt_outlined),
                     label: Text(
-                      _pendingPhoto == null
-                          ? S.of(context).aiPhotoTakePhoto
-                          : S.of(context).aiPhotoRetakePhoto,
+                      S.of(context).aiPhotoTakePhoto,
                     ),
                   ),
                 ),
@@ -226,33 +216,6 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
                         color: colorScheme.onSurfaceVariant,
                       ),
                 ),
-                if (_pendingPhoto != null) ...[
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed:
-                          _isLoading ? null : _confirmAndInterpretPendingPhoto,
-                      icon: const Icon(Icons.auto_awesome),
-                      label: Text(
-                        S.of(context).aiPhotoUseThisPhoto,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            setState(() {
-                              _pendingPhoto = null;
-                            });
-                          },
-                    child: Text(
-                      S.of(context).aiPhotoRemovePhoto,
-                    ),
-                  ),
-                ],
               ],
             ),
     );
@@ -354,10 +317,11 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
       imageQuality: 92,
     );
     if (picked == null) return;
-    await _setPendingPhoto(
+    final bytes = await picked.readAsBytes();
+    await _interpretPickedFile(
       fileName: picked.name.isEmpty ? 'captured.jpg' : picked.name,
       filePath: picked.path,
-      bytes: await picked.readAsBytes(),
+      bytes: bytes,
     );
   }
 
@@ -377,39 +341,10 @@ class _MealPhotoCaptureScreenState extends State<MealPhotoCaptureScreen> {
     if (bytes == null) {
       return;
     }
-    await _setPendingPhoto(
+    await _interpretPickedFile(
       fileName: file.name,
       filePath: file.path,
       bytes: bytes,
-    );
-  }
-
-  Future<void> _setPendingPhoto({
-    required String fileName,
-    required String? filePath,
-    required Uint8List bytes,
-  }) async {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _pendingPhoto = _SelectedMealPhoto(
-        fileName: fileName,
-        filePath: filePath,
-        bytes: bytes,
-      );
-    });
-  }
-
-  Future<void> _confirmAndInterpretPendingPhoto() async {
-    final photo = _pendingPhoto;
-    if (photo == null) {
-      return;
-    }
-    await _interpretPickedFile(
-      fileName: photo.fileName,
-      filePath: photo.filePath,
-      bytes: photo.bytes,
     );
   }
 
@@ -877,17 +812,7 @@ class _PhotoAiDebugStats {
 
 
 
-class _SelectedMealPhoto {
-  final String fileName;
-  final String? filePath;
-  final Uint8List bytes;
 
-  const _SelectedMealPhoto({
-    required this.fileName,
-    required this.filePath,
-    required this.bytes,
-  });
-}
 
 class MealPhotoCaptureScreenArguments {
   final DateTime day;
@@ -948,156 +873,4 @@ class _CaptureHintRow extends StatelessWidget {
   }
 }
 
-class _SelectedPhotoPreview extends StatefulWidget {
-  final _SelectedMealPhoto photo;
 
-  const _SelectedPhotoPreview({
-    required this.photo,
-  });
-
-  @override
-  State<_SelectedPhotoPreview> createState() => _SelectedPhotoPreviewState();
-}
-
-class _SelectedPhotoPreviewState extends State<_SelectedPhotoPreview> {
-  bool _cropPreview = true;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              S.of(context).aiPhotoCaptured,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              S.of(context).aiPhotoCapturedHint,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-            ),
-            const SizedBox(height: 10),
-            InkWell(
-              borderRadius: BorderRadius.circular(14),
-              onTap: () => _openZoomDialog(widget.photo),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: AspectRatio(
-                  aspectRatio: 4 / 3,
-                  child: Image.memory(
-                    widget.photo.bytes,
-                    fit: _cropPreview ? BoxFit.cover : BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: colorScheme.surfaceContainerHigh,
-                        alignment: Alignment.center,
-                        child: Text(
-                          S.of(context).aiPhotoPreviewError,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  setState(() {
-                    _cropPreview = !_cropPreview;
-                  });
-                },
-                icon: Icon(
-                  _cropPreview
-                      ? Icons.crop_outlined
-                      : Icons.fit_screen_outlined,
-                ),
-                label: Text(_cropPreview
-                    ? S.of(context).aiCropLabel
-                    : S.of(context).aiFitLabel),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openZoomDialog(_SelectedMealPhoto photo) async {
-    bool cropDialog = _cropPreview;
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return Dialog(
-              insetPadding: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            S.of(context).aiPhotoZoomTitle,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            setDialogState(() {
-                              cropDialog = !cropDialog;
-                            });
-                          },
-                          icon: Icon(cropDialog
-                              ? Icons.crop_outlined
-                              : Icons.fit_screen_outlined),
-                          label: Text(cropDialog
-                              ? S.of(context).aiCropLabel
-                              : S.of(context).aiFitLabel),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Flexible(
-                      child: AspectRatio(
-                        aspectRatio: 4 / 3,
-                        child: InteractiveViewer(
-                          minScale: 1,
-                          maxScale: 6,
-                          child: Image.memory(
-                            photo.bytes,
-                            fit: cropDialog ? BoxFit.cover : BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-}
